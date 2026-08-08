@@ -1,0 +1,10 @@
+import { AppConfig } from './types.js';
+
+export const DEFAULTS: AppConfig = {
+  graci: { version: '0.1.0', name: 'G.R.A.C.I.', full_name: 'General Reasoning, Automation, Coordination, and Intelligence' },
+  runtime: { node_env: 'development', log_level: 'info', persistent_state_path: './data/graci_state.json' },
+  ui: { min_width: 960, min_height: 640, initial_width: 1280, initial_height: 800, dark_mode: true },
+  ollama: { default_endpoint: 'http://localhost:11434', discovery_port_range: [11430, 11440], health_check_interval_ms: 60000, request_timeout_ms: 120000 },
+  logging: { max_file_size_mb: 10, max_files: 5, include_timestamps: true, console_output: true },
+  scheduler: { max_concurrent_tasks: 4, task_timeout_ms: 300000, background_priority_threshold_cpu: 70, background_priority_threshold_ram_percent: 85 },
+};

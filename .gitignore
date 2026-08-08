@@ -1,0 +1,60 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+pnpm-lock.yaml
+yarn.lock
+
+# Build output
+dist/
+build/
+out/
+*.tsc-out/
+
+# Electron
+electron/
+release/
+
+# TypeScript
+*.tsbuildinfo
+__pycache__/
+
+# Node
+.npm/
+.nyc_output/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Generated files
+*.log
+logs/
+data/*.db
+data/*.db-wal
+data/*.db-shm
+data/dbsqlite.db-journal
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Secrets/config overrides
+.env
+.env.*
+!.env.example
+
+# Testing coverage
+coverage/
+.nyc_output/
+
+# OS
+.DS_Store
+*.pyc
+__pycache__/
+*.dll
+*.so
+*.dylib

@@ -1,0 +1,13 @@
+<html>
+<head><meta charset="utf-8"><title>G.R.A.C.I.</title></head>
+<body style="background:#222;color:white;font-family:Arial,sans-serif;text-align:center;">
+<h1>Welcome to G.R.A.C.I.</h1>
+<p id="status">Loading...</p>
+<script>
+if (window.api && window.api.version) {
+  window.api.version().then(version => {
+    document.getElementById('status').textContent = 'App version: ' + version;
+  });
+}
+</script>
+</body></html>
