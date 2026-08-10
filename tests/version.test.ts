@@ -14,6 +14,8 @@ describe('Application Version IPC Architecture', () => {
     expect(preloadTsContent).toContain("ipcRenderer.invoke('graci:get-app-version')");
         // Verify app.getVersion() is NOT directly called in preload
     expect(preloadTsContent).not.toContain("app.getVersion()");
+  });
+
   it('should handle version asynchronously in renderer', () => {
     const rendererHtmlContent = fs.readFileSync(path.join(process.cwd(), 'src', 'ui', 'index.html'), 'utf8');
     // Verify that the renderer properly awaits the Promise

@@ -17,7 +17,8 @@
     "dark_mode": true
   },
   "ollama": {
-    "default_endpoint": "http://localhost:11434",
+    "default_endpoint": "http://192.168.0.249:11434",
+    "default_model": "gpt-oss:20b",
     "discovery_port_range": [11430, 11440],
     "health_check_interval_ms": 60000,
     "request_timeout_ms": 120000
