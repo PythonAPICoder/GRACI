@@ -58,3 +58,7 @@ __pycache__/
 *.dll
 *.so
 *.dylib
+
+# Keep G.R.A.C.I. engineering history logs under version control
+!docs/logs/
+!docs/logs/*.md
