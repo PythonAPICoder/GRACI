@@ -39,6 +39,46 @@ Use this log for decisions that matter but do not yet justify a dedicated ADR sy
 
 ---
 
+### DEC-0004 — Phase 1B Interrupted Execution Fails Closed Without Replay
+
+**Date**
+
+- 2026-08-12
+
+**Context**
+
+- Addendum 005 requires restart reconciliation and forbids blind replay of consequential work.
+- Phase 1B has no provider-specific reconciliation, retry engine, or idempotency policy.
+- A persisted running Attempt after process restart has an unknown external outcome.
+
+**Decision**
+
+- Recover a persisted running Attempt as terminal `indeterminate`, record a non-retryable `external_outcome_indeterminate` Failure, and transition its Task to `failed` atomically.
+- Never automatically execute that Task again in Phase 1B.
+- Fail explicitly if a running Task lacks its required persisted running Attempt.
+
+**Alternatives Considered**
+
+- Mark the Task succeeded without evidence.
+- Automatically rerun the Task.
+- Leave it indefinitely running without a recorded diagnosis.
+
+**Rationale**
+
+- The selected behavior preserves truth, prevents duplicate side effects, and implements the safe `marked failed` recovery disposition explicitly allowed by Addendum 005 E16.
+
+**Consequences**
+
+- Manual or future policy-driven recovery is required for interrupted work.
+- Later providers may introduce authoritative reconciliation and idempotent retry through a new approved phase.
+
+**Revisit Trigger**
+
+- A provider supplies reliable outcome reconciliation or checkpoint/resume.
+- A retry/idempotency policy is approved.
+
+---
+
 ### DEC-0003 — Architecture 2 Phase 1A SQLite Kernel
 
 **Date**

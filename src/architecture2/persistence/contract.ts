@@ -28,14 +28,33 @@ export interface Architecture2Persistence extends Disposable {
   getTaskGraphRevisions(goalId: GoalId): TaskGraphRevision[];
   createTask(task: Task, event: AuditEventInput): void;
   getTask(id: TaskId): Task | undefined;
+  getTasks(revisionId: TaskGraphRevisionId): Task[];
   updateTask(task: Task, expectedVersion: number, event: AuditEventInput): void;
   createTaskDependency(dependency: TaskDependency, event: AuditEventInput): void;
   getTaskDependencies(revisionId: TaskGraphRevisionId): TaskDependency[];
 
   createAttempt(attempt: Attempt, event: AuditEventInput): void;
   getAttempts(taskId: TaskId): Attempt[];
+  startAttempt(task: Task, expectedVersion: number, attempt: Attempt, events: readonly AuditEventInput[]): void;
+  recordAttemptOutcome(
+    task: Task,
+    expectedVersion: number,
+    attempt: Attempt,
+    failure: Failure | undefined,
+    events: readonly AuditEventInput[],
+  ): void;
+  recordVerificationOutcome(
+    task: Task,
+    expectedVersion: number,
+    verification: Verification,
+    failure: Failure | undefined,
+    events: readonly AuditEventInput[],
+  ): void;
+  recordTaskFailure(task: Task, expectedVersion: number, failure: Failure, events: readonly AuditEventInput[]): void;
   createVerification(verification: Verification, event: AuditEventInput): void;
+  getVerifications(taskId: TaskId): Verification[];
   createFailure(failure: Failure, event: AuditEventInput): void;
+  getFailures(taskId: TaskId): Failure[];
   createApproval(approval: Approval, event: AuditEventInput): void;
   createArtifact(artifact: ArtifactMetadata, event: AuditEventInput): void;
 

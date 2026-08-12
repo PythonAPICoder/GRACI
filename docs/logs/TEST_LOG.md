@@ -134,6 +134,60 @@ Record meaningful verification results. Do not duplicate raw automated-test outp
 
 ---
 
+### 2026-08-12 — Architecture 2 Phase 1B Workflow Kernel
+
+**Build / Revision**
+
+- Starting checkpoint: `384ad55407263648dfe3c1af3662954052c9245e`.
+- No dependency, package manifest, configuration, staging, commit, push, tag, reset, rebase, or history change.
+
+**Test Scope**
+
+- Valid, invalid, evidence-guarded, terminal, and stale-version transitions.
+- Required dependency waiting, release, upstream failure blocking, multi-level DAG order, and deterministic independent-task order.
+- Distinct immutable Attempts and deterministic numbering.
+- Execution success plus verification success/failure and execution failure without false verification success.
+- Successful and failed complete workflows.
+- Close/reopen non-reexecution, preserved history, continued planned work, and interrupted-running reconciliation.
+- State/event and Attempt/workflow atomic rollback.
+- Full Phase 1A and Architecture 1 regressions.
+
+**Automated Tests**
+
+- TypeScript validation: PASS.
+- Phase 1B focused suite: PASS, 14/14.
+- Phase 1A persistence suite: PASS, 11/11.
+- Full Vitest suite: PASS, 45/45 across 6 files.
+- Production build: PASS after using the documented normal-user context for inherited legacy `dist/services/ollama` ACLs.
+- `git diff --check`: PASS.
+
+**Runtime / Integration Verification**
+
+- Compiled Task state machine, Orchestrator, deterministic provider, and verifier loaded under Electron embedded Node: PASS.
+- No real AI or network execution introduced by Phase 1B.
+
+**G.R.A.C.I. Launch Verification**
+
+- Real Electron startup: PASS.
+- Five-second smoke window: PASS.
+- Startup log observed; stderr empty.
+- Clean test shutdown: PASS.
+- Architecture 1 runtime remains the active composition by design.
+
+**Result**
+
+- PASS
+
+**Final Artifact Inspection**
+
+- Repository SQLite/database/WAL/SHM artifacts: none.
+- Generated test artifacts tracked: none.
+- Dependency, package manifest, TypeScript configuration, and runtime configuration changes: none.
+- Generated `dist` changes: none.
+- Forbidden provider/network/model/GPU references in new workflow, execution, and verification source: none.
+
+---
+
 ### 2026-08-12 — Architecture 2 Phase 1A Durable Kernel
 
 **Build / Revision**

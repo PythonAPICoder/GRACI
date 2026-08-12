@@ -187,6 +187,11 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
     return row ? this.mapTask(row) : undefined;
   }
 
+  getTasks(revisionId: TaskGraphRevisionId): Task[] {
+    return (this.db().prepare(`SELECT * FROM tasks WHERE graph_revision_id = ?
+      ORDER BY created_at, id`).all(revisionId) as Row[]).map((row) => this.mapTask(row));
+  }
+
   updateTask(task: Task, expectedVersion: number, event: AuditEventInput): void {
     assertIdentifier(task.id, 'task id');
     if (task.version !== expectedVersion + 1) throw new Error('Task version must increment exactly once');
@@ -244,34 +249,83 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
 
   getAttempts(taskId: TaskId): Attempt[] {
     return (this.db().prepare('SELECT * FROM attempts WHERE task_id = ? ORDER BY attempt_number, id').all(taskId) as Row[])
-      .map((row) => ({ id: String(row.id) as Attempt['id'], taskId: String(row.task_id) as TaskId,
-        attemptNumber: Number(row.attempt_number), status: String(row.status) as Attempt['status'],
-        providerOfferingId: optionalString(row.provider_offering_id), computeNodeId: optionalString(row.compute_node_id),
-        inputSnapshot: parseObject(row.input_snapshot_json), result: row.result_json === null ? undefined : parseObject(row.result_json),
-        idempotencyKey: optionalString(row.idempotency_key), startedAt: optionalString(row.started_at),
-        completedAt: optionalString(row.completed_at), createdAt: String(row.created_at) }));
+      .map((row) => this.mapAttempt(row));
+  }
+
+  startAttempt(task: Task, expectedVersion: number, attempt: Attempt, events: readonly AuditEventInput[]): void {
+    this.transaction(() => {
+      this.updateTaskRow(task, expectedVersion);
+      this.insertAttempt(attempt);
+      this.insertEvents(events);
+    });
+  }
+
+  recordAttemptOutcome(
+    task: Task,
+    expectedVersion: number,
+    attempt: Attempt,
+    failure: Failure | undefined,
+    events: readonly AuditEventInput[],
+  ): void {
+    this.transaction(() => {
+      this.updateAttemptRow(attempt);
+      if (failure) this.insertFailure(failure);
+      this.updateTaskRow(task, expectedVersion);
+      this.insertEvents(events);
+    });
+  }
+
+  recordVerificationOutcome(
+    task: Task,
+    expectedVersion: number,
+    verification: Verification,
+    failure: Failure | undefined,
+    events: readonly AuditEventInput[],
+  ): void {
+    this.transaction(() => {
+      this.insertVerification(verification);
+      if (failure) this.insertFailure(failure);
+      this.updateTaskRow(task, expectedVersion);
+      this.insertEvents(events);
+    });
+  }
+
+  recordTaskFailure(task: Task, expectedVersion: number, failure: Failure, events: readonly AuditEventInput[]): void {
+    this.transaction(() => {
+      this.insertFailure(failure);
+      this.updateTaskRow(task, expectedVersion);
+      this.insertEvents(events);
+    });
   }
 
   createVerification(value: Verification, event: AuditEventInput): void {
     this.transaction(() => {
-      this.db().prepare(`INSERT INTO verifications
-        (id, task_id, attempt_id, verdict, plan_version, verifier, criterion_results_json, evidence_json, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-        .run(value.id, value.taskId, value.attemptId ?? null, value.verdict, value.planVersion, value.verifier,
-          json(value.criterionResults), json(value.evidence), value.createdAt);
+      this.insertVerification(value);
       this.insertEvent(event);
     });
   }
 
+  getVerifications(taskId: TaskId): Verification[] {
+    return (this.db().prepare('SELECT * FROM verifications WHERE task_id = ? ORDER BY created_at, id').all(taskId) as Row[])
+      .map((row) => ({ id: String(row.id) as Verification['id'], taskId: String(row.task_id) as TaskId,
+        attemptId: optionalString(row.attempt_id) as Verification['attemptId'], verdict: String(row.verdict) as Verification['verdict'],
+        planVersion: Number(row.plan_version), verifier: String(row.verifier), criterionResults: parseObject(row.criterion_results_json),
+        evidence: parseObject(row.evidence_json), createdAt: String(row.created_at) }));
+  }
+
   createFailure(value: Failure, event: AuditEventInput): void {
     this.transaction(() => {
-      this.db().prepare(`INSERT INTO failures
-        (id, task_id, attempt_id, category, code, summary, details_json, retryable, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-        .run(value.id, value.taskId, value.attemptId ?? null, value.category, value.code, value.summary,
-          json(value.details), value.retryable ? 1 : 0, value.createdAt);
+      this.insertFailure(value);
       this.insertEvent(event);
     });
+  }
+
+  getFailures(taskId: TaskId): Failure[] {
+    return (this.db().prepare('SELECT * FROM failures WHERE task_id = ? ORDER BY created_at, id').all(taskId) as Row[])
+      .map((row) => ({ id: String(row.id) as Failure['id'], taskId: String(row.task_id) as TaskId,
+        attemptId: optionalString(row.attempt_id) as Failure['attemptId'], category: String(row.category) as Failure['category'],
+        code: String(row.code), summary: String(row.summary), details: parseObject(row.details_json),
+        retryable: bool(row.retryable), createdAt: String(row.created_at) }));
   }
 
   createApproval(value: Approval, event: AuditEventInput): void {
@@ -342,6 +396,62 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
     return { ...event, sequence: Number(result.lastInsertRowid), previousHash, eventHash };
   }
 
+  private insertEvents(events: readonly AuditEventInput[]): void {
+    if (events.length === 0) throw new Error('At least one workflow event is required');
+    for (const event of events) this.insertEvent(event);
+  }
+
+  private updateTaskRow(task: Task, expectedVersion: number): void {
+    assertIdentifier(task.id, 'task id');
+    if (task.version !== expectedVersion + 1) throw new Error('Task version must increment exactly once');
+    validateTimestamp(task.updatedAt, 'task update timestamp');
+    const result = this.db().prepare(`UPDATE tasks SET
+      status = ?, terminal_reason = ?, version = ?, updated_at = ?, completed_at = ?
+      WHERE id = ? AND version = ?`)
+      .run(task.status, task.terminalReason ?? null, task.version, task.updatedAt,
+        task.completedAt ?? null, task.id, expectedVersion);
+    if (Number(result.changes) !== 1) throw new Error(`Task concurrency conflict: ${task.id}`);
+  }
+
+  private insertAttempt(attempt: Attempt): void {
+    assertIdentifier(attempt.id, 'attempt id');
+    validateTimestamp(attempt.createdAt, 'attempt creation timestamp');
+    this.db().prepare(`INSERT INTO attempts
+      (id, task_id, attempt_number, status, provider_offering_id, compute_node_id, input_snapshot_json,
+       result_json, idempotency_key, started_at, completed_at, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+      .run(attempt.id, attempt.taskId, attempt.attemptNumber, attempt.status, attempt.providerOfferingId ?? null,
+        attempt.computeNodeId ?? null, json(attempt.inputSnapshot), attempt.result ? json(attempt.result) : null,
+        attempt.idempotencyKey ?? null, attempt.startedAt ?? null, attempt.completedAt ?? null, attempt.createdAt);
+  }
+
+  private updateAttemptRow(attempt: Attempt): void {
+    assertIdentifier(attempt.id, 'attempt id');
+    if (!attempt.completedAt || !['succeeded', 'failed', 'cancelled', 'indeterminate'].includes(attempt.status)) {
+      throw new Error('Attempt outcome must be terminal and include completedAt');
+    }
+    const result = this.db().prepare(`UPDATE attempts SET status = ?, result_json = ?, completed_at = ?
+      WHERE id = ? AND task_id = ? AND status = 'running'`)
+      .run(attempt.status, attempt.result ? json(attempt.result) : null, attempt.completedAt, attempt.id, attempt.taskId);
+    if (Number(result.changes) !== 1) throw new Error(`Attempt concurrency conflict: ${attempt.id}`);
+  }
+
+  private insertVerification(value: Verification): void {
+    this.db().prepare(`INSERT INTO verifications
+      (id, task_id, attempt_id, verdict, plan_version, verifier, criterion_results_json, evidence_json, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+      .run(value.id, value.taskId, value.attemptId ?? null, value.verdict, value.planVersion, value.verifier,
+        json(value.criterionResults), json(value.evidence), value.createdAt);
+  }
+
+  private insertFailure(value: Failure): void {
+    this.db().prepare(`INSERT INTO failures
+      (id, task_id, attempt_id, category, code, summary, details_json, retryable, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+      .run(value.id, value.taskId, value.attemptId ?? null, value.category, value.code, value.summary,
+        json(value.details), value.retryable ? 1 : 0, value.createdAt);
+  }
+
   private validateGoal(goal: Goal): void {
     assertIdentifier(goal.id, 'goal id');
     if (!goal.objective.trim()) throw new Error('Goal objective is required');
@@ -381,5 +491,14 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
       retryPolicy: parseObject(row.retry_policy_json), verificationPlan: parseObject(row.verification_plan_json),
       terminalReason: optionalString(row.terminal_reason), version: Number(row.version), createdAt: String(row.created_at),
       updatedAt: String(row.updated_at), completedAt: optionalString(row.completed_at) };
+  }
+
+  private mapAttempt(row: Row): Attempt {
+    return { id: String(row.id) as Attempt['id'], taskId: String(row.task_id) as TaskId,
+      attemptNumber: Number(row.attempt_number), status: String(row.status) as Attempt['status'],
+      providerOfferingId: optionalString(row.provider_offering_id), computeNodeId: optionalString(row.compute_node_id),
+      inputSnapshot: parseObject(row.input_snapshot_json), result: row.result_json === null ? undefined : parseObject(row.result_json),
+      idempotencyKey: optionalString(row.idempotency_key), startedAt: optionalString(row.started_at),
+      completedAt: optionalString(row.completed_at), createdAt: String(row.created_at) };
   }
 }

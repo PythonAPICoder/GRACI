@@ -1,5 +1,26 @@
 # G.R.A.C.I. Phase 1 — Autonomous Recovery and Continuation
 
+## 2026-08-12 — Phase 1B Interrupted-Recovery Evidence Ordering
+
+**Failure**
+
+- After adding the evidence guard for `running -> failed`, one focused restart test failed because the Task transition was prepared before the recovered Attempt was represented as `indeterminate`.
+
+**Root Cause**
+
+- Recovery supplied the original running Attempt to a guard that correctly requires failed or indeterminate Attempt evidence.
+
+**Correction**
+
+- Constructed the indeterminate Attempt first and supplied it to the centralized state machine before the atomic recovery transaction.
+
+**Regression Result**
+
+- Phase 1B focused suite: 14/14 passed.
+- Full repository suite: 45/45 passed.
+
+---
+
 ## 2026-08-12 — Phase 1A Malformed-Identifier Test Fixture
 
 **Failure**

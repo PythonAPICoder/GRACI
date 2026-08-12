@@ -271,6 +271,33 @@ Implementation remains paused pending Product Owner and Architect review.
 
 ---
 
+## Architecture 2 Phase 1B — Guarded Workflow Kernel — August 12, 2026
+
+### Starting Point and Recovery
+
+- Verified clean checkpoint `384ad55407263648dfe3c1af3662954052c9245e` and baseline 31/31 tests.
+- Created a temporary checkpoint archive before source edits.
+
+### Implementation
+
+- Added one authoritative guarded Task state machine.
+- Added deterministic dependency evaluation and graph terminal detection.
+- Added a minimal provider-neutral execution contract and one deterministic in-process provider.
+- Added a separate deterministic verifier.
+- Added a sequential persistence-backed Orchestrator for one immutable graph revision.
+- Extended persistence with ordered graph/history queries and atomic Attempt, Verification, Failure, Task, and event transactions.
+- Implemented conservative restart recovery for interrupted scheduled/running work.
+- No migration 2 was needed; schema version 1 already supported the Phase 1B representation.
+- No real provider, network, model, endpoint, GPU, database-path default, dependency, configuration, Architecture 1, or UI change was introduced.
+
+### Verification Correction
+
+- After strengthening the state-machine guard for `running -> failed`, the interrupted-recovery test exposed that recovery prepared the Task transition before constructing the indeterminate Attempt evidence.
+- Reordered recovery to construct the indeterminate Attempt first, then validate and atomically persist Attempt, Failure, Task, and events.
+- Focused and full suites passed after correction.
+
+---
+
 ## Architecture 2 Phase 1A — Durable Domain and Persistence Kernel — August 12, 2026
 
 ### Authorization and Recovery
