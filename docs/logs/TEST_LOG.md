@@ -91,3 +91,97 @@ Record meaningful verification results. Do not duplicate raw automated-test outp
 - Agent self-reported completion or verification is non-authoritative
 - Executable verification remains authoritative: validation -> tests -> build -> runtime
 - Independent Architect/Reviewer verification remains required during current development stage
+
+---
+
+### 2026-08-12 — Architecture 2 Foundation Documentation
+
+**Build / Revision**
+
+- Documentation-only working tree based on `5792df3`
+
+**Test Scope**
+
+- Governance precedence and naming
+- Required Architecture 2 topic coverage
+- Internal heading/link hygiene
+- Repository scope compliance
+- Whitespace validation
+
+**Automated Tests**
+
+- No application build or runtime tests required because no runtime source, dependency, configuration, or persistent state was changed.
+- Required-topic coverage check: PASS (19/19 required sections found).
+- Duplicate-heading check: PASS.
+- `git diff --check`: PASS.
+- Documentation-only scope check: PASS (no changed path outside `docs/`).
+
+**Runtime / Integration Verification**
+
+- Not applicable to documentation-only work.
+
+**G.R.A.C.I. Launch Verification**
+
+- Not required: runtime behavior is unchanged.
+
+**Result**
+
+- PASS
+
+**Notes**
+
+- Architecture 2 implementation is explicitly not authorized by this documentation phase.
+
+---
+
+### 2026-08-12 — Architecture 2 Phase 1A Durable Kernel
+
+**Build / Revision**
+
+- Working tree based on `5792df3`; no commit, stage, tag, push, or history change.
+- System Node v24.19.0 / SQLite 3.53.3.
+- Electron embedded Node v24.18.1 / SQLite 3.53.1.
+
+**Test Scope**
+
+- Migration initialization and persisted schema version.
+- Close/reopen durability.
+- Foreign-key and identifier/invariant rejection.
+- Task dependency persistence and ordering.
+- Distinct retry-like Attempt preservation.
+- Append-only ordered events and SHA-256 hash chaining.
+- Atomic rollback when event insertion fails.
+- Optimistic concurrency conflict detection.
+- Disposable, isolated test databases.
+- Full Architecture 1 regression suite.
+
+**Automated Tests**
+
+- TypeScript validation (`tsc --noEmit`): PASS.
+- Focused Phase 1A suite: PASS, 11/11.
+- Full Vitest suite: PASS, 31/31 across 5 files.
+- Production build (`npm.cmd run build`): PASS after resolving the documented legacy-output ACL issue.
+- `git diff --check`: PASS.
+
+**Runtime / Integration Verification**
+
+- Compiled persistence provider executed under Electron's embedded Node: PASS.
+- Empty temporary database migrated to schema 1: PASS.
+- Close/reopen returned schema 1: PASS.
+- Temporary SQLite/WAL/SHM files removed after the test: PASS; none found in repository source, tests, docs, config, or data paths.
+
+**G.R.A.C.I. Launch Verification**
+
+- Startup: PASS; real Electron application remained running through the five-second smoke window.
+- Startup log: `[INFO] ... Electron app starting`.
+- UI/runtime regression: no startup or stderr failure observed.
+- Shutdown: PASS; launched process stopped cleanly after smoke verification.
+- Changed functionality: intentionally not wired into Architecture 1 runtime during Phase 1A.
+
+**Result**
+
+- PASS
+
+**Notes**
+
+- Expected error logs from mocked Ollama failure/timeout tests are not test failures.

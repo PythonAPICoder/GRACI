@@ -240,3 +240,68 @@ Based on the governance specification and current progress, the next phase shoul
 8. **UI Development**: Build professional UI with task monitoring, model status, and system resources
 
 The current Phase 1 foundation (coherent package structure, configuration system, structured logging, persistent-state foundation, task representation, initial module architecture, Tool Registry, Capability Registry, Model Registry, Node Registry, application/service health foundation, runnable G.R.A.C.I. desktop application shell, professional initial UI architecture) is verified and ready for Phase 2 development.
+
+---
+
+## Architecture 2 Foundation Specification — August 12, 2026
+
+### Scope
+
+Documentation and governance only. No application/runtime source, dependencies, configuration, persistent data, or Git history were changed.
+
+### Repository Findings
+
+- The current task manager is in-memory and supports only `pending`, `running`, `completed`, and `failed`.
+- The current state store performs whole-file JSON persistence without transactional workflow guarantees.
+- Tool, Capability, Model, and Node registries are thin prototype maps.
+- Ollama integration and Electron provide useful adapters/hosting foundations but must not define provider-independent core contracts.
+
+### Documentation Changes
+
+- Added `docs/governance/ADDENDUM_005_ARCHITECTURE_2_FOUNDATION.md`.
+- Updated `docs/governance/GOVERNANCE_INDEX.md` to include Addendum 005 in precedence order.
+- Added DEC-0002 to `docs/logs/DECISION_LOG.md`.
+- Added this development-history entry and a documentation-verification entry to `docs/logs/TEST_LOG.md`.
+
+### Outcome
+
+Architecture 2 is specified as a durable, evidence-driven, capability-first modular monolith with explicit Goal/Task state, immutable attempts, verification, approvals, bounded recovery, provider abstraction, multi-node scheduling, purpose-specific memory, auditability, and restart reconciliation.
+
+Implementation remains paused pending Product Owner and Architect review.
+
+---
+
+## Architecture 2 Phase 1A — Durable Domain and Persistence Kernel — August 12, 2026
+
+### Authorization and Recovery
+
+- Product Owner and Architect approved the Architecture 2 direction and the specific Phase 1A decisions recorded in Addendum 006.
+- Preserved the pre-implementation documentation and tracked diff in a temporary recovery snapshot before source changes.
+- No Git staging, commit, push, tag, or history operation was performed.
+
+### Environment Qualification
+
+- System Node: v24.19.0; `node:sqlite` available; SQLite 3.53.3.
+- Electron embedded Node: v24.18.1; `node:sqlite` available; SQLite 3.53.1.
+- Installed `@types/node` contains the `node:sqlite` declarations.
+- No dependency or package manifest change was necessary.
+
+### Implementation
+
+- Added strongly branded Architecture 2 identifiers and canonical persistence-oriented domain types.
+- Added a provider-independent persistence contract.
+- Added a native SQLite provider with schema migration version 1.
+- Added strict relational tables, foreign keys, uniqueness/check constraints, optimistic Goal/Task versions, immutable historical-record triggers, and deterministic queries.
+- Added explicit atomic transactions pairing state changes with append-only events.
+- Added deterministic canonical JSON and a SHA-256 previous-hash event chain.
+- Kept all Architecture 1 code and runtime composition unchanged.
+
+### Correction During Verification
+
+- The initial focused test run passed 9 of 10 tests. The malformed-ID test constructed its value through the validating branded-ID helper, so the expected validation occurred before the assertion boundary.
+- Corrected only the test fixture to deliberately supply an invalid typed value to the persistence boundary.
+- Reran focused tests successfully, then added an optimistic-concurrency case for 11 Phase 1A tests.
+
+### Deferred Work
+
+- Orchestration, state-machine policy enforcement, runtime database location/configuration, Architecture 1 import, artifact content storage, provider execution, and UI integration remain outside Phase 1A.

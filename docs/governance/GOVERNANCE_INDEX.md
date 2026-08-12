@@ -13,7 +13,9 @@ Read governance documents in this order:
 3. `ADDENDUM_002_MULTI_NODE_AI.md`
 4. `ADDENDUM_003_RELIABILITY_RECOVERY.md`
 5. `ADDENDUM_004_CAPABILITY_GOVERNANCE.md`
-6. Future numbered addendums in ascending numerical order
+6. `ADDENDUM_005_ARCHITECTURE_2_FOUNDATION.md`
+7. `ADDENDUM_006_ARCHITECTURE_2_PHASE_1A.md`
+8. Future numbered addendums in ascending numerical order
 
 The master specification is the immutable baseline.
 

@@ -39,6 +39,94 @@ Use this log for decisions that matter but do not yet justify a dedicated ADR sy
 
 ---
 
+### DEC-0003 — Architecture 2 Phase 1A SQLite Kernel
+
+**Date**
+
+- 2026-08-12
+
+**Context**
+
+- Product Owner and Architect approved controlled implementation of only the durable domain and persistence kernel.
+- System Node v24.19.0 and Electron's embedded Node v24.18.1 both expose the built-in `node:sqlite` `DatabaseSync` API.
+- The repository already contains `sql.js`, but Phase 1A requires restart-safe native SQLite behavior and prohibits adding another persistence dependency without approval.
+
+**Decision**
+
+- Use built-in `node:sqlite`; add no dependency.
+- Implement Architecture 2 in an isolated `src/architecture2` module with a provider-independent persistence contract.
+- Use SQLite schema migration version 1, relational current state, atomic state-plus-event transactions, and a deterministic SHA-256 event hash chain.
+- Keep Architecture 1 intact and disconnected from the new kernel in this phase.
+
+**Alternatives Considered**
+
+- `sql.js`, which uses an in-memory/WebAssembly database image and would require separate durability management.
+- `sqlite3`, `better-sqlite3`, an ORM, or a database server; all would add unauthorized dependencies or operational complexity.
+- Full event sourcing, which is explicitly outside the approved architecture.
+
+**Rationale**
+
+- `node:sqlite` is present in both production and test runtimes and its TypeScript declarations are already provided by the installed Node types.
+- SQLite supplies transactions, foreign keys, strict tables, constraints, and restart-safe local storage without dependency or configuration changes.
+- Isolation preserves current application behavior while establishing the new durable contract.
+
+**Consequences**
+
+- Runtime composition and migration from the Architecture 1 JSON store remain future work.
+- The SQLite database path must be supplied by the caller; no machine-specific default is introduced.
+- Applications packaged against a different Node/Electron runtime must requalify `node:sqlite` compatibility.
+
+**Revisit Trigger**
+
+- Electron or Node runtime changes remove or materially alter `node:sqlite`.
+- Measured concurrency or deployment requirements exceed the approved single-runtime SQLite design.
+- A later governance addendum authorizes a different persistence provider.
+
+---
+
+### DEC-0002 — Architecture 2 Foundation Proposed as a Durable Modular Monolith
+
+**Date**
+
+- 2026-08-12
+
+**Context**
+
+- The current Electron/TypeScript foundation contains useful prototypes but lacks durable Goal/Task orchestration, transactional state transitions, evidence-based completion, scoped approvals, and restart-safe execution.
+- Architecture 2 must remain provider-independent and support multiple local compute nodes without premature distributed-system complexity.
+
+**Decision**
+
+- Propose `ADDENDUM_005_ARCHITECTURE_2_FOUNDATION.md` as the authoritative Architecture 2 design for Product Owner and Architect review.
+- Begin future implementation with a durable workflow kernel in a modular monolith, using explicit provider boundaries and an append-only audit/event history.
+- Treat current task, state, and registry implementations as compatibility/prototype code rather than Architecture 2 contracts.
+
+**Alternatives Considered**
+
+- Extend the current in-memory task manager and JSON store incrementally without redefining domain semantics.
+- Begin with distributed services or adopt a vendor-specific agent/workflow framework.
+- Implement memory or broad autonomous planning before durable workflow and verification foundations.
+
+**Rationale**
+
+- A modular monolith minimizes operational complexity while preserving replaceable boundaries.
+- Durable attempts, verification, approvals, and events directly address governance requirements for evidence, recovery, and auditability.
+- Capability-first contracts prevent Ollama, a particular LLM, or a particular node from becoming a permanent core dependency.
+
+**Consequences**
+
+- Architecture 2 implementation remains paused pending review.
+- Persistence engine and other explicitly listed technology choices remain unresolved until qualification during the relevant implementation slice.
+- The smallest future implementation slice is the durable workflow kernel described in Addendum 005.
+
+**Revisit Trigger**
+
+- Product Owner or Architect review changes the domain model or implementation sequence.
+- Qualification shows the modular-monolith boundary cannot satisfy required durability or concurrency.
+- Multi-runtime high availability becomes an approved near-term requirement.
+
+---
+
 ### DEC-0001 — Provisional Implementation Engineer Selection
 
 **Date**
