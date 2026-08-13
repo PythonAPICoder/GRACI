@@ -5,6 +5,9 @@ export interface TaskTransitionContext {
   dependenciesSatisfied?: boolean;
   attempt?: Attempt;
   verification?: Verification;
+  retryAuthorized?: boolean;
+  approvalPauseAuthorized?: boolean;
+  approvalResumeAuthorized?: boolean;
   terminalReason?: string;
 }
 
@@ -23,8 +26,8 @@ export const TASK_TRANSITIONS: Readonly<Record<TaskStatus, readonly TaskStatus[]
   ready: ['scheduled', 'failed', 'cancelled', 'superseded'],
   waiting_for_approval: ['ready', 'failed', 'cancelled', 'superseded'],
   scheduled: ['running', 'failed', 'cancelled'],
-  running: ['verifying', 'failed', 'cancelled'],
-  verifying: ['succeeded', 'failed', 'cancelled'],
+  running: ['verifying', 'retry_pending', 'waiting_for_approval', 'failed', 'cancelled'],
+  verifying: ['succeeded', 'retry_pending', 'waiting_for_approval', 'failed', 'cancelled'],
   retry_pending: ['blocked', 'ready', 'failed', 'cancelled', 'superseded'],
   succeeded: [],
   failed: [],
@@ -39,6 +42,18 @@ export class TaskStateMachine {
     }
     if (target === 'ready' && context.dependenciesSatisfied !== true) {
       throw new InvalidTaskTransitionError(task.status, target, 'required dependencies are not satisfied');
+    }
+    if (task.status === 'retry_pending' && target === 'ready' && context.retryAuthorized !== true) {
+      throw new InvalidTaskTransitionError(task.status, target, 'durable retry authorization is required');
+    }
+    if (task.status === 'waiting_for_approval' && target === 'ready' && context.approvalResumeAuthorized !== true) {
+      throw new InvalidTaskTransitionError(task.status, target, 'durable approval authorization is required');
+    }
+    if (target === 'retry_pending' && context.retryAuthorized !== true) {
+      throw new InvalidTaskTransitionError(task.status, target, 'retry authorization is required');
+    }
+    if (target === 'waiting_for_approval' && context.approvalPauseAuthorized !== true) {
+      throw new InvalidTaskTransitionError(task.status, target, 'approval-pause authorization is required');
     }
     if (target === 'running' && (!context.attempt || context.attempt.taskId !== task.id || context.attempt.status !== 'running')) {
       throw new InvalidTaskTransitionError(task.status, target, 'a persisted running Attempt is required');

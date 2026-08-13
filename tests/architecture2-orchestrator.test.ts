@@ -42,7 +42,7 @@ describe('Architecture 2 Phase 1B workflow kernel', () => {
   const taskId = (id: string) => asIdentifier<'Task'>(id);
   const graphId = (id = 'graph-1') => asIdentifier<'TaskGraphRevision'>(id);
 
-  function nextId(kind: 'attempt' | 'verification' | 'failure' | 'event'): string {
+  function nextId(kind: 'attempt' | 'verification' | 'failure' | 'approval' | 'event'): string {
     sequence += 1;
     return `${kind}-${sequence}`;
   }
@@ -111,7 +111,7 @@ describe('Architecture 2 Phase 1B workflow kernel', () => {
     }
   }
 
-  function orchestrator(behaviors: ReadonlyMap<TaskId, DeterministicBehavior> = new Map()) {
+  function orchestrator(behaviors: ReadonlyMap<TaskId, DeterministicBehavior | readonly DeterministicBehavior[]> = new Map()) {
     const provider = new DeterministicTestProvider(behaviors);
     const value = new MinimalOrchestrator(persistence, provider, new DeterministicVerifier(), {
       actor: 'phase1b-test-orchestrator', now: () => NOW, nextId,
@@ -130,6 +130,12 @@ describe('Architecture 2 Phase 1B workflow kernel', () => {
     expect(() => machine.prepare({ ...planned, status: 'verifying' }, 'succeeded', NOW)).toThrow(/passing Verification/);
     expect(() => machine.prepare({ ...planned, status: 'succeeded', completedAt: NOW }, 'failed', NOW,
       { terminalReason: 'rewrite' })).toThrow(InvalidTaskTransitionError);
+    expect(() => machine.prepare({ ...planned, status: 'running' }, 'retry_pending', NOW)).toThrow(/retry authorization/);
+    expect(() => machine.prepare({ ...planned, status: 'verifying' }, 'retry_pending', NOW)).toThrow(/retry authorization/);
+    expect(() => machine.prepare({ ...planned, status: 'running' }, 'waiting_for_approval', NOW))
+      .toThrow(/approval-pause authorization/);
+    expect(() => machine.prepare({ ...planned, status: 'waiting_for_approval' }, 'ready', NOW,
+      { dependenciesSatisfied: true })).toThrow(/approval authorization/);
   });
 
   it('rejects stale optimistic transitions and leaves state and events unchanged', () => {
@@ -200,7 +206,9 @@ describe('Architecture 2 Phase 1B workflow kernel', () => {
     expect(persistence.getAttempts(taskId('task-a'))[0]).toMatchObject({ status: 'succeeded' });
     expect(persistence.getVerifications(taskId('task-a'))[0]).toMatchObject({ verdict: 'failed' });
     expect(persistence.getTask(taskId('task-a'))?.status).toBe('failed');
-    expect(persistence.getFailures(taskId('task-a'))[0]).toMatchObject({ category: 'verification_failure' });
+    expect(persistence.getFailures(taskId('task-a'))[0]).toMatchObject({
+      category: 'verification_failure', classification: 'verification_failed', retryable: false,
+    });
   });
 
   it('persists passing verification and completes a successful DAG', async () => {
@@ -292,7 +300,9 @@ describe('Architecture 2 Phase 1B workflow kernel', () => {
     expect(restarted.provider.getExecutionCount(taskId('task-a'))).toBe(0);
     expect(persistence.getTask(taskId('task-a'))).toMatchObject({ status: 'failed', terminalReason: 'INTERRUPTED_RUNNING_ATTEMPT' });
     expect(persistence.getAttempts(taskId('task-a'))[0]).toMatchObject({ status: 'indeterminate' });
-    expect(persistence.getFailures(taskId('task-a'))[0]).toMatchObject({ category: 'external_outcome_indeterminate' });
+    expect(persistence.getFailures(taskId('task-a'))[0]).toMatchObject({
+      category: 'external_outcome_indeterminate', classification: 'external_outcome_indeterminate', retryable: false,
+    });
   });
 
   it('rolls back a transition when its event fails', () => {
@@ -321,5 +331,150 @@ describe('Architecture 2 Phase 1B workflow kernel', () => {
       [event(value.id, 'attempt.started', duplicate)])).toThrow();
     expect(persistence.getTask(value.id)).toEqual(value);
     expect(persistence.getAttempts(value.id)).toEqual([]);
+  });
+
+  it('retries a transient failure and preserves both attempts before success', async () => {
+    seedGraph([{ ...task('task-a'), retryPolicy: { maxAttempts: 3 } }]);
+    const behaviors = new Map<TaskId, readonly DeterministicBehavior[]>([[taskId('task-a'), [
+      { outcome: 'failure', classification: 'transient' },
+      { outcome: 'success', verificationPasses: true },
+    ]]]);
+    const { value } = orchestrator(behaviors);
+    expect((await value.run(graphId())).status).toBe('succeeded');
+    expect(persistence.getAttempts(taskId('task-a')).map(({ attemptNumber, status }) => ({ attemptNumber, status })))
+      .toEqual([{ attemptNumber: 1, status: 'failed' }, { attemptNumber: 2, status: 'succeeded' }]);
+    expect(persistence.getFailures(taskId('task-a'))[0]).toMatchObject({ classification: 'transient', retryable: true });
+  });
+
+  it('stops transient retries at the durable maximum and remains exhausted after restart', async () => {
+    seedGraph([{ ...task('task-a'), retryPolicy: { maxAttempts: 3 } }]);
+    const behaviors = new Map<TaskId, DeterministicBehavior>([[taskId('task-a'),
+      { outcome: 'failure', classification: 'transient' }]]);
+    await orchestrator(behaviors).value.run(graphId());
+    expect(persistence.getAttempts(taskId('task-a'))).toHaveLength(3);
+    expect(persistence.getTask(taskId('task-a'))?.status).toBe('failed');
+    persistence.close();
+    persistence = new SqliteArchitecture2Persistence({ databasePath });
+    persistence.initialize();
+    const restarted = orchestrator(behaviors);
+    expect((await restarted.value.run(graphId())).executedTaskIds).toEqual([]);
+    expect(restarted.provider.getExecutionCount(taskId('task-a'))).toBe(0);
+    expect(persistence.getAttempts(taskId('task-a'))).toHaveLength(3);
+  });
+
+  it('does not retry permanent or verification failures by default', async () => {
+    seedGraph([task('task-a')]);
+    await orchestrator(new Map([[taskId('task-a'), { outcome: 'failure', classification: 'permanent' }]])).value.run(graphId());
+    expect(persistence.getAttempts(taskId('task-a'))).toHaveLength(1);
+    expect(persistence.getFailures(taskId('task-a'))[0]).toMatchObject({ classification: 'permanent', retryable: false });
+
+    persistence.close();
+    rmSync(directory, { recursive: true, force: true });
+    directory = mkdtempSync(join(tmpdir(), 'graci-phase1c-verification-'));
+    databasePath = join(directory, 'workflow.sqlite');
+    persistence = new SqliteArchitecture2Persistence({ databasePath });
+    persistence.initialize();
+    seedGraph([task('task-a')]);
+    await orchestrator(new Map([[taskId('task-a'), { outcome: 'success', verificationPasses: false }]])).value.run(graphId());
+    expect(persistence.getAttempts(taskId('task-a'))).toHaveLength(1);
+    expect(persistence.getFailures(taskId('task-a'))[0]).toMatchObject({ classification: 'verification_failed', retryable: false });
+  });
+
+  it('durably pauses for approval, survives restart, and resumes the same task after explicit approval', async () => {
+    seedGraph([task('task-a')]);
+    const pause = new Map<TaskId, DeterministicBehavior>([[taskId('task-a'),
+      { outcome: 'failure', classification: 'approval_required', summary: 'Authorize continuation' }]]);
+    await orchestrator(pause).value.run(graphId());
+    expect(persistence.getTask(taskId('task-a'))?.status).toBe('waiting_for_approval');
+    expect(persistence.getAttempts(taskId('task-a'))).toHaveLength(1);
+    expect(persistence.getApprovals(taskId('task-a'))[0]).toMatchObject({ decision: 'requested' });
+    expect(persistence.getFailures(taskId('task-a'))[0]).toMatchObject({
+      classification: 'approval_required', retryable: false,
+    });
+
+    persistence.close();
+    persistence = new SqliteArchitecture2Persistence({ databasePath });
+    persistence.initialize();
+    const restarted = orchestrator();
+    expect((await restarted.value.run(graphId())).executedTaskIds).toEqual([]);
+    expect(restarted.provider.getExecutionCount(taskId('task-a'))).toBe(0);
+    restarted.value.approveTask(taskId('task-a'));
+    expect((await restarted.value.run(graphId())).status).toBe('succeeded');
+    expect(persistence.getAttempts(taskId('task-a')).map((attempt) => attempt.attemptNumber)).toEqual([1, 2]);
+    expect(persistence.getApprovals(taskId('task-a'))[0]).toMatchObject({ decision: 'approved' });
+  });
+
+  it('rejects approval for a task that is not awaiting approval', () => {
+    seedGraph([task('task-a')]);
+    expect(() => orchestrator().value.approveTask(taskId('task-a'))).toThrow(/not awaiting approval/);
+  });
+
+  it('permits an explicitly authorized bounded verification retry and preserves history', async () => {
+    seedGraph([{ ...task('task-a'), retryPolicy: { maxAttempts: 2, retryVerificationFailures: true } }]);
+    const behaviors = new Map<TaskId, readonly DeterministicBehavior[]>([[taskId('task-a'), [
+      { outcome: 'success', verificationPasses: false },
+      { outcome: 'success', verificationPasses: true },
+    ]]]);
+    const { value } = orchestrator(behaviors);
+    expect((await value.run(graphId())).status).toBe('succeeded');
+    expect(persistence.getAttempts(taskId('task-a')).map((attempt) => attempt.attemptNumber)).toEqual([1, 2]);
+    expect(persistence.getVerifications(taskId('task-a')).map((verification) => verification.verdict))
+      .toEqual(['failed', 'passed']);
+    expect(persistence.getFailures(taskId('task-a'))[0]).toMatchObject({
+      classification: 'verification_failed', retryable: true,
+    });
+  });
+
+  it('bounds explicitly authorized verification retries by maxAttempts', async () => {
+    seedGraph([{ ...task('task-a'), retryPolicy: { maxAttempts: 2, retryVerificationFailures: true } }]);
+    const behaviors = new Map<TaskId, DeterministicBehavior>([[taskId('task-a'),
+      { outcome: 'success', verificationPasses: false }]]);
+    await orchestrator(behaviors).value.run(graphId());
+    expect(persistence.getTask(taskId('task-a'))?.status).toBe('failed');
+    expect(persistence.getAttempts(taskId('task-a'))).toHaveLength(2);
+    expect(persistence.getVerifications(taskId('task-a'))).toHaveLength(2);
+    expect(persistence.getFailures(taskId('task-a')).at(-1)).toMatchObject({ retryable: false });
+  });
+
+  it('fails closed when durable retry_pending history does not prove retry safety', async () => {
+    seedGraph([task('task-a', 'retry_pending')]);
+    const restarted = orchestrator();
+    expect((await restarted.value.run(graphId())).executedTaskIds).toEqual([]);
+    expect(restarted.provider.getExecutionCount(taskId('task-a'))).toBe(0);
+    expect(persistence.getTask(taskId('task-a'))).toMatchObject({
+      status: 'failed', terminalReason: 'UNSAFE_RETRY_PENDING_STATE',
+    });
+    expect(persistence.getFailures(taskId('task-a')).at(-1)).toMatchObject({
+      classification: 'permanent', retryable: false, code: 'UNSAFE_RETRY_PENDING_STATE',
+    });
+  });
+
+  it('durably denies a paused task and never resumes it after restart', async () => {
+    seedGraph([task('task-a')]);
+    const pause = new Map<TaskId, DeterministicBehavior>([[taskId('task-a'),
+      { outcome: 'failure', classification: 'approval_required' }]]);
+    const first = orchestrator(pause);
+    await first.value.run(graphId());
+    first.value.denyTask(taskId('task-a'), 'Risk not accepted');
+    expect(persistence.getTask(taskId('task-a'))).toMatchObject({
+      status: 'failed', terminalReason: 'APPROVAL_DENIED: Risk not accepted',
+    });
+    expect(persistence.getApprovals(taskId('task-a'))[0]).toMatchObject({
+      decision: 'denied', scope: { denialReason: 'Risk not accepted' },
+    });
+    expect(persistence.getEvents().some((value) => value.eventType === 'approval.denied' &&
+      value.payload.reason === 'Risk not accepted')).toBe(true);
+
+    persistence.close();
+    persistence = new SqliteArchitecture2Persistence({ databasePath });
+    persistence.initialize();
+    const restarted = orchestrator();
+    expect((await restarted.value.run(graphId())).executedTaskIds).toEqual([]);
+    expect(restarted.provider.getExecutionCount(taskId('task-a'))).toBe(0);
+  });
+
+  it('rejects denial for a task that is not awaiting approval', () => {
+    seedGraph([task('task-a')]);
+    expect(() => orchestrator().value.denyTask(taskId('task-a'), 'Not applicable')).toThrow(/not awaiting approval/);
   });
 });

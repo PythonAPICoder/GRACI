@@ -109,5 +109,19 @@ Based on the initial requirements, I will now:
 4. Build a working electron application using available tools
 5. Conduct runtime verification to confirm functionality
 
+---
+
+## 2026-08-13 — Phase 1C Verification Corrections
+
+- `vitest --runInBand` failed because Vitest 3 does not support that Jest option. Correct command: `npm.cmd test`.
+- The first post-migration suite expected schema version 1 in two assertions. Updated them to current schema version 2.
+- Approval resume initially emitted an undefined optional reason in an audit payload, rejected by SQLite `json_valid`. Normalized absent reasons to JSON `null`; focused tests and validation passed.
+
+### 2026-08-13 — Acceptance-correction fixture
+
+- The first populated migration test reused the already initialized current-schema database and failed with `table schema_migrations already exists`; the open raw handle also prevented temporary cleanup.
+- Root cause: fixture path selection, not migration behavior.
+- Corrected the fixture to create a separate `legacy.sqlite` schema-1 database. Focused persistence and Orchestrator suites then passed 36/36.
+
 I am following the recovery procedure by:
 - Inspecting → Diagnosing (finding TypeScript/module issues) → Correcting (fixing main.ts) → Building (with existing dependencies) → Testing (unit tests in place)

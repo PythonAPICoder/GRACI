@@ -324,6 +324,7 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
     return (this.db().prepare('SELECT * FROM failures WHERE task_id = ? ORDER BY created_at, id').all(taskId) as Row[])
       .map((row) => ({ id: String(row.id) as Failure['id'], taskId: String(row.task_id) as TaskId,
         attemptId: optionalString(row.attempt_id) as Failure['attemptId'], category: String(row.category) as Failure['category'],
+        classification: String(row.classification) as Failure['classification'],
         code: String(row.code), summary: String(row.summary), details: parseObject(row.details_json),
         retryable: bool(row.retryable), createdAt: String(row.created_at) }));
   }
@@ -336,6 +337,38 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
         .run(value.id, value.goalId, value.taskId ?? null, value.attemptId ?? null, value.action, json(value.scope),
           value.actionDigest, value.decision, value.decidedBy ?? null, value.requestedAt, value.decidedAt ?? null, value.expiresAt ?? null);
       this.insertEvent(event);
+    });
+  }
+
+  getApprovals(taskId: TaskId): Approval[] {
+    return (this.db().prepare('SELECT * FROM approvals WHERE task_id = ? ORDER BY requested_at, id').all(taskId) as Row[])
+      .map((row) => ({ id: String(row.id) as Approval['id'], goalId: String(row.goal_id) as GoalId,
+        taskId: optionalString(row.task_id) as Approval['taskId'], attemptId: optionalString(row.attempt_id) as Approval['attemptId'],
+        action: String(row.action), scope: parseObject(row.scope_json), actionDigest: String(row.action_digest),
+        decision: String(row.decision) as Approval['decision'], decidedBy: optionalString(row.decided_by),
+        requestedAt: String(row.requested_at), decidedAt: optionalString(row.decided_at), expiresAt: optionalString(row.expires_at) }));
+  }
+
+  recordApprovalPause(task: Task, expectedVersion: number, attempt: Attempt, failure: Failure,
+    approval: Approval, events: readonly AuditEventInput[]): void {
+    this.transaction(() => {
+      this.updateAttemptRow(attempt);
+      this.insertFailure(failure);
+      this.insertApproval(approval);
+      this.updateTaskRow(task, expectedVersion);
+      this.insertEvents(events);
+    });
+  }
+
+  recordApprovalDecision(task: Task, expectedVersion: number, approval: Approval,
+    events: readonly AuditEventInput[]): void {
+    this.transaction(() => {
+      const result = this.db().prepare(`UPDATE approvals SET decision = ?, decided_by = ?, decided_at = ?, scope_json = ?
+        WHERE id = ? AND decision = 'requested'`).run(approval.decision, approval.decidedBy ?? null,
+          approval.decidedAt ?? null, json(approval.scope), approval.id);
+      if (Number(result.changes) !== 1) throw new Error(`Approval is not pending: ${approval.id}`);
+      this.updateTaskRow(task, expectedVersion);
+      this.insertEvents(events);
     });
   }
 
@@ -446,10 +479,18 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
 
   private insertFailure(value: Failure): void {
     this.db().prepare(`INSERT INTO failures
-      (id, task_id, attempt_id, category, code, summary, details_json, retryable, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-      .run(value.id, value.taskId, value.attemptId ?? null, value.category, value.code, value.summary,
+      (id, task_id, attempt_id, category, classification, code, summary, details_json, retryable, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+      .run(value.id, value.taskId, value.attemptId ?? null, value.category, value.classification, value.code, value.summary,
         json(value.details), value.retryable ? 1 : 0, value.createdAt);
+  }
+
+  private insertApproval(value: Approval): void {
+    this.db().prepare(`INSERT INTO approvals
+      (id, goal_id, task_id, attempt_id, action, scope_json, action_digest, decision, decided_by, requested_at, decided_at, expires_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+      .run(value.id, value.goalId, value.taskId ?? null, value.attemptId ?? null, value.action, json(value.scope),
+        value.actionDigest, value.decision, value.decidedBy ?? null, value.requestedAt, value.decidedAt ?? null, value.expiresAt ?? null);
   }
 
   private validateGoal(goal: Goal): void {
@@ -488,7 +529,7 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
       title: String(row.title), objective: String(row.objective), inputs: parseObject(row.inputs_json),
       requiredCapabilities: parseArray(row.required_capabilities_json), privacyClass: String(row.privacy_class) as Task['privacyClass'],
       priority: String(row.priority) as Task['priority'], status: String(row.status) as Task['status'], required: bool(row.required),
-      retryPolicy: parseObject(row.retry_policy_json), verificationPlan: parseObject(row.verification_plan_json),
+      retryPolicy: parseObject(row.retry_policy_json) as Task['retryPolicy'], verificationPlan: parseObject(row.verification_plan_json),
       terminalReason: optionalString(row.terminal_reason), version: Number(row.version), createdAt: String(row.created_at),
       updatedAt: String(row.updated_at), completedAt: optionalString(row.completed_at) };
   }

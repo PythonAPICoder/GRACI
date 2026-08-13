@@ -1,7 +1,8 @@
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import {
   asIdentifier,
   type Attempt,
+  type Approval,
   type AuditEventInput,
   type Failure,
   type JsonObject,
@@ -29,7 +30,7 @@ export interface WorkflowRunResult {
 export interface OrchestratorOptions {
   actor?: string;
   now?: () => string;
-  nextId?: (kind: 'attempt' | 'verification' | 'failure' | 'event') => string;
+  nextId?: (kind: 'attempt' | 'verification' | 'failure' | 'approval' | 'event') => string;
 }
 
 export class MinimalOrchestrator {
@@ -75,6 +76,36 @@ export class MinimalOrchestrator {
     };
   }
 
+  approveTask(taskId: TaskId, decidedBy = 'product-owner'): Task {
+    return this.decideApproval(taskId, 'approved', decidedBy);
+  }
+
+  denyTask(taskId: TaskId, reason: string, decidedBy = 'product-owner'): Task {
+    if (!reason.trim()) throw new Error('Approval denial reason is required');
+    return this.decideApproval(taskId, 'denied', decidedBy, reason);
+  }
+
+  private decideApproval(taskId: TaskId, decision: 'approved' | 'denied', decidedBy: string, reason?: string): Task {
+    const task = this.persistence.getTask(taskId);
+    if (!task || task.status !== 'waiting_for_approval') {
+      throw new Error(`Task ${taskId} is not awaiting approval`);
+    }
+    const pending = this.persistence.getApprovals(taskId).filter((approval) => approval.decision === 'requested').at(-1);
+    if (!pending) throw new Error(`Task ${taskId} has no pending approval request`);
+    const now = this.now();
+    const approval: Approval = { ...pending, decision, decidedBy, decidedAt: now,
+      scope: reason ? { ...pending.scope, denialReason: reason } : pending.scope };
+    const target = decision === 'approved' ? 'ready' : 'failed';
+    const updated = this.stateMachine.prepare(task, target, now, decision === 'approved'
+      ? { dependenciesSatisfied: true, approvalResumeAuthorized: true }
+      : { terminalReason: `APPROVAL_DENIED: ${reason}` });
+    this.persistence.recordApprovalDecision(updated, task.version, approval, [
+      this.event(task.id, `approval.${decision}`, { approvalId: approval.id, reason: reason ?? null }, now),
+      this.event(task.id, 'task.transitioned', { from: task.status, to: target, reason: reason ?? null }, now),
+    ]);
+    return updated;
+  }
+
   private recoverInterruptedWork(graphRevisionId: TaskGraphRevisionId): void {
     for (const task of this.persistence.getTasks(graphRevisionId)) {
       if (task.status !== 'running' && task.status !== 'scheduled') continue;
@@ -91,11 +122,12 @@ export class MinimalOrchestrator {
         completedAt: now,
       } : undefined;
       const failure = this.failure(task, runningAttempt, 'external_outcome_indeterminate',
+        'external_outcome_indeterminate',
         task.status === 'running' ? 'INTERRUPTED_RUNNING_ATTEMPT' : 'INTERRUPTED_SCHEDULED_TASK',
         task.status === 'running'
           ? 'Execution was interrupted and its outcome cannot be proven'
           : 'Scheduling was interrupted before execution could be proven',
-        { recoveredFromState: task.status }, now);
+        { recoveredFromState: task.status }, false, now);
       const failedTask = this.stateMachine.prepare(task, 'failed', now, {
         attempt: recoveredAttempt,
         terminalReason: failure.code,
@@ -137,6 +169,34 @@ export class MinimalOrchestrator {
       }
       tasks = this.persistence.getTasks(graphRevisionId);
     }
+    for (const original of tasks) {
+      if (original.status !== 'retry_pending') continue;
+      const current = this.persistence.getTask(original.id);
+      if (!current || current.status !== 'retry_pending') continue;
+      const now = this.now();
+      const attempts = this.persistence.getAttempts(current.id);
+      const latestAttempt = attempts.at(-1);
+      const failures = this.persistence.getFailures(current.id);
+      const latestFailure = latestAttempt
+        ? failures.slice().reverse().find((failure) => failure.attemptId === latestAttempt.id)
+        : undefined;
+      if (!latestFailure || !this.isAutomaticRetryAuthorized(current, latestFailure, attempts.length)) {
+        const failure = this.failure(current, latestAttempt, 'execution_defect', 'permanent',
+          'UNSAFE_RETRY_PENDING_STATE', 'Durable retry authorization could not be proven',
+          { attemptsUsed: attempts.length, priorFailureId: latestFailure?.id ?? null }, false, now);
+        const failed = this.stateMachine.prepare(current, 'failed', now, { terminalReason: failure.code });
+        this.persistence.recordTaskFailure(failed, current.version, failure, [
+          this.event(current.id, 'failure.recorded', { failureId: failure.id, code: failure.code }, now),
+          this.event(current.id, 'task.transitioned', {
+            from: 'retry_pending', to: 'failed', reason: failure.code,
+          }, now),
+        ]);
+        continue;
+      }
+      this.stateMachine.transition(this.persistence, current, 'ready', now,
+        this.event(current.id, 'task.retry_scheduled', { attemptsUsed: attempts.length, failureId: latestFailure.id }, now),
+        { dependenciesSatisfied: true, retryAuthorized: true });
+    }
   }
 
   private async executeTask(task: Task): Promise<void> {
@@ -167,19 +227,39 @@ export class MinimalOrchestrator {
       result = await this.provider.execute({ taskId: task.id, attemptId: attempt.id, attemptNumber,
         objective: task.objective, inputs: task.inputs, requiredCapabilities: task.requiredCapabilities });
     } catch (error) {
-      result = { status: 'failed', code: 'PROVIDER_EXCEPTION', summary: 'Execution provider threw an exception',
+      result = { status: 'failed', classification: 'permanent', code: 'PROVIDER_EXCEPTION', summary: 'Execution provider threw an exception',
         details: { message: error instanceof Error ? error.message : String(error) } };
     }
 
     const completedAt = this.now();
     if (result.status === 'failed') {
       const failedAttempt: Attempt = { ...attempt, status: 'failed', result: { ...result }, completedAt };
-      const failure = this.failure(running, failedAttempt, 'execution_defect', result.code, result.summary, result.details, completedAt);
-      const failedTask = this.stateMachine.prepare(running, 'failed', completedAt, { attempt: failedAttempt, terminalReason: failure.code });
+      const retryable = result.classification === 'transient' && attemptNumber < this.maxAttempts(task);
+      const failure = this.failure(running, failedAttempt,
+        result.classification === 'transient' ? 'transient_infrastructure' :
+          result.classification === 'approval_required' ? 'policy_or_approval' : 'execution_defect',
+        result.classification, result.code, result.summary, result.details, retryable, completedAt);
+      if (result.classification === 'approval_required') {
+        const approval = this.approval(task, failedAttempt, failure, completedAt);
+        const paused = this.stateMachine.prepare(running, 'waiting_for_approval', completedAt,
+          { attempt: failedAttempt, approvalPauseAuthorized: true });
+        this.persistence.recordApprovalPause(paused, running.version, failedAttempt, failure, approval, [
+          this.event(task.id, 'attempt.failed', { attemptId: attempt.id, code: failure.code }, completedAt),
+          this.event(task.id, 'failure.recorded', { failureId: failure.id, classification: failure.classification }, completedAt),
+          this.event(task.id, 'approval.requested', { approvalId: approval.id, reason: failure.summary }, completedAt),
+          this.event(task.id, 'task.transitioned', { from: 'running', to: 'waiting_for_approval' }, completedAt),
+        ]);
+        return;
+      }
+      const target = retryable ? 'retry_pending' : 'failed';
+      const failedTask = this.stateMachine.prepare(running, target, completedAt,
+        retryable
+          ? { attempt: failedAttempt, retryAuthorized: true }
+          : { attempt: failedAttempt, terminalReason: failure.code });
       this.persistence.recordAttemptOutcome(failedTask, running.version, failedAttempt, failure, [
         this.event(task.id, 'attempt.failed', { attemptId: attempt.id, code: failure.code }, completedAt),
         this.event(task.id, 'failure.recorded', { failureId: failure.id, code: failure.code }, completedAt),
-        this.event(task.id, 'task.transitioned', { from: 'running', to: 'failed', reason: failure.code }, completedAt),
+        this.event(task.id, 'task.transitioned', { from: 'running', to: target, reason: failure.code }, completedAt),
       ]);
       return;
     }
@@ -218,13 +298,19 @@ export class MinimalOrchestrator {
       return;
     }
 
-    const failure = this.failure(verifying, successfulAttempt, 'verification_failure', 'DETERMINISTIC_VERIFICATION_FAILED',
-      'Deterministic verification rejected the execution result', { verdict: decision.verdict }, verifiedAt);
-    const failed = this.stateMachine.prepare(verifying, 'failed', verifiedAt, { verification, terminalReason: failure.code });
+    const retryable = task.retryPolicy.retryVerificationFailures === true && attemptNumber < this.maxAttempts(task);
+    const failure = this.failure(verifying, successfulAttempt, 'verification_failure', 'verification_failed',
+      'DETERMINISTIC_VERIFICATION_FAILED', 'Deterministic verification rejected the execution result',
+      { verdict: decision.verdict }, retryable, verifiedAt);
+    const target = retryable ? 'retry_pending' : 'failed';
+    const failed = this.stateMachine.prepare(verifying, target, verifiedAt,
+      retryable
+        ? { verification, retryAuthorized: true }
+        : { verification, terminalReason: failure.code });
     this.persistence.recordVerificationOutcome(failed, verifying.version, verification, failure, [
       this.event(task.id, 'verification.failed', { verificationId: verification.id }, verifiedAt),
       this.event(task.id, 'failure.recorded', { failureId: failure.id, code: failure.code }, verifiedAt),
-      this.event(task.id, 'task.transitioned', { from: 'verifying', to: 'failed', reason: failure.code }, verifiedAt),
+      this.event(task.id, 'task.transitioned', { from: 'verifying', to: target, reason: failure.code }, verifiedAt),
     ]);
   }
 
@@ -232,13 +318,34 @@ export class MinimalOrchestrator {
     task: Task,
     attempt: Attempt | undefined,
     category: Failure['category'],
+    classification: Failure['classification'],
     code: string,
     summary: string,
     details: JsonObject,
+    retryable: boolean,
     createdAt: string,
   ): Failure {
     return { id: asIdentifier<'Failure'>(this.nextId('failure')), taskId: task.id, attemptId: attempt?.id,
-      category, code, summary, details, retryable: false, createdAt };
+      category, classification, code, summary, details, retryable, createdAt };
+  }
+
+  private maxAttempts(task: Task): number {
+    const configured = task.retryPolicy.maxAttempts;
+    return typeof configured === 'number' && Number.isInteger(configured) && configured >= 1 ? configured : 3;
+  }
+
+  private isAutomaticRetryAuthorized(task: Task, failure: Failure, attemptsUsed: number): boolean {
+    if (!failure.retryable || attemptsUsed >= this.maxAttempts(task)) return false;
+    if (failure.classification === 'transient') return true;
+    return failure.classification === 'verification_failed' && task.retryPolicy.retryVerificationFailures === true;
+  }
+
+  private approval(task: Task, attempt: Attempt, failure: Failure, requestedAt: string): Approval {
+    const action = 'resume_task_after_approval';
+    return { id: asIdentifier<'Approval'>(this.nextId('approval')), goalId: task.goalId, taskId: task.id,
+      attemptId: attempt.id, action, scope: { reason: failure.summary, failureId: failure.id },
+      actionDigest: createHash('sha256').update(`${task.id}:${attempt.id}:${action}:${failure.code}`).digest('hex'),
+      decision: 'requested', requestedAt };
   }
 
   private event(taskId: TaskId, eventType: string, payload: JsonObject, occurredAt: string): AuditEventInput {

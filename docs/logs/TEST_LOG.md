@@ -239,3 +239,27 @@ Record meaningful verification results. Do not duplicate raw automated-test outp
 **Notes**
 
 - Expected error logs from mocked Ollama failure/timeout tests are not test failures.
+
+---
+
+### 2026-08-13 — Architecture 2 Phase 1C
+
+- Baseline `npm.cmd run validate`: PASS.
+- Focused Orchestrator suite after correction: PASS, 19/19.
+- Covered transient success retry, retry exhaustion, restart after exhaustion, permanent failure, verification failure, approval pause, restart while paused, explicit approval/resume, invalid approval, and Phase 1B indeterminate recovery regression.
+- Final TypeScript validation: PASS.
+- Full Vitest regression suite: PASS, 50/50 across 6 files.
+- Production build: PASS after the documented authenticated-user ACL rerun; no source workaround.
+- Real Electron runtime smoke: PASS; alive after five seconds, expected startup log present, stderr empty, test process stopped.
+- `git diff --check`: PASS; no repository SQLite/WAL/SHM artifacts found.
+
+### 2026-08-13 — Phase 1C targeted acceptance corrections
+
+- TypeScript checkpoint: PASS.
+- Focused Architecture 2 persistence and Orchestrator suites after fixture correction: PASS, 36/36.
+- New coverage: retry recovery revalidation/fail-closed behavior, sensitive-transition authorization, positive verification retry, verification retry exhaustion, denial persistence/restart, invalid denial, and populated schema-1 migration.
+- Final full regression, build, runtime smoke, and repository checks follow this entry.
+- Final `npm.cmd run validate`: PASS.
+- Final `npm.cmd test`: PASS, 56/56 across 6 files.
+- Final authenticated-user `npm.cmd run build`: PASS.
+- Electron five-second runtime smoke: PASS; process remained alive, startup log present, stderr empty, test process stopped.

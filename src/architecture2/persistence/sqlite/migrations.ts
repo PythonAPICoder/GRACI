@@ -216,7 +216,23 @@ const migration001: Migration = {
   },
 };
 
-export const migrations: readonly Migration[] = [migration001];
+const migration002: Migration = {
+  version: 2,
+  name: 'architecture_2_phase_1c_failure_classification',
+  up(database) {
+    database.exec(`
+      ALTER TABLE failures ADD COLUMN classification TEXT NOT NULL DEFAULT 'permanent'
+        CHECK (classification IN ('transient','permanent','verification_failed','approval_required','external_outcome_indeterminate'));
+      UPDATE failures SET classification = CASE
+        WHEN category = 'transient_infrastructure' AND retryable = 1 THEN 'transient'
+        WHEN category = 'verification_failure' THEN 'verification_failed'
+        WHEN category = 'external_outcome_indeterminate' THEN 'external_outcome_indeterminate'
+        ELSE 'permanent' END;
+    `);
+  },
+};
+
+export const migrations: readonly Migration[] = [migration001, migration002];
 
 export function migrate(database: DatabaseSync): number {
   database.exec(`

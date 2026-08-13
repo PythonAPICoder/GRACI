@@ -39,6 +39,28 @@ Use this log for decisions that matter but do not yet justify a dedicated ADR sy
 
 ---
 
+### DEC-0003 — Phase 1C Conservative Retry Policy
+
+**Date:** 2026-08-13
+
+**Decision**
+
+- Use three total Attempts by default, derived from persisted Attempt history.
+- Automatically retry only `transient`; permit `verification_failed` retry only through `retryPolicy.retryVerificationFailures: true`.
+- Never automatically retry `permanent`, `approval_required`, or `external_outcome_indeterminate`.
+- Retain the existing diagnostic Failure category and add the smaller policy classification separately.
+
+**Rationale**
+
+- This preserves Phase 1B diagnostics while preventing uncertainty or verification rejection from becoming unsafe replay.
+
+**Acceptance correction**
+
+- Durable `retry_pending` status is not sufficient authorization by itself; recovery revalidates the latest relevant Failure, explicit retryability, classification policy, and remaining budget.
+- Schema-1 migration maps only retryable `transient_infrastructure` to `transient`. Ambiguous `resource_unavailable` and `policy_or_approval` records map to `permanent`; verification and indeterminate meanings remain explicit.
+
+---
+
 ### DEC-0004 — Phase 1B Interrupted Execution Fails Closed Without Replay
 
 **Date**

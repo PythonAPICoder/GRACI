@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
+import { DatabaseSync } from 'node:sqlite';
 import {
   asIdentifier,
   type Attempt,
@@ -13,6 +14,7 @@ import {
   type TaskGraphRevision,
 } from '../src/architecture2/domain/index.js';
 import { SqliteArchitecture2Persistence } from '../src/architecture2/persistence/index.js';
+import { migrations } from '../src/architecture2/persistence/sqlite/migrations.js';
 
 const NOW = '2026-08-12T20:00:00.000Z';
 
@@ -115,8 +117,8 @@ describe('Architecture 2 SQLite persistence', () => {
     persistence.createTask(task('task-2'), event('task-2', 'task.created'));
   }
 
-  it('initializes a new database entirely through migration version 1', () => {
-    expect(persistence.getSchemaVersion()).toBe(1);
+  it('initializes a new database through the current schema version', () => {
+    expect(persistence.getSchemaVersion()).toBe(2);
     expect(persistence.getEvents()).toEqual([]);
   });
 
@@ -238,10 +240,73 @@ describe('Architecture 2 SQLite persistence', () => {
     second.initialize();
     try {
       persistence.appendEvent(event('first', 'first.created'));
-      expect(second.getSchemaVersion()).toBe(1);
+      expect(second.getSchemaVersion()).toBe(2);
       expect(second.getEvents()).toEqual([]);
     } finally {
       second.close();
     }
+  });
+
+  it('conservatively migrates populated schema-1 failure history without making work runnable', () => {
+    persistence.close();
+    databasePath = join(directory, 'legacy.sqlite');
+    const legacy = new DatabaseSync(databasePath);
+    legacy.exec('PRAGMA foreign_keys = ON');
+    legacy.exec(`CREATE TABLE schema_migrations (
+      version INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE, applied_at TEXT NOT NULL
+    ) STRICT`);
+    migrations[0].up(legacy);
+    legacy.prepare('INSERT INTO schema_migrations(version, name, applied_at) VALUES (1, ?, ?)')
+      .run(migrations[0].name, NOW);
+    legacy.exec('PRAGMA user_version = 1');
+    legacy.prepare(`INSERT INTO goals
+      (id, objective, constraints_json, priority, privacy_class, status, version, created_at, updated_at)
+      VALUES ('legacy-goal', 'Preserve legacy failures', '{}', 'normal', 'internal', 'active', 1, ?, ?)`)
+      .run(NOW, NOW);
+    legacy.prepare(`INSERT INTO task_graph_revisions(id, goal_id, revision, rationale, created_at)
+      VALUES ('legacy-graph', 'legacy-goal', 1, 'Legacy graph', ?)`)
+      .run(NOW);
+    legacy.prepare(`INSERT INTO tasks
+      (id, goal_id, graph_revision_id, title, objective, inputs_json, required_capabilities_json,
+       privacy_class, priority, status, required, retry_policy_json, verification_plan_json,
+       terminal_reason, version, created_at, updated_at, completed_at)
+      VALUES ('legacy-task', 'legacy-goal', 'legacy-graph', 'Legacy task', 'Inspect migration', '{}', '[]',
+       'internal', 'normal', 'failed', 1, '{}', '{}', 'LEGACY_FAILURE', 1, ?, ?, ?)`)
+      .run(NOW, NOW, NOW);
+    const insertFailure = legacy.prepare(`INSERT INTO failures
+      (id, task_id, category, code, summary, details_json, retryable, created_at)
+      VALUES (?, 'legacy-task', ?, ?, ?, ?, ?, ?)`);
+    insertFailure.run('failure-transient', 'transient_infrastructure', 'TRANSIENT', 'Temporary outage',
+      '{"source":"legacy"}', 1, '2026-08-12T20:00:01.000Z');
+    insertFailure.run('failure-resource', 'resource_unavailable', 'RESOURCE', 'Missing resource',
+      '{"source":"legacy"}', 1, '2026-08-12T20:00:02.000Z');
+    insertFailure.run('failure-policy', 'policy_or_approval', 'POLICY', 'Policy rejected',
+      '{"source":"legacy"}', 0, '2026-08-12T20:00:03.000Z');
+    insertFailure.run('failure-verification', 'verification_failure', 'VERIFY', 'Verification rejected',
+      '{"source":"legacy"}', 0, '2026-08-12T20:00:04.000Z');
+    insertFailure.run('failure-indeterminate', 'external_outcome_indeterminate', 'UNKNOWN_OUTCOME', 'Outcome unknown',
+      '{"source":"legacy"}', 0, '2026-08-12T20:00:05.000Z');
+    legacy.close();
+
+    persistence = new SqliteArchitecture2Persistence({ databasePath });
+    persistence.initialize();
+    expect(persistence.getSchemaVersion()).toBe(2);
+    expect(persistence.getTask(asIdentifier<'Task'>('legacy-task'))?.status).toBe('failed');
+    const failures = persistence.getFailures(asIdentifier<'Task'>('legacy-task'));
+    expect(failures).toHaveLength(5);
+    expect(failures.map(({ category, classification, code, summary, details, retryable, createdAt }) => ({
+      category, classification, code, summary, details, retryable, createdAt,
+    }))).toEqual([
+      { category: 'transient_infrastructure', classification: 'transient', code: 'TRANSIENT',
+        summary: 'Temporary outage', details: { source: 'legacy' }, retryable: true, createdAt: '2026-08-12T20:00:01.000Z' },
+      { category: 'resource_unavailable', classification: 'permanent', code: 'RESOURCE',
+        summary: 'Missing resource', details: { source: 'legacy' }, retryable: true, createdAt: '2026-08-12T20:00:02.000Z' },
+      { category: 'policy_or_approval', classification: 'permanent', code: 'POLICY',
+        summary: 'Policy rejected', details: { source: 'legacy' }, retryable: false, createdAt: '2026-08-12T20:00:03.000Z' },
+      { category: 'verification_failure', classification: 'verification_failed', code: 'VERIFY',
+        summary: 'Verification rejected', details: { source: 'legacy' }, retryable: false, createdAt: '2026-08-12T20:00:04.000Z' },
+      { category: 'external_outcome_indeterminate', classification: 'external_outcome_indeterminate', code: 'UNKNOWN_OUTCOME',
+        summary: 'Outcome unknown', details: { source: 'legacy' }, retryable: false, createdAt: '2026-08-12T20:00:05.000Z' },
+    ]);
   });
 });

@@ -332,3 +332,24 @@ Implementation remains paused pending Product Owner and Architect review.
 ### Deferred Work
 
 - Orchestration, state-machine policy enforcement, runtime database location/configuration, Architecture 1 import, artifact content storage, provider execution, and UI integration remain outside Phase 1A.
+
+---
+
+## Architecture 2 Phase 1C — Bounded Retry and Approval Pause/Resume — August 13, 2026
+
+- Verified clean `main` baseline `2319e24d7516c11264214338ee263140e66b7a6a`; baseline TypeScript validation passed.
+- Added the five-value failure classification, schema migration 2, durable approval decisions, and atomic approval-pause persistence.
+- Extended the existing Orchestrator with a three-attempt default budget, explicit transient retry, opt-in verification retry, approval/denial APIs, and restart-safe decisions.
+- Preserved Attempt/Failure history and the no-replay `external_outcome_indeterminate` recovery rule.
+- Added Addendum 008 and focused Phase 1C regression coverage. No dependency, UI, real-provider, network, or Architecture 1 runtime change was made.
+- Final evidence: 50/50 tests, TypeScript validation, production build, Electron startup smoke, and diff hygiene all passed.
+
+### Phase 1C targeted acceptance corrections — August 13, 2026
+
+- Added durable-history revalidation before `retry_pending -> ready`; unsafe or exhausted retry state now fails closed.
+- Added typed state-machine authorization evidence for retry, approval pause, and approval resume transitions.
+- Typed the Phase 1C retry-policy fields while preserving JSON storage compatibility and conservative runtime defaults.
+- Approval denial now persists its reason in Approval scope as well as Task terminal state and audit events.
+- Made schema-1 classification migration conservative and added a populated upgrade regression.
+- Added positive/bounded verification-retry, denial/restart, sensitive-transition, and unsafe-recovery tests.
+- Final validation passed: 56/56 tests, TypeScript, production build, and Electron runtime smoke.

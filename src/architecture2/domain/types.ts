@@ -15,6 +15,11 @@ export type IsoTimestamp = string;
 export type JsonObject = Record<string, unknown>;
 export type PrivacyClass = 'public' | 'internal' | 'personal' | 'confidential' | 'secret';
 
+export interface RetryPolicy extends JsonObject {
+  maxAttempts?: number;
+  retryVerificationFailures?: boolean;
+}
+
 export type GoalStatus =
   | 'draft'
   | 'planning'
@@ -86,7 +91,7 @@ export interface Task {
   priority: Goal['priority'];
   status: TaskStatus;
   required: boolean;
-  retryPolicy: JsonObject;
+  retryPolicy: RetryPolicy;
   verificationPlan: JsonObject;
   terminalReason?: string;
   version: number;
@@ -148,6 +153,7 @@ export interface Failure {
     | 'external_outcome_indeterminate'
     | 'cancelled_or_preempted'
     | 'unknown';
+  classification: 'transient' | 'permanent' | 'verification_failed' | 'approval_required' | 'external_outcome_indeterminate';
   code: string;
   summary: string;
   details: JsonObject;

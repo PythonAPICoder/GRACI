@@ -56,6 +56,11 @@ export interface Architecture2Persistence extends Disposable {
   createFailure(failure: Failure, event: AuditEventInput): void;
   getFailures(taskId: TaskId): Failure[];
   createApproval(approval: Approval, event: AuditEventInput): void;
+  getApprovals(taskId: TaskId): Approval[];
+  recordApprovalPause(task: Task, expectedVersion: number, attempt: Attempt, failure: Failure,
+    approval: Approval, events: readonly AuditEventInput[]): void;
+  recordApprovalDecision(task: Task, expectedVersion: number, approval: Approval,
+    events: readonly AuditEventInput[]): void;
   createArtifact(artifact: ArtifactMetadata, event: AuditEventInput): void;
 
   appendEvent(event: AuditEventInput): AuditEvent;

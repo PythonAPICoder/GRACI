@@ -1,4 +1,4 @@
-import type { AttemptId, JsonObject, TaskId } from '../domain/index.js';
+import type { AttemptId, Failure, JsonObject, TaskId } from '../domain/index.js';
 
 export interface TaskExecutionRequest {
   taskId: TaskId;
@@ -11,7 +11,7 @@ export interface TaskExecutionRequest {
 
 export type TaskExecutionResult =
   | { status: 'succeeded'; output: JsonObject; evidence: JsonObject }
-  | { status: 'failed'; code: string; summary: string; details: JsonObject };
+  | { status: 'failed'; classification: Failure['classification']; code: string; summary: string; details: JsonObject };
 
 export interface TaskExecutionProvider {
   readonly providerId: string;
