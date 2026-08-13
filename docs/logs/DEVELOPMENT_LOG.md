@@ -388,3 +388,23 @@ Implementation remains paused pending Product Owner and Architect review.
 - Made `executionProvider` and `verifier` required runtime configuration. Production composition no longer imports or silently constructs deterministic test components.
 - Updated Phase 1E tests to supply the deterministic provider and verifier explicitly.
 - Added coverage proving a zero-eligible-record assessment still creates one durable import operation with zero history rows and remains idempotent on repetition.
+
+---
+
+## Architecture 2 Phase 1F — Governance Authorization — August 13, 2026
+
+### Scope
+
+- Governance and engineering-history documentation only; no application source, dependency, configuration, persistent data, Electron composition, or runtime behavior changed.
+- Product Owner approved the bounded Architecture 2 Slice 2 capability/provider-resolution scope.
+
+### Governance Changes
+
+- Added Addendum 011 authorizing versioned provider/capability contracts, durable offerings, qualification and health evidence, deterministic policy-filtered resolution, routing explanations, and one qualified Ollama Model Provider adapter.
+- Kept node/GPU/resource scheduling, concurrent execution, cloud providers, generalized policy, UI work, legacy promotion, and Architecture 2 Electron cutover deferred.
+- Added DEC-0007 and updated the Governance Index precedence order.
+
+### Implementation Gate
+
+- Phase 1F source implementation is now authorized only within Addendum 011.
+- No Phase 1F implementation was performed in this governance checkpoint.

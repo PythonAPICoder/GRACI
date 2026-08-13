@@ -39,6 +39,52 @@ Use this log for decisions that matter but do not yet justify a dedicated ADR sy
 
 ---
 
+### DEC-0007 — Phase 1F Capability and Provider Resolution Boundary
+
+**Date**
+
+- 2026-08-13
+
+**Context**
+
+- Phase 1E completed the explicit Architecture 2 runtime composition and non-canonical legacy-state import boundary.
+- Addendum 005 places durable capability/provider resolution before multi-node resource scheduling.
+- The current Architecture 1 registries and Ollama singleton are prototypes, not qualified Architecture 2 contracts.
+
+**Decision**
+
+- Approve Addendum 011 for controlled implementation of Architecture 2 Slice 2 as Phase 1F.
+- Persist versioned providers, capabilities, offerings, qualifications, health observations, and routing decisions with append-only audit history.
+- Require deterministic policy-filtered resolution and record the selected offering before invocation.
+- Adapt Ollama behind a caller-configured Model Provider boundary and require explicit qualification before resolver eligibility.
+- Keep node/resource scheduling, cloud providers, generalized policy, UI integration, and Architecture 2 Electron authority deferred.
+
+**Alternatives Considered**
+
+- Extend the Architecture 1 in-memory registries.
+- Treat Ollama availability or model inventory as automatic qualification.
+- Combine provider resolution with multi-node scheduling and failover.
+- Make Architecture 2 the default Electron runtime during provider integration.
+
+**Rationale**
+
+- Durable evidence and deterministic resolution preserve the capability-first design without coupling core workflow to Ollama or a node topology.
+- Separating provider selection from future resource scheduling keeps Slice 2 independently testable and respects roadmap dependency order.
+- Explicit qualification prevents discovered or merely healthy components from being treated as production-ready.
+
+**Consequences**
+
+- The provider execution contract and Orchestrator binding must evolve so the exact offering is selected and persisted before invocation.
+- Architecture 1 remains active and its registry state remains unsupported compatibility input.
+- Multi-node and resource-aware scheduling remain Phase 1F non-goals.
+
+**Revisit Trigger**
+
+- Phase 1F acceptance evidence is complete and Slice 3 planning begins.
+- A provider requires authoritative reconciliation, streaming, multimodal behavior, or a materially different invocation contract.
+
+---
+
 ### DEC-0006 — Preserve Importable Architecture 1 Tasks as Non-Canonical History
 
 **Date**

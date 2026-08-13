@@ -134,9 +134,33 @@ Record meaningful verification results. Do not duplicate raw automated-test outp
 - Zero-eligible-record import: PASS; first import created a durable zero-count operation, no history records were inserted, and repeat import returned the original operation.
 - Focused Phase 1E/persistence/queue/orchestrator suite: PASS, 67/67 across 4 files.
 
+---
+
+### 2026-08-13 — Architecture 2 Phase 1F Governance Authorization
+
+**Test Scope**
+
+- Governance precedence and next-unused addendum numbering.
+- Phase 1F alignment with Addendum 005 Slice 2 and Addendum 010 deferred boundaries.
+- Explicit in-scope, deferred-scope, persistence, qualification, resolution, Ollama-adapter, recovery, and acceptance requirements.
+- Documentation-only repository scope and whitespace hygiene.
+
+**Verification**
+
+- Product Owner scope approval: PASS.
+- Addendum 011 status and precedence entry: PASS.
+- Architecture 1 authority and Phase 1F non-goals preserved: PASS.
+- No source, test implementation, dependency, configuration, or persistent-state change: PASS.
+- Markdown/diff hygiene verification: PASS (`git diff --check`).
+- Changed-path scope verification: PASS; only Addendum 011, the Governance Index, and the Decision, Development, and Test logs changed.
+
+**Runtime / Integration Verification**
+
+- Not applicable: this checkpoint changes governance and engineering-history documentation only.
+
 **Notes**
 
-- Architecture 2 implementation is explicitly not authorized by this documentation phase.
+- Phase 1F source implementation is authorized only within the controlled scope of Addendum 011; no source implementation occurred in this documentation checkpoint.
 
 ---
 
