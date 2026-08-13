@@ -264,6 +264,29 @@ Record meaningful verification results. Do not duplicate raw automated-test outp
 - Explicit Windows process snapshot: PASS; 167 process records, 0 Mod Organizer 2 matches at inspection time.
 - Electron startup smoke: PASS; Architecture 1 remained authoritative.
 
+### 2026-08-13 — Architecture 2 Phase 1J Implementation
+
+**Automated Verification**
+
+- Focused policy, persistence, scheduler, and evaluation suite: PASS, 55/55 across 4 files.
+- TypeScript validation: PASS (`npm.cmd run validate`).
+- Full regression suite: PASS, 149/149 across 14 files.
+- Production build: PASS; required Electron output verified.
+- Diff whitespace hygiene: PASS (`git diff --check`).
+
+**Persistence and Behavior Verification**
+
+- Fresh drain and policy-owned reactivation: PASS.
+- Manual drain, disabled Node, inconclusive, stale/mismatched/superseded evidence, and state/version conflict fail closed: PASS.
+- Idempotent repeat, durable no-change/rejected decisions, Event rollback, immutable history, corruption diagnostics, and close/reopen: PASS.
+- Populated schema 7 to schema 8 migration preserving Node and Phase 1I evaluation records: PASS.
+- Existing scheduler blocks draining Nodes and performs no implicit evaluation/application: PASS.
+
+**Live Verification**
+
+- Real Electron startup smoke: PASS; process remained alive for 8 seconds, emitted `Electron app starting`, and stderr was empty.
+- Architecture 1 remained the live Electron authority. Phase 1J has no startup, background, or scheduler-triggered behavior.
+
 ---
 
 ### 2026-08-12 — Architecture 2 Phase 1B Workflow Kernel

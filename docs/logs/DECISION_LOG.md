@@ -39,6 +39,25 @@ Use this log for decisions that matter but do not yet justify a dedicated ADR sy
 
 ---
 
+### DEC-0011 — Phase 1J Evidence-Linked Workstation Policy Application
+
+**Date**
+
+- 2026-08-13
+
+**Decision**
+
+- Approve explicit application of one persisted Phase 1I recommendation with exact Node state/version expectations.
+- Represent policy ownership by linking immutable application decisions to administrative transition history.
+- Permit reactivation only when the current draining version was produced by the same policy identity/version.
+- Record rejected and no-change decisions durably; keep the scheduler, leases, Attempts, and Electron authority unchanged.
+
+**Rationale**
+
+- Durable ownership and optimistic concurrency prevent workstation recommendations from reversing manual or newer administration while allowing safely attributable drain/reactivation behavior.
+
+---
+
 ### DEC-0007 — Phase 1F Capability and Provider Resolution Boundary
 
 **Date**

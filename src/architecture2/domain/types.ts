@@ -14,6 +14,7 @@ import type {
   NodeId, OfferingLocationId, NodeHealthObservationId, ResourceSchedulingDecisionId, ResourceLeaseId,
   NodeInspectionId,
   WorkstationWorkloadEvaluationId,
+  WorkstationAvailabilityPolicyApplicationId,
 } from './ids.js';
 
 export type IsoTimestamp = string;
@@ -470,4 +471,53 @@ export interface WorkstationWorkloadEvaluation {
   matchedRuleIds: readonly string[];
   recommendation: 'recommend_draining' | 'recommend_active' | 'inconclusive';
   evaluatedAt: IsoTimestamp;
+}
+
+export type WorkstationAvailabilityPolicyDisposition =
+  | 'applied_transition'
+  | 'already_satisfied'
+  | 'inconclusive'
+  | 'stale_evidence'
+  | 'state_version_mismatch'
+  | 'rule_fingerprint_mismatch'
+  | 'policy_ownership_mismatch'
+  | 'disabled_node'
+  | 'node_mismatch'
+  | 'superseded_evidence'
+  | 'invalid_evidence';
+
+export interface WorkstationAvailabilityPolicyApplicationRequest {
+  id: WorkstationAvailabilityPolicyApplicationId;
+  evaluationId: WorkstationWorkloadEvaluationId;
+  nodeId: NodeId;
+  policyId: string;
+  policyVersion: number;
+  expectedRuleFingerprint: string;
+  expectedNodeState: Node['administrativeState'];
+  expectedNodeVersion: number;
+  maximumEvidenceAgeMs: number;
+  actor: string;
+  reason: string;
+  appliedAt: IsoTimestamp;
+}
+
+export interface WorkstationAvailabilityPolicyApplication {
+  id: WorkstationAvailabilityPolicyApplicationId;
+  evaluationId: WorkstationWorkloadEvaluationId;
+  nodeId: NodeId;
+  policyId: string;
+  policyVersion: number;
+  ruleFingerprint: string;
+  actor: string;
+  reason: string;
+  expectedNodeState: Node['administrativeState'];
+  expectedNodeVersion: number;
+  observedNodeState: Node['administrativeState'];
+  observedNodeVersion: number;
+  recommendation: WorkstationWorkloadEvaluation['recommendation'];
+  disposition: WorkstationAvailabilityPolicyDisposition;
+  transitionOccurred: boolean;
+  resultingNodeState?: Node['administrativeState'];
+  resultingNodeVersion?: number;
+  appliedAt: IsoTimestamp;
 }

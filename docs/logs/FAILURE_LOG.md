@@ -1,5 +1,13 @@
 # G.R.A.C.I. Phase 1 — Autonomous Recovery and Continuation
 
+## 2026-08-13 — Phase 1J Transaction and Corruption Fixture Corrections
+
+- The first focused Phase 1J run failed 8 tests because the new application row referenced its audit Event before that Event was inserted in the same transaction. SQLite foreign-key enforcement correctly rolled back every attempt. The Event insertion was moved before dependent rows within the same atomic transaction; focused behavior then passed except for one fixture.
+- The corruption fixture attempted to set a version below the schema constraint, so SQLite rejected the corruption before reconstruction and left the direct test handle open. The fixture now uses a constraint-valid but semantically inconsistent resulting version, and reconstruction explicitly validates transition-version relationships.
+- Final focused result after corrections: 55/55 tests passed across 4 files.
+
+---
+
 ## 2026-08-13 — Phase 1G Verification Fixture Corrections
 
 - The new orchestrator lease test initially failed because the existing test module did not import Vitest's `vi` helper. The import was added and the focused Phase 1G suite passed 54/54.

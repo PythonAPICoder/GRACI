@@ -23,7 +23,8 @@ import type {
   Provider, Capability, ProviderOffering, ProviderRegistration, Qualification, ProviderHealthObservation,
   ProviderResolutionDecision,
   Node, OfferingLocation, NodeHealthObservation, NodeInspectionObservation, ResourceSchedulingDecision, ResourceLease,
-  WorkstationWorkloadEvaluation,
+  WorkstationWorkloadEvaluation, WorkstationAvailabilityPolicyApplication,
+  WorkstationAvailabilityPolicyApplicationRequest,
 } from '../../domain/index.js';
 import { assertIdentifier } from '../../domain/index.js';
 import type {
@@ -346,6 +347,129 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
     return (this.db().prepare(`SELECT * FROM workstation_availability_evaluations
       WHERE node_id = ? ORDER BY evaluated_at, id`).all(nodeId) as Row[])
       .map((row) => this.mapWorkstationWorkloadEvaluation(row));
+  }
+
+  applyWorkstationAvailabilityPolicy(request: WorkstationAvailabilityPolicyApplicationRequest,
+    event: AuditEventInput): WorkstationAvailabilityPolicyApplication {
+    assertIdentifier(request.id, 'workstation availability policy application id');
+    assertIdentifier(request.evaluationId, 'workstation workload evaluation id');
+    assertIdentifier(request.nodeId, 'workstation availability policy node id');
+    if (!request.policyId.trim() || !Number.isInteger(request.policyVersion) || request.policyVersion < 1) {
+      throw new Error('Workstation availability policy identity and positive version are required');
+    }
+    if (!request.expectedRuleFingerprint.trim()) throw new Error('Expected rule fingerprint is required');
+    if (!Number.isInteger(request.expectedNodeVersion) || request.expectedNodeVersion < 1) {
+      throw new Error('Expected node version must be positive');
+    }
+    if (!Number.isFinite(request.maximumEvidenceAgeMs) || request.maximumEvidenceAgeMs < 0) {
+      throw new Error('Maximum evidence age must be non-negative');
+    }
+    if (!request.actor.trim() || !request.reason.trim()) throw new Error('Policy application actor and reason are required');
+    validateTimestamp(request.appliedAt, 'workstation availability policy application timestamp');
+    if (event.aggregateId !== request.nodeId || event.actor !== request.actor || event.occurredAt !== request.appliedAt) {
+      throw new Error('Workstation availability policy event does not match the command');
+    }
+
+    const existing = this.db().prepare('SELECT * FROM workstation_availability_policy_applications WHERE id = ?')
+      .get(request.id) as Row | undefined;
+    if (existing) {
+      const application = this.mapWorkstationAvailabilityPolicyApplication(existing);
+      if (application.evaluationId !== request.evaluationId || application.nodeId !== request.nodeId ||
+          application.policyId !== request.policyId || application.policyVersion !== request.policyVersion ||
+          application.expectedNodeState !== request.expectedNodeState ||
+          application.expectedNodeVersion !== request.expectedNodeVersion || application.actor !== request.actor ||
+          application.reason !== request.reason.trim() || application.appliedAt !== request.appliedAt) {
+        throw new Error(`Policy application idempotency conflict: ${request.id}`);
+      }
+      return application;
+    }
+
+    return this.transaction(() => {
+      const evaluationRow = this.db().prepare('SELECT * FROM workstation_availability_evaluations WHERE id = ?')
+        .get(request.evaluationId) as Row | undefined;
+      if (!evaluationRow) throw new Error(`Workstation workload evaluation not found: ${request.evaluationId}`);
+      const evaluation = this.mapWorkstationWorkloadEvaluation(evaluationRow);
+      const nodeRow = this.db().prepare('SELECT * FROM nodes WHERE id = ?').get(request.nodeId) as Row | undefined;
+      if (!nodeRow) throw new Error(`Node not found: ${request.nodeId}`);
+      const node = this.mapNode(nodeRow);
+      const appliedAt = Date.parse(request.appliedAt);
+      const evaluatedAt = Date.parse(evaluation.evaluatedAt);
+      const latest = this.db().prepare(`SELECT id FROM workstation_availability_evaluations
+        WHERE node_id = ? AND (evaluated_at > ? OR (evaluated_at = ? AND id > ?)) ORDER BY evaluated_at DESC, id DESC LIMIT 1`)
+        .get(evaluation.nodeId, evaluation.evaluatedAt, evaluation.evaluatedAt, evaluation.id) as Row | undefined;
+      const structurallyValid = /^[a-f0-9]{64}$/.test(evaluation.ruleFingerprint) &&
+        evaluation.processBasenames.every((value, index, values) => Boolean(value) && value === value.trim() &&
+          !/[\\/\x00-\x1f]/.test(value) && (index === 0 || values[index - 1] < value)) &&
+        evaluation.matchedRuleIds.every((value, index, values) => Boolean(value) && value === value.trim() &&
+          (index === 0 || values[index - 1] < value));
+
+      let disposition: WorkstationAvailabilityPolicyApplication['disposition'];
+      let targetState: Node['administrativeState'] | undefined;
+      if (evaluation.nodeId !== request.nodeId) disposition = 'node_mismatch';
+      else if (!structurallyValid) disposition = 'invalid_evidence';
+      else if (evaluation.ruleFingerprint !== request.expectedRuleFingerprint) disposition = 'rule_fingerprint_mismatch';
+      else if (evaluatedAt > appliedAt || appliedAt - evaluatedAt > request.maximumEvidenceAgeMs) disposition = 'stale_evidence';
+      else if (latest) disposition = 'superseded_evidence';
+      else if (node.administrativeState !== request.expectedNodeState || node.version !== request.expectedNodeVersion) {
+        disposition = 'state_version_mismatch';
+      } else if (node.administrativeState === 'disabled') disposition = 'disabled_node';
+      else if (evaluation.recommendation === 'inconclusive') disposition = 'inconclusive';
+      else if (evaluation.recommendation === 'recommend_draining') {
+        if (node.administrativeState === 'active') targetState = 'draining';
+        disposition = targetState ? 'applied_transition' : 'already_satisfied';
+      } else if (node.administrativeState === 'active') disposition = 'already_satisfied';
+      else {
+        const owner = this.db().prepare(`SELECT policy_application_id FROM node_administrative_transitions
+          WHERE node_id = ? AND node_version = ? AND to_state = 'draining'`).get(node.id, node.version) as Row | undefined;
+        const owned = owner?.policy_application_id && this.db().prepare(`SELECT id FROM workstation_availability_policy_applications
+          WHERE id = ? AND node_id = ? AND policy_id = ? AND policy_version = ? AND disposition = 'applied_transition'`)
+          .get(String(owner.policy_application_id), node.id, request.policyId, request.policyVersion);
+        if (owned) targetState = 'active';
+        disposition = targetState ? 'applied_transition' : 'policy_ownership_mismatch';
+      }
+
+      const resultingState = targetState ?? node.administrativeState;
+      const resultingVersion = targetState ? node.version + 1 : node.version;
+      const application: WorkstationAvailabilityPolicyApplication = {
+        id: request.id, evaluationId: evaluation.id, nodeId: request.nodeId, policyId: request.policyId,
+        policyVersion: request.policyVersion, ruleFingerprint: evaluation.ruleFingerprint, actor: request.actor,
+        reason: request.reason.trim(), expectedNodeState: request.expectedNodeState,
+        expectedNodeVersion: request.expectedNodeVersion, observedNodeState: node.administrativeState,
+        observedNodeVersion: node.version, recommendation: evaluation.recommendation, disposition,
+        transitionOccurred: Boolean(targetState), resultingNodeState: resultingState,
+        resultingNodeVersion: resultingVersion, appliedAt: request.appliedAt,
+      };
+      this.insertEvent(event);
+      this.db().prepare(`INSERT INTO workstation_availability_policy_applications
+        (id, evaluation_id, node_id, policy_id, policy_version, rule_fingerprint, actor, reason,
+         expected_node_state, expected_node_version, observed_node_state, observed_node_version, recommendation,
+         disposition, transition_occurred, resulting_node_state, resulting_node_version, applied_at, event_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+        .run(application.id, application.evaluationId, application.nodeId, application.policyId, application.policyVersion,
+          application.ruleFingerprint, application.actor, application.reason, application.expectedNodeState,
+          application.expectedNodeVersion, application.observedNodeState, application.observedNodeVersion,
+          application.recommendation, application.disposition, application.transitionOccurred ? 1 : 0,
+          application.resultingNodeState, application.resultingNodeVersion, application.appliedAt, event.id);
+      if (targetState) {
+        const update = this.db().prepare(`UPDATE nodes SET administrative_state = ?, version = version + 1
+          WHERE id = ? AND version = ? AND administrative_state = ?`)
+          .run(targetState, node.id, node.version, node.administrativeState);
+        if (Number(update.changes) !== 1) throw new Error(`Node concurrency conflict: ${node.id}`);
+      }
+      if (targetState) {
+        this.db().prepare(`INSERT INTO node_administrative_transitions
+          (node_id, from_state, to_state, actor, reason, occurred_at, node_version, event_id, policy_application_id)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(node.id, node.administrativeState, targetState, request.actor,
+          request.reason.trim(), request.appliedAt, node.version + 1, event.id, request.id);
+      }
+      return application;
+    });
+  }
+
+  getWorkstationAvailabilityPolicyApplications(nodeId: Node['id']): WorkstationAvailabilityPolicyApplication[] {
+    return (this.db().prepare(`SELECT * FROM workstation_availability_policy_applications
+      WHERE node_id = ? ORDER BY applied_at, id`).all(nodeId) as Row[])
+      .map((row) => this.mapWorkstationAvailabilityPolicyApplication(row));
   }
 
   transitionNodeAdministrativeState(nodeId: Node['id'], expectedVersion: number,
@@ -1052,6 +1176,50 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
       return value;
     } catch (error) {
       throw new Error(`Corrupt persisted Workstation Workload Evaluation: ${id}`, { cause: error });
+    }
+  }
+
+  private mapWorkstationAvailabilityPolicyApplication(row: Row): WorkstationAvailabilityPolicyApplication {
+    const id = String(row.id) as WorkstationAvailabilityPolicyApplication['id'];
+    try {
+      const states: readonly Node['administrativeState'][] = ['active', 'draining', 'disabled'];
+      const dispositions: readonly WorkstationAvailabilityPolicyApplication['disposition'][] = [
+        'applied_transition', 'already_satisfied', 'inconclusive', 'stale_evidence', 'state_version_mismatch',
+        'rule_fingerprint_mismatch', 'policy_ownership_mismatch', 'disabled_node', 'node_mismatch',
+        'superseded_evidence', 'invalid_evidence',
+      ];
+      const value: WorkstationAvailabilityPolicyApplication = {
+        id, evaluationId: String(row.evaluation_id) as WorkstationAvailabilityPolicyApplication['evaluationId'],
+        nodeId: String(row.node_id) as Node['id'], policyId: String(row.policy_id), policyVersion: Number(row.policy_version),
+        ruleFingerprint: String(row.rule_fingerprint), actor: String(row.actor), reason: String(row.reason),
+        expectedNodeState: String(row.expected_node_state) as Node['administrativeState'],
+        expectedNodeVersion: Number(row.expected_node_version),
+        observedNodeState: String(row.observed_node_state) as Node['administrativeState'],
+        observedNodeVersion: Number(row.observed_node_version),
+        recommendation: String(row.recommendation) as WorkstationWorkloadEvaluation['recommendation'],
+        disposition: String(row.disposition) as WorkstationAvailabilityPolicyApplication['disposition'],
+        transitionOccurred: bool(row.transition_occurred),
+        resultingNodeState: optionalString(row.resulting_node_state) as Node['administrativeState'] | undefined,
+        resultingNodeVersion: row.resulting_node_version === null ? undefined : Number(row.resulting_node_version),
+        appliedAt: this.validatedTimestamp(row.applied_at, 'workstation availability policy application timestamp'),
+      };
+      assertIdentifier(value.id, 'persisted workstation availability policy application id');
+      assertIdentifier(value.evaluationId, 'persisted workstation availability policy evaluation id');
+      assertIdentifier(value.nodeId, 'persisted workstation availability policy node id');
+      if (!value.policyId.trim() || !value.ruleFingerprint.trim() || !value.actor.trim() || !value.reason.trim() ||
+          !Number.isInteger(value.policyVersion) || value.policyVersion < 1 ||
+          !Number.isInteger(value.expectedNodeVersion) || value.expectedNodeVersion < 1 ||
+          !Number.isInteger(value.observedNodeVersion) || value.observedNodeVersion < 1 ||
+          !states.includes(value.expectedNodeState) || !states.includes(value.observedNodeState) ||
+          !dispositions.includes(value.disposition) || value.transitionOccurred !== (value.disposition === 'applied_transition') ||
+          !value.resultingNodeState || !states.includes(value.resultingNodeState) ||
+          !Number.isInteger(value.resultingNodeVersion) || value.resultingNodeVersion! < 1 ||
+          value.resultingNodeVersion !== value.observedNodeVersion + (value.transitionOccurred ? 1 : 0)) {
+        throw new Error('invalid fields');
+      }
+      return value;
+    } catch (error) {
+      throw new Error(`Corrupt persisted Workstation Availability Policy Application: ${id}`, { cause: error });
     }
   }
 

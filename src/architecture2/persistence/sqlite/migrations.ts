@@ -496,8 +496,54 @@ const migration007: Migration = {
   },
 };
 
+const migration008: Migration = {
+  version: 8,
+  name: 'architecture_2_phase_1j_workstation_availability_policy',
+  up(database) {
+    database.exec(`
+      CREATE TABLE workstation_availability_policy_applications (
+        id TEXT PRIMARY KEY,
+        evaluation_id TEXT NOT NULL REFERENCES workstation_availability_evaluations(id) ON DELETE RESTRICT,
+        node_id TEXT NOT NULL REFERENCES nodes(id) ON DELETE RESTRICT,
+        policy_id TEXT NOT NULL CHECK (length(trim(policy_id)) > 0),
+        policy_version INTEGER NOT NULL CHECK (policy_version >= 1),
+        rule_fingerprint TEXT NOT NULL CHECK (length(trim(rule_fingerprint)) > 0),
+        actor TEXT NOT NULL CHECK (length(trim(actor)) > 0),
+        reason TEXT NOT NULL CHECK (length(trim(reason)) > 0),
+        expected_node_state TEXT NOT NULL CHECK (expected_node_state IN ('active','draining','disabled')),
+        expected_node_version INTEGER NOT NULL CHECK (expected_node_version >= 1),
+        observed_node_state TEXT NOT NULL CHECK (observed_node_state IN ('active','draining','disabled')),
+        observed_node_version INTEGER NOT NULL CHECK (observed_node_version >= 1),
+        recommendation TEXT NOT NULL CHECK (recommendation IN ('recommend_draining','recommend_active','inconclusive')),
+        disposition TEXT NOT NULL CHECK (disposition IN ('applied_transition','already_satisfied','inconclusive',
+          'stale_evidence','state_version_mismatch','rule_fingerprint_mismatch','policy_ownership_mismatch',
+          'disabled_node','node_mismatch','superseded_evidence','invalid_evidence')),
+        transition_occurred INTEGER NOT NULL CHECK (transition_occurred IN (0,1)),
+        resulting_node_state TEXT CHECK (resulting_node_state IN ('active','draining','disabled')),
+        resulting_node_version INTEGER CHECK (resulting_node_version >= 1),
+        applied_at TEXT NOT NULL,
+        event_id TEXT NOT NULL UNIQUE REFERENCES events(id) ON DELETE RESTRICT,
+        CHECK ((transition_occurred = 1) = (disposition = 'applied_transition')),
+        CHECK ((resulting_node_state IS NULL) = (resulting_node_version IS NULL))
+      ) STRICT;
+      CREATE INDEX idx_workstation_policy_applications_node
+        ON workstation_availability_policy_applications(node_id, applied_at, id);
+      ALTER TABLE node_administrative_transitions ADD COLUMN policy_application_id TEXT
+        REFERENCES workstation_availability_policy_applications(id) ON DELETE RESTRICT;
+      CREATE UNIQUE INDEX idx_node_transition_policy_application
+        ON node_administrative_transitions(policy_application_id) WHERE policy_application_id IS NOT NULL;
+      CREATE TRIGGER workstation_policy_applications_no_update
+        BEFORE UPDATE ON workstation_availability_policy_applications
+        BEGIN SELECT RAISE(ABORT, 'workstation availability policy applications are immutable'); END;
+      CREATE TRIGGER workstation_policy_applications_no_delete
+        BEFORE DELETE ON workstation_availability_policy_applications
+        BEGIN SELECT RAISE(ABORT, 'workstation availability policy applications are immutable'); END;
+    `);
+  },
+};
+
 export const migrations: readonly Migration[] = [migration001, migration002, migration003, migration004, migration005,
-  migration006, migration007];
+  migration006, migration007, migration008];
 
 export function migrate(database: DatabaseSync): number {
   database.exec(`

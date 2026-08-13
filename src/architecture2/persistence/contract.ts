@@ -17,7 +17,8 @@ import type {
   Provider, Capability, ProviderOffering, ProviderRegistration, Qualification, ProviderHealthObservation,
   ProviderResolutionDecision,
   Node, OfferingLocation, NodeHealthObservation, NodeInspectionObservation, ResourceSchedulingDecision, ResourceLease,
-  WorkstationWorkloadEvaluation,
+  WorkstationWorkloadEvaluation, WorkstationAvailabilityPolicyApplication,
+  WorkstationAvailabilityPolicyApplicationRequest,
 } from '../domain/index.js';
 
 export interface LegacyImportOperation {
@@ -77,6 +78,9 @@ export interface Architecture2Persistence extends Disposable {
   getNodeInspections(nodeId: Node['id']): NodeInspectionObservation[];
   recordWorkstationWorkloadEvaluation(value: WorkstationWorkloadEvaluation, event: AuditEventInput): void;
   getWorkstationWorkloadEvaluations(nodeId: Node['id']): WorkstationWorkloadEvaluation[];
+  applyWorkstationAvailabilityPolicy(request: WorkstationAvailabilityPolicyApplicationRequest,
+    event: AuditEventInput): WorkstationAvailabilityPolicyApplication;
+  getWorkstationAvailabilityPolicyApplications(nodeId: Node['id']): WorkstationAvailabilityPolicyApplication[];
   transitionNodeAdministrativeState(nodeId: Node['id'], expectedVersion: number,
     currentState: Node['administrativeState'], targetState: Node['administrativeState'], actor: string,
     reason: string, occurredAt: string, event: AuditEventInput): Node & { version: number };

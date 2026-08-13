@@ -459,3 +459,16 @@ Implementation remains paused pending Product Owner and Architect review.
 - Added schema migration 7 and append-only durable workload evaluations with atomic Event writes and explicit malformed-state diagnostics.
 - Confirmed recommendations do not mutate Node state/version, leases, scheduling, providers, offerings, or Tasks. Applying a recommendation remains a separate explicit manual transition.
 - No dependency, package, background polling, process control, automatic drain/reactivation, UI, or Electron-authority change was introduced.
+
+---
+
+## Architecture 2 Phase 1J — Evidence-Linked Workstation Policy Application — August 13, 2026
+
+- Verified clean `main` baseline `48fa4f624aafda199bff1dd7ad3db1687bb47f91` before changes.
+- Added Addendum 015 and DEC-0011 for explicit policy application only.
+- Added typed application commands, immutable decisions, bounded dispositions, and a narrow caller-invoked policy component.
+- Added schema migration 8 with append-only application history and durable policy ownership links from Node transition history.
+- Added atomic application/Event/Node/transition persistence, optimistic state/version checks, evidence freshness/fingerprint/node/supersession validation, safe policy-owned reactivation, and idempotent application identity handling.
+- Preserved active leases and Attempts and relied on the existing scheduler exclusion of draining/disabled Nodes.
+- Added focused migration, reopen, corruption, rollback, ownership, idempotency, stale-evidence, and scheduler-invariant tests.
+- No dependency, polling, startup behavior, scheduler trigger, Orchestrator change, Architecture 1 change, UI, telemetry, preemption, failover, or Phase 1K capability was introduced.
