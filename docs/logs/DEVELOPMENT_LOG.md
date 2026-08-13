@@ -368,3 +368,23 @@ Implementation remains paused pending Product Owner and Architect review.
 - Strengthened durable-record reconstruction for malformed JSON, invalid Task/Attempt values, malformed timestamps, and structurally missing dependency endpoints.
 - Preserved Phase 1B no-replay interrupted-work recovery and all Phase 1C retry/approval behavior.
 - Final verification passed: 78/78 tests, TypeScript validation, production build, real file-backed SQLite close/reopen, Electron startup smoke, diff hygiene, and repository artifact inspection.
+
+---
+
+## Architecture 2 Phase 1E — Runtime Composition and Legacy-State Import Boundary — August 13, 2026
+
+- Verified clean expected baseline `532cc8ebad365e000b4d73c0bf10857af079835e`; baseline TypeScript and 78/78 tests passed.
+- Added Addendum 010 and the explicit caller-configured `bootstrapArchitecture2` composition boundary without changing Electron startup or Architecture 1 authority.
+- Added schema migration 3 for immutable legacy import operations and non-canonical legacy Task history.
+- Added byte-digest-based deterministic assessment with `importable`, `unsupported`, `ambiguous`, and `malformed` classifications and stable reason codes.
+- Imported only structurally complete Architecture 1 Task records as inert source history. Registry data remains unsupported; no Goal, canonical Task, Attempt, Verification, approval, dependency, provider, qualification, or success evidence is fabricated.
+- Enforced repeated-import idempotency by unique source SHA-256 digest and record identity `(source_digest, source_section, source_key)`.
+- Preserved source reference, digest, section, key, original payload, legacy status, assessment version, operation identity, and import timestamp.
+- Verified real temporary SQLite bootstrap, import, clean close, reopen, and durable reconstruction. Architecture 1 remained the live Electron runtime.
+- No dependency, package, configuration, UI, provider/model, node/GPU, network, cloud, or Phase 1F change was introduced.
+
+### Phase 1E architectural review corrections
+
+- Made `executionProvider` and `verifier` required runtime configuration. Production composition no longer imports or silently constructs deterministic test components.
+- Updated Phase 1E tests to supply the deterministic provider and verifier explicitly.
+- Added coverage proving a zero-eligible-record assessment still creates one durable import operation with zero history rows and remains idempotent on repetition.

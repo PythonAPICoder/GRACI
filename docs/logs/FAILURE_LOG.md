@@ -1,5 +1,29 @@
 # G.R.A.C.I. Phase 1 — Autonomous Recovery and Continuation
 
+## 2026-08-13 — Phase 1E Verification Fixture and Smoke Harness Corrections
+
+**Failure**
+
+- The first focused run found three persistence tests still expecting schema version 2 and one new expected reason list with two keys out of lexical order.
+- The first Electron smoke script tried to read redirected logs while the live Electron process still held the files.
+
+**Root Cause**
+
+- Test expectation drift after adding migration 3 and a mistaken manual ordering in the new fixture.
+- Smoke-harness shutdown/log-read ordering, not an application startup defect.
+
+**Correction**
+
+- Updated only the current schema expectations and deterministic expected order.
+- Stopped the Electron process tree before reading redirected logs.
+
+**Regression Result**
+
+- Focused Architecture 2 suite passed 66/66.
+- Final TypeScript validation, 86/86 full tests, production build, SQLite reopen reconstruction, Electron smoke, and diff hygiene passed.
+
+---
+
 ## 2026-08-12 — Phase 1B Interrupted-Recovery Evidence Ordering
 
 **Failure**

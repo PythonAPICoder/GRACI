@@ -118,7 +118,7 @@ describe('Architecture 2 SQLite persistence', () => {
   }
 
   it('initializes a new database through the current schema version', () => {
-    expect(persistence.getSchemaVersion()).toBe(2);
+    expect(persistence.getSchemaVersion()).toBe(3);
     expect(persistence.getEvents()).toEqual([]);
   });
 
@@ -240,7 +240,7 @@ describe('Architecture 2 SQLite persistence', () => {
     second.initialize();
     try {
       persistence.appendEvent(event('first', 'first.created'));
-      expect(second.getSchemaVersion()).toBe(2);
+      expect(second.getSchemaVersion()).toBe(3);
       expect(second.getEvents()).toEqual([]);
     } finally {
       second.close();
@@ -290,7 +290,7 @@ describe('Architecture 2 SQLite persistence', () => {
 
     persistence = new SqliteArchitecture2Persistence({ databasePath });
     persistence.initialize();
-    expect(persistence.getSchemaVersion()).toBe(2);
+    expect(persistence.getSchemaVersion()).toBe(3);
     expect(persistence.getTask(asIdentifier<'Task'>('legacy-task'))?.status).toBe('failed');
     const failures = persistence.getFailures(asIdentifier<'Task'>('legacy-task'));
     expect(failures).toHaveLength(5);

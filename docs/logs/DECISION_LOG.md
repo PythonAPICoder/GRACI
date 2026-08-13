@@ -39,6 +39,51 @@ Use this log for decisions that matter but do not yet justify a dedicated ADR sy
 
 ---
 
+### DEC-0006 — Preserve Importable Architecture 1 Tasks as Non-Canonical History
+
+**Date**
+
+- 2026-08-13
+
+**Context**
+
+- Architecture 1 lifecycle records do not contain Architecture 2 execution, verification, dependency, approval, or qualification evidence.
+- Phase 1E requires deterministic, idempotent, provenance-aware import without making Architecture 2 authoritative.
+
+**Decision**
+
+- Assess exact source bytes independently of the Architecture 1 state cache and fallback loader.
+- Preserve only structurally complete legacy Task records in immutable, non-canonical history tables.
+- Keep registry records unsupported and never promote them to qualified Architecture 2 components.
+- Use the source SHA-256 digest as the import-operation idempotency identity and `(source digest, section, key)` as the record uniqueness boundary.
+- Compose Architecture 2 only through an explicit caller-configured runtime factory; do not wire it into Electron startup.
+- Require callers to supply the execution provider and verifier explicitly; deterministic test components have no production composition default.
+
+**Alternatives Considered**
+
+- Convert legacy `completed` Tasks to canonical `succeeded` Tasks.
+- Create draft Goals and canonical Tasks from incomplete legacy semantics.
+- Preserve import data only in audit event payloads.
+- Automatically assess or import during Electron startup.
+
+**Rationale**
+
+- A dedicated inert history boundary preserves useful provenance while making fabricated lifecycle evidence structurally impossible.
+- Durable uniqueness provides restart-safe idempotency without modifying the source file.
+- Explicit composition enables integration testing while preserving Architecture 1 authority.
+
+**Consequences**
+
+- Imported history is inspectable but not schedulable or executable.
+- Future promotion into canonical workflow state requires new governance and explicit semantics.
+- Phase 1F provider/capability work remains deferred.
+
+**Revisit Trigger**
+
+- A governed phase defines evidence-safe promotion semantics or replaces Architecture 1 as the active runtime.
+
+---
+
 ### DEC-0005 — Phase 1D Persisted Task Queue and Deterministic Admission
 
 **Date**

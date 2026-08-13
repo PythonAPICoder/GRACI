@@ -232,7 +232,49 @@ const migration002: Migration = {
   },
 };
 
-export const migrations: readonly Migration[] = [migration001, migration002];
+const migration003: Migration = {
+  version: 3,
+  name: 'architecture_2_phase_1e_legacy_history',
+  up(database) {
+    database.exec(`
+      CREATE TABLE legacy_import_operations (
+        id TEXT PRIMARY KEY,
+        source_digest TEXT NOT NULL UNIQUE CHECK (length(source_digest) = 64),
+        source_reference TEXT NOT NULL CHECK (length(trim(source_reference)) > 0),
+        assessment_version INTEGER NOT NULL CHECK (assessment_version >= 1),
+        imported_record_count INTEGER NOT NULL CHECK (imported_record_count >= 0),
+        imported_at TEXT NOT NULL
+      ) STRICT;
+
+      CREATE TABLE legacy_history_records (
+        import_operation_id TEXT NOT NULL REFERENCES legacy_import_operations(id) ON DELETE RESTRICT,
+        source_digest TEXT NOT NULL,
+        source_reference TEXT NOT NULL CHECK (length(trim(source_reference)) > 0),
+        source_section TEXT NOT NULL CHECK (length(trim(source_section)) > 0),
+        source_key TEXT NOT NULL CHECK (length(trim(source_key)) > 0),
+        legacy_status TEXT NOT NULL CHECK (length(trim(legacy_status)) > 0),
+        payload_json TEXT NOT NULL CHECK (json_valid(payload_json)),
+        assessment_version INTEGER NOT NULL CHECK (assessment_version >= 1),
+        imported_at TEXT NOT NULL,
+        PRIMARY KEY (source_digest, source_section, source_key),
+        FOREIGN KEY (source_digest) REFERENCES legacy_import_operations(source_digest) ON DELETE RESTRICT
+      ) STRICT, WITHOUT ROWID;
+
+      CREATE INDEX idx_legacy_history_operation ON legacy_history_records(import_operation_id, source_section, source_key);
+
+      CREATE TRIGGER legacy_import_operations_no_update BEFORE UPDATE ON legacy_import_operations
+      BEGIN SELECT RAISE(ABORT, 'legacy import operations are immutable'); END;
+      CREATE TRIGGER legacy_import_operations_no_delete BEFORE DELETE ON legacy_import_operations
+      BEGIN SELECT RAISE(ABORT, 'legacy import operations are immutable'); END;
+      CREATE TRIGGER legacy_history_no_update BEFORE UPDATE ON legacy_history_records
+      BEGIN SELECT RAISE(ABORT, 'legacy history records are immutable'); END;
+      CREATE TRIGGER legacy_history_no_delete BEFORE DELETE ON legacy_history_records
+      BEGIN SELECT RAISE(ABORT, 'legacy history records are immutable'); END;
+    `);
+  },
+};
+
+export const migrations: readonly Migration[] = [migration001, migration002, migration003];
 
 export function migrate(database: DatabaseSync): number {
   database.exec(`

@@ -16,10 +16,46 @@ import type {
   Verification,
 } from '../domain/index.js';
 
+export interface LegacyImportOperation {
+  id: string;
+  sourceDigest: string;
+  sourceReference: string;
+  assessmentVersion: number;
+  importedRecordCount: number;
+  importedAt: string;
+}
+
+export interface LegacyHistoryRecord {
+  importOperationId: string;
+  sourceDigest: string;
+  sourceReference: string;
+  sourceSection: string;
+  sourceKey: string;
+  legacyStatus: string;
+  payload: Record<string, unknown>;
+  assessmentVersion: number;
+  importedAt: string;
+}
+
+export interface LegacyImportWrite {
+  operation: LegacyImportOperation;
+  records: readonly LegacyHistoryRecord[];
+}
+
+export interface LegacyImportResult {
+  operation: LegacyImportOperation;
+  created: boolean;
+  insertedRecordCount: number;
+}
+
 export interface Architecture2Persistence extends Disposable {
   initialize(): void;
   close(): void;
   getSchemaVersion(): number;
+
+  importLegacyHistory(value: LegacyImportWrite): LegacyImportResult;
+  getLegacyImport(sourceDigest: string): LegacyImportOperation | undefined;
+  getLegacyHistory(sourceDigest?: string): LegacyHistoryRecord[];
 
   createGoal(bundle: GoalBundle, event: AuditEventInput): void;
   getGoal(id: GoalId): GoalBundle | undefined;

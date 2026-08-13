@@ -22,7 +22,13 @@ import type {
   Verification,
 } from '../../domain/index.js';
 import { assertIdentifier } from '../../domain/index.js';
-import type { Architecture2Persistence } from '../contract.js';
+import type {
+  Architecture2Persistence,
+  LegacyHistoryRecord,
+  LegacyImportOperation,
+  LegacyImportResult,
+  LegacyImportWrite,
+} from '../contract.js';
 import { validateTaskGraph } from '../../workflow/task-graph-validator.js';
 import { migrate } from './migrations.js';
 
@@ -133,6 +139,43 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
 
   getSchemaVersion(): number {
     return Number((this.db().prepare('SELECT COALESCE(MAX(version), 0) AS version FROM schema_migrations').get() as Row).version);
+  }
+
+  importLegacyHistory(value: LegacyImportWrite): LegacyImportResult {
+    this.validateLegacyImport(value);
+    const existing = this.getLegacyImport(value.operation.sourceDigest);
+    if (existing) return { operation: existing, created: false, insertedRecordCount: 0 };
+    return this.transaction(() => {
+      const operation = value.operation;
+      this.db().prepare(`INSERT INTO legacy_import_operations
+        (id, source_digest, source_reference, assessment_version, imported_record_count, imported_at)
+        VALUES (?, ?, ?, ?, ?, ?)`).run(operation.id, operation.sourceDigest, operation.sourceReference,
+        operation.assessmentVersion, operation.importedRecordCount, operation.importedAt);
+      for (const record of value.records) {
+        this.db().prepare(`INSERT INTO legacy_history_records
+          (import_operation_id, source_digest, source_reference, source_section, source_key, legacy_status,
+           payload_json, assessment_version, imported_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+          .run(record.importOperationId, record.sourceDigest, record.sourceReference, record.sourceSection,
+            record.sourceKey, record.legacyStatus, json(record.payload), record.assessmentVersion, record.importedAt);
+      }
+      return { operation, created: true, insertedRecordCount: value.records.length };
+    });
+  }
+
+  getLegacyImport(sourceDigest: string): LegacyImportOperation | undefined {
+    const row = this.db().prepare('SELECT * FROM legacy_import_operations WHERE source_digest = ?').get(sourceDigest) as Row | undefined;
+    return row ? this.mapLegacyImport(row) : undefined;
+  }
+
+  getLegacyHistory(sourceDigest?: string): LegacyHistoryRecord[] {
+    const rows = sourceDigest
+      ? this.db().prepare(`SELECT * FROM legacy_history_records WHERE source_digest = ?
+          ORDER BY source_section, source_key`).all(sourceDigest) as Row[]
+      : this.db().prepare('SELECT * FROM legacy_history_records ORDER BY source_digest, source_section, source_key').all() as Row[];
+    return rows.map((row) => ({ importOperationId: String(row.import_operation_id), sourceDigest: String(row.source_digest),
+      sourceReference: String(row.source_reference), sourceSection: String(row.source_section), sourceKey: String(row.source_key),
+      legacyStatus: String(row.legacy_status), payload: parseObject(row.payload_json), assessmentVersion: Number(row.assessment_version),
+      importedAt: this.validatedTimestamp(row.imported_at, 'legacy history import timestamp') }));
   }
 
   createGoal(bundle: GoalBundle, event: AuditEventInput): void {
@@ -553,6 +596,40 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
     if (!goal.objective.trim()) throw new Error('Goal objective is required');
     validateTimestamp(goal.createdAt, 'goal creation timestamp');
     validateTimestamp(goal.updatedAt, 'goal update timestamp');
+  }
+
+  private validateLegacyImport(value: LegacyImportWrite): void {
+    const { operation, records } = value;
+    assertIdentifier(operation.id, 'legacy import operation id');
+    if (!/^[a-f0-9]{64}$/.test(operation.sourceDigest)) throw new Error('Legacy source digest must be SHA-256');
+    if (!operation.sourceReference.trim()) throw new Error('Legacy source reference is required');
+    if (!Number.isInteger(operation.assessmentVersion) || operation.assessmentVersion < 1) {
+      throw new Error('Legacy assessment version must be a positive integer');
+    }
+    validateTimestamp(operation.importedAt, 'legacy import timestamp');
+    if (operation.importedRecordCount !== records.length) throw new Error('Legacy import record count mismatch');
+    const keys = new Set<string>();
+    for (const record of records) {
+      if (record.importOperationId !== operation.id || record.sourceDigest !== operation.sourceDigest ||
+          record.sourceReference !== operation.sourceReference || record.assessmentVersion !== operation.assessmentVersion ||
+          record.importedAt !== operation.importedAt) throw new Error('Legacy record provenance does not match its import operation');
+      if (!record.sourceSection.trim() || !record.sourceKey.trim() || !record.legacyStatus.trim()) {
+        throw new Error('Legacy record section, key, and status are required');
+      }
+      const key = `${record.sourceSection}\u0000${record.sourceKey}`;
+      if (keys.has(key)) throw new Error(`Duplicate legacy record: ${record.sourceSection}/${record.sourceKey}`);
+      keys.add(key);
+    }
+  }
+
+  private mapLegacyImport(row: Row): LegacyImportOperation {
+    const operation = { id: String(row.id), sourceDigest: String(row.source_digest), sourceReference: String(row.source_reference),
+      assessmentVersion: Number(row.assessment_version), importedRecordCount: Number(row.imported_record_count),
+      importedAt: this.validatedTimestamp(row.imported_at, 'legacy import timestamp') };
+    if (!/^[a-f0-9]{64}$/.test(operation.sourceDigest) || operation.assessmentVersion < 1 || operation.importedRecordCount < 0) {
+      throw new Error(`Corrupt persisted legacy import operation: ${operation.id}`);
+    }
+    return operation;
   }
 
   private validateTaskGraphRevision(revision: TaskGraphRevision): void {

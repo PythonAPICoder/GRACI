@@ -128,6 +128,12 @@ Record meaningful verification results. Do not duplicate raw automated-test outp
 
 - PASS
 
+### Phase 1E architectural review correction
+
+- Required execution provider/verifier composition test: PASS through TypeScript validation and explicit deterministic test setup.
+- Zero-eligible-record import: PASS; first import created a durable zero-count operation, no history records were inserted, and repeat import returned the original operation.
+- Focused Phase 1E/persistence/queue/orchestrator suite: PASS, 67/67 across 4 files.
+
 **Notes**
 
 - Architecture 2 implementation is explicitly not authorized by this documentation phase.
@@ -304,6 +310,51 @@ Record meaningful verification results. Do not duplicate raw automated-test outp
 - Expected `Electron app starting` log present; stderr empty.
 - Test process tree stopped after verification.
 - Architecture 1 remains the live composition by design; no Phase 1D UI or runtime integration was introduced.
+
+**Result**
+
+- PASS
+
+---
+
+### 2026-08-13 — Architecture 2 Phase 1E Runtime Composition and Legacy Import
+
+**Build / Revision**
+
+- Expected baseline and starting HEAD: `532cc8ebad365e000b4d73c0bf10857af079835e`.
+- Starting working tree: clean.
+
+**Test Scope**
+
+- Valid, empty, malformed, partial, unsupported, and ambiguous Architecture 1 state.
+- Deterministic assessment ordering, reasons, and SHA-256 provenance.
+- Non-destructive source handling and completed-state non-promotion.
+- Repeated import idempotency and durable provenance.
+- Explicit Architecture 2 bootstrap, real SQLite migration, close/reopen, and reconstruction.
+- Complete Phase 1A through Phase 1D and Architecture 1 regressions.
+
+**Automated Tests**
+
+- Baseline `npm.cmd run validate`: PASS.
+- Baseline `npm.cmd test`: PASS, 78/78.
+- Focused Phase 1E/persistence/queue/orchestrator suite: PASS, 66/66 across 4 files.
+- Final `npm.cmd run validate`: PASS.
+- Final `npm.cmd test`: PASS, 86/86 across 8 files.
+- `npm.cmd run build`: PASS.
+- `git diff --check`: PASS.
+
+**Runtime / Integration Verification**
+
+- Real temporary file-backed SQLite schema 3 bootstrap: PASS.
+- Explicit import, clean close, reopen, operation/history reconstruction: PASS.
+- Source bytes unchanged after assessment and repeated import: PASS.
+
+**G.R.A.C.I. Launch Verification**
+
+- Real Electron process alive after five seconds: PASS.
+- Expected `Electron app starting` log present; stderr empty.
+- Process tree stopped after smoke verification.
+- Architecture 1 remained the active default runtime; no Architecture 2 Electron wiring was added.
 
 **Result**
 
