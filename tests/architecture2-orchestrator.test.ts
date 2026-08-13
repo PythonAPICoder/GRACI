@@ -305,6 +305,29 @@ describe('Architecture 2 Phase 1B workflow kernel', () => {
     });
   });
 
+  it('recovers interrupted scheduled work as diagnosed failure without replay', async () => {
+    seedGraph([task('task-a')]);
+    const machine = new TaskStateMachine();
+    let value = persistence.getTask(taskId('task-a'))!;
+    value = machine.transition(persistence, value, 'ready', NOW, event(value.id, 'task.transitioned'), { dependenciesSatisfied: true });
+    machine.transition(persistence, value, 'scheduled', NOW, event(value.id, 'task.transitioned'));
+    persistence.close();
+    persistence = new SqliteArchitecture2Persistence({ databasePath });
+    persistence.initialize();
+    const restarted = orchestrator();
+    expect((await restarted.value.run(graphId())).executedTaskIds).toEqual([]);
+    expect(restarted.provider.getExecutionCount(taskId('task-a'))).toBe(0);
+    expect(persistence.getTask(taskId('task-a'))).toMatchObject({
+      status: 'failed', terminalReason: 'INTERRUPTED_SCHEDULED_TASK',
+    });
+  });
+
+  it('fails explicitly when a running Task lacks its persisted running Attempt', async () => {
+    seedGraph([task('task-a', 'running')]);
+    await expect(orchestrator().value.run(graphId())).rejects.toThrow(/has no persisted running Attempt/);
+    expect(persistence.getTask(taskId('task-a'))?.status).toBe('running');
+  });
+
   it('rolls back a transition when its event fails', () => {
     seedGraph([task('task-a')]);
     const duplicate = 'event-duplicate';

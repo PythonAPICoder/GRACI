@@ -263,3 +263,48 @@ Record meaningful verification results. Do not duplicate raw automated-test outp
 - Final `npm.cmd test`: PASS, 56/56 across 6 files.
 - Final authenticated-user `npm.cmd run build`: PASS.
 - Electron five-second runtime smoke: PASS; process remained alive, startup log present, stderr empty, test process stopped.
+
+---
+
+### 2026-08-13 — Architecture 2 Phase 1D Durable Work Queue
+
+**Build / Revision**
+
+- Starting checkpoint: `b0762d48434428df5743c5c42dc9cae6ed846156` on clean synchronized `main`.
+- No dependency, package manifest, runtime configuration, Architecture 1, UI, staging, commit, or push change.
+
+**Test Scope**
+
+- Atomic complete graph admission, rollback, retrieval, and file-backed reconstruction.
+- Deterministic Kahn graph validation, unknown/duplicate/conflicting/self dependency rejection, cycles, downstream unresolved diagnostics, diamond DAGs, and multi-level DAGs.
+- Ready-only scheduling by `createdAt` and Task ID independent of input order and restart.
+- Success, completion, predicate-waiting, direct failure, and transitive failure dependency behavior.
+- Deterministic queue inspection including predecessor states, blockers, Attempts, Failures, and terminal reasons.
+- Explicit malformed JSON, enum, timestamp, missing predecessor, and interrupted-state diagnostics.
+- Existing transition, optimistic concurrency, atomic event, retry, approval, terminal replay, and interrupted-running recovery regressions.
+
+**Automated Tests**
+
+- Baseline full suite: PASS, 56/56.
+- Focused Phase 1D/persistence/orchestrator suite: PASS, 58/58 across 3 files.
+- Final TypeScript validation (`npm.cmd run validate`): PASS.
+- Final full Vitest suite (`npm.cmd test`): PASS, 78/78 across 7 files.
+- Production build (`npm.cmd run build`): PASS.
+- `git diff --check`: PASS after correcting two trailing-whitespace findings.
+
+**Runtime / Integration Verification**
+
+- Compiled Phase 1D persistence and queue inspection executed against a real temporary file-backed SQLite database: PASS.
+- Graph admitted, database closed, reopened, inspected in deterministic Task-ID tie-break order, and temporary database/WAL/SHM files removed: PASS.
+
+**G.R.A.C.I. Launch Verification**
+
+- Real Electron startup: PASS.
+- Five-second smoke window: PASS.
+- Expected `Electron app starting` log present; stderr empty.
+- Test process tree stopped after verification.
+- Architecture 1 remains the live composition by design; no Phase 1D UI or runtime integration was introduced.
+
+**Result**
+
+- PASS

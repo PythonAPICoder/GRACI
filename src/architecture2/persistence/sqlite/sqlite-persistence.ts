@@ -23,9 +23,18 @@ import type {
 } from '../../domain/index.js';
 import { assertIdentifier } from '../../domain/index.js';
 import type { Architecture2Persistence } from '../contract.js';
+import { validateTaskGraph } from '../../workflow/task-graph-validator.js';
 import { migrate } from './migrations.js';
 
 type Row = Record<string, unknown>;
+
+const TASK_STATUSES = new Set<Task['status']>([
+  'planned', 'blocked', 'ready', 'waiting_for_approval', 'scheduled', 'running', 'verifying',
+  'retry_pending', 'succeeded', 'failed', 'cancelled', 'superseded',
+]);
+const TASK_PRIORITIES = new Set<Task['priority']>(['critical', 'interactive', 'normal', 'background', 'idle']);
+const PRIVACY_CLASSES = new Set<Task['privacyClass']>(['public', 'internal', 'personal', 'confidential', 'secret']);
+const ATTEMPT_STATUSES = new Set<Attempt['status']>(['created', 'running', 'succeeded', 'failed', 'cancelled', 'indeterminate']);
 
 export interface SqlitePersistenceOptions {
   databasePath: string;
@@ -43,11 +52,29 @@ function json(value: unknown): string {
 }
 
 function parseObject(value: unknown): JsonObject {
-  return JSON.parse(String(value)) as JsonObject;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(String(value));
+  } catch {
+    throw new Error('Corrupt persisted JSON object');
+  }
+  if (parsed === null || Array.isArray(parsed) || typeof parsed !== 'object') {
+    throw new Error('Corrupt persisted JSON: expected an object');
+  }
+  return parsed as JsonObject;
 }
 
 function parseArray(value: unknown): string[] {
-  return JSON.parse(String(value)) as string[];
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(String(value));
+  } catch {
+    throw new Error('Corrupt persisted JSON array');
+  }
+  if (!Array.isArray(parsed) || parsed.some((entry) => typeof entry !== 'string')) {
+    throw new Error('Corrupt persisted JSON: expected a string array');
+  }
+  return parsed;
 }
 
 function optionalString(value: unknown): string | undefined {
@@ -146,38 +173,45 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
   }
 
   createTaskGraphRevision(revision: TaskGraphRevision, event: AuditEventInput): void {
-    assertIdentifier(revision.id, 'task graph revision id');
-    assertIdentifier(revision.goalId, 'goal id');
-    validateTimestamp(revision.createdAt, 'task graph revision timestamp');
+    this.validateTaskGraphRevision(revision);
     this.transaction(() => {
-      this.db().prepare('INSERT INTO task_graph_revisions(id, goal_id, revision, rationale, created_at) VALUES (?, ?, ?, ?, ?)')
-        .run(revision.id, revision.goalId, revision.revision, revision.rationale ?? null, revision.createdAt);
+      this.insertTaskGraphRevision(revision);
       this.insertEvent(event);
     });
   }
 
+  admitTaskGraph(revision: TaskGraphRevision, tasks: readonly Task[], dependencies: readonly TaskDependency[],
+    events: readonly AuditEventInput[]): void {
+    this.validateTaskGraphRevision(revision);
+    for (const task of tasks) this.validateTask(task);
+    for (const dependency of dependencies) validateTimestamp(dependency.createdAt, 'task dependency timestamp');
+    validateTaskGraph(revision, tasks, dependencies);
+    const expectedEvents = 1 + tasks.length + dependencies.length;
+    if (events.length !== expectedEvents) {
+      throw new Error(`Graph admission requires exactly ${expectedEvents} structural events`);
+    }
+    this.transaction(() => {
+      this.insertTaskGraphRevision(revision);
+      for (const task of tasks) this.insertTask(task);
+      for (const dependency of dependencies) this.insertTaskDependency(dependency);
+      this.insertEvents(events);
+    });
+  }
+
+  getTaskGraphRevision(id: TaskGraphRevisionId): TaskGraphRevision | undefined {
+    const row = this.db().prepare('SELECT * FROM task_graph_revisions WHERE id = ?').get(id) as Row | undefined;
+    return row ? this.mapTaskGraphRevision(row) : undefined;
+  }
+
   getTaskGraphRevisions(goalId: GoalId): TaskGraphRevision[] {
     return (this.db().prepare('SELECT * FROM task_graph_revisions WHERE goal_id = ? ORDER BY revision, id').all(goalId) as Row[])
-      .map((row) => ({ id: String(row.id) as TaskGraphRevision['id'], goalId: String(row.goal_id) as GoalId,
-        revision: Number(row.revision), rationale: optionalString(row.rationale), createdAt: String(row.created_at) }));
+      .map((row) => this.mapTaskGraphRevision(row));
   }
 
   createTask(task: Task, event: AuditEventInput): void {
-    assertIdentifier(task.id, 'task id');
-    assertIdentifier(task.goalId, 'goal id');
-    assertIdentifier(task.graphRevisionId, 'task graph revision id');
-    validateTimestamp(task.createdAt, 'task creation timestamp');
-    validateTimestamp(task.updatedAt, 'task update timestamp');
+    this.validateTask(task);
     this.transaction(() => {
-      this.db().prepare(`INSERT INTO tasks
-        (id, goal_id, graph_revision_id, parent_task_id, title, objective, inputs_json, required_capabilities_json,
-         privacy_class, priority, status, required, retry_policy_json, verification_plan_json, terminal_reason,
-         version, created_at, updated_at, completed_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-        .run(task.id, task.goalId, task.graphRevisionId, task.parentTaskId ?? null, task.title, task.objective,
-          json(task.inputs), json(task.requiredCapabilities), task.privacyClass, task.priority, task.status,
-          task.required ? 1 : 0, json(task.retryPolicy), json(task.verificationPlan), task.terminalReason ?? null,
-          task.version, task.createdAt, task.updatedAt, task.completedAt ?? null);
+      this.insertTask(task);
       this.insertEvent(event);
     });
   }
@@ -211,11 +245,7 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
     if (dependency.condition === 'predicate' && !dependency.predicate) throw new Error('Predicate dependency requires a predicate');
     validateTimestamp(dependency.createdAt, 'task dependency timestamp');
     this.transaction(() => {
-      this.db().prepare(`INSERT INTO task_dependencies
-        (graph_revision_id, predecessor_task_id, successor_task_id, condition, predicate_json, created_at)
-        VALUES (?, ?, ?, ?, ?, ?)`)
-        .run(dependency.graphRevisionId, dependency.predecessorTaskId, dependency.successorTaskId,
-          dependency.condition, dependency.predicate ? json(dependency.predicate) : null, dependency.createdAt);
+      this.insertTaskDependency(dependency);
       this.insertEvent(event);
     });
   }
@@ -228,7 +258,7 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
       successorTaskId: String(row.successor_task_id) as TaskId,
       condition: String(row.condition) as TaskDependency['condition'],
       predicate: row.predicate_json === null ? undefined : parseObject(row.predicate_json),
-      createdAt: String(row.created_at),
+      createdAt: this.validatedTimestamp(row.created_at, 'persisted task dependency timestamp'),
     }));
   }
 
@@ -434,6 +464,31 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
     for (const event of events) this.insertEvent(event);
   }
 
+  private insertTaskGraphRevision(revision: TaskGraphRevision): void {
+    this.db().prepare('INSERT INTO task_graph_revisions(id, goal_id, revision, rationale, created_at) VALUES (?, ?, ?, ?, ?)')
+      .run(revision.id, revision.goalId, revision.revision, revision.rationale ?? null, revision.createdAt);
+  }
+
+  private insertTask(task: Task): void {
+    this.db().prepare(`INSERT INTO tasks
+      (id, goal_id, graph_revision_id, parent_task_id, title, objective, inputs_json, required_capabilities_json,
+       privacy_class, priority, status, required, retry_policy_json, verification_plan_json, terminal_reason,
+       version, created_at, updated_at, completed_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+      .run(task.id, task.goalId, task.graphRevisionId, task.parentTaskId ?? null, task.title, task.objective,
+        json(task.inputs), json(task.requiredCapabilities), task.privacyClass, task.priority, task.status,
+        task.required ? 1 : 0, json(task.retryPolicy), json(task.verificationPlan), task.terminalReason ?? null,
+        task.version, task.createdAt, task.updatedAt, task.completedAt ?? null);
+  }
+
+  private insertTaskDependency(dependency: TaskDependency): void {
+    this.db().prepare(`INSERT INTO task_dependencies
+      (graph_revision_id, predecessor_task_id, successor_task_id, condition, predicate_json, created_at)
+      VALUES (?, ?, ?, ?, ?, ?)`)
+      .run(dependency.graphRevisionId, dependency.predecessorTaskId, dependency.successorTaskId,
+        dependency.condition, dependency.predicate === undefined ? null : json(dependency.predicate), dependency.createdAt);
+  }
+
   private updateTaskRow(task: Task, expectedVersion: number): void {
     assertIdentifier(task.id, 'task id');
     if (task.version !== expectedVersion + 1) throw new Error('Task version must increment exactly once');
@@ -500,6 +555,39 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
     validateTimestamp(goal.updatedAt, 'goal update timestamp');
   }
 
+  private validateTaskGraphRevision(revision: TaskGraphRevision): void {
+    assertIdentifier(revision.id, 'task graph revision id');
+    assertIdentifier(revision.goalId, 'goal id');
+    if (!Number.isInteger(revision.revision) || revision.revision < 1) {
+      throw new Error('Task graph revision number must be a positive integer');
+    }
+    validateTimestamp(revision.createdAt, 'task graph revision timestamp');
+  }
+
+  private validateTask(task: Task): void {
+    assertIdentifier(task.id, 'task id');
+    assertIdentifier(task.goalId, 'goal id');
+    assertIdentifier(task.graphRevisionId, 'task graph revision id');
+    if (task.parentTaskId) assertIdentifier(task.parentTaskId, 'parent task id');
+    if (!task.title.trim() || !task.objective.trim()) throw new Error('Task title and objective are required');
+    if (!TASK_STATUSES.has(task.status)) throw new Error(`Invalid Task status: ${task.status}`);
+    if (!TASK_PRIORITIES.has(task.priority)) throw new Error(`Invalid Task priority: ${task.priority}`);
+    if (!PRIVACY_CLASSES.has(task.privacyClass)) throw new Error(`Invalid Task privacy class: ${task.privacyClass}`);
+    if (!Number.isInteger(task.version) || task.version < 1) throw new Error('Task version must be a positive integer');
+    if (!Array.isArray(task.requiredCapabilities) || task.requiredCapabilities.some((value) => typeof value !== 'string')) {
+      throw new Error('Task required capabilities must be a string array');
+    }
+    validateTimestamp(task.createdAt, 'task creation timestamp');
+    validateTimestamp(task.updatedAt, 'task update timestamp');
+    if (task.completedAt) validateTimestamp(task.completedAt, 'task completion timestamp');
+  }
+
+  private validatedTimestamp(value: unknown, label: string): string {
+    const timestamp = String(value);
+    validateTimestamp(timestamp, label);
+    return timestamp;
+  }
+
   private insertCriterion(criterion: GoalSuccessCriterion): void {
     assertIdentifier(criterion.id, 'goal criterion id');
     validateTimestamp(criterion.createdAt, 'criterion creation timestamp');
@@ -517,6 +605,18 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
       updatedAt: String(row.updated_at), completedAt: optionalString(row.completed_at) };
   }
 
+  private mapTaskGraphRevision(row: Row): TaskGraphRevision {
+    const revision: TaskGraphRevision = {
+      id: String(row.id) as TaskGraphRevisionId,
+      goalId: String(row.goal_id) as GoalId,
+      revision: Number(row.revision),
+      rationale: optionalString(row.rationale),
+      createdAt: this.validatedTimestamp(row.created_at, 'persisted task graph revision timestamp'),
+    };
+    this.validateTaskGraphRevision(revision);
+    return revision;
+  }
+
   private mapCriterion(row: Row): GoalSuccessCriterion {
     return { id: String(row.id) as GoalSuccessCriterion['id'], goalId: String(row.goal_id) as GoalId,
       description: String(row.description), required: bool(row.required), verificationMethod: String(row.verification_method),
@@ -524,7 +624,7 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
   }
 
   private mapTask(row: Row): Task {
-    return { id: String(row.id) as TaskId, goalId: String(row.goal_id) as GoalId,
+    const task = { id: String(row.id) as TaskId, goalId: String(row.goal_id) as GoalId,
       graphRevisionId: String(row.graph_revision_id) as TaskGraphRevisionId, parentTaskId: optionalString(row.parent_task_id) as TaskId,
       title: String(row.title), objective: String(row.objective), inputs: parseObject(row.inputs_json),
       requiredCapabilities: parseArray(row.required_capabilities_json), privacyClass: String(row.privacy_class) as Task['privacyClass'],
@@ -532,14 +632,28 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
       retryPolicy: parseObject(row.retry_policy_json) as Task['retryPolicy'], verificationPlan: parseObject(row.verification_plan_json),
       terminalReason: optionalString(row.terminal_reason), version: Number(row.version), createdAt: String(row.created_at),
       updatedAt: String(row.updated_at), completedAt: optionalString(row.completed_at) };
+    this.validateTask(task);
+    const isTerminal = ['succeeded', 'failed', 'cancelled', 'superseded'].includes(task.status);
+    if (isTerminal !== Boolean(task.completedAt)) throw new Error(`Corrupt persisted Task completion state: ${task.id}`);
+    return task;
   }
 
   private mapAttempt(row: Row): Attempt {
-    return { id: String(row.id) as Attempt['id'], taskId: String(row.task_id) as TaskId,
+    const attempt = { id: String(row.id) as Attempt['id'], taskId: String(row.task_id) as TaskId,
       attemptNumber: Number(row.attempt_number), status: String(row.status) as Attempt['status'],
       providerOfferingId: optionalString(row.provider_offering_id), computeNodeId: optionalString(row.compute_node_id),
       inputSnapshot: parseObject(row.input_snapshot_json), result: row.result_json === null ? undefined : parseObject(row.result_json),
       idempotencyKey: optionalString(row.idempotency_key), startedAt: optionalString(row.started_at),
       completedAt: optionalString(row.completed_at), createdAt: String(row.created_at) };
+    assertIdentifier(attempt.id, 'persisted attempt id');
+    assertIdentifier(attempt.taskId, 'persisted attempt task id');
+    if (!Number.isInteger(attempt.attemptNumber) || attempt.attemptNumber < 1) throw new Error('Corrupt persisted Attempt number');
+    if (!ATTEMPT_STATUSES.has(attempt.status)) throw new Error(`Corrupt persisted Attempt status: ${attempt.status}`);
+    validateTimestamp(attempt.createdAt, 'persisted attempt creation timestamp');
+    if (attempt.startedAt) validateTimestamp(attempt.startedAt, 'persisted attempt start timestamp');
+    if (attempt.completedAt) validateTimestamp(attempt.completedAt, 'persisted attempt completion timestamp');
+    const isTerminal = ['succeeded', 'failed', 'cancelled', 'indeterminate'].includes(attempt.status);
+    if (isTerminal !== Boolean(attempt.completedAt)) throw new Error(`Corrupt persisted Attempt completion state: ${attempt.id}`);
+    return attempt;
   }
 }

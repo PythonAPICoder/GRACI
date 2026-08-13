@@ -21,6 +21,30 @@
 
 ---
 
+## 2026-08-13 — Phase 1D Verification Corrections
+
+**Failure**
+
+- The first TypeScript checkpoint rejected a queue reason projection because raw `blocked` was not part of the machine-readable inspection reason union.
+- The first `git diff --check` found trailing whitespace on two added SQLite statement lines.
+
+**Root Cause**
+
+- The projection helper did not explicitly map canonical `blocked` to `required_dependency_failed`.
+- Two template-literal closing lines retained spaces from the patch formatting.
+
+**Correction**
+
+- Added the explicit blocked-state reason mapping without changing persisted lifecycle vocabulary.
+- Removed the two whitespace defects.
+
+**Regression Result**
+
+- Focused Phase 1D, persistence, and orchestrator tests passed 58/58.
+- Final TypeScript validation, 78/78 full tests, production build, runtime verification, and diff hygiene passed.
+
+---
+
 ## 2026-08-12 — Phase 1A Malformed-Identifier Test Fixture
 
 **Failure**

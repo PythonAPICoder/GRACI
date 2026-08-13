@@ -39,6 +39,53 @@ Use this log for decisions that matter but do not yet justify a dedicated ADR sy
 
 ---
 
+### DEC-0005 — Phase 1D Persisted Task Queue and Deterministic Admission
+
+**Date**
+
+- 2026-08-13
+
+**Context**
+
+- Architecture 2 already persists canonical Tasks, immutable dependency edges, Attempts, Failures, approvals, and audit events in SQLite.
+- Phase 1D requires durable queue behavior, complete dependency validation, deterministic selection, and inspectability without introducing parallel workflow authority.
+
+**Decision**
+
+- Persisted canonical Tasks and their lifecycle states are the durable queue.
+- Admit a complete Task Graph Revision, Tasks, dependencies, and structural events atomically after deterministic validation.
+- Validate acyclicity with deterministic Kahn processing; cyclic rejection reports sorted unresolved Task IDs, not asserted exact cycle members.
+- Select only `ready` Tasks by persisted `createdAt`, then ASCII Task ID lexical order.
+- Keep predicate dependencies waiting and inspectable; do not execute predicates in Phase 1D.
+- Preserve conservative scheduled/running restart failure without automatic replay or an exactly-once claim.
+
+**Alternatives Considered**
+
+- A separate queue table or queue-item model.
+- An in-memory or external broker as queue authority.
+- Priority-first scheduling.
+- Exact strongly connected component diagnostics.
+- Automatic replay of interrupted work.
+
+**Rationale**
+
+- The existing Task schema and SQLite kernel already hold the required authoritative state.
+- Complete admission prevents partially visible executable graphs.
+- Explicit stable ordering and pure graph validation make results reproducible across reconstruction and input permutations.
+- Conservative recovery avoids duplicating uncertain external effects.
+
+**Consequences**
+
+- Architecture 1 remains disconnected.
+- Scheduling remains sequential and resource-neutral.
+- Predicate execution, resource/node routing, concurrent scheduling, and provider reconciliation remain future governed work.
+
+**Revisit Trigger**
+
+- An approved phase introduces dynamic replanning, predicate evaluation, concurrent resource scheduling, or provider-specific reconciliation.
+
+---
+
 ### DEC-0003 — Phase 1C Conservative Retry Policy
 
 **Date:** 2026-08-13

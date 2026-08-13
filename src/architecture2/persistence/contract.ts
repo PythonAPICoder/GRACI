@@ -25,6 +25,9 @@ export interface Architecture2Persistence extends Disposable {
   getGoal(id: GoalId): GoalBundle | undefined;
   updateGoal(goal: Goal, expectedVersion: number, event: AuditEventInput): void;
   createTaskGraphRevision(revision: TaskGraphRevision, event: AuditEventInput): void;
+  admitTaskGraph(revision: TaskGraphRevision, tasks: readonly Task[], dependencies: readonly TaskDependency[],
+    events: readonly AuditEventInput[]): void;
+  getTaskGraphRevision(id: TaskGraphRevisionId): TaskGraphRevision | undefined;
   getTaskGraphRevisions(goalId: GoalId): TaskGraphRevision[];
   createTask(task: Task, event: AuditEventInput): void;
   getTask(id: TaskId): Task | undefined;

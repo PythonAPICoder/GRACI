@@ -1,10 +1,14 @@
 import type { Task, TaskDependency, TaskId } from '../domain/index.js';
+import { compareTaskIds } from './task-graph-validator.js';
 
 export type DependencyDisposition = 'ready' | 'waiting' | 'blocked_by_failure';
+export type DependencyReason = 'dependencies_satisfied' | 'dependencies_pending' |
+  'predicate_not_supported' | 'required_dependency_failed';
 
 export interface DependencyEvaluation {
   taskId: TaskId;
   disposition: DependencyDisposition;
+  reason: DependencyReason;
   blockingTaskIds: TaskId[];
 }
 
@@ -24,9 +28,7 @@ export function evaluateTaskDependencies(
   for (const dependency of incoming) {
     const predecessor = tasksById.get(dependency.predecessorTaskId);
     if (!predecessor) {
-      failed = true;
-      blockingTaskIds.push(dependency.predecessorTaskId);
-      continue;
+      throw new Error(`Persisted task graph corruption: dependency predecessor ${dependency.predecessorTaskId} is missing`);
     }
     if (dependency.condition === 'predicate') {
       blockingTaskIds.push(predecessor.id);
@@ -48,7 +50,9 @@ export function evaluateTaskDependencies(
   return {
     taskId: task.id,
     disposition: failed ? 'blocked_by_failure' : blockingTaskIds.length === 0 ? 'ready' : 'waiting',
-    blockingTaskIds,
+    reason: failed ? 'required_dependency_failed' : blockingTaskIds.length === 0 ? 'dependencies_satisfied' :
+      incoming.some((dependency) => dependency.condition === 'predicate') ? 'predicate_not_supported' : 'dependencies_pending',
+    blockingTaskIds: [...new Set(blockingTaskIds)].sort(compareTaskIds),
   };
 }
 

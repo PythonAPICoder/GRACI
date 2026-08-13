@@ -15,6 +15,8 @@ import type { TaskExecutionProvider, TaskExecutionResult } from '../execution/in
 import type { Architecture2Persistence } from '../persistence/index.js';
 import type { TaskVerifier } from '../verification/index.js';
 import { evaluateTaskDependencies, graphHasTerminalCondition } from './dependency-evaluator.js';
+import { selectNextReadyTask } from './deterministic-scheduler.js';
+import { validateTaskGraph } from './task-graph-validator.js';
 import { TaskStateMachine } from './task-state-machine.js';
 
 export type WorkflowRunStatus = 'succeeded' | 'failed' | 'incomplete';
@@ -52,11 +54,15 @@ export class MinimalOrchestrator {
 
   async run(graphRevisionId: TaskGraphRevisionId): Promise<WorkflowRunResult> {
     const executedTaskIds: TaskId[] = [];
+    const revision = this.persistence.getTaskGraphRevision(graphRevisionId);
+    if (!revision) throw new Error(`Unknown Task Graph Revision: ${graphRevisionId}`);
+    validateTaskGraph(revision, this.persistence.getTasks(graphRevisionId),
+      this.persistence.getTaskDependencies(graphRevisionId));
     this.recoverInterruptedWork(graphRevisionId);
 
     while (true) {
       this.evaluateAndPersistEligibility(graphRevisionId);
-      const runnable = this.persistence.getTasks(graphRevisionId).find((task) => task.status === 'ready');
+      const runnable = selectNextReadyTask(this.persistence.getTasks(graphRevisionId));
       if (!runnable) break;
       await this.executeTask(runnable);
       executedTaskIds.push(runnable.id);

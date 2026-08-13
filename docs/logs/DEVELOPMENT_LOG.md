@@ -353,3 +353,18 @@ Implementation remains paused pending Product Owner and Architect review.
 - Made schema-1 classification migration conservative and added a populated upgrade regression.
 - Added positive/bounded verification-retry, denial/restart, sensitive-transition, and unsafe-recovery tests.
 - Final validation passed: 56/56 tests, TypeScript, production build, and Electron runtime smoke.
+
+---
+
+## Architecture 2 Phase 1D — Durable Work Queue and Deterministic Scheduling — August 13, 2026
+
+- Established a clean `main` recovery checkpoint at `b0762d48434428df5743c5c42dc9cae6ed846156`; baseline TypeScript and 56/56 tests passed.
+- Codified approved Phase 1D behavior in Addendum 009 without modifying prior governance.
+- Kept canonical persisted Architecture 2 Tasks as the queue; no queue table, second Task model, dependency, configuration, UI, or Architecture 1 integration was added.
+- Added deterministic complete-graph validation and Kahn acyclicity checking. Rejected graphs report sorted `unresolvedTaskIds` without claiming exact cycle membership.
+- Added all-or-nothing graph revision, Task, dependency, and audit-event admission through the existing SQLite persistence contract.
+- Added explicit ready-only scheduling by persisted `createdAt`, then ASCII Task ID lexical order.
+- Added deterministic queue inspection for lifecycle state, dependency/predecessor state, eligibility, blockers, Attempts, Failures, and terminal reasons.
+- Strengthened durable-record reconstruction for malformed JSON, invalid Task/Attempt values, malformed timestamps, and structurally missing dependency endpoints.
+- Preserved Phase 1B no-replay interrupted-work recovery and all Phase 1C retry/approval behavior.
+- Final verification passed: 78/78 tests, TypeScript validation, production build, real file-backed SQLite close/reopen, Electron startup smoke, diff hygiene, and repository artifact inspection.
