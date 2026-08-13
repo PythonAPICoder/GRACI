@@ -9,6 +9,8 @@ import {
   type Task,
   type TaskGraphRevisionId,
   type TaskId,
+  type ProviderOfferingId,
+  type ResourceLease,
   type Verification,
 } from '../domain/index.js';
 import type { TaskExecutionProvider, TaskExecutionResult } from '../execution/index.js';
@@ -33,6 +35,8 @@ export interface OrchestratorOptions {
   actor?: string;
   now?: () => string;
   nextId?: (kind: 'attempt' | 'verification' | 'failure' | 'approval' | 'event') => string;
+  resolveOffering?: (task: Task) => ProviderOfferingId;
+  acquireResource?: (task: Task, offeringId: ProviderOfferingId) => ResourceLease;
 }
 
 export class MinimalOrchestrator {
@@ -40,6 +44,8 @@ export class MinimalOrchestrator {
   private readonly actor: string;
   private readonly now: () => string;
   private readonly nextId: NonNullable<OrchestratorOptions['nextId']>;
+  private readonly resolveOffering?: OrchestratorOptions['resolveOffering'];
+  private readonly acquireResource?: OrchestratorOptions['acquireResource'];
 
   constructor(
     private readonly persistence: Architecture2Persistence,
@@ -50,6 +56,8 @@ export class MinimalOrchestrator {
     this.actor = options.actor ?? 'architecture2-orchestrator';
     this.now = options.now ?? (() => new Date().toISOString());
     this.nextId = options.nextId ?? ((kind) => `${kind}-${randomUUID()}`);
+    this.resolveOffering = options.resolveOffering;
+    this.acquireResource = options.acquireResource;
   }
 
   async run(graphRevisionId: TaskGraphRevisionId): Promise<WorkflowRunResult> {
@@ -206,6 +214,9 @@ export class MinimalOrchestrator {
   }
 
   private async executeTask(task: Task): Promise<void> {
+    const selectedOfferingId = this.resolveOffering?.(task);
+    const lease = selectedOfferingId && this.acquireResource ? this.acquireResource(task, selectedOfferingId) : undefined;
+    if (lease && lease.offeringId !== selectedOfferingId) throw new Error('Resource lease offering does not match selected offering');
     const scheduledAt = this.now();
     const scheduled = this.stateMachine.transition(this.persistence, task, 'scheduled', scheduledAt,
       this.event(task.id, 'task.transitioned', { from: 'ready', to: 'scheduled' }, scheduledAt));
@@ -217,7 +228,8 @@ export class MinimalOrchestrator {
       taskId: task.id,
       attemptNumber,
       status: 'running',
-      providerOfferingId: this.provider.providerId,
+      providerOfferingId: selectedOfferingId ?? this.provider.providerId,
+      computeNodeId: lease?.nodeId,
       inputSnapshot: { objective: task.objective, inputs: task.inputs, requiredCapabilities: task.requiredCapabilities },
       startedAt,
       createdAt: startedAt,
@@ -235,6 +247,11 @@ export class MinimalOrchestrator {
     } catch (error) {
       result = { status: 'failed', classification: 'permanent', code: 'PROVIDER_EXCEPTION', summary: 'Execution provider threw an exception',
         details: { message: error instanceof Error ? error.message : String(error) } };
+    }
+    if (lease) {
+      const releasedAt = this.now();
+      this.persistence.releaseResourceLease({ ...lease, status: 'released', releasedAt },
+        this.event(task.id, 'resource-lease.released', { leaseId: lease.id }, releasedAt));
     }
 
     const completedAt = this.now();

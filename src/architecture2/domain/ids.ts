@@ -14,6 +14,19 @@ export type FailureId = Identifier<'Failure'>;
 export type ApprovalId = Identifier<'Approval'>;
 export type ArtifactId = Identifier<'Artifact'>;
 export type EventId = Identifier<'Event'>;
+export type ProviderId = Identifier<'Provider'>;
+export type CapabilityId = Identifier<'Capability'>;
+export type ProviderOfferingId = Identifier<'ProviderOffering'>;
+export type QualificationId = Identifier<'Qualification'>;
+export type HealthObservationId = Identifier<'HealthObservation'>;
+export type ResolutionDecisionId = Identifier<'ResolutionDecision'>;
+export type NodeId = Identifier<'Node'>;
+export type OfferingLocationId = Identifier<'OfferingLocation'>;
+export type NodeHealthObservationId = Identifier<'NodeHealthObservation'>;
+export type ResourceSchedulingDecisionId = Identifier<'ResourceSchedulingDecision'>;
+export type ResourceLeaseId = Identifier<'ResourceLease'>;
+export type NodeInspectionId = Identifier<'NodeInspection'>;
+export type WorkstationWorkloadEvaluationId = Identifier<'WorkstationWorkloadEvaluation'>;
 
 const IDENTIFIER_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 

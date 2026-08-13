@@ -20,6 +20,10 @@ import type {
   TaskGraphRevisionId,
   TaskId,
   Verification,
+  Provider, Capability, ProviderOffering, ProviderRegistration, Qualification, ProviderHealthObservation,
+  ProviderResolutionDecision,
+  Node, OfferingLocation, NodeHealthObservation, NodeInspectionObservation, ResourceSchedulingDecision, ResourceLease,
+  WorkstationWorkloadEvaluation,
 } from '../../domain/index.js';
 import { assertIdentifier } from '../../domain/index.js';
 import type {
@@ -139,6 +143,289 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
 
   getSchemaVersion(): number {
     return Number((this.db().prepare('SELECT COALESCE(MAX(version), 0) AS version FROM schema_migrations').get() as Row).version);
+  }
+
+  registerProvider(value: ProviderRegistration, events: readonly AuditEventInput[]): void {
+    assertIdentifier(value.provider.id, 'provider id');
+    if (events.length === 0) throw new Error('Provider registration requires an audit event');
+    this.transaction(() => {
+      const provider = value.provider;
+      this.db().prepare(`INSERT INTO providers
+        (id, adapter_type, adapter_version, configuration_reference, created_at) VALUES (?, ?, ?, ?, ?)`)
+        .run(provider.id, provider.adapterType, provider.adapterVersion, provider.configurationReference, provider.createdAt);
+      for (const capability of value.capabilities) {
+        this.db().prepare(`INSERT INTO capabilities
+          (id, contract_version, description, input_schema_reference, output_schema_reference, created_at)
+          VALUES (?, ?, ?, ?, ?, ?)`)
+          .run(capability.id, capability.contractVersion, capability.description, capability.inputSchemaReference,
+            capability.outputSchemaReference, capability.createdAt);
+      }
+      for (const offering of value.offerings) {
+        this.db().prepare(`INSERT INTO provider_offerings
+          (id, provider_id, capability_id, contract_version, model_identity, privacy_destinations_json,
+           permissions_json, features_json, supported_formats_json, input_schema_reference, output_schema_reference,
+           qualification_fingerprint, quality_level, expected_latency_ms, maximum_cost, side_effect_class, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+          .run(offering.id, offering.providerId, offering.capabilityId, offering.contractVersion,
+            offering.modelIdentity ?? null, json(offering.privacyDestinations), json(offering.permissions),
+            json(offering.features), json(offering.supportedFormats), offering.inputSchemaReference,
+            offering.outputSchemaReference, offering.qualificationFingerprint, offering.qualityLevel,
+            offering.expectedLatencyMs, offering.maximumCost, offering.sideEffectClass, offering.createdAt);
+      }
+      this.insertEvents(events);
+    });
+  }
+
+  getProvider(id: Provider['id']): Provider | undefined {
+    const row = this.db().prepare('SELECT * FROM providers WHERE id = ?').get(id) as Row | undefined;
+    return row ? { id: String(row.id) as Provider['id'], adapterType: String(row.adapter_type),
+      adapterVersion: String(row.adapter_version), configurationReference: String(row.configuration_reference),
+      createdAt: this.validatedTimestamp(row.created_at, 'provider timestamp') } : undefined;
+  }
+
+  getCapabilities(): Capability[] {
+    return (this.db().prepare('SELECT * FROM capabilities ORDER BY id').all() as Row[]).map((row) => ({
+      id: String(row.id) as Capability['id'], contractVersion: Number(row.contract_version),
+      description: String(row.description), inputSchemaReference: String(row.input_schema_reference),
+      outputSchemaReference: String(row.output_schema_reference), createdAt: this.validatedTimestamp(row.created_at, 'capability timestamp'),
+    }));
+  }
+
+  getProviderOfferings(capabilityId?: Capability['id']): ProviderOffering[] {
+    const rows = capabilityId
+      ? this.db().prepare('SELECT * FROM provider_offerings WHERE capability_id = ? ORDER BY id').all(capabilityId) as Row[]
+      : this.db().prepare('SELECT * FROM provider_offerings ORDER BY capability_id, id').all() as Row[];
+    return rows.map((row) => ({ id: String(row.id) as ProviderOffering['id'], providerId: String(row.provider_id) as Provider['id'],
+      capabilityId: String(row.capability_id) as Capability['id'], contractVersion: Number(row.contract_version),
+      modelIdentity: optionalString(row.model_identity), privacyDestinations: parseArray(row.privacy_destinations_json) as ProviderOffering['privacyDestinations'],
+       permissions: parseArray(row.permissions_json), features: parseArray(row.features_json),
+       supportedFormats: parseArray(row.supported_formats_json), inputSchemaReference: String(row.input_schema_reference),
+       outputSchemaReference: String(row.output_schema_reference), qualificationFingerprint: String(row.qualification_fingerprint),
+       qualityLevel: Number(row.quality_level), expectedLatencyMs: Number(row.expected_latency_ms), maximumCost: Number(row.maximum_cost),
+      sideEffectClass: String(row.side_effect_class) as ProviderOffering['sideEffectClass'],
+      createdAt: this.validatedTimestamp(row.created_at, 'offering timestamp') }));
+  }
+
+  recordQualification(value: Qualification, event: AuditEventInput): void {
+    this.transaction(() => { this.db().prepare(`INSERT INTO qualifications
+      (id, offering_id, status, level, evidence_json, qualified_at, expires_at, trigger_fingerprint)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`).run(value.id, value.offeringId, value.status, value.level, json(value.evidence),
+      value.qualifiedAt, value.expiresAt ?? null, value.triggerFingerprint); this.insertEvent(event); });
+  }
+
+  getQualifications(offeringId: ProviderOffering['id']): Qualification[] {
+    return (this.db().prepare('SELECT * FROM qualifications WHERE offering_id = ? ORDER BY qualified_at, id').all(offeringId) as Row[])
+      .map((row) => ({ id: String(row.id) as Qualification['id'], offeringId: String(row.offering_id) as ProviderOffering['id'],
+        status: String(row.status) as Qualification['status'], level: Number(row.level), evidence: parseObject(row.evidence_json),
+        qualifiedAt: this.validatedTimestamp(row.qualified_at, 'qualification timestamp'),
+        expiresAt: optionalString(row.expires_at), triggerFingerprint: String(row.trigger_fingerprint) }));
+  }
+
+  recordProviderHealth(value: ProviderHealthObservation, event: AuditEventInput): void {
+    this.transaction(() => { this.db().prepare(`INSERT INTO provider_health_observations
+      (id, offering_id, status, evidence_json, observed_at) VALUES (?, ?, ?, ?, ?)`)
+      .run(value.id, value.offeringId, value.status, json(value.evidence), value.observedAt); this.insertEvent(event); });
+  }
+
+  getProviderHealth(offeringId: ProviderOffering['id']): ProviderHealthObservation[] {
+    return (this.db().prepare('SELECT * FROM provider_health_observations WHERE offering_id = ? ORDER BY observed_at, id').all(offeringId) as Row[])
+      .map((row) => ({ id: String(row.id) as ProviderHealthObservation['id'], offeringId: String(row.offering_id) as ProviderOffering['id'],
+        status: String(row.status) as ProviderHealthObservation['status'], evidence: parseObject(row.evidence_json),
+        observedAt: this.validatedTimestamp(row.observed_at, 'health observation timestamp') }));
+  }
+
+  recordProviderResolution(value: ProviderResolutionDecision, event: AuditEventInput): void {
+    this.transaction(() => {
+      this.db().prepare(`INSERT INTO provider_resolution_decisions
+        (id, capability_id, request_json, candidates_json, selected_offering_id, explanation, decided_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)`).run(value.request.id, value.request.capabilityId, json(value.request),
+        json(value.candidates), value.selectedOfferingId ?? null, value.explanation, value.decidedAt);
+      this.insertEvent(event);
+    });
+  }
+
+  getProviderResolution(id: ProviderResolutionDecision['request']['id']): ProviderResolutionDecision | undefined {
+    const row = this.db().prepare('SELECT * FROM provider_resolution_decisions WHERE id = ?').get(id) as Row | undefined;
+    if (!row) return undefined;
+    const request = parseObject(row.request_json) as unknown as ProviderResolutionDecision['request'];
+    const candidates = JSON.parse(String(row.candidates_json)) as ProviderResolutionDecision['candidates'];
+    if (!Array.isArray(candidates)) throw new Error('Corrupt persisted resolution candidates');
+    return { request, candidates, selectedOfferingId: optionalString(row.selected_offering_id) as ProviderOffering['id'] | undefined,
+      explanation: String(row.explanation), decidedAt: this.validatedTimestamp(row.decided_at, 'resolution timestamp') };
+  }
+
+  registerNode(node: Node, locations: readonly OfferingLocation[], events: readonly AuditEventInput[]): void {
+    assertIdentifier(node.id, 'node id');
+    if (events.length === 0) throw new Error('Node registration requires an audit event');
+    this.transaction(() => {
+      this.db().prepare(`INSERT INTO nodes (id, name, administrative_state, configuration_reference, created_at)
+        VALUES (?, ?, ?, ?, ?)`).run(node.id, node.name, node.administrativeState, node.configurationReference, node.createdAt);
+      for (const location of locations) {
+        if (location.nodeId !== node.id) throw new Error(`Offering location does not belong to node: ${location.id}`);
+        this.db().prepare(`INSERT INTO offering_locations
+          (id, node_id, offering_id, enabled, capacity, privacy_classes_json, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)`)
+          .run(location.id, location.nodeId, location.offeringId, location.enabled ? 1 : 0, location.capacity,
+            json(location.privacyClasses), location.createdAt);
+      }
+      this.insertEvents(events);
+    });
+  }
+
+  getNodes(): Array<Node & { version: number }> {
+    return (this.db().prepare('SELECT * FROM nodes ORDER BY id').all() as Row[]).map((row) => this.mapNode(row));
+  }
+
+  getOfferingLocations(offeringId?: ProviderOffering['id']): OfferingLocation[] {
+    const rows = offeringId
+      ? this.db().prepare('SELECT * FROM offering_locations WHERE offering_id = ? ORDER BY node_id, id').all(offeringId) as Row[]
+      : this.db().prepare('SELECT * FROM offering_locations ORDER BY offering_id, node_id, id').all() as Row[];
+    return rows.map((row) => this.mapOfferingLocation(row));
+  }
+
+  recordNodeHealth(value: NodeHealthObservation, event: AuditEventInput): void {
+    this.transaction(() => {
+      this.db().prepare(`INSERT INTO node_health_observations (id, node_id, status, observed_at) VALUES (?, ?, ?, ?)`)
+        .run(value.id, value.nodeId, value.status, value.observedAt);
+      this.insertEvent(event);
+    });
+  }
+
+  getNodeHealth(nodeId: Node['id']): NodeHealthObservation[] {
+    return (this.db().prepare(`SELECT * FROM node_health_observations WHERE node_id = ? ORDER BY observed_at, id`)
+      .all(nodeId) as Row[]).map((row) => this.mapNodeHealth(row));
+  }
+
+  recordNodeInspection(value: NodeInspectionObservation, event: AuditEventInput): void {
+    assertIdentifier(value.id, 'node inspection id');
+    assertIdentifier(value.nodeId, 'node inspection node id');
+    if (!value.adapterId.trim() || !Number.isInteger(value.adapterVersion) || value.adapterVersion < 1) {
+      throw new Error('Node inspection adapter identity and positive version are required');
+    }
+    validateTimestamp(value.inspectedAt, 'node inspection timestamp');
+    this.transaction(() => {
+      this.db().prepare(`INSERT INTO node_inspection_observations
+        (id, node_id, adapter_id, adapter_version, health_json, inventory_json, inspected_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)`).run(value.id, value.nodeId, value.adapterId, value.adapterVersion,
+        json(value.health), json(value.inventory), value.inspectedAt);
+      this.insertEvent(event);
+    });
+  }
+
+  getNodeInspections(nodeId: Node['id']): NodeInspectionObservation[] {
+    return (this.db().prepare(`SELECT * FROM node_inspection_observations WHERE node_id = ? ORDER BY inspected_at, id`)
+      .all(nodeId) as Row[]).map((row) => ({ id: String(row.id) as NodeInspectionObservation['id'],
+        nodeId: String(row.node_id) as Node['id'], adapterId: String(row.adapter_id),
+        adapterVersion: Number(row.adapter_version),
+        health: parseObject(row.health_json) as unknown as NodeInspectionObservation['health'],
+        inventory: parseObject(row.inventory_json) as unknown as NodeInspectionObservation['inventory'],
+        inspectedAt: this.validatedTimestamp(row.inspected_at, 'node inspection timestamp') }));
+  }
+
+  recordWorkstationWorkloadEvaluation(value: WorkstationWorkloadEvaluation, event: AuditEventInput): void {
+    assertIdentifier(value.id, 'workstation workload evaluation id');
+    assertIdentifier(value.nodeId, 'workstation workload evaluation node id');
+    if (!value.ruleFingerprint.trim()) throw new Error('Workstation workload evaluation rule fingerprint is required');
+    if (!['recommend_draining', 'recommend_active', 'inconclusive'].includes(value.recommendation)) {
+      throw new Error('Invalid workstation workload evaluation recommendation');
+    }
+    if (value.processBasenames.some((entry) => typeof entry !== 'string') ||
+        value.matchedRuleIds.some((entry) => typeof entry !== 'string')) {
+      throw new Error('Workstation workload evaluation evidence must contain string arrays');
+    }
+    validateTimestamp(value.evaluatedAt, 'workstation workload evaluation timestamp');
+    this.transaction(() => {
+      this.db().prepare(`INSERT INTO workstation_availability_evaluations
+        (id, node_id, rule_fingerprint, process_basenames_json, matched_rule_ids_json, recommendation, evaluated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)`).run(value.id, value.nodeId, value.ruleFingerprint,
+        json(value.processBasenames), json(value.matchedRuleIds), value.recommendation, value.evaluatedAt);
+      this.insertEvent(event);
+    });
+  }
+
+  getWorkstationWorkloadEvaluations(nodeId: Node['id']): WorkstationWorkloadEvaluation[] {
+    return (this.db().prepare(`SELECT * FROM workstation_availability_evaluations
+      WHERE node_id = ? ORDER BY evaluated_at, id`).all(nodeId) as Row[])
+      .map((row) => this.mapWorkstationWorkloadEvaluation(row));
+  }
+
+  transitionNodeAdministrativeState(nodeId: Node['id'], expectedVersion: number,
+    currentState: Node['administrativeState'], targetState: Node['administrativeState'], actor: string,
+    reason: string, occurredAt: string, event: AuditEventInput): Node & { version: number } {
+    assertIdentifier(nodeId, 'node id');
+    const states: readonly Node['administrativeState'][] = ['active', 'draining', 'disabled'];
+    if (!states.includes(currentState) || !states.includes(targetState)) throw new Error('Invalid node administrative state');
+    if (currentState === targetState) throw new Error('Node administrative transition cannot be a no-op');
+    if (!Number.isInteger(expectedVersion) || expectedVersion < 1) throw new Error('Expected node version must be positive');
+    if (!actor.trim()) throw new Error('Node administrative transition actor is required');
+    if (!reason.trim()) throw new Error('Node administrative transition reason is required');
+    validateTimestamp(occurredAt, 'node administrative transition timestamp');
+    if (event.aggregateId !== nodeId || event.actor !== actor || event.occurredAt !== occurredAt) {
+      throw new Error('Node administrative transition event does not match the command');
+    }
+    return this.transaction(() => {
+      const result = this.db().prepare(`UPDATE nodes SET administrative_state = ?, version = version + 1
+        WHERE id = ? AND version = ? AND administrative_state = ?`)
+        .run(targetState, nodeId, expectedVersion, currentState);
+      if (Number(result.changes) !== 1) throw new Error(`Node concurrency conflict: ${nodeId}`);
+      this.insertEvent(event);
+      this.db().prepare(`INSERT INTO node_administrative_transitions
+        (node_id, from_state, to_state, actor, reason, occurred_at, node_version, event_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`).run(nodeId, currentState, targetState, actor, reason.trim(), occurredAt,
+        expectedVersion + 1, event.id);
+      return this.mapNode(this.db().prepare('SELECT * FROM nodes WHERE id = ?').get(nodeId) as Row);
+    });
+  }
+
+  recordResourceSchedulingDecision(value: ResourceSchedulingDecision, lease: ResourceLease,
+    events: readonly AuditEventInput[]): void {
+    if (events.length === 0) throw new Error('Resource scheduling requires an audit event');
+    if (value.request.id !== lease.decisionId || value.request.offeringId !== lease.offeringId ||
+        value.selectedLocationId !== lease.locationId || value.selectedNodeId !== lease.nodeId || lease.status !== 'active') {
+      throw new Error('Resource lease does not match its scheduling decision');
+    }
+    this.transaction(() => {
+      const location = this.db().prepare('SELECT node_id, offering_id, capacity FROM offering_locations WHERE id = ?')
+        .get(lease.locationId) as Row | undefined;
+      if (!location || String(location.node_id) !== lease.nodeId || String(location.offering_id) !== lease.offeringId) {
+        throw new Error('Resource lease binding does not match its offering location');
+      }
+      const used = Number((this.db().prepare(`SELECT COALESCE(SUM(capacity), 0) AS capacity FROM resource_leases
+        WHERE location_id = ? AND status = 'active' AND expires_at > ?`).get(lease.locationId, lease.acquiredAt) as Row).capacity);
+      if (used + lease.capacity > Number(location.capacity)) {
+        throw new Error(`Active resource lease capacity conflict: ${lease.locationId}`);
+      }
+      this.db().prepare(`INSERT INTO resource_scheduling_decisions
+        (id, offering_id, request_json, candidates_json, selected_location_id, selected_node_id, explanation, decided_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`).run(value.request.id, value.request.offeringId, json(value.request),
+        json(value.candidates), value.selectedLocationId ?? null, value.selectedNodeId ?? null, value.explanation, value.decidedAt);
+      this.db().prepare(`INSERT INTO resource_leases
+        (id, decision_id, offering_id, location_id, node_id, capacity, status, acquired_at, expires_at, released_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(lease.id, lease.decisionId, lease.offeringId, lease.locationId,
+        lease.nodeId, lease.capacity, lease.status, lease.acquiredAt, lease.expiresAt, lease.releasedAt ?? null);
+      this.insertEvents(events);
+    });
+  }
+
+  getResourceSchedulingDecision(id: ResourceSchedulingDecision['request']['id']): ResourceSchedulingDecision | undefined {
+    const row = this.db().prepare('SELECT * FROM resource_scheduling_decisions WHERE id = ?').get(id) as Row | undefined;
+    return row ? this.mapResourceSchedulingDecision(row) : undefined;
+  }
+
+  getResourceLeases(locationId?: OfferingLocation['id']): ResourceLease[] {
+    const rows = locationId
+      ? this.db().prepare('SELECT * FROM resource_leases WHERE location_id = ? ORDER BY acquired_at, id').all(locationId) as Row[]
+      : this.db().prepare('SELECT * FROM resource_leases ORDER BY acquired_at, id').all() as Row[];
+    return rows.map((row) => this.mapResourceLease(row));
+  }
+
+  releaseResourceLease(value: ResourceLease, event: AuditEventInput): void {
+    if (value.status === 'active' || !value.releasedAt) throw new Error('Released resource lease requires a terminal status and releasedAt');
+    this.transaction(() => {
+      const result = this.db().prepare(`UPDATE resource_leases SET status = ?, released_at = ? WHERE id = ? AND status = 'active'`)
+        .run(value.status, value.releasedAt, value.id);
+      if (Number(result.changes) !== 1) throw new Error(`Resource lease is not active: ${value.id}`);
+      this.insertEvent(event);
+    });
   }
 
   importLegacyHistory(value: LegacyImportWrite): LegacyImportResult {
@@ -732,5 +1019,102 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
     const isTerminal = ['succeeded', 'failed', 'cancelled', 'indeterminate'].includes(attempt.status);
     if (isTerminal !== Boolean(attempt.completedAt)) throw new Error(`Corrupt persisted Attempt completion state: ${attempt.id}`);
     return attempt;
+  }
+
+  private mapNode(row: Row): Node & { version: number } {
+    const node: Node & { version: number } = { id: String(row.id) as Node['id'], name: String(row.name),
+      administrativeState: String(row.administrative_state) as Node['administrativeState'],
+      configurationReference: String(row.configuration_reference),
+      createdAt: this.validatedTimestamp(row.created_at, 'node creation timestamp'), version: Number(row.version) };
+    assertIdentifier(node.id, 'persisted node id');
+    if (!node.name.trim() || !node.configurationReference.trim() ||
+        !['active', 'draining', 'disabled'].includes(node.administrativeState) ||
+        !Number.isInteger(node.version) || node.version < 1) {
+      throw new Error(`Corrupt persisted Node: ${node.id}`);
+    }
+    return node;
+  }
+
+  private mapWorkstationWorkloadEvaluation(row: Row): WorkstationWorkloadEvaluation {
+    const id = String(row.id) as WorkstationWorkloadEvaluation['id'];
+    try {
+      const value: WorkstationWorkloadEvaluation = { id, nodeId: String(row.node_id) as Node['id'],
+        ruleFingerprint: String(row.rule_fingerprint), processBasenames: parseArray(row.process_basenames_json),
+        matchedRuleIds: parseArray(row.matched_rule_ids_json),
+        recommendation: String(row.recommendation) as WorkstationWorkloadEvaluation['recommendation'],
+        evaluatedAt: this.validatedTimestamp(row.evaluated_at, 'workstation workload evaluation timestamp') };
+      assertIdentifier(value.id, 'persisted workstation workload evaluation id');
+      assertIdentifier(value.nodeId, 'persisted workstation workload evaluation node id');
+      if (!value.ruleFingerprint.trim() ||
+          !['recommend_draining', 'recommend_active', 'inconclusive'].includes(value.recommendation)) {
+        throw new Error('invalid fields');
+      }
+      return value;
+    } catch (error) {
+      throw new Error(`Corrupt persisted Workstation Workload Evaluation: ${id}`, { cause: error });
+    }
+  }
+
+  private mapOfferingLocation(row: Row): OfferingLocation {
+    const location: OfferingLocation = { id: String(row.id) as OfferingLocation['id'],
+      nodeId: String(row.node_id) as Node['id'], offeringId: String(row.offering_id) as ProviderOffering['id'],
+      enabled: bool(row.enabled), capacity: Number(row.capacity),
+      privacyClasses: parseArray(row.privacy_classes_json) as OfferingLocation['privacyClasses'],
+      createdAt: this.validatedTimestamp(row.created_at, 'offering location creation timestamp') };
+    assertIdentifier(location.id, 'persisted offering location id');
+    assertIdentifier(location.nodeId, 'persisted offering location node id');
+    if (!Number.isInteger(location.capacity) || location.capacity <= 0 ||
+        location.privacyClasses.some((value) => !PRIVACY_CLASSES.has(value))) {
+      throw new Error(`Corrupt persisted Offering Location: ${location.id}`);
+    }
+    return location;
+  }
+
+  private mapNodeHealth(row: Row): NodeHealthObservation {
+    const observation: NodeHealthObservation = { id: String(row.id) as NodeHealthObservation['id'],
+      nodeId: String(row.node_id) as Node['id'], status: String(row.status) as NodeHealthObservation['status'],
+      observedAt: this.validatedTimestamp(row.observed_at, 'node health observation timestamp') };
+    assertIdentifier(observation.id, 'persisted node health observation id');
+    if (!['healthy', 'degraded', 'unhealthy', 'unknown'].includes(observation.status)) {
+      throw new Error(`Corrupt persisted Node Health Observation: ${observation.id}`);
+    }
+    return observation;
+  }
+
+  private mapResourceSchedulingDecision(row: Row): ResourceSchedulingDecision {
+    const request = parseObject(row.request_json) as unknown as ResourceSchedulingDecision['request'];
+    const candidates = JSON.parse(String(row.candidates_json)) as ResourceSchedulingDecision['candidates'];
+    if (!Array.isArray(candidates) || request.id !== row.id || request.offeringId !== row.offering_id) {
+      throw new Error(`Corrupt persisted Resource Scheduling Decision: ${String(row.id)}`);
+    }
+    validateTimestamp(request.requestedAt, 'resource scheduling request timestamp');
+    const decision: ResourceSchedulingDecision = { request, candidates,
+      selectedLocationId: optionalString(row.selected_location_id) as OfferingLocation['id'] | undefined,
+      selectedNodeId: optionalString(row.selected_node_id) as Node['id'] | undefined,
+      explanation: String(row.explanation),
+      decidedAt: this.validatedTimestamp(row.decided_at, 'resource scheduling decision timestamp') };
+    if (!decision.explanation.trim() || Boolean(decision.selectedLocationId) !== Boolean(decision.selectedNodeId)) {
+      throw new Error(`Corrupt persisted Resource Scheduling Decision: ${request.id}`);
+    }
+    return decision;
+  }
+
+  private mapResourceLease(row: Row): ResourceLease {
+    const lease: ResourceLease = { id: String(row.id) as ResourceLease['id'],
+      decisionId: String(row.decision_id) as ResourceLease['decisionId'],
+      offeringId: String(row.offering_id) as ProviderOffering['id'],
+      locationId: String(row.location_id) as OfferingLocation['id'], nodeId: String(row.node_id) as Node['id'],
+      capacity: Number(row.capacity), status: String(row.status) as ResourceLease['status'],
+      acquiredAt: this.validatedTimestamp(row.acquired_at, 'resource lease acquisition timestamp'),
+      expiresAt: this.validatedTimestamp(row.expires_at, 'resource lease expiry timestamp'),
+      releasedAt: optionalString(row.released_at) };
+    assertIdentifier(lease.id, 'persisted resource lease id');
+    if (!Number.isInteger(lease.capacity) || lease.capacity <= 0 ||
+        !['active', 'released', 'expired'].includes(lease.status) ||
+        (lease.status === 'active') !== !lease.releasedAt || Date.parse(lease.expiresAt) <= Date.parse(lease.acquiredAt)) {
+      throw new Error(`Corrupt persisted Resource Lease: ${lease.id}`);
+    }
+    if (lease.releasedAt) validateTimestamp(lease.releasedAt, 'resource lease release timestamp');
+    return lease;
   }
 }

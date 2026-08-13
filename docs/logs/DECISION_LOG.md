@@ -72,6 +72,61 @@ Use this log for decisions that matter but do not yet justify a dedicated ADR sy
 - Separating provider selection from future resource scheduling keeps Slice 2 independently testable and respects roadmap dependency order.
 - Explicit qualification prevents discovered or merely healthy components from being treated as production-ready.
 
+---
+
+### DEC-0008 — Phase 1G Durable Node Binding Boundary
+
+**Date**
+
+- 2026-08-13
+
+**Decision**
+
+- Approve Addendum 012 for controlled implementation of the smallest Architecture 2 Slice 3 node-binding and lease kernel.
+- Keep offering resolution separate from deterministic node/location selection.
+- Require durable health evidence, scheduling explanations, capacity-aware leases, and matching Attempt bindings before invocation.
+- Preserve sequential execution and defer discovery, telemetry, concurrency, preemption, gaming detection, and automatic failover.
+
+**Rationale**
+
+- Durable identity and leases are prerequisites for safe multi-node execution. Extending the Architecture 1 in-memory registry or introducing concurrency first would create unprovable health, ownership, and recovery behavior.
+
+---
+
+### DEC-0009 — Phase 1H Configured Node Inspection Boundary
+
+**Date**
+
+- 2026-08-13
+
+**Decision**
+
+- Approve explicit, bounded inspection of registered Ollama Nodes and durable sanitized inspection evidence.
+- Approve auditable manual Node administrative-state transitions with stale-write protection.
+- Keep inventory evidence inert and defer discovery, polling, telemetry, concurrency, and automatic failover.
+
+**Rationale**
+
+- Resource scheduling requires current truthful observations, but automated discovery and control policies should not be introduced before explicit configured-node behavior is durable and verifiable.
+
+---
+
+### DEC-0010 — Phase 1I Workstation Availability Recommendation Boundary
+
+**Date**
+
+- 2026-08-13
+
+**Decision**
+
+- Approve bounded caller-invoked Windows process snapshots and deterministic exact-basename workload rules.
+- Persist recommendations as evidence while requiring a separate explicit manual Node transition to apply them.
+- Prohibit command-line capture, background monitoring, automatic drain/reactivation, and process control.
+
+**Rationale**
+
+- This satisfies the initial workstation-protection dependency, including Mod Organizer 2 awareness, without allowing observational evidence to become autonomous administrative authority.
+
 **Consequences**
 
 - The provider execution contract and Orchestrator binding must evolve so the exact offering is selected and persisted before invocation.

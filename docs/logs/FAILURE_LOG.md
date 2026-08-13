@@ -1,5 +1,40 @@
 # G.R.A.C.I. Phase 1 — Autonomous Recovery and Continuation
 
+## 2026-08-13 — Phase 1G Verification Fixture Corrections
+
+- The new orchestrator lease test initially failed because the existing test module did not import Vitest's `vi` helper. The import was added and the focused Phase 1G suite passed 54/54.
+- The first full regression run exposed a Phase 1E runtime assertion still fixed at schema version 4. Phase 1G migration 5 correctly returns version 5; the stale assertion was updated without changing runtime behavior.
+
+## 2026-08-13 — Phase 1H Schema Fixture Correction
+
+- The first Phase 1H full regression run found the runtime-import fixture explicitly expecting schema version 5. Migration 6 correctly returned version 6.
+- The stale expected version was updated; no runtime or migration behavior required correction.
+
+## 2026-08-13 — Phase 1I Schema Fixture Correction
+
+- The Phase 1I full regression run found the runtime-import fixture still explicitly expecting schema version 6.
+- Migration 7 correctly returned version 7. The fixture expectation was updated; runtime and migration behavior were unchanged.
+
+---
+
+## 2026-08-13 — Phase 1F Missing-Evidence Serialization
+
+### Failure
+
+- A resolver test with no qualification or health evidence failed while persisting `candidates_json` with SQLite `CHECK constraint failed: json_valid(candidates_json)`.
+
+### Root Cause
+
+- Candidate projection explicitly included optional fields with `undefined`. The canonical JSON helper produced a non-JSON value for that array instead of omitting absent properties.
+
+### Correction and Verification
+
+- Resolver candidate construction now omits absent qualification and health fields.
+- Focused resolver suite passed 4/4 after correction.
+- Full regression suite passed 101/101 and the production build passed.
+
+---
+
 ## 2026-08-13 — Phase 1E Verification Fixture and Smoke Harness Corrections
 
 **Failure**

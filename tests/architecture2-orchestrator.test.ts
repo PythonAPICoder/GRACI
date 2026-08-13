@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -118,6 +118,35 @@ describe('Architecture 2 Phase 1B workflow kernel', () => {
     });
     return { value, provider };
   }
+
+  it('persists a resolved offering on the Attempt before provider execution', async () => {
+    seedGraph([task('task-resolved')]);
+    const provider = new DeterministicTestProvider();
+    const value = new MinimalOrchestrator(persistence, provider, new DeterministicVerifier(), {
+      actor: 'phase1f-test-orchestrator', now: () => NOW, nextId,
+      resolveOffering: () => asIdentifier<'ProviderOffering'>('offering-selected'),
+    });
+    await value.run(graphId());
+    expect(persistence.getAttempts(taskId('task-resolved'))[0]?.providerOfferingId).toBe('offering-selected');
+  });
+
+  it('persists a leased compute node before execution and releases the lease', async () => {
+    seedGraph([task('task-leased')]);
+    const provider = new DeterministicTestProvider();
+    const offeringId = asIdentifier<'ProviderOffering'>('offering-leased');
+    const lease = { id: asIdentifier<'ResourceLease'>('lease-test'),
+      decisionId: asIdentifier<'ResourceSchedulingDecision'>('decision-test'), offeringId,
+      locationId: asIdentifier<'OfferingLocation'>('location-test'), nodeId: asIdentifier<'Node'>('node-test'),
+      capacity: 1, status: 'active' as const, acquiredAt: NOW, expiresAt: '2026-08-13T21:00:00.000Z' };
+    const release = vi.spyOn(persistence, 'releaseResourceLease').mockImplementation(() => undefined);
+    const value = new MinimalOrchestrator(persistence, provider, new DeterministicVerifier(), {
+      actor: 'phase1g-test-orchestrator', now: () => NOW, nextId,
+      resolveOffering: () => offeringId, acquireResource: () => lease,
+    });
+    await value.run(graphId());
+    expect(persistence.getAttempts(taskId('task-leased'))[0]?.computeNodeId).toBe('node-test');
+    expect(release).toHaveBeenCalledWith(expect.objectContaining({ id: lease.id, status: 'released' }), expect.anything());
+  });
 
   it('accepts valid transitions and rejects invalid or unguarded transitions', () => {
     const machine = new TaskStateMachine();

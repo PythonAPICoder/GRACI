@@ -9,6 +9,11 @@ import type {
   TaskGraphRevisionId,
   TaskId,
   VerificationId,
+  ProviderId, CapabilityId, ProviderOfferingId, QualificationId, HealthObservationId,
+  ResolutionDecisionId,
+  NodeId, OfferingLocationId, NodeHealthObservationId, ResourceSchedulingDecisionId, ResourceLeaseId,
+  NodeInspectionId,
+  WorkstationWorkloadEvaluationId,
 } from './ids.js';
 
 export type IsoTimestamp = string;
@@ -212,4 +217,257 @@ export interface AuditEvent extends AuditEventInput {
 export interface GoalBundle {
   goal: Goal;
   criteria: readonly GoalSuccessCriterion[];
+}
+
+export interface Provider {
+  id: ProviderId;
+  adapterType: string;
+  adapterVersion: string;
+  configurationReference: string;
+  createdAt: IsoTimestamp;
+}
+
+export interface Capability {
+  id: CapabilityId;
+  contractVersion: number;
+  description: string;
+  inputSchemaReference: string;
+  outputSchemaReference: string;
+  createdAt: IsoTimestamp;
+}
+
+export interface ProviderOffering {
+  id: ProviderOfferingId;
+  providerId: ProviderId;
+  capabilityId: CapabilityId;
+  contractVersion: number;
+  modelIdentity?: string;
+  privacyDestinations: readonly PrivacyClass[];
+  permissions: readonly string[];
+  features: readonly string[];
+  supportedFormats: readonly string[];
+  inputSchemaReference: string;
+  outputSchemaReference: string;
+  qualificationFingerprint: string;
+  qualityLevel: number;
+  expectedLatencyMs: number;
+  maximumCost: number;
+  sideEffectClass: 'none' | 'local' | 'external_reversible' | 'external_consequential';
+  createdAt: IsoTimestamp;
+}
+
+export interface Qualification {
+  id: QualificationId;
+  offeringId: ProviderOfferingId;
+  status: 'qualified' | 'rejected';
+  level: number;
+  evidence: JsonObject;
+  qualifiedAt: IsoTimestamp;
+  expiresAt?: IsoTimestamp;
+  triggerFingerprint: string;
+}
+
+export interface ProviderHealthObservation {
+  id: HealthObservationId;
+  offeringId: ProviderOfferingId;
+  status: 'healthy' | 'degraded' | 'unhealthy' | 'unknown';
+  evidence: JsonObject;
+  observedAt: IsoTimestamp;
+}
+
+export interface ProviderRegistration {
+  provider: Provider;
+  capabilities: readonly Capability[];
+  offerings: readonly ProviderOffering[];
+}
+
+export type ResolutionRejectionReason =
+  | 'contract_version_mismatch' | 'privacy_destination_disallowed' | 'permission_missing'
+  | 'feature_missing' | 'qualification_missing' | 'qualification_rejected'
+  | 'qualification_expired' | 'qualification_insufficient' | 'health_missing'
+  | 'health_stale' | 'health_unacceptable' | 'qualification_fingerprint_mismatch'
+  | 'input_schema_mismatch' | 'output_schema_mismatch' | 'format_unsupported'
+  | 'side_effect_class_mismatch' | 'quality_insufficient' | 'latency_exceeded' | 'cost_exceeded';
+
+export interface ProviderResolutionRequest {
+  id: ResolutionDecisionId;
+  capabilityId: CapabilityId;
+  contractVersion: number;
+  privacyClass: PrivacyClass;
+  requiredPermissions: readonly string[];
+  requiredFeatures: readonly string[];
+  requiredFormats?: readonly string[];
+  inputSchemaReference?: string;
+  outputSchemaReference?: string;
+  maximumSideEffectClass?: ProviderOffering['sideEffectClass'];
+  expectedQualificationFingerprint?: string;
+  minimumQualificationLevel: number;
+  minimumQualityLevel?: number;
+  maximumLatencyMs?: number;
+  maximumCost?: number;
+  maximumHealthAgeMs: number;
+  requestedAt: IsoTimestamp;
+}
+
+export interface ProviderResolutionCandidate {
+  offeringId: ProviderOfferingId;
+  eligible: boolean;
+  rejectionReasons: readonly ResolutionRejectionReason[];
+  qualificationLevel?: number;
+  healthObservedAt?: IsoTimestamp;
+}
+
+export interface ProviderResolutionDecision {
+  request: ProviderResolutionRequest;
+  candidates: readonly ProviderResolutionCandidate[];
+  selectedOfferingId?: ProviderOfferingId;
+  explanation: string;
+  decidedAt: IsoTimestamp;
+}
+
+export interface Node {
+  id: NodeId;
+  name: string;
+  administrativeState: 'active' | 'draining' | 'disabled';
+  configurationReference: string;
+  createdAt: IsoTimestamp;
+}
+
+export interface OfferingLocation {
+  id: OfferingLocationId;
+  nodeId: NodeId;
+  offeringId: ProviderOfferingId;
+  enabled: boolean;
+  capacity: number;
+  privacyClasses: readonly PrivacyClass[];
+  createdAt: IsoTimestamp;
+}
+
+export interface NodeHealthObservation {
+  id: NodeHealthObservationId;
+  nodeId: NodeId;
+  status: 'healthy' | 'degraded' | 'unhealthy' | 'unknown';
+  observedAt: IsoTimestamp;
+}
+
+export interface NodeInspectionFailure {
+  outcome: 'retryable_failure' | 'non_retryable_failure' | 'indeterminate_outcome';
+  code: string;
+  summary: string;
+  httpStatus?: number;
+}
+
+export type NodeInspectionHealthOutcome =
+  | { outcome: 'success'; version: string }
+  | NodeInspectionFailure;
+
+export interface NodeInspectionInventoryItem {
+  name: string;
+  modifiedAt?: string;
+  size?: number;
+  digest?: string;
+}
+
+export type NodeInspectionInventoryOutcome =
+  | { outcome: 'success'; items: readonly NodeInspectionInventoryItem[] }
+  | NodeInspectionFailure;
+
+export interface NodeInspectionObservation {
+  id: NodeInspectionId;
+  nodeId: NodeId;
+  adapterId: string;
+  adapterVersion: number;
+  health: NodeInspectionHealthOutcome;
+  inventory: NodeInspectionInventoryOutcome;
+  inspectedAt: IsoTimestamp;
+}
+
+export type ResourceSchedulingRejectionReason =
+  | 'node_missing'
+  | 'node_draining'
+  | 'node_disabled'
+  | 'location_disabled'
+  | 'health_missing'
+  | 'health_stale'
+  | 'health_unacceptable'
+  | 'privacy_incompatible'
+  | 'capacity_insufficient';
+
+export interface ResourceSchedulingRequest {
+  id: ResourceSchedulingDecisionId;
+  offeringId: ProviderOfferingId;
+  privacyClass: PrivacyClass;
+  requiredCapacity: number;
+  maximumHealthAgeMs: number;
+  requestedAt: IsoTimestamp;
+}
+
+export interface ResourceSchedulingCandidate {
+  locationId: OfferingLocationId;
+  nodeId: NodeId;
+  eligible: boolean;
+  rejectionReasons: readonly ResourceSchedulingRejectionReason[];
+  availableCapacity: number;
+  healthObservedAt?: IsoTimestamp;
+}
+
+export interface ResourceSchedulingDecision {
+  request: ResourceSchedulingRequest;
+  candidates: readonly ResourceSchedulingCandidate[];
+  selectedLocationId?: OfferingLocationId;
+  selectedNodeId?: NodeId;
+  explanation: string;
+  decidedAt: IsoTimestamp;
+}
+
+export interface ResourceLease {
+  id: ResourceLeaseId;
+  decisionId: ResourceSchedulingDecisionId;
+  offeringId: ProviderOfferingId;
+  locationId: OfferingLocationId;
+  nodeId: NodeId;
+  capacity: number;
+  status: 'active' | 'released' | 'expired';
+  acquiredAt: IsoTimestamp;
+  expiresAt: IsoTimestamp;
+  releasedAt?: IsoTimestamp;
+}
+
+export type WindowsProcessSnapshotIncompleteReason =
+  | 'unsupported_platform'
+  | 'execution_failed'
+  | 'malformed_output'
+  | 'truncated_output';
+
+export type WindowsProcessSnapshot =
+  | {
+      completeness: 'complete';
+      processBasenames: readonly string[];
+      capturedAt: IsoTimestamp;
+    }
+  | {
+      completeness: 'incomplete';
+      processBasenames: readonly string[];
+      reason: WindowsProcessSnapshotIncompleteReason;
+      capturedAt: IsoTimestamp;
+    };
+
+export interface WorkstationWorkloadRule {
+  id: string;
+  executableBasenames: readonly string[];
+}
+
+export interface WorkstationWorkloadRules {
+  version: number;
+  rules: readonly WorkstationWorkloadRule[];
+}
+
+export interface WorkstationWorkloadEvaluation {
+  id: WorkstationWorkloadEvaluationId;
+  nodeId: NodeId;
+  ruleFingerprint: string;
+  processBasenames: readonly string[];
+  matchedRuleIds: readonly string[];
+  recommendation: 'recommend_draining' | 'recommend_active' | 'inconclusive';
+  evaluatedAt: IsoTimestamp;
 }

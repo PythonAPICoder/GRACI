@@ -12,6 +12,12 @@ import {
   type Task,
   type TaskDependency,
   type TaskGraphRevision,
+  type Node,
+  type NodeInspectionObservation,
+  type OfferingLocation,
+  type ResourceLease,
+  type ResourceSchedulingDecision,
+  type WorkstationWorkloadEvaluation,
 } from '../src/architecture2/domain/index.js';
 import { SqliteArchitecture2Persistence } from '../src/architecture2/persistence/index.js';
 import { migrations } from '../src/architecture2/persistence/sqlite/migrations.js';
@@ -118,7 +124,49 @@ describe('Architecture 2 SQLite persistence', () => {
   }
 
   it('initializes a new database through the current schema version', () => {
-    expect(persistence.getSchemaVersion()).toBe(3);
+    expect(persistence.getSchemaVersion()).toBe(7);
+    expect(persistence.getEvents()).toEqual([]);
+  });
+
+  it('atomically persists and reconstructs provider registry evidence', () => {
+    const providerId = asIdentifier<'Provider'>('provider-ollama');
+    const capabilityId = asIdentifier<'Capability'>('model.generate-text');
+    const offeringId = asIdentifier<'ProviderOffering'>('offering-ollama-test');
+    persistence.registerProvider({
+      provider: { id: providerId, adapterType: 'ollama', adapterVersion: '1',
+        configurationReference: 'config:ollama.test', createdAt: NOW },
+      capabilities: [{ id: capabilityId, contractVersion: 1, description: 'Generate text',
+        inputSchemaReference: 'schema:text-request:1', outputSchemaReference: 'schema:text-result:1', createdAt: NOW }],
+      offerings: [{ id: offeringId, providerId, capabilityId, contractVersion: 1, modelIdentity: 'test-model',
+        privacyDestinations: ['internal'], permissions: [], features: ['text'], supportedFormats: ['text/plain'],
+        inputSchemaReference: 'schema:text-request:1', outputSchemaReference: 'schema:text-result:1',
+        qualificationFingerprint: 'adapter:model:runtime', qualityLevel: 2, expectedLatencyMs: 100,
+        maximumCost: 0, sideEffectClass: 'none', createdAt: NOW }],
+    }, [event(providerId, 'provider.registered')]);
+    persistence.recordQualification({ id: asIdentifier<'Qualification'>('qualification-1'), offeringId,
+      status: 'qualified', level: 2, evidence: { suite: 'frozen-v1' }, qualifiedAt: NOW,
+      expiresAt: '2026-09-13T20:00:00.000Z', triggerFingerprint: 'adapter:model:runtime' },
+    event(offeringId, 'offering.qualified'));
+    persistence.recordProviderHealth({ id: asIdentifier<'HealthObservation'>('health-1'), offeringId,
+      status: 'healthy', evidence: { version: 'test' }, observedAt: NOW }, event(offeringId, 'offering.health-observed'));
+
+    persistence.close();
+    persistence = new SqliteArchitecture2Persistence({ databasePath });
+    persistence.initialize();
+    expect(persistence.getProvider(providerId)?.adapterType).toBe('ollama');
+    expect(persistence.getCapabilities().map((value) => value.id)).toEqual([capabilityId]);
+    expect(persistence.getProviderOfferings(capabilityId)[0]?.id).toBe(offeringId);
+    expect(persistence.getQualifications(offeringId)[0]?.status).toBe('qualified');
+    expect(persistence.getProviderHealth(offeringId)[0]?.status).toBe('healthy');
+    expect(persistence.getEvents()).toHaveLength(3);
+  });
+
+  it('rolls back provider registration when its audit event fails', () => {
+    const providerId = asIdentifier<'Provider'>('provider-rollback');
+    expect(() => persistence.registerProvider({ provider: { id: providerId, adapterType: 'test', adapterVersion: '1',
+      configurationReference: 'config:test', createdAt: NOW }, capabilities: [], offerings: [] },
+    [event(providerId, 'provider.registered', 'duplicate-event'), event(providerId, 'provider.registered', 'duplicate-event')])).toThrow();
+    expect(persistence.getProvider(providerId)).toBeUndefined();
     expect(persistence.getEvents()).toEqual([]);
   });
 
@@ -240,7 +288,7 @@ describe('Architecture 2 SQLite persistence', () => {
     second.initialize();
     try {
       persistence.appendEvent(event('first', 'first.created'));
-      expect(second.getSchemaVersion()).toBe(3);
+      expect(second.getSchemaVersion()).toBe(7);
       expect(second.getEvents()).toEqual([]);
     } finally {
       second.close();
@@ -290,7 +338,7 @@ describe('Architecture 2 SQLite persistence', () => {
 
     persistence = new SqliteArchitecture2Persistence({ databasePath });
     persistence.initialize();
-    expect(persistence.getSchemaVersion()).toBe(3);
+    expect(persistence.getSchemaVersion()).toBe(7);
     expect(persistence.getTask(asIdentifier<'Task'>('legacy-task'))?.status).toBe('failed');
     const failures = persistence.getFailures(asIdentifier<'Task'>('legacy-task'));
     expect(failures).toHaveLength(5);
@@ -308,5 +356,322 @@ describe('Architecture 2 SQLite persistence', () => {
       { category: 'external_outcome_indeterminate', classification: 'external_outcome_indeterminate', code: 'UNKNOWN_OUTCOME',
         summary: 'Outcome unknown', details: { source: 'legacy' }, retryable: false, createdAt: '2026-08-12T20:00:05.000Z' },
     ]);
+  });
+
+  it('migrates populated schema 4 and preserves attempts', () => {
+    persistence.close();
+    rmSync(databasePath, { force: true });
+    const prior = new DatabaseSync(databasePath);
+    prior.exec('PRAGMA foreign_keys = ON');
+    prior.exec(`CREATE TABLE schema_migrations (version INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE, applied_at TEXT NOT NULL) STRICT`);
+    for (const migration of migrations.slice(0, 4)) {
+      migration.up(prior);
+      prior.prepare('INSERT INTO schema_migrations(version, name, applied_at) VALUES (?, ?, ?)').run(migration.version, migration.name, NOW);
+    }
+    prior.exec('PRAGMA user_version = 4');
+    prior.prepare(`INSERT INTO goals (id, objective, constraints_json, priority, privacy_class, status, version, created_at, updated_at)
+      VALUES ('old-goal', 'old', '{}', 'normal', 'internal', 'active', 1, ?, ?)`).run(NOW, NOW);
+    prior.prepare(`INSERT INTO task_graph_revisions (id, goal_id, revision, created_at) VALUES ('old-graph', 'old-goal', 1, ?)`).run(NOW);
+    prior.prepare(`INSERT INTO tasks (id, goal_id, graph_revision_id, title, objective, inputs_json, required_capabilities_json,
+      privacy_class, priority, status, required, retry_policy_json, verification_plan_json, version, created_at, updated_at)
+      VALUES ('old-task', 'old-goal', 'old-graph', 'old', 'old', '{}', '[]', 'internal', 'normal', 'ready', 1, '{}', '{}', 1, ?, ?)`)
+      .run(NOW, NOW);
+    prior.prepare(`INSERT INTO attempts (id, task_id, attempt_number, status, input_snapshot_json, completed_at, created_at)
+      VALUES ('old-attempt', 'old-task', 1, 'failed', '{}', ?, ?)`).run(NOW, NOW);
+    prior.close();
+    persistence = new SqliteArchitecture2Persistence({ databasePath });
+    persistence.initialize();
+    expect(persistence.getSchemaVersion()).toBe(7);
+    expect(persistence.getAttempts(asIdentifier<'Task'>('old-task')).map((value) => value.id)).toEqual(['old-attempt']);
+  });
+
+  it('migrates populated schema 3 through Phase 1F without losing durable records', () => {
+    persistence.close();
+    rmSync(databasePath, { force: true });
+    const prior = new DatabaseSync(databasePath);
+    prior.exec('PRAGMA foreign_keys = ON');
+    prior.exec(`CREATE TABLE schema_migrations (
+      version INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE, applied_at TEXT NOT NULL
+    ) STRICT`);
+    for (const migration of migrations.slice(0, 3)) {
+      migration.up(prior);
+      prior.prepare('INSERT INTO schema_migrations(version, name, applied_at) VALUES (?, ?, ?)')
+        .run(migration.version, migration.name, NOW);
+    }
+    prior.exec('PRAGMA user_version = 3');
+    prior.prepare(`INSERT INTO goals
+      (id, objective, constraints_json, priority, privacy_class, status, version, created_at, updated_at)
+      VALUES ('schema3-goal', 'Preserve schema 3', '{"constraint":"retained"}', 'normal', 'internal', 'active', 2, ?, ?)`)
+      .run(NOW, NOW);
+    prior.prepare(`INSERT INTO task_graph_revisions (id, goal_id, revision, rationale, created_at)
+      VALUES ('schema3-graph', 'schema3-goal', 1, 'Original schema 3 graph', ?)`).run(NOW);
+    prior.prepare(`INSERT INTO tasks
+      (id, goal_id, graph_revision_id, title, objective, inputs_json, required_capabilities_json,
+       privacy_class, priority, status, required, retry_policy_json, verification_plan_json, version, created_at, updated_at)
+      VALUES ('schema3-task', 'schema3-goal', 'schema3-graph', 'Schema 3 task', 'Preserve task',
+       '{"input":"retained"}', '["model.generate-text"]', 'internal', 'normal', 'ready', 1,
+       '{"maxAttempts":3}', '{"method":"deterministic"}', 3, ?, ?)`).run(NOW, NOW);
+    prior.prepare(`INSERT INTO attempts
+      (id, task_id, attempt_number, status, input_snapshot_json, result_json, completed_at, created_at)
+      VALUES ('schema3-attempt', 'schema3-task', 1, 'failed', '{"input":"retained"}',
+       '{"code":"ORIGINAL_FAILURE"}', ?, ?)`).run(NOW, NOW);
+    const digest = 'a'.repeat(64);
+    prior.prepare(`INSERT INTO legacy_import_operations
+      (id, source_digest, source_reference, assessment_version, imported_record_count, imported_at)
+      VALUES ('schema3-import', ?, 'legacy:schema3', 1, 1, ?)`).run(digest, NOW);
+    prior.prepare(`INSERT INTO legacy_history_records
+      (import_operation_id, source_digest, source_reference, source_section, source_key, legacy_status,
+       payload_json, assessment_version, imported_at)
+      VALUES ('schema3-import', ?, 'legacy:schema3', 'tasks', 'legacy-task', 'completed',
+       '{"id":"legacy-task","status":"completed"}', 1, ?)`).run(digest, NOW);
+    prior.close();
+
+    persistence = new SqliteArchitecture2Persistence({ databasePath });
+    persistence.initialize();
+
+    expect(persistence.getSchemaVersion()).toBe(7);
+    expect(persistence.getGoal(asIdentifier<'Goal'>('schema3-goal'))?.goal).toMatchObject({
+      id: 'schema3-goal', objective: 'Preserve schema 3', constraints: { constraint: 'retained' }, version: 2,
+    });
+    expect(persistence.getTask(asIdentifier<'Task'>('schema3-task'))).toMatchObject({
+      id: 'schema3-task', inputs: { input: 'retained' }, requiredCapabilities: ['model.generate-text'], version: 3,
+    });
+    expect(persistence.getAttempts(asIdentifier<'Task'>('schema3-task'))).toEqual([
+      expect.objectContaining({ id: 'schema3-attempt', status: 'failed', result: { code: 'ORIGINAL_FAILURE' } }),
+    ]);
+    expect(persistence.getLegacyImport(digest)).toMatchObject({ id: 'schema3-import', importedRecordCount: 1 });
+    expect(persistence.getLegacyHistory(digest)).toEqual([
+      expect.objectContaining({ sourceKey: 'legacy-task', legacyStatus: 'completed',
+        payload: { id: 'legacy-task', status: 'completed' } }),
+    ]);
+
+    expect(persistence.getCapabilities()).toEqual([]);
+    expect(persistence.getProviderOfferings()).toEqual([]);
+    const providerId = asIdentifier<'Provider'>('schema3-migrated-provider');
+    const capabilityId = asIdentifier<'Capability'>('schema3-migrated-capability');
+    const offeringId = asIdentifier<'ProviderOffering'>('schema3-migrated-offering');
+    persistence.registerProvider({ provider: { id: providerId, adapterType: 'test', adapterVersion: '1',
+      configurationReference: 'config:schema3-migration-test', createdAt: NOW }, capabilities: [{ id: capabilityId,
+      contractVersion: 1, description: 'Migration provider structure', inputSchemaReference: 'in',
+      outputSchemaReference: 'out', createdAt: NOW }], offerings: [{ id: offeringId, providerId, capabilityId,
+      contractVersion: 1, privacyDestinations: ['internal'], permissions: [], features: [], supportedFormats: [],
+      inputSchemaReference: 'in', outputSchemaReference: 'out', qualificationFingerprint: 'migration-test',
+      qualityLevel: 1, expectedLatencyMs: 1, maximumCost: 0, sideEffectClass: 'none', createdAt: NOW }] },
+    [event(providerId, 'provider.registered')]);
+    expect(persistence.getProvider(providerId)?.adapterType).toBe('test');
+    expect(persistence.getCapabilities().map((value) => value.id)).toEqual([capabilityId]);
+    expect(persistence.getProviderOfferings(capabilityId).map((value) => value.id)).toEqual([offeringId]);
+  });
+
+  it('atomically registers, reopens, leases capacity, and releases', () => {
+    const providerId = asIdentifier<'Provider'>('lease-provider');
+    const capabilityId = asIdentifier<'Capability'>('lease-capability');
+    const offeringId = asIdentifier<'ProviderOffering'>('lease-offering');
+    persistence.registerProvider({ provider: { id: providerId, adapterType: 'test', adapterVersion: '1',
+      configurationReference: 'config:test', createdAt: NOW }, capabilities: [{ id: capabilityId, contractVersion: 1,
+      description: 'test', inputSchemaReference: 'in', outputSchemaReference: 'out', createdAt: NOW }], offerings: [{
+      id: offeringId, providerId, capabilityId, contractVersion: 1, privacyDestinations: ['internal'], permissions: [],
+      features: [], supportedFormats: [], inputSchemaReference: 'in', outputSchemaReference: 'out',
+      qualificationFingerprint: 'test', qualityLevel: 1, expectedLatencyMs: 1, maximumCost: 0,
+      sideEffectClass: 'none', createdAt: NOW }] }, [event(providerId, 'provider.registered')]);
+    const node: Node = { id: asIdentifier<'Node'>('node-1'), name: 'Node 1', administrativeState: 'active',
+      configurationReference: 'config:node-1', createdAt: NOW };
+    const location: OfferingLocation = { id: asIdentifier<'OfferingLocation'>('location-1'), nodeId: node.id, offeringId,
+      enabled: true, capacity: 2, privacyClasses: ['internal'], createdAt: NOW };
+    persistence.registerNode(node, [location], [event(node.id, 'node.registered')]);
+    persistence.recordNodeHealth({ id: asIdentifier<'NodeHealthObservation'>('node-health-1'), nodeId: node.id,
+      status: 'healthy', observedAt: NOW }, event(node.id, 'node.health-observed'));
+    persistence.close();
+    persistence = new SqliteArchitecture2Persistence({ databasePath });
+    persistence.initialize();
+    expect(persistence.getNodes()).toEqual([{ ...node, version: 1 }]);
+    expect(persistence.getOfferingLocations(offeringId)).toEqual([location]);
+    expect(persistence.getNodeHealth(node.id)[0]?.status).toBe('healthy');
+
+    const decision = (id: string): ResourceSchedulingDecision => ({ request: { id: asIdentifier<'ResourceSchedulingDecision'>(id),
+      offeringId, privacyClass: 'internal', requiredCapacity: 2, maximumHealthAgeMs: 60_000, requestedAt: NOW },
+      candidates: [{ locationId: location.id, nodeId: node.id, eligible: true, rejectionReasons: [], availableCapacity: 2,
+        healthObservedAt: NOW }], selectedLocationId: location.id, selectedNodeId: node.id, explanation: 'selected', decidedAt: NOW });
+    const lease = (id: string, decisionId: ResourceSchedulingDecision['request']['id']): ResourceLease => ({
+      id: asIdentifier<'ResourceLease'>(id), decisionId, offeringId, locationId: location.id, nodeId: node.id,
+      capacity: 2, status: 'active', acquiredAt: NOW, expiresAt: '2026-08-12T21:00:00.000Z' });
+    const firstDecision = decision('decision-1');
+    const firstLease = lease('lease-1', firstDecision.request.id);
+    persistence.recordResourceSchedulingDecision(firstDecision, firstLease, [event(firstDecision.request.id, 'resource.scheduled')]);
+    persistence.transitionNodeAdministrativeState(node.id, 1, 'active', 'draining', 'phase1a-test',
+      'Stop new work while preserving the active lease', NOW, event(node.id, 'node.administrative-state-transitioned'));
+    expect(persistence.getResourceLeases(location.id)).toEqual([firstLease]);
+    const conflictDecision = decision('decision-2');
+    expect(() => persistence.recordResourceSchedulingDecision(conflictDecision, lease('lease-2', conflictDecision.request.id),
+      [event(conflictDecision.request.id, 'resource.scheduled')])).toThrow(/capacity conflict/);
+    expect(persistence.getResourceSchedulingDecision(conflictDecision.request.id)).toBeUndefined();
+    expect(persistence.getResourceLeases(location.id)).toEqual([firstLease]);
+    const released: ResourceLease = { ...firstLease, status: 'released', releasedAt: '2026-08-12T20:30:00.000Z' };
+    persistence.releaseResourceLease(released, event(firstLease.id, 'resource.released'));
+    expect(persistence.getResourceLeases(location.id)).toEqual([released]);
+    persistence.recordResourceSchedulingDecision(conflictDecision, lease('lease-2', conflictDecision.request.id),
+      [event(conflictDecision.request.id, 'resource.scheduled')]);
+    expect(persistence.getResourceSchedulingDecision(firstDecision.request.id)).toEqual(firstDecision);
+    expect(persistence.getResourceLeases(location.id)).toHaveLength(2);
+  });
+
+  it('rolls back node registration when its event fails', () => {
+    const node: Node = { id: asIdentifier<'Node'>('node-rollback'), name: 'Rollback', administrativeState: 'active',
+      configurationReference: 'config:rollback', createdAt: NOW };
+    expect(() => persistence.registerNode(node, [], [event(node.id, 'node.registered', 'same-node-event'),
+      event(node.id, 'node.registered', 'same-node-event')])).toThrow();
+    expect(persistence.getNodes()).toEqual([]);
+  });
+
+  it('migrates populated schema 5 with node version 1', () => {
+    persistence.close();
+    rmSync(databasePath, { force: true });
+    const prior = new DatabaseSync(databasePath);
+    prior.exec('PRAGMA foreign_keys = ON');
+    prior.exec(`CREATE TABLE schema_migrations (version INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE, applied_at TEXT NOT NULL) STRICT`);
+    for (const migration of migrations.slice(0, 5)) {
+      migration.up(prior);
+      prior.prepare('INSERT INTO schema_migrations(version, name, applied_at) VALUES (?, ?, ?)')
+        .run(migration.version, migration.name, NOW);
+    }
+    prior.prepare(`INSERT INTO nodes (id, name, administrative_state, configuration_reference, created_at)
+      VALUES ('old-node', 'Old Node', 'draining', 'config:old', ?)`).run(NOW);
+    prior.close();
+    persistence = new SqliteArchitecture2Persistence({ databasePath });
+    persistence.initialize();
+    expect(persistence.getSchemaVersion()).toBe(7);
+    expect(persistence.getNodes()).toEqual([{ id: 'old-node', name: 'Old Node', administrativeState: 'draining',
+      configurationReference: 'config:old', createdAt: NOW, version: 1 }]);
+  });
+
+  it('atomically records and reconstructs append-only node inspections', () => {
+    const node: Node = { id: asIdentifier<'Node'>('inspection-node'), name: 'Inspection Node',
+      administrativeState: 'active', configurationReference: 'config:inspection', createdAt: NOW };
+    persistence.registerNode(node, [], [event(node.id, 'node.registered')]);
+    const observation: NodeInspectionObservation = { id: asIdentifier<'NodeInspection'>('inspection-1'), nodeId: node.id,
+      adapterId: 'ollama', adapterVersion: 1, health: { outcome: 'success', version: '0.11.4' },
+      inventory: { outcome: 'success', items: [{ name: 'a-model', digest: 'bbb' }, { name: 'z-model' }] },
+      inspectedAt: NOW };
+    persistence.recordNodeInspection(observation, event(node.id, 'node.inspected'));
+    persistence.close();
+    persistence = new SqliteArchitecture2Persistence({ databasePath });
+    persistence.initialize();
+    expect(persistence.getNodeInspections(node.id)).toEqual([observation]);
+
+    const failed: NodeInspectionObservation = { ...observation,
+      id: asIdentifier<'NodeInspection'>('inspection-rollback'), inspectedAt: '2026-08-12T20:01:00.000Z' };
+    persistence.appendEvent(event('seed', 'seed.created', 'inspection-duplicate-event'));
+    expect(() => persistence.recordNodeInspection(failed,
+      event(node.id, 'node.inspected', 'inspection-duplicate-event'))).toThrow();
+    expect(persistence.getNodeInspections(node.id)).toEqual([observation]);
+  });
+
+  it('supports every non-no-op administrative transition and rejects stale or invalid commands', () => {
+    const first: Node = { id: asIdentifier<'Node'>('admin-node-1'), name: 'Admin 1', administrativeState: 'active',
+      configurationReference: 'config:admin-1', createdAt: NOW };
+    const second: Node = { ...first, id: asIdentifier<'Node'>('admin-node-2'), name: 'Admin 2',
+      configurationReference: 'config:admin-2' };
+    persistence.registerNode(first, [], [event(first.id, 'node.registered')]);
+    persistence.registerNode(second, [], [event(second.id, 'node.registered')]);
+    const transition = (nodeId: Node['id'], version: number, from: Node['administrativeState'],
+      to: Node['administrativeState']) => persistence.transitionNodeAdministrativeState(nodeId, version, from, to,
+      'administrator', `${from} to ${to}`, NOW,
+      { ...event(nodeId, 'node.administrative-state-transitioned'), actor: 'administrator' });
+    expect(transition(first.id, 1, 'active', 'draining').administrativeState).toBe('draining');
+    expect(transition(first.id, 2, 'draining', 'disabled').administrativeState).toBe('disabled');
+    expect(transition(first.id, 3, 'disabled', 'active').version).toBe(4);
+    expect(transition(second.id, 1, 'active', 'disabled').administrativeState).toBe('disabled');
+    expect(transition(second.id, 2, 'disabled', 'draining').administrativeState).toBe('draining');
+    expect(transition(second.id, 3, 'draining', 'active').version).toBe(4);
+    expect(() => transition(first.id, 1, 'active', 'disabled')).toThrow(/concurrency conflict/);
+    expect(() => transition(first.id, 4, 'active', 'active')).toThrow(/no-op/);
+    expect(() => persistence.transitionNodeAdministrativeState(first.id, 4, 'active', 'disabled', 'administrator',
+      '   ', NOW, { ...event(first.id, 'node.admin'), actor: 'administrator' })).toThrow(/reason/);
+    expect(() => transition(first.id, 4, 'invalid' as Node['administrativeState'], 'disabled')).toThrow(/Invalid/);
+  });
+
+  it('migrates populated schema 6 without changing node evidence', () => {
+    persistence.close();
+    rmSync(databasePath, { force: true });
+    const prior = new DatabaseSync(databasePath);
+    prior.exec('PRAGMA foreign_keys = ON');
+    prior.exec(`CREATE TABLE schema_migrations (version INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE, applied_at TEXT NOT NULL) STRICT`);
+    for (const migration of migrations.slice(0, 6)) {
+      migration.up(prior);
+      prior.prepare('INSERT INTO schema_migrations(version, name, applied_at) VALUES (?, ?, ?)')
+        .run(migration.version, migration.name, NOW);
+    }
+    prior.prepare(`INSERT INTO nodes (id, name, administrative_state, configuration_reference, created_at, version)
+      VALUES ('schema6-node', 'Schema 6 Node', 'draining', 'config:schema6', ?, 3)`).run(NOW);
+    prior.close();
+    persistence = new SqliteArchitecture2Persistence({ databasePath });
+    persistence.initialize();
+    expect(persistence.getSchemaVersion()).toBe(7);
+    expect(persistence.getNodes()).toEqual([{ id: 'schema6-node', name: 'Schema 6 Node', administrativeState: 'draining',
+      configurationReference: 'config:schema6', createdAt: NOW, version: 3 }]);
+    expect(persistence.getWorkstationWorkloadEvaluations(asIdentifier<'Node'>('schema6-node'))).toEqual([]);
+  });
+
+  it('atomically records, deterministically reconstructs, and reopens workstation availability evidence', () => {
+    const node: Node = { id: asIdentifier<'Node'>('availability-node'), name: 'Availability Node',
+      administrativeState: 'active', configurationReference: 'config:availability', createdAt: NOW };
+    persistence.registerNode(node, [], [event(node.id, 'node.registered')]);
+    const later: WorkstationWorkloadEvaluation = {
+      id: asIdentifier<'WorkstationWorkloadEvaluation'>('availability-z'), nodeId: node.id,
+      ruleFingerprint: 'rules-v1', processBasenames: ['game.exe', 'modorganizer.exe'],
+      matchedRuleIds: ['game', 'mod-organizer-2'], recommendation: 'recommend_draining',
+      evaluatedAt: '2026-08-12T20:02:00.000Z',
+    };
+    const earlier: WorkstationWorkloadEvaluation = { ...later,
+      id: asIdentifier<'WorkstationWorkloadEvaluation'>('availability-a'), processBasenames: [], matchedRuleIds: [],
+      recommendation: 'recommend_active', evaluatedAt: '2026-08-12T20:01:00.000Z' };
+    persistence.recordWorkstationWorkloadEvaluation(later, event(node.id, 'node.availability-evaluated'));
+    persistence.recordWorkstationWorkloadEvaluation(earlier, event(node.id, 'node.availability-evaluated'));
+    expect(persistence.getWorkstationWorkloadEvaluations(node.id)).toEqual([earlier, later]);
+    persistence.close();
+    persistence = new SqliteArchitecture2Persistence({ databasePath });
+    persistence.initialize();
+    expect(persistence.getWorkstationWorkloadEvaluations(node.id)).toEqual([earlier, later]);
+    expect(persistence.getNodes()).toEqual([{ ...node, version: 1 }]);
+    expect(persistence.getResourceLeases()).toEqual([]);
+  });
+
+  it('rolls back workstation availability evidence when its Event fails', () => {
+    const node: Node = { id: asIdentifier<'Node'>('availability-rollback-node'), name: 'Rollback Node',
+      administrativeState: 'active', configurationReference: 'config:rollback', createdAt: NOW };
+    persistence.registerNode(node, [], [event(node.id, 'node.registered')]);
+    persistence.appendEvent(event('seed', 'seed.created', 'availability-duplicate-event'));
+    const evaluation: WorkstationWorkloadEvaluation = {
+      id: asIdentifier<'WorkstationWorkloadEvaluation'>('availability-rollback'), nodeId: node.id,
+      ruleFingerprint: 'rules-v1', processBasenames: [], matchedRuleIds: [], recommendation: 'inconclusive', evaluatedAt: NOW,
+    };
+    expect(() => persistence.recordWorkstationWorkloadEvaluation(evaluation,
+      event(node.id, 'node.availability-evaluated', 'availability-duplicate-event'))).toThrow();
+    expect(persistence.getWorkstationWorkloadEvaluations(node.id)).toEqual([]);
+    expect(persistence.getNodes()).toEqual([{ ...node, version: 1 }]);
+    expect(persistence.getResourceLeases()).toEqual([]);
+  });
+
+  it('rejects mutation and reports malformed workstation availability reconstruction explicitly', () => {
+    const node: Node = { id: asIdentifier<'Node'>('availability-corrupt-node'), name: 'Corrupt Node',
+      administrativeState: 'active', configurationReference: 'config:corrupt', createdAt: NOW };
+    persistence.registerNode(node, [], [event(node.id, 'node.registered')]);
+    const evaluation: WorkstationWorkloadEvaluation = {
+      id: asIdentifier<'WorkstationWorkloadEvaluation'>('availability-corrupt'), nodeId: node.id,
+      ruleFingerprint: 'rules-v1', processBasenames: ['game.exe'], matchedRuleIds: ['game'],
+      recommendation: 'recommend_draining', evaluatedAt: NOW,
+    };
+    persistence.recordWorkstationWorkloadEvaluation(evaluation, event(node.id, 'node.availability-evaluated'));
+    persistence.close();
+    const direct = new DatabaseSync(databasePath);
+    expect(() => direct.prepare(`UPDATE workstation_availability_evaluations SET recommendation = 'recommend_active'
+      WHERE id = ?`).run(evaluation.id)).toThrow(/append-only/);
+    direct.exec('DROP TRIGGER workstation_availability_no_update');
+    direct.prepare(`UPDATE workstation_availability_evaluations SET process_basenames_json = '[1]' WHERE id = ?`).run(evaluation.id);
+    direct.close();
+    persistence = new SqliteArchitecture2Persistence({ databasePath });
+    persistence.initialize();
+    expect(() => persistence.getWorkstationWorkloadEvaluations(node.id))
+      .toThrow(/Corrupt persisted Workstation Workload Evaluation: availability-corrupt/);
   });
 });

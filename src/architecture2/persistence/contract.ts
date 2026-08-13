@@ -14,6 +14,10 @@ import type {
   TaskGraphRevisionId,
   TaskId,
   Verification,
+  Provider, Capability, ProviderOffering, ProviderRegistration, Qualification, ProviderHealthObservation,
+  ProviderResolutionDecision,
+  Node, OfferingLocation, NodeHealthObservation, NodeInspectionObservation, ResourceSchedulingDecision, ResourceLease,
+  WorkstationWorkloadEvaluation,
 } from '../domain/index.js';
 
 export interface LegacyImportOperation {
@@ -52,6 +56,35 @@ export interface Architecture2Persistence extends Disposable {
   initialize(): void;
   close(): void;
   getSchemaVersion(): number;
+
+  registerProvider(value: ProviderRegistration, events: readonly AuditEventInput[]): void;
+  getProvider(id: Provider['id']): Provider | undefined;
+  getCapabilities(): Capability[];
+  getProviderOfferings(capabilityId?: Capability['id']): ProviderOffering[];
+  recordQualification(value: Qualification, event: AuditEventInput): void;
+  getQualifications(offeringId: ProviderOffering['id']): Qualification[];
+  recordProviderHealth(value: ProviderHealthObservation, event: AuditEventInput): void;
+  getProviderHealth(offeringId: ProviderOffering['id']): ProviderHealthObservation[];
+  recordProviderResolution(value: ProviderResolutionDecision, event: AuditEventInput): void;
+  getProviderResolution(id: ProviderResolutionDecision['request']['id']): ProviderResolutionDecision | undefined;
+
+  registerNode(node: Node, locations: readonly OfferingLocation[], events: readonly AuditEventInput[]): void;
+  getNodes(): Array<Node & { version: number }>;
+  getOfferingLocations(offeringId?: ProviderOffering['id']): OfferingLocation[];
+  recordNodeHealth(value: NodeHealthObservation, event: AuditEventInput): void;
+  getNodeHealth(nodeId: Node['id']): NodeHealthObservation[];
+  recordNodeInspection(value: NodeInspectionObservation, event: AuditEventInput): void;
+  getNodeInspections(nodeId: Node['id']): NodeInspectionObservation[];
+  recordWorkstationWorkloadEvaluation(value: WorkstationWorkloadEvaluation, event: AuditEventInput): void;
+  getWorkstationWorkloadEvaluations(nodeId: Node['id']): WorkstationWorkloadEvaluation[];
+  transitionNodeAdministrativeState(nodeId: Node['id'], expectedVersion: number,
+    currentState: Node['administrativeState'], targetState: Node['administrativeState'], actor: string,
+    reason: string, occurredAt: string, event: AuditEventInput): Node & { version: number };
+  recordResourceSchedulingDecision(value: ResourceSchedulingDecision, lease: ResourceLease,
+    events: readonly AuditEventInput[]): void;
+  getResourceSchedulingDecision(id: ResourceSchedulingDecision['request']['id']): ResourceSchedulingDecision | undefined;
+  getResourceLeases(locationId?: OfferingLocation['id']): ResourceLease[];
+  releaseResourceLease(value: ResourceLease, event: AuditEventInput): void;
 
   importLegacyHistory(value: LegacyImportWrite): LegacyImportResult;
   getLegacyImport(sourceDigest: string): LegacyImportOperation | undefined;

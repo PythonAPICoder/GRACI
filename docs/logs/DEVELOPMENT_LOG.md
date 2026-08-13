@@ -408,3 +408,54 @@ Implementation remains paused pending Product Owner and Architect review.
 
 - Phase 1F source implementation is now authorized only within Addendum 011.
 - No Phase 1F implementation was performed in this governance checkpoint.
+
+---
+
+## Architecture 2 Phase 1F — Capability and Provider Resolution — August 13, 2026
+
+- Added durable provider, capability, offering, qualification, health-observation, and routing-decision records with transactional Event writes and schema migration 4.
+- Added deterministic policy-filtered resolution across contract, privacy, permissions, features, formats, schemas, side-effect class, qualification level/fingerprint, health freshness, quality, latency, and cost constraints.
+- Persisted routing candidates, stable rejection reasons, explanations, and selected offering identity before invocation; Attempts retain the selected offering identity.
+- Added a versioned Architecture 2 Model Provider contract and standalone Ollama adapter for health/version, inventory, and bounded non-streaming generation.
+- Kept the adapter caller-configured and independent of Architecture 1 configuration, singleton services, registries, and machine-specific defaults.
+- Preserved Architecture 1 as the normal Electron authority. No automatic registration, qualification, discovery, cloud routing, node scheduling, or Electron cutover was introduced.
+- No dependency or package change was required; the implementation uses built-in fetch, AbortController, and node:sqlite support.
+
+---
+
+## Architecture 2 Phase 1G — Durable Node Binding and Resource Leases — August 13, 2026
+
+- Added Addendum 012 and DEC-0008 authorizing the smallest Architecture 2 Slice 3 node-binding and lease kernel.
+- Added stable Node, offering-location, node-health-observation, resource-scheduling-decision, and resource-lease records.
+- Added schema migration 5 with strict foreign keys, immutable historical evidence, deterministic queries, and transactional capacity enforcement.
+- Added deterministic node/location filtering for administrative state, location enablement, health freshness/status, privacy, and available capacity.
+- Added stable ranking by available capacity, observation time, Node ID, and location ID.
+- Added orchestration support for persisting the leased compute Node on the Attempt before provider invocation and releasing the lease after known outcomes.
+- Preserved Phase 1D sequential task ordering and Architecture 1 Electron authority.
+- Automatic discovery, telemetry, concurrency, preemption, gaming detection, and failover remain deferred.
+- No dependency, package, Architecture 1 registry, default configuration, or UI change was introduced.
+
+---
+
+## Architecture 2 Phase 1H — Configured Node Inspection and Manual Administration — August 13, 2026
+
+- Added Addendum 013 and DEC-0009 for explicit registered-node inspection and manual administrative-state control.
+- Added durable sanitized Node inspection observations with independent health and inventory outcomes.
+- Added deterministic inventory ordering by model name and digest while preserving empty, partial, and failed evidence.
+- Added schema migration 6 with append-only inspection history, immutable administrative transitions, and optimistic Node projection versions.
+- Added atomic manual `active`, `draining`, and `disabled` transitions with expected-state/version, actor, reason, UTC timestamp, and Event rollback.
+- Confirmed administrative changes preserve active leases while the existing resource scheduler blocks new leases for draining or disabled Nodes.
+- Inspection remains explicit and inert: no discovery, auto-registration, qualification, scheduling, execution, or administrative mutation occurs.
+- No dependency, package, Architecture 1, startup, background polling, configuration-default, or UI change was introduced.
+
+---
+
+## Architecture 2 Phase 1I — Caller-Invoked Workstation Availability Evaluation — August 13, 2026
+
+- Added Addendum 014 and DEC-0010 for bounded Windows process snapshots and deterministic workload recommendations.
+- Added a fixed-command, shell-free, timeout/output-bounded Windows process adapter with sanitized executable-basename-only output.
+- Added versioned exact-basename rules supporting caller-supplied Mod Organizer 2 aliases and configured game executables.
+- Added deterministic `recommend_draining`, `recommend_active`, and `inconclusive` evidence with canonical rule fingerprints and stable ordering.
+- Added schema migration 7 and append-only durable workload evaluations with atomic Event writes and explicit malformed-state diagnostics.
+- Confirmed recommendations do not mutate Node state/version, leases, scheduling, providers, offerings, or Tasks. Applying a recommendation remains a separate explicit manual transition.
+- No dependency, package, background polling, process control, automatic drain/reactivation, UI, or Electron-authority change was introduced.

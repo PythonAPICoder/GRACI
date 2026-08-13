@@ -274,7 +274,230 @@ const migration003: Migration = {
   },
 };
 
-export const migrations: readonly Migration[] = [migration001, migration002, migration003];
+const migration004: Migration = {
+  version: 4,
+  name: 'architecture_2_phase_1f_provider_registry',
+  up(database) {
+    database.exec(`
+      CREATE TABLE providers (
+        id TEXT PRIMARY KEY, adapter_type TEXT NOT NULL, adapter_version TEXT NOT NULL,
+        configuration_reference TEXT NOT NULL, created_at TEXT NOT NULL
+      ) STRICT;
+      CREATE TABLE capabilities (
+        id TEXT PRIMARY KEY, contract_version INTEGER NOT NULL CHECK (contract_version >= 1),
+        description TEXT NOT NULL, input_schema_reference TEXT NOT NULL,
+        output_schema_reference TEXT NOT NULL, created_at TEXT NOT NULL
+      ) STRICT;
+      CREATE TABLE provider_offerings (
+        id TEXT PRIMARY KEY, provider_id TEXT NOT NULL REFERENCES providers(id) ON DELETE RESTRICT,
+        capability_id TEXT NOT NULL REFERENCES capabilities(id) ON DELETE RESTRICT,
+        contract_version INTEGER NOT NULL CHECK (contract_version >= 1), model_identity TEXT,
+        privacy_destinations_json TEXT NOT NULL CHECK (json_valid(privacy_destinations_json)),
+        permissions_json TEXT NOT NULL CHECK (json_valid(permissions_json)),
+        features_json TEXT NOT NULL CHECK (json_valid(features_json)),
+        supported_formats_json TEXT NOT NULL CHECK (json_valid(supported_formats_json)),
+        input_schema_reference TEXT NOT NULL, output_schema_reference TEXT NOT NULL,
+        qualification_fingerprint TEXT NOT NULL,
+        quality_level INTEGER NOT NULL CHECK (quality_level >= 0),
+        expected_latency_ms INTEGER NOT NULL CHECK (expected_latency_ms >= 0),
+        maximum_cost REAL NOT NULL CHECK (maximum_cost >= 0),
+        side_effect_class TEXT NOT NULL CHECK (side_effect_class IN ('none','local','external_reversible','external_consequential')),
+        created_at TEXT NOT NULL, UNIQUE(provider_id, capability_id, contract_version, model_identity)
+      ) STRICT;
+      CREATE TABLE qualifications (
+        id TEXT PRIMARY KEY, offering_id TEXT NOT NULL REFERENCES provider_offerings(id) ON DELETE RESTRICT,
+        status TEXT NOT NULL CHECK (status IN ('qualified','rejected')), level INTEGER NOT NULL CHECK (level >= 0),
+        evidence_json TEXT NOT NULL CHECK (json_valid(evidence_json)), qualified_at TEXT NOT NULL,
+        expires_at TEXT, trigger_fingerprint TEXT NOT NULL
+      ) STRICT;
+      CREATE TABLE provider_health_observations (
+        id TEXT PRIMARY KEY, offering_id TEXT NOT NULL REFERENCES provider_offerings(id) ON DELETE RESTRICT,
+        status TEXT NOT NULL CHECK (status IN ('healthy','degraded','unhealthy','unknown')),
+        evidence_json TEXT NOT NULL CHECK (json_valid(evidence_json)), observed_at TEXT NOT NULL
+      ) STRICT;
+      CREATE TABLE provider_resolution_decisions (
+        id TEXT PRIMARY KEY, capability_id TEXT NOT NULL REFERENCES capabilities(id) ON DELETE RESTRICT,
+        request_json TEXT NOT NULL CHECK (json_valid(request_json)), candidates_json TEXT NOT NULL CHECK (json_valid(candidates_json)),
+        selected_offering_id TEXT REFERENCES provider_offerings(id) ON DELETE RESTRICT,
+        explanation TEXT NOT NULL, decided_at TEXT NOT NULL
+      ) STRICT;
+      CREATE INDEX idx_offerings_capability ON provider_offerings(capability_id, id);
+      CREATE INDEX idx_qualifications_offering ON qualifications(offering_id, qualified_at, id);
+      CREATE INDEX idx_provider_health_offering ON provider_health_observations(offering_id, observed_at, id);
+      CREATE TRIGGER providers_no_update BEFORE UPDATE ON providers BEGIN SELECT RAISE(ABORT, 'providers are versioned records'); END;
+      CREATE TRIGGER capabilities_no_update BEFORE UPDATE ON capabilities BEGIN SELECT RAISE(ABORT, 'capabilities are versioned records'); END;
+      CREATE TRIGGER offerings_no_update BEFORE UPDATE ON provider_offerings BEGIN SELECT RAISE(ABORT, 'provider offerings are versioned records'); END;
+      CREATE TRIGGER qualifications_no_update BEFORE UPDATE ON qualifications BEGIN SELECT RAISE(ABORT, 'qualifications are append-only'); END;
+      CREATE TRIGGER health_no_update BEFORE UPDATE ON provider_health_observations BEGIN SELECT RAISE(ABORT, 'health observations are append-only'); END;
+      CREATE TRIGGER resolutions_no_update BEFORE UPDATE ON provider_resolution_decisions BEGIN SELECT RAISE(ABORT, 'resolution decisions are append-only'); END;
+      CREATE TRIGGER providers_no_delete BEFORE DELETE ON providers BEGIN SELECT RAISE(ABORT, 'providers are versioned records'); END;
+      CREATE TRIGGER capabilities_no_delete BEFORE DELETE ON capabilities BEGIN SELECT RAISE(ABORT, 'capabilities are versioned records'); END;
+      CREATE TRIGGER offerings_no_delete BEFORE DELETE ON provider_offerings BEGIN SELECT RAISE(ABORT, 'provider offerings are versioned records'); END;
+      CREATE TRIGGER qualifications_no_delete BEFORE DELETE ON qualifications BEGIN SELECT RAISE(ABORT, 'qualifications are append-only'); END;
+      CREATE TRIGGER health_no_delete BEFORE DELETE ON provider_health_observations BEGIN SELECT RAISE(ABORT, 'health observations are append-only'); END;
+      CREATE TRIGGER resolutions_no_delete BEFORE DELETE ON provider_resolution_decisions BEGIN SELECT RAISE(ABORT, 'resolution decisions are append-only'); END;
+    `);
+  },
+};
+
+const migration005: Migration = {
+  version: 5,
+  name: 'architecture_2_phase_1g_node_leases',
+  up(database) {
+    database.exec(`
+      CREATE TABLE nodes (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL CHECK (length(trim(name)) > 0),
+        administrative_state TEXT NOT NULL CHECK (administrative_state IN ('active','draining','disabled')),
+        configuration_reference TEXT NOT NULL CHECK (length(trim(configuration_reference)) > 0),
+        created_at TEXT NOT NULL
+      ) STRICT;
+      CREATE TABLE offering_locations (
+        id TEXT PRIMARY KEY,
+        node_id TEXT NOT NULL REFERENCES nodes(id) ON DELETE RESTRICT,
+        offering_id TEXT NOT NULL REFERENCES provider_offerings(id) ON DELETE RESTRICT,
+        enabled INTEGER NOT NULL CHECK (enabled IN (0,1)),
+        capacity INTEGER NOT NULL CHECK (capacity > 0),
+        privacy_classes_json TEXT NOT NULL CHECK (json_valid(privacy_classes_json) AND json_type(privacy_classes_json) = 'array'),
+        created_at TEXT NOT NULL,
+        UNIQUE (node_id, offering_id)
+      ) STRICT;
+      CREATE TABLE node_health_observations (
+        id TEXT PRIMARY KEY,
+        node_id TEXT NOT NULL REFERENCES nodes(id) ON DELETE RESTRICT,
+        status TEXT NOT NULL CHECK (status IN ('healthy','degraded','unhealthy','unknown')),
+        observed_at TEXT NOT NULL
+      ) STRICT;
+      CREATE TABLE resource_scheduling_decisions (
+        id TEXT PRIMARY KEY,
+        offering_id TEXT NOT NULL REFERENCES provider_offerings(id) ON DELETE RESTRICT,
+        request_json TEXT NOT NULL CHECK (json_valid(request_json) AND json_type(request_json) = 'object'),
+        candidates_json TEXT NOT NULL CHECK (json_valid(candidates_json) AND json_type(candidates_json) = 'array'),
+        selected_location_id TEXT REFERENCES offering_locations(id) ON DELETE RESTRICT,
+        selected_node_id TEXT REFERENCES nodes(id) ON DELETE RESTRICT,
+        explanation TEXT NOT NULL CHECK (length(trim(explanation)) > 0),
+        decided_at TEXT NOT NULL,
+        CHECK ((selected_location_id IS NULL) = (selected_node_id IS NULL))
+      ) STRICT;
+      CREATE TABLE resource_leases (
+        id TEXT PRIMARY KEY,
+        decision_id TEXT NOT NULL UNIQUE REFERENCES resource_scheduling_decisions(id) ON DELETE RESTRICT,
+        offering_id TEXT NOT NULL REFERENCES provider_offerings(id) ON DELETE RESTRICT,
+        location_id TEXT NOT NULL REFERENCES offering_locations(id) ON DELETE RESTRICT,
+        node_id TEXT NOT NULL REFERENCES nodes(id) ON DELETE RESTRICT,
+        capacity INTEGER NOT NULL CHECK (capacity > 0),
+        status TEXT NOT NULL CHECK (status IN ('active','released','expired')),
+        acquired_at TEXT NOT NULL,
+        expires_at TEXT NOT NULL CHECK (expires_at > acquired_at),
+        released_at TEXT,
+        CHECK ((status = 'active') = (released_at IS NULL)),
+        CHECK (status <> 'released' OR released_at >= acquired_at)
+      ) STRICT;
+      CREATE INDEX idx_locations_offering ON offering_locations(offering_id, node_id, id);
+      CREATE INDEX idx_node_health_node ON node_health_observations(node_id, observed_at, id);
+      CREATE INDEX idx_scheduling_offering ON resource_scheduling_decisions(offering_id, decided_at, id);
+      CREATE INDEX idx_leases_location_active ON resource_leases(location_id, status, expires_at, id);
+      CREATE INDEX idx_leases_node_active ON resource_leases(node_id, status, expires_at, id);
+      CREATE TRIGGER nodes_no_update BEFORE UPDATE ON nodes BEGIN SELECT RAISE(ABORT, 'nodes are versioned records'); END;
+      CREATE TRIGGER nodes_no_delete BEFORE DELETE ON nodes BEGIN SELECT RAISE(ABORT, 'nodes are versioned records'); END;
+      CREATE TRIGGER locations_no_update BEFORE UPDATE ON offering_locations BEGIN SELECT RAISE(ABORT, 'offering locations are versioned records'); END;
+      CREATE TRIGGER locations_no_delete BEFORE DELETE ON offering_locations BEGIN SELECT RAISE(ABORT, 'offering locations are versioned records'); END;
+      CREATE TRIGGER node_health_no_update BEFORE UPDATE ON node_health_observations BEGIN SELECT RAISE(ABORT, 'node health observations are append-only'); END;
+      CREATE TRIGGER node_health_no_delete BEFORE DELETE ON node_health_observations BEGIN SELECT RAISE(ABORT, 'node health observations are append-only'); END;
+      CREATE TRIGGER scheduling_no_update BEFORE UPDATE ON resource_scheduling_decisions BEGIN SELECT RAISE(ABORT, 'resource scheduling decisions are append-only'); END;
+      CREATE TRIGGER scheduling_no_delete BEFORE DELETE ON resource_scheduling_decisions BEGIN SELECT RAISE(ABORT, 'resource scheduling decisions are append-only'); END;
+      CREATE TRIGGER leases_guard_update BEFORE UPDATE ON resource_leases
+      WHEN OLD.status <> 'active' OR NEW.id <> OLD.id OR NEW.decision_id <> OLD.decision_id
+        OR NEW.offering_id <> OLD.offering_id OR NEW.location_id <> OLD.location_id OR NEW.node_id <> OLD.node_id
+        OR NEW.capacity <> OLD.capacity OR NEW.acquired_at <> OLD.acquired_at OR NEW.expires_at <> OLD.expires_at
+        OR NEW.status = 'active'
+      BEGIN SELECT RAISE(ABORT, 'resource lease history is immutable'); END;
+      CREATE TRIGGER leases_no_delete BEFORE DELETE ON resource_leases BEGIN SELECT RAISE(ABORT, 'resource leases are historical records'); END;
+    `);
+  },
+};
+
+const migration006: Migration = {
+  version: 6,
+  name: 'architecture_2_phase_1h_node_inspection_administration',
+  up(database) {
+    database.exec(`
+      DROP TRIGGER nodes_no_update;
+      ALTER TABLE nodes ADD COLUMN version INTEGER NOT NULL DEFAULT 1 CHECK (version >= 1);
+
+      CREATE TABLE node_inspection_observations (
+        id TEXT PRIMARY KEY,
+        node_id TEXT NOT NULL REFERENCES nodes(id) ON DELETE RESTRICT,
+        adapter_id TEXT NOT NULL CHECK (length(trim(adapter_id)) > 0),
+        adapter_version INTEGER NOT NULL CHECK (adapter_version >= 1),
+        health_json TEXT NOT NULL CHECK (json_valid(health_json) AND json_type(health_json) = 'object'),
+        inventory_json TEXT NOT NULL CHECK (json_valid(inventory_json) AND json_type(inventory_json) = 'object'),
+        inspected_at TEXT NOT NULL
+      ) STRICT;
+      CREATE TABLE node_administrative_transitions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        node_id TEXT NOT NULL REFERENCES nodes(id) ON DELETE RESTRICT,
+        from_state TEXT NOT NULL CHECK (from_state IN ('active','draining','disabled')),
+        to_state TEXT NOT NULL CHECK (to_state IN ('active','draining','disabled')),
+        actor TEXT NOT NULL CHECK (length(trim(actor)) > 0),
+        reason TEXT NOT NULL CHECK (length(trim(reason)) > 0),
+        occurred_at TEXT NOT NULL,
+        node_version INTEGER NOT NULL CHECK (node_version >= 2),
+        event_id TEXT NOT NULL UNIQUE REFERENCES events(id) ON DELETE RESTRICT,
+        CHECK (from_state <> to_state),
+        UNIQUE (node_id, node_version)
+      ) STRICT;
+      CREATE INDEX idx_node_inspections_node ON node_inspection_observations(node_id, inspected_at, id);
+      CREATE INDEX idx_node_transitions_node ON node_administrative_transitions(node_id, node_version);
+
+      CREATE TRIGGER nodes_guard_update BEFORE UPDATE ON nodes
+      WHEN NEW.id <> OLD.id OR NEW.name <> OLD.name OR NEW.configuration_reference <> OLD.configuration_reference
+        OR NEW.created_at <> OLD.created_at OR NEW.version <> OLD.version + 1
+        OR NEW.administrative_state = OLD.administrative_state
+      BEGIN SELECT RAISE(ABORT, 'only versioned node administrative transitions are permitted'); END;
+      CREATE TRIGGER node_inspections_no_update BEFORE UPDATE ON node_inspection_observations
+      BEGIN SELECT RAISE(ABORT, 'node inspection observations are append-only'); END;
+      CREATE TRIGGER node_inspections_no_delete BEFORE DELETE ON node_inspection_observations
+      BEGIN SELECT RAISE(ABORT, 'node inspection observations are append-only'); END;
+      CREATE TRIGGER node_transitions_no_update BEFORE UPDATE ON node_administrative_transitions
+      BEGIN SELECT RAISE(ABORT, 'node administrative transitions are immutable'); END;
+      CREATE TRIGGER node_transitions_no_delete BEFORE DELETE ON node_administrative_transitions
+      BEGIN SELECT RAISE(ABORT, 'node administrative transitions are immutable'); END;
+    `);
+  },
+};
+
+const migration007: Migration = {
+  version: 7,
+  name: 'architecture_2_phase_1i_workstation_availability_evaluations',
+  up(database) {
+    database.exec(`
+      CREATE TABLE workstation_availability_evaluations (
+        id TEXT PRIMARY KEY,
+        node_id TEXT NOT NULL REFERENCES nodes(id) ON DELETE RESTRICT,
+        rule_fingerprint TEXT NOT NULL CHECK (length(trim(rule_fingerprint)) > 0),
+        process_basenames_json TEXT NOT NULL
+          CHECK (json_valid(process_basenames_json) AND json_type(process_basenames_json) = 'array'),
+        matched_rule_ids_json TEXT NOT NULL
+          CHECK (json_valid(matched_rule_ids_json) AND json_type(matched_rule_ids_json) = 'array'),
+        recommendation TEXT NOT NULL
+          CHECK (recommendation IN ('recommend_draining','recommend_active','inconclusive')),
+        evaluated_at TEXT NOT NULL
+      ) STRICT;
+      CREATE INDEX idx_workstation_availability_node
+        ON workstation_availability_evaluations(node_id, evaluated_at, id);
+      CREATE TRIGGER workstation_availability_no_update
+        BEFORE UPDATE ON workstation_availability_evaluations
+        BEGIN SELECT RAISE(ABORT, 'workstation availability evaluations are append-only'); END;
+      CREATE TRIGGER workstation_availability_no_delete
+        BEFORE DELETE ON workstation_availability_evaluations
+        BEGIN SELECT RAISE(ABORT, 'workstation availability evaluations are append-only'); END;
+    `);
+  },
+};
+
+export const migrations: readonly Migration[] = [migration001, migration002, migration003, migration004, migration005,
+  migration006, migration007];
 
 export function migrate(database: DatabaseSync): number {
   database.exec(`

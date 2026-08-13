@@ -162,6 +162,108 @@ Record meaningful verification results. Do not duplicate raw automated-test outp
 
 - Phase 1F source implementation is authorized only within the controlled scope of Addendum 011; no source implementation occurred in this documentation checkpoint.
 
+### 2026-08-13 — Architecture 2 Phase 1F Implementation
+
+**Automated Verification**
+
+- TypeScript validation: PASS (`npm.cmd run validate`).
+- Full automated regression suite: PASS, 101/101 across 10 files.
+- Phase 1F Ollama adapter contract tests: PASS, 7/7.
+- Phase 1F resolver tests: PASS, 4/4.
+- Production build: PASS; `dist/main.js`, `dist/preload.js`, and `dist/ui/index.html` verified.
+- Diff whitespace hygiene: PASS (`git diff --check`).
+
+**Runtime / Integration Verification**
+
+- Local Ollama health: PASS; version `0.32.9` returned by `/api/version`.
+- Local Ollama inventory: PASS; 10 models returned by `/api/tags`.
+- Real Electron startup smoke: PASS; application emitted `Electron app starting` and remained running for the 15-second smoke window without an uncaught startup error.
+- Architecture 1 remained the Electron authority; Phase 1F introduced no automatic Architecture 2 startup or provider registration.
+
+**Coverage**
+
+- Provider health, inventory, generation, timeout, malformed response, HTTP failure, and connection failure normalization.
+- Atomic registration/Event rollback, close/reopen reconstruction, qualification and health evidence, deterministic ranking, stable rejection reasons, and selected-offering Attempt persistence.
+- Contract, privacy, permission, feature, format, schema, side-effect, qualification fingerprint, health, quality, latency, and cost filtering.
+- Existing verification, bounded retry, approval, queue, dependency, legacy import, and interrupted-work recovery regressions.
+
+### 2026-08-13 — Architecture 2 Phase 1G Implementation
+
+**Automated Verification**
+
+- TypeScript validation: PASS.
+- Full automated regression suite: PASS, 114/114 across 11 files.
+- Focused resource scheduler, persistence, and orchestrator suite: PASS, 54/54.
+- Production build: PASS; required Electron output verified.
+- Diff whitespace hygiene: PASS.
+
+**Persistence and Scheduling Verification**
+
+- Schema migration 5 and populated prior-state preservation: PASS.
+- Atomic node/location registration plus Event rollback: PASS.
+- Node, observation, decision, and lease close/reopen reconstruction: PASS.
+- Active capacity conflict rejection and release: PASS.
+- Missing/stale/unacceptable health, draining/disabled state, privacy, location enablement, and capacity filtering: PASS.
+- Deterministic ranking across record insertion permutations: PASS.
+- Compute Node persisted on Attempt before provider invocation and lease release after known outcome: PASS.
+
+**Live Verification**
+
+- Local Ollama node: PASS, version `0.32.9`.
+- Configured Ollama node: PASS, version `0.32.5`.
+- Real Electron startup smoke: PASS; startup reached `Electron app starting` and remained active through the 15-second smoke window without an uncaught startup error.
+- Architecture 1 remained the live Electron authority.
+
+### 2026-08-13 — Architecture 2 Phase 1H Implementation
+
+**Automated Verification**
+
+- TypeScript validation: PASS.
+- Full automated regression suite: PASS, 123/123 across 12 files.
+- Configured-node inspection tests: PASS, 6/6.
+- Phase 1H persistence tests included in the 20/20 Architecture 2 persistence suite.
+- Production build and diff hygiene: PASS.
+
+**Behavior Verification**
+
+- Successful, empty, partial, and failed health/inventory evidence: PASS.
+- Deterministic inventory ordering across response permutations: PASS.
+- Evidence excludes endpoint and configuration references: PASS.
+- Inspection and administrative history close/reopen reconstruction: PASS.
+- All valid non-no-op administrative transitions: PASS.
+- Stale version/state, no-op, empty reason, and Event rollback rejection: PASS.
+- Existing active leases remain unchanged by manual administrative transitions: PASS.
+
+**Live Verification**
+
+- Local configured Ollama: PASS, version `0.32.9`, 10 models.
+- Remote configured Ollama: PASS, version `0.32.5`, 5 models.
+- Electron startup smoke: PASS; Architecture 1 remained authoritative.
+
+### 2026-08-13 — Architecture 2 Phase 1I Implementation
+
+**Automated Verification**
+
+- TypeScript validation: PASS.
+- Full automated regression suite: PASS, 138/138 across 13 files.
+- Workstation workload evaluation tests: PASS, 11/11.
+- Architecture 2 persistence suite: PASS, 24/24.
+- Production build and diff hygiene: PASS.
+
+**Safety and Behavior Verification**
+
+- Complete, empty, failed, malformed, truncated, and unsupported snapshots: PASS.
+- Exact case-insensitive Mod Organizer 2 and configured-game matching: PASS.
+- Stable evidence across process/rule permutations: PASS.
+- Command lines, arguments, configuration references, and secrets excluded from evidence: PASS.
+- Recommendation persistence/reopen, Event rollback, append-only enforcement, and corruption diagnostics: PASS.
+- Recommendation evidence leaves Node version/state and active leases unchanged: PASS.
+
+**Live Verification**
+
+- Explicit Windows process snapshot: PASS; 167 process records, 0 Mod Organizer 2 matches at inspection time.
+- Electron startup smoke: PASS; Architecture 1 remained authoritative.
+
 ---
 
 ### 2026-08-12 — Architecture 2 Phase 1B Workflow Kernel
