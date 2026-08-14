@@ -20,6 +20,7 @@ import type {
   AlternativeRecoveryDecisionId,
   ReconciliationDecisionId,
   CircuitId, CircuitTransitionId, CircuitEvidenceId, CircuitProbeId,
+  InputRevisionId,
 } from './ids.js';
 
 export type IsoTimestamp = string;
@@ -270,6 +271,22 @@ export interface ReconciliationDecision {
   verificationId?: VerificationId;
   actor: string;
   decidedAt: IsoTimestamp;
+  eventId: EventId;
+}
+
+export interface InputRevision {
+  id: InputRevisionId;
+  taskId: TaskId;
+  failedAttemptId: AttemptId;
+  failureId: FailureId;
+  diagnosisId: FailureDiagnosisId;
+  priorInputs: JsonObject;
+  priorInputsDigest: string;
+  revisedInputs: JsonObject;
+  revisedInputsDigest: string;
+  nextAttemptNumber: number;
+  actor: string;
+  authorizedAt: IsoTimestamp;
   eventId: EventId;
 }
 

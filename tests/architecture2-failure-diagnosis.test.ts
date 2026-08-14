@@ -225,7 +225,7 @@ describe('Architecture 2 Phase 1L failure diagnosis', () => {
     prior.close();
     persistence = new SqliteArchitecture2Persistence({ databasePath });
     persistence.initialize();
-    expect(persistence.getSchemaVersion()).toBe(12);
+    expect(persistence.getSchemaVersion()).toBe(13);
     expect(persistence.getFailure(asIdentifier<'Failure'>('schema8-failure'))?.summary).toBe('Preserved failure');
     expect(persistence.getFailureDiagnoses(asIdentifier<'Task'>('schema8-task'))).toEqual([]);
   });

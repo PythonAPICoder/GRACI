@@ -2,9 +2,9 @@
 
 > **Living document:** Update this file whenever Architecture 2 module boundaries, lifecycle behavior, persistence authority, runtime composition, or intentionally deferred capabilities change. This is an implementation map, not immutable governance. The master specification and numbered addenda under `docs/governance/` remain authoritative.
 
-**Architecture represented:** Current Phase 1O implementation and implementation-agent verification
+**Architecture represented:** Current Phase 1P implementation with automated, build, runtime/import, migration/reopen, and Electron startup verification complete
 
-**Implementation working tree starting basis:** accepted Phase 1N repository HEAD `8501c014ce54ac96898953f65dd37fcb5b3caf13`
+**Implementation working tree starting basis:** accepted Phase 1O repository HEAD `b7b784f7ec11d356f4867a829e953ccb49aaed0e`
 
 ## System Shape
 
@@ -18,7 +18,7 @@ Architecture 2 is a TypeScript modular monolith under `src/architecture2/` with 
 
 - `domain/`: canonical records and branded identifiers.
 - `persistence/`: provider-independent contract and SQLite implementation.
-- `workflow/`: state machine, dependency evaluation, graph validation, deterministic scheduling, orchestration, queue inspection, trusted deterministic failure diagnosis, alternative recovery, and scoped circuit breakers.
+- `workflow/`: state machine, dependency evaluation, graph validation, deterministic scheduling, orchestration, queue inspection, trusted deterministic failure diagnosis, alternative recovery, scoped circuit breakers, and governed Task input revision.
 - `execution/`: provider-neutral Task execution contract and deterministic test provider.
 - `verification/`: independent Task verification contract and deterministic verifier.
 - `providers/`: capability/provider resolution and Ollama Model Provider adapter.
@@ -51,7 +51,7 @@ retry_pending -> blocked | ready | failed
 waiting_for_approval -> ready | failed
 ```
 
-Cancellation and supersession exist in the domain state vocabulary, but Phase 1O does not implement user cancellation or cancellation propagation. `TaskStateMachine` centrally validates transition legality and evidence guards. Persistence independently enforces optimistic Task versions and atomic writes.
+Cancellation and supersession exist in the domain state vocabulary, but Phase 1P does not implement user cancellation or cancellation propagation. `TaskStateMachine` centrally validates transition legality and evidence guards. Persistence independently enforces optimistic Task versions and atomic writes.
 
 ## Persistence and SQLite Authority
 
@@ -63,7 +63,7 @@ SQLite is G.R.A.C.I.'s notebook. The assistant does not rely on remembering what
 
 `SqliteArchitecture2Persistence` is the current authoritative store behind `Architecture2Persistence`. Callers supply the database path. The implementation uses built-in `node:sqlite`, foreign keys, strict tables, WAL mode, `synchronous = FULL`, a busy timeout, and `BEGIN IMMEDIATE` write transactions.
 
-Current schema version is 12. Phase 1O adds scoped circuit projections, immutable qualifying evidence and transitions, and durable active/claimed/consumed probe history while retaining Phase 1N reconciliation history.
+Current schema version is 13. Phase 1P adds immutable input-revision authority and exact single-use Attempt consumption while retaining Phase 1O circuit and Phase 1N reconciliation history.
 
 Important invariants include:
 
@@ -79,6 +79,7 @@ Important invariants include:
 - Diagnosis and changed-condition records are append-only and survive close/reopen reconstruction.
 - Reconciliation history is immutable, source-attributed, idempotent, and reconstructed with its lifecycle and consumption relationships.
 - Circuit transitions and evidence are immutable; probe claim and consumption are transactional and bound to exact routing and Attempt identities.
+- Input revisions preserve prior Attempt snapshots, change only canonical Task inputs and lifecycle metadata, and are consumed atomically by one exact next Attempt.
 
 ## Dependency Handling
 
@@ -284,6 +285,12 @@ Provider and resource routing record stable scope-specific open and probe-requir
 
 Circuit metadata remains separate from qualification, provider/Node health, Node administration, location enablement, workstation evidence, and leases. Circuit authority supplies no replay, replacement, reconciliation, retry-budget, approval, or Task-success authority. Unknown still means stop.
 
+### Governed Task Input Revision
+
+Phase 1P allows a caller to act only on the exact current Phase 1L `input_revision_required` diagnosis for the latest proven-unsuccessful failed Attempt. Revised inputs must be a canonically different plain JSON object. The failed Attempt snapshot and all prior history remain immutable; only Task inputs, the controlled `failed -> ready` lifecycle metadata, version, and update time may change.
+
+Authorization reconstructs the complete Task, latest Attempt, latest Failure, current diagnosis, approval, Attempt-limit, conflicting-recovery, prior-input, mutation, and Event gates inside the same SQLite `BEGIN IMMEDIATE` transaction that writes the revision. The durable authority binds the exact next Attempt number and full input snapshot, is consumed atomically once at Attempt start, and cannot skip provider, circuit, probe, resource, lease, approval, concurrency, Failure, or Verification controls. Indeterminate outcomes remain stopped.
+
 ## Audit and Governance
 
 ### Simple Explanation
@@ -334,7 +341,7 @@ Major deferred capabilities include:
 - Distributed locks, multiple Orchestrators, remote workers, and high availability.
 - Dynamic load balancing, dynamic concurrency, speculative execution, and priority displacement.
 - Automatic discovery, polling, monitoring, and scheduler-triggered workstation policy.
-- Governed research and recovery dispositions other than the Phase 1M alternatives, Phase 1N reconciliation, and Phase 1O route filtering/bound probes.
+- Governed research and recovery dispositions other than the Phase 1M alternatives, Phase 1N reconciliation, Phase 1O route filtering/bound probes, and Phase 1P Task input revision.
 - Purpose-specific memory and retrieval.
 - Broad tool, agent, cloud, productivity, voice, media, notification, and UI integration.
 - Architecture 2 Electron authority cutover and production hardening.

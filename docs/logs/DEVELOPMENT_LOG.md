@@ -563,3 +563,16 @@ Implementation remains paused pending Product Owner and Architect review.
 - Added one-at-a-time probe acquisition, exact route decision and Task/Attempt binding, atomic Attempt-start validation, passing-Verification-only close, and qualifying bound-failure reopen.
 - Preserved all Phase 1N unknown-outcome, no-blind-replay, approval, Attempt-limit, Verification, persistence, concurrency, and Electron-authority invariants.
 - No dependency, package, configuration, Architecture 1, UI, background polling, automatic probe scheduling, replay, replacement, research, cancellation, or distributed-worker change was introduced.
+
+---
+
+## Architecture 2 Phase 1P - Governed Task Input Revision - August 14, 2026
+
+- Started from accepted Phase 1O baseline `b7b784f7ec11d356f4867a829e953ccb49aaed0e`.
+- Added Addendum 021 for narrow caller-invoked execution of `input_revision_required` and registered it in governance precedence.
+- Added schema migration 13 for immutable Task input-revision authority and exact single-use next-Attempt consumption.
+- Restricted mutation to canonically changed plain-JSON Task inputs and controlled `failed -> ready` lifecycle metadata while preserving prior Attempt snapshots and history.
+- Reconstructed all latest-authority, conflict, approval, Attempt-limit, input-correspondence, optimistic-concurrency, mutation, and Event gates inside `BEGIN IMMEDIATE`.
+- Preserved normal provider, circuit, probe, resource, lease, concurrency, Failure, and Verification controls and the absolute unknown-outcome stop rule.
+- No dependency, package, configuration, Architecture 1, UI, planning/replanning, research, automatic repair, cancellation, or distributed-worker change was introduced.
+- Final verification passed: 9/9 focused Phase 1P tests, 45/45 Phase 1L-1O recovery regressions, 18/18 runtime/import plus Phase 1P integration tests, 217/217 full tests, TypeScript validation, production build, schema migration/reopen, Electron startup smoke, and diff hygiene.

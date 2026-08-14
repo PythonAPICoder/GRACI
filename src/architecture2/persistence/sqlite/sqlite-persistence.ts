@@ -29,6 +29,7 @@ import type {
   AlternativeRecoveryDecision, AlternativeRecoveryDecisionId,
   ReconciliationDecision, ReconciliationDecisionId,
   CircuitRecord, CircuitTransition, CircuitEvidence, CircuitProbe, CircuitBreakerPolicy, CircuitTargetType,
+  InputRevision, InputRevisionId,
 } from '../../domain/index.js';
 import { assertIdentifier } from '../../domain/index.js';
 import type {
@@ -87,6 +88,24 @@ function parseObject(value: unknown): JsonObject {
     throw new Error('Corrupt persisted JSON: expected an object');
   }
   return parsed as JsonObject;
+}
+
+function assertPlainJsonObject(value: unknown, label: string, seen = new Set<object>()): asserts value is JsonObject {
+  if (value === null || Array.isArray(value) || typeof value !== 'object' || Object.getPrototypeOf(value) !== Object.prototype) {
+    throw new Error(`${label} must be a plain JSON object`);
+  }
+  const visit = (item: unknown): void => {
+    if (item === null || typeof item === 'string' || typeof item === 'boolean' ||
+        (typeof item === 'number' && Number.isFinite(item))) return;
+    if (typeof item !== 'object' || Object.getPrototypeOf(item) !== Object.prototype && !Array.isArray(item)) {
+      throw new Error(`${label} must contain only plain JSON values`);
+    }
+    if (seen.has(item)) throw new Error(`${label} must not be cyclic`);
+    seen.add(item);
+    for (const nested of Array.isArray(item) ? item : Object.values(item as Record<string, unknown>)) visit(nested);
+    seen.delete(item);
+  };
+  visit(value);
 }
 
 function parseArray(value: unknown): string[] {
@@ -783,14 +802,27 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
 
   startAttempt(task: Task, expectedVersion: number, attempt: Attempt, events: readonly AuditEventInput[],
     recoveryDecisionId?: AlternativeRecoveryDecisionId, reconciliationDecisionId?: ReconciliationDecisionId,
-    circuitProbeId?: CircuitProbe['id']): void {
+    circuitProbeId?: CircuitProbe['id'], inputRevisionId?: InputRevisionId): void {
     this.transaction(() => {
+      const pendingInputRevision = this.db().prepare(`SELECT r.* FROM input_revisions r
+        LEFT JOIN input_revision_consumptions c ON c.revision_id=r.id
+        WHERE r.task_id=? AND c.revision_id IS NULL ORDER BY r.next_attempt_number DESC,r.id DESC LIMIT 1`)
+        .get(attempt.taskId) as Row | undefined;
+      if (pendingInputRevision && String(pendingInputRevision.id) !== inputRevisionId) {
+        throw new Error('Pending input revision must be consumed by this Attempt');
+      }
+      if (inputRevisionId && (!pendingInputRevision || String(pendingInputRevision.id) !== inputRevisionId)) {
+        throw new Error('Input revision is not pending for this Attempt');
+      }
+      if (pendingInputRevision) this.validateInputRevisionAttempt(pendingInputRevision, task, expectedVersion, attempt);
       this.updateTaskRow(task, expectedVersion);
       this.insertAttempt(attempt);
       if (recoveryDecisionId) this.insertAlternativeRecoveryConsumption(recoveryDecisionId, attempt, attempt.startedAt ?? attempt.createdAt);
       if (reconciliationDecisionId) this.insertReconciliationAttemptConsumption(reconciliationDecisionId, attempt,
         attempt.startedAt ?? attempt.createdAt);
       if (circuitProbeId) this.validateClaimedCircuitProbe(circuitProbeId, attempt);
+      if (inputRevisionId) this.insertInputRevisionConsumption(inputRevisionId, attempt,
+        attempt.startedAt ?? attempt.createdAt);
       this.insertEvents(events);
     });
   }
@@ -1046,6 +1078,109 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
         AND c.decision_id IS NULL
       ORDER BY d.observation_number DESC, d.id DESC LIMIT 1`).get(taskId) as Row | undefined;
     return row ? this.mapReconciliationDecision(row) : undefined;
+  }
+
+  authorizeInputRevision(value: InputRevision, task: Task, expectedTaskVersion: number,
+    event: AuditEventInput): InputRevision {
+    return this.transaction(() => {
+      assertIdentifier(value.id, 'input revision id');
+      assertIdentifier(value.taskId, 'input revision task id');
+      assertIdentifier(value.failedAttemptId, 'input revision failed Attempt id');
+      assertIdentifier(value.failureId, 'input revision Failure id');
+      assertIdentifier(value.diagnosisId, 'input revision diagnosis id');
+      assertIdentifier(value.eventId, 'input revision Event id');
+      assertPlainJsonObject(value.priorInputs, 'Input revision prior inputs');
+      assertPlainJsonObject(value.revisedInputs, 'Input revision revised inputs');
+      const authorizedTime = new Date(value.authorizedAt);
+      if (!value.actor.trim() || Number.isNaN(authorizedTime.valueOf()) || authorizedTime.toISOString() !== value.authorizedAt) {
+        throw new Error('Input revision actor and canonical UTC authorization time are required');
+      }
+      const existing = this.db().prepare('SELECT * FROM input_revisions WHERE diagnosis_id = ?')
+        .get(value.diagnosisId) as Row | undefined;
+      if (existing) {
+        const mapped = this.mapInputRevision(existing);
+        if (canonicalize(mapped) !== canonicalize(value)) {
+          throw new Error(`Input revision authority conflict: ${value.diagnosisId}`);
+        }
+        return mapped;
+      }
+      const taskRow = this.db().prepare('SELECT * FROM tasks WHERE id=?').get(value.taskId) as Row | undefined;
+      const persistedTask = taskRow ? this.mapTask(taskRow) : undefined;
+      const latestAttemptRow = this.db().prepare(`SELECT * FROM attempts WHERE task_id=?
+        ORDER BY attempt_number DESC,id DESC LIMIT 1`).get(value.taskId) as Row | undefined;
+      const latestAttempt = latestAttemptRow ? this.mapAttempt(latestAttemptRow) : undefined;
+      const latestFailureRow = latestAttempt ? this.db().prepare(`SELECT * FROM failures WHERE task_id=? AND attempt_id=?
+        ORDER BY created_at DESC,id DESC LIMIT 1`).get(value.taskId, latestAttempt.id) as Row | undefined : undefined;
+      const latestFailure = latestFailureRow ? this.mapFailure(latestFailureRow) : undefined;
+      const authorityRow = latestFailure ? this.db().prepare(`SELECT * FROM failure_diagnoses
+        WHERE failure_id=? AND policy_id='architecture2.phase1l.deterministic' AND policy_version=1`)
+        .get(latestFailure.id) as Row | undefined : undefined;
+      const authority = authorityRow ? this.mapFailureDiagnosis(authorityRow) : undefined;
+      const conflicting = this.db().prepare(`SELECT 1 AS found FROM alternative_recovery_decisions WHERE diagnosis_id=?
+        UNION ALL SELECT 1 FROM reconciliation_decisions WHERE diagnosis_id=? LIMIT 1`)
+        .get(value.diagnosisId, value.diagnosisId) as Row | undefined;
+      const requestedApproval = this.db().prepare(`SELECT 1 AS found FROM approvals WHERE task_id=? AND decision='requested' LIMIT 1`)
+        .get(value.taskId) as Row | undefined;
+      const attemptCount = Number((this.db().prepare('SELECT COUNT(*) AS count FROM attempts WHERE task_id=?')
+        .get(value.taskId) as Row).count);
+      const retryPolicy = persistedTask?.retryPolicy;
+      const configuredMax = retryPolicy?.maxAttempts;
+      const maximumAttempts = typeof configuredMax === 'number' && Number.isInteger(configuredMax) && configuredMax >= 1
+        ? configuredMax : 3;
+      const priorSnapshotInputs = latestAttempt?.inputSnapshot.inputs;
+      const priorDigest = createHash('sha256').update(canonicalize(value.priorInputs)).digest('hex');
+      const revisedDigest = createHash('sha256').update(canonicalize(value.revisedInputs)).digest('hex');
+      if (!persistedTask || !latestAttempt || !latestFailure || !authority || authority.id !== value.diagnosisId ||
+          authority.taskId !== value.taskId || authority.failureId !== value.failureId || authority.attemptId !== value.failedAttemptId ||
+          latestAttempt.id !== value.failedAttemptId || latestFailure.id !== value.failureId ||
+          authority.disposition !== 'input_revision_required' || authority.outcomeCertainty !== 'proven_unsuccessful' ||
+          authority.policyId !== 'architecture2.phase1l.deterministic' || authority.policyVersion !== 1 ||
+          persistedTask.status !== 'failed' || latestAttempt.status !== 'failed' || conflicting || requestedApproval ||
+          attemptCount >= maximumAttempts || value.nextAttemptNumber !== latestAttempt.attemptNumber + 1 ||
+          priorSnapshotInputs === null || Array.isArray(priorSnapshotInputs) || typeof priorSnapshotInputs !== 'object' ||
+          canonicalize(priorSnapshotInputs) !== canonicalize(persistedTask.inputs) ||
+          canonicalize(value.priorInputs) !== canonicalize(persistedTask.inputs) || priorDigest !== value.priorInputsDigest ||
+          revisedDigest !== value.revisedInputsDigest || priorDigest === revisedDigest) {
+        throw new Error('Input revision authority is no longer current');
+      }
+      const expectedUpdatedTask: Task = { ...persistedTask, inputs: value.revisedInputs, status: 'ready',
+        terminalReason: undefined, completedAt: undefined, version: expectedTaskVersion + 1, updatedAt: value.authorizedAt };
+      if (persistedTask.version !== expectedTaskVersion || canonicalize(task) !== canonicalize(expectedUpdatedTask)) {
+        throw new Error('Input revision Task update changes unauthorized fields');
+      }
+      if (event.id !== value.eventId || event.aggregateId !== value.taskId ||
+          event.aggregateType !== 'task' || event.eventType !== 'input-revision.authorized' || event.actor !== value.actor ||
+          event.occurredAt !== value.authorizedAt) throw new Error('Input revision Event mismatch');
+      this.insertEvent(event);
+      this.db().prepare(`INSERT INTO input_revisions
+        (id,task_id,failed_attempt_id,failure_id,diagnosis_id,prior_inputs_json,prior_inputs_digest,
+         revised_inputs_json,revised_inputs_digest,next_attempt_number,actor,authorized_at,event_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(value.id, value.taskId, value.failedAttemptId,
+          value.failureId, value.diagnosisId, json(value.priorInputs), value.priorInputsDigest,
+          json(value.revisedInputs), value.revisedInputsDigest, value.nextAttemptNumber, value.actor,
+          value.authorizedAt, value.eventId);
+      this.updateTaskInputsRow(task, expectedTaskVersion);
+      return value;
+    });
+  }
+
+  getInputRevision(id: InputRevisionId): InputRevision | undefined {
+    const row = this.db().prepare('SELECT * FROM input_revisions WHERE id = ?').get(id) as Row | undefined;
+    return row ? this.mapInputRevision(row) : undefined;
+  }
+
+  getInputRevisionByDiagnosis(diagnosisId: FailureDiagnosisId): InputRevision | undefined {
+    const row = this.db().prepare('SELECT * FROM input_revisions WHERE diagnosis_id = ?')
+      .get(diagnosisId) as Row | undefined;
+    return row ? this.mapInputRevision(row) : undefined;
+  }
+
+  getPendingInputRevision(taskId: TaskId): InputRevision | undefined {
+    const row = this.db().prepare(`SELECT r.* FROM input_revisions r
+      LEFT JOIN input_revision_consumptions c ON c.revision_id=r.id
+      WHERE r.task_id=? AND c.revision_id IS NULL ORDER BY r.next_attempt_number DESC, r.id DESC LIMIT 1`)
+      .get(taskId) as Row | undefined;
+    return row ? this.mapInputRevision(row) : undefined;
   }
 
   recordCircuitEvidence(targetType: CircuitTargetType, targetId: string, diagnosis: FailureDiagnosis,
@@ -1326,6 +1461,37 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
       VALUES (?, ?, ?)`).run(decisionId, attempt.id, consumedAt);
   }
 
+  private insertInputRevisionConsumption(revisionId: InputRevisionId, attempt: Attempt, consumedAt: string): void {
+    const revision = this.db().prepare('SELECT * FROM input_revisions WHERE id = ?').get(revisionId) as Row | undefined;
+    const inputs = attempt.inputSnapshot.inputs;
+    if (!revision || String(revision.task_id) !== attempt.taskId ||
+        Number(revision.next_attempt_number) !== attempt.attemptNumber || inputs === null ||
+        Array.isArray(inputs) || typeof inputs !== 'object' ||
+        createHash('sha256').update(canonicalize(inputs)).digest('hex') !== String(revision.revised_inputs_digest)) {
+      throw new Error('Attempt does not match input revision authorization');
+    }
+    this.db().prepare(`INSERT INTO input_revision_consumptions (revision_id,attempt_id,consumed_at)
+      VALUES (?, ?, ?)`).run(revisionId, attempt.id, consumedAt);
+  }
+
+  private validateInputRevisionAttempt(revision: Row, task: Task, expectedVersion: number, attempt: Attempt): void {
+    const currentRow = this.db().prepare('SELECT * FROM tasks WHERE id=?').get(attempt.taskId) as Row | undefined;
+    const current = currentRow ? this.mapTask(currentRow) : undefined;
+    const revisedInputs = parseObject(revision.revised_inputs_json);
+    const expectedSnapshot = current ? { objective: current.objective, inputs: revisedInputs,
+      requiredCapabilities: current.requiredCapabilities } : undefined;
+    if (!current || current.status !== 'scheduled' || current.version !== expectedVersion || task.status !== 'running' ||
+        task.version !== expectedVersion + 1 || task.id !== current.id || attempt.taskId !== current.id ||
+        attempt.status !== 'running' || String(revision.task_id) !== current.id ||
+        Number(revision.next_attempt_number) !== attempt.attemptNumber ||
+        canonicalize(current.inputs) !== canonicalize(revisedInputs) ||
+        canonicalize(attempt.inputSnapshot) !== canonicalize(expectedSnapshot) ||
+        canonicalize(task) !== canonicalize({ ...current, status: 'running', version: current.version + 1,
+          updatedAt: task.updatedAt })) {
+      throw new Error('Attempt does not exactly match pending input revision authority');
+    }
+  }
+
   createApproval(value: Approval, event: AuditEventInput): void {
     this.transaction(() => {
       this.db().prepare(`INSERT INTO approvals
@@ -1467,6 +1633,18 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
       WHERE id = ? AND version = ?`)
       .run(task.status, task.terminalReason ?? null, task.version, task.updatedAt,
         task.completedAt ?? null, task.id, expectedVersion);
+    if (Number(result.changes) !== 1) throw new Error(`Task concurrency conflict: ${task.id}`);
+  }
+
+  private updateTaskInputsRow(task: Task, expectedVersion: number): void {
+    assertIdentifier(task.id, 'task id');
+    if (task.version !== expectedVersion + 1 || task.status !== 'ready' || task.terminalReason || task.completedAt) {
+      throw new Error('Input revision Task lifecycle is invalid');
+    }
+    validateTimestamp(task.updatedAt, 'input revision Task update timestamp');
+    const result = this.db().prepare(`UPDATE tasks SET inputs_json=?,status='ready',terminal_reason=NULL,
+      version=?,updated_at=?,completed_at=NULL WHERE id=? AND version=? AND status='failed'`)
+      .run(json(task.inputs), task.version, task.updatedAt, task.id, expectedVersion);
     if (Number(result.changes) !== 1) throw new Error(`Task concurrency conflict: ${task.id}`);
   }
 
@@ -1896,6 +2074,23 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
     const isTerminal = ['succeeded', 'failed', 'cancelled', 'indeterminate'].includes(attempt.status);
     if (isTerminal !== Boolean(attempt.completedAt)) throw new Error(`Corrupt persisted Attempt completion state: ${attempt.id}`);
     return attempt;
+  }
+
+  private mapInputRevision(row: Row): InputRevision {
+    const value: InputRevision = { id: String(row.id) as InputRevisionId, taskId: String(row.task_id) as TaskId,
+      failedAttemptId: String(row.failed_attempt_id) as InputRevision['failedAttemptId'],
+      failureId: String(row.failure_id) as FailureId, diagnosisId: String(row.diagnosis_id) as FailureDiagnosisId,
+      priorInputs: parseObject(row.prior_inputs_json), priorInputsDigest: String(row.prior_inputs_digest),
+      revisedInputs: parseObject(row.revised_inputs_json), revisedInputsDigest: String(row.revised_inputs_digest),
+      nextAttemptNumber: Number(row.next_attempt_number), actor: String(row.actor),
+      authorizedAt: String(row.authorized_at), eventId: String(row.event_id) as InputRevision['eventId'] };
+    assertIdentifier(value.id, 'persisted input revision id');
+    validateTimestamp(value.authorizedAt, 'persisted input revision authorization timestamp');
+    if (!Number.isInteger(value.nextAttemptNumber) || value.nextAttemptNumber < 1 || !value.actor.trim() ||
+        createHash('sha256').update(canonicalize(value.priorInputs)).digest('hex') !== value.priorInputsDigest ||
+        createHash('sha256').update(canonicalize(value.revisedInputs)).digest('hex') !== value.revisedInputsDigest ||
+        value.priorInputsDigest === value.revisedInputsDigest) throw new Error(`Corrupt persisted Input Revision: ${value.id}`);
+    return value;
   }
 
   private mapNode(row: Row): Node & { version: number } {

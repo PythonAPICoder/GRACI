@@ -128,6 +128,22 @@ Record meaningful verification results. Do not duplicate raw automated-test outp
 
 - PASS
 
+---
+
+### 2026-08-14 - Architecture 2 Phase 1P Governed Input Revision
+
+- Starting baseline: accepted Phase 1O HEAD `b7b784f7ec11d356f4867a829e953ccb49aaed0e` on clean `main`.
+- Focused Phase 1P suite: PASS, 9/9.
+- Phase 1L through Phase 1O recovery regression suites: PASS, 45/45 across 4 files.
+- Runtime/import plus Phase 1P integration suites: PASS, 18/18 across 2 files.
+- Full `npm.cmd test`: PASS, 217/217 across 19 files.
+- `npm.cmd run validate`: PASS.
+- `npm.cmd run build`: PASS; all required output verified.
+- Populated schema 12 to schema 13 migration, no fabricated revision authority, pending/consumed close-reopen reconstruction, and immutable historical Attempt inputs: PASS.
+- Real Electron startup smoke: PASS; alive after five seconds, expected `Electron app starting` log present, stderr empty, process tree stopped.
+- `git diff --check`: PASS.
+- Expected stderr from mocked Ollama failure and timeout tests was test-controlled and did not represent a regression.
+
 ### Phase 1E architectural review correction
 
 - Required execution provider/verifier composition test: PASS through TypeScript validation and explicit deterministic test setup.
@@ -452,6 +468,40 @@ Record meaningful verification results. Do not duplicate raw automated-test outp
 **Result**
 
 - PASS. The compiled Architecture 2 runtime exposed `bootstrapArchitecture2`, `inspectCircuits`, `acquireCircuitProbe`, and `claimCircuitProbe`. The Electron shell remained alive for the eight-second startup smoke, emitted `Electron app starting`, and produced empty stderr.
+
+---
+
+### 2026-08-14 - Architecture 2 Phase 1P Agent Verification
+
+**Build / Revision**
+
+- Starting baseline: accepted Phase 1O `b7b784f7ec11d356f4867a829e953ccb49aaed0e`.
+- Current working tree implements schema 13 governed Task input revision.
+
+**Automated Verification**
+
+- Dedicated Phase 1P suite: PASS, 9/9.
+- Relevant Phase 1L through Phase 1O regression selection: PASS, 45/45 (agent run).
+- Full automated regression suite: PASS, 217/217 (agent run).
+- TypeScript validation: PASS.
+- Diff whitespace hygiene: PASS.
+
+**Behavior and Durability Verification**
+
+- Exact latest authority, Task-input-only mutation, canonical meaningful change, malformed-input rejection, immutable history, exact next-Attempt binding, single-use consumption, schema-12 migration, and SQLite close/reopen coverage: PASS in the focused Phase 1P run.
+- Attempt-limit, pending-approval, stale/superseded authority, conflicting recovery, unknown-outcome stop, provider/resource controls, and normal Verification authority: PASS in the recorded runs.
+- Review correction moved all authorization gates into the `BEGIN IMMEDIATE` transaction; expanded concurrency regression coverage passed.
+
+**Pending Verification**
+
+- Production build: PENDING.
+- Runtime/import checks: PENDING.
+- Electron startup regression: PENDING.
+- Final verification rerun: PENDING.
+
+**Result**
+
+- PARTIAL PASS. Recorded automated evidence is green; completion is not claimed until pending final verification is recorded.
 
 ---
 

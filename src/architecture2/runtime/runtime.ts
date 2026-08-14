@@ -8,8 +8,10 @@ import { reconcileExternalOutcome, type ReconciliationCommand,
   type ReconciliationProvider } from '../reconciliation/index.js';
 import { diagnosePersistedFailure, inspectQueue, MinimalOrchestrator, recoverWithAlternative,
   acquireCircuitProbe, claimCircuitProbe, inspectCircuits, recordCircuitFailure, recordCircuitProbeOutcome,
+  authorizeInputRevision,
   type AcquireCircuitProbeCommand, type AlternativeRecoveryCommand, type OrchestratorOptions,
-  type ClaimCircuitProbeCommand, type RecordCircuitFailureCommand, type RecordCircuitProbeOutcomeCommand } from '../workflow/index.js';
+  type ClaimCircuitProbeCommand, type RecordCircuitFailureCommand, type RecordCircuitProbeOutcomeCommand,
+  type AuthorizeInputRevisionCommand } from '../workflow/index.js';
 
 export interface Architecture2RuntimeConfiguration {
   databasePath: string;
@@ -59,6 +61,14 @@ export class Architecture2Runtime implements Disposable {
 
   reconcile(provider: ReconciliationProvider, command: ReconciliationCommand) {
     return reconcileExternalOutcome(this.persistence, this.verifier, provider, command);
+  }
+
+  authorizeInputRevision(command: AuthorizeInputRevisionCommand) {
+    return authorizeInputRevision(this.persistence, command);
+  }
+
+  inspectInputRevision(id: AuthorizeInputRevisionCommand['id']) {
+    return this.persistence.getInputRevision(id);
   }
 
   inspectCircuits() {

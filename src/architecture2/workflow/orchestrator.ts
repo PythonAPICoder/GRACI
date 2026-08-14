@@ -275,6 +275,10 @@ export class MinimalOrchestrator {
   private startTask(task: Task): Promise<void> | undefined {
     const recovery = this.persistence.getPendingAlternativeRecovery(task.id);
     const reconciliation = this.persistence.getPendingReconciliation(task.id);
+    const inputRevision = this.persistence.getPendingInputRevision(task.id);
+    if ([recovery, reconciliation, inputRevision].filter(Boolean).length > 1) {
+      throw new Error(`Conflicting pending recovery authority: ${task.id}`);
+    }
     const sourceAttempt = reconciliation ? this.persistence.getAttempts(task.id)
       .find((attempt) => attempt.id === reconciliation.attemptId) : undefined;
     const selectedOfferingId = recovery?.selectedOfferingId ??
@@ -319,7 +323,7 @@ export class MinimalOrchestrator {
     this.persistence.startAttempt(running, scheduled.version, attempt, [
       this.event(task.id, 'attempt.started', { attemptId: attempt.id, attemptNumber }, startedAt),
       this.event(task.id, 'task.transitioned', { from: 'scheduled', to: 'running' }, startedAt),
-    ], recovery?.id, reconciliation?.id);
+    ], recovery?.id, reconciliation?.id, undefined, inputRevision?.id);
 
     const executionProvider = selectedOfferingId && this.resolveExecutionProvider
       ? this.resolveExecutionProvider(selectedOfferingId) : this.provider;

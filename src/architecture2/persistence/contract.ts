@@ -23,6 +23,7 @@ import type {
   AlternativeRecoveryDecision, AlternativeRecoveryDecisionId,
   ReconciliationDecision, ReconciliationDecisionId,
   CircuitRecord, CircuitTransition, CircuitEvidence, CircuitProbe, CircuitBreakerPolicy, CircuitTargetType,
+  InputRevision, InputRevisionId,
 } from '../domain/index.js';
 
 export interface LegacyImportOperation {
@@ -119,7 +120,7 @@ export interface Architecture2Persistence extends Disposable {
   getAttempts(taskId: TaskId): Attempt[];
   startAttempt(task: Task, expectedVersion: number, attempt: Attempt, events: readonly AuditEventInput[],
     recoveryDecisionId?: AlternativeRecoveryDecisionId, reconciliationDecisionId?: ReconciliationDecisionId,
-    circuitProbeId?: CircuitProbe['id']): void;
+    circuitProbeId?: CircuitProbe['id'], inputRevisionId?: InputRevisionId): void;
   recordAttemptOutcome(
     task: Task,
     expectedVersion: number,
@@ -159,6 +160,11 @@ export interface Architecture2Persistence extends Disposable {
   getReconciliationDecision(id: ReconciliationDecisionId): ReconciliationDecision | undefined;
   getReconciliationDecisions(diagnosisId: FailureDiagnosisId): ReconciliationDecision[];
   getPendingReconciliation(taskId: TaskId): ReconciliationDecision | undefined;
+  authorizeInputRevision(value: InputRevision, task: Task, expectedTaskVersion: number,
+    event: AuditEventInput): InputRevision;
+  getInputRevision(id: InputRevisionId): InputRevision | undefined;
+  getInputRevisionByDiagnosis(diagnosisId: FailureDiagnosisId): InputRevision | undefined;
+  getPendingInputRevision(taskId: TaskId): InputRevision | undefined;
   recordCircuitEvidence(targetType: CircuitTargetType, targetId: string, diagnosis: FailureDiagnosis,
     policy: CircuitBreakerPolicy, evidence: CircuitEvidence, transition: CircuitTransition | undefined,
     event: AuditEventInput): CircuitRecord;

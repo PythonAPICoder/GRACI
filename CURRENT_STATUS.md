@@ -2,9 +2,9 @@
 
 > **Living document:** Update this file whenever an Architecture 2 phase changes implemented behavior, verification evidence, runtime authority, major limitations, or the recommended next phase. Governance under `docs/governance/` remains authoritative when this summary differs from an approved specification.
 
-**Implementation working tree starting basis:** accepted Phase 1N repository HEAD `8501c014ce54ac96898953f65dd37fcb5b3caf13`
+**Implementation working tree starting basis:** accepted Phase 1O repository HEAD `b7b784f7ec11d356f4867a829e953ccb49aaed0e`
 
-**Current implementation:** Architecture 2 Phase 1O, Scoped Circuit Breakers and Bound Probes (`ADDENDUM_020_ARCHITECTURE_2_PHASE_1O.md`), with implementation-agent automated and runtime verification complete
+**Current implementation:** Architecture 2 Phase 1P, Governed Task Input Revision (`ADDENDUM_021_ARCHITECTURE_2_PHASE_1P.md`), with automated, build, runtime/import, migration/reopen, and Electron startup verification complete
 
 ## Product Direction
 
@@ -26,7 +26,7 @@ The project has built G.R.A.C.I.'s notebook, work checklist, traffic controller,
 
 ### Technical Detail
 
-Implemented Architecture 2 work through Phase 1O includes:
+Implemented Architecture 2 work through Phase 1P includes:
 
 - **Foundation and Phase 1A:** canonical identifiers and records, SQLite persistence, migrations, transactional state-plus-event writes, optimistic versions, immutable history, and hash-chained events.
 - **Phase 1B:** guarded Task lifecycle, persisted DAG execution, deterministic verification, and conservative interrupted-work recovery.
@@ -43,8 +43,9 @@ Implemented Architecture 2 work through Phase 1O includes:
 - **Phase 1M:** caller-invoked, single-use alternative-offering and alternative-Node recovery with failed-binding exclusion, durable decisions, changed-condition evidence, and normal Attempt, lease, execution, diagnosis, and Verification paths.
 - **Phase 1N:** caller-invoked provider-neutral reconciliation of exact indeterminate external outcomes, with trusted conclusions, immutable evidence, Verification-only success, and gated single-use fresh-Attempt authority.
 - **Phase 1O:** independent provider-offering, Node, and offering-location circuit breakers with deterministic windows/cooldown, durable one-at-a-time probes, exact route/Attempt binding, Verification-only close, and qualifying-failure reopen.
+- **Phase 1P:** caller-invoked revision of only canonical Task inputs after exact current `input_revision_required` authority, with canonical meaningful-change checks, immutable history, transactional concurrency gates, and exact single-use next-Attempt binding.
 
-The precise governed boundaries are in `docs/governance/ADDENDUM_006_ARCHITECTURE_2_PHASE_1A.md` through `ADDENDUM_020_ARCHITECTURE_2_PHASE_1O.md`.
+The precise governed boundaries are in `docs/governance/ADDENDUM_006_ARCHITECTURE_2_PHASE_1A.md` through `ADDENDUM_021_ARCHITECTURE_2_PHASE_1P.md`.
 
 ## What Works Today
 
@@ -81,6 +82,7 @@ Implemented and tested capabilities include:
 - Open separately scoped circuits only from current qualifying trusted Phase 1L evidence inside deterministic policy windows.
 - Filter provider and resource candidates with durable scope-specific circuit explanations and allow only one exact active probe route after cooldown.
 - Claim probe authority once against exact provider/resource decisions and the exact Task/Attempt binding; close only from its persisted passing Verification or reopen from its qualifying bound Failure diagnosis.
+- Revise only a failed Task's canonical inputs after exact current diagnosis authority, preserve the failed Attempt snapshot, and consume the durable authorization once through the exact next Attempt and revised full input snapshot.
 
 These capabilities are available through code under `src/architecture2/` and the explicit `bootstrapArchitecture2` composition boundary. They are not automatically enabled by normal Electron startup.
 
@@ -126,20 +128,20 @@ Architecture 2 is isolated under `src/architecture2/`. `src/architecture2/runtim
 
 ### Simple Explanation
 
-The assembly checks passed: all automated checks were green, the software compiled, the real database was closed and reopened successfully, and the desktop application stayed running during its startup check.
+The recorded automated checks are green, including schema migration, database close/reopen, production build, runtime/import, and desktop startup coverage.
 
 ### Technical Detail
 
-Latest known Phase 1O implementation-agent evidence in `docs/logs/TEST_LOG.md`:
+Current Phase 1P agent evidence in `docs/logs/TEST_LOG.md`:
 
 - TypeScript validation: PASS.
-- Full automated regression suite: **208/208 tests passed across 18 files**.
-- Production build: PASS.
-- Dedicated Phase 1O tests: **11 passed**; relevant regression selection: **50 passed**.
-- Build, TypeScript validation, schema-12 migration, SQLite close/reopen reconstruction, and diff hygiene: PASS.
-- Final Electron/runtime launch evidence for this Phase 1O working tree: **PENDING implementation-agent final verification**. No Phase 1O launch is claimed here.
+- Full automated regression suite: **217/217 passed**.
+- Dedicated Phase 1P tests: **9/9 passed**; relevant Phase 1L through Phase 1O regressions: **45/45 passed**.
+- Schema-13 migration and SQLite close/reopen behavior are covered by the Phase 1P focused run.
+- Production build: PASS. Runtime/import plus Phase 1P integration: **18/18 passed**.
+- Electron startup regression: PASS; the application remained alive for five seconds, emitted `Electron app starting`, and produced empty stderr before controlled shutdown.
 - Diff whitespace hygiene: PASS.
-- Architecture 1 remained the live Electron authority during smoke verification.
+- Architecture 1 remains the configured live Electron authority; Phase 1P did not alter startup composition.
 
 This is recorded verification evidence, not a claim that deferred end-user capabilities exist.
 
@@ -183,11 +185,11 @@ Major roadmap areas from Addendum 005 and later deferred boundaries include:
 
 ### Simple Explanation
 
-Phase 1O is implemented and has passed the implementation agent's automated and runtime verification. G.R.A.C.I. can suppress repeatedly failing provider offerings, Nodes, or offering locations and permit one exact bound probe after cooldown. Unknown still means stop. The compiled Architecture 2 Phase 1O runtime exports loaded successfully, and the Architecture 1 Electron shell remained alive for the eight-second startup smoke with the expected startup message and empty stderr.
+Phase 1P is implemented and has passed the recorded automated, build, runtime/import, migration/reopen, and Electron startup checks. G.R.A.C.I. can revise only canonical Task inputs after an exact current `input_revision_required` diagnosis and bind that change to one exact next Attempt while preserving prior history. Unknown still means stop.
 
 ### Technical Detail
 
-Architecture 2 Phase 1O is the current implemented phase. Circuit operations are caller-invoked and use versioned trusted policy; they do not mutate health or administration metadata and grant no replay or replacement authority. Input revision, replanning, research, cancellation, distributed execution, UI work, Electron authority cutover, and automatic/background circuit operation remain deferred.
+Architecture 2 Phase 1P is the current implemented phase. Input revision is caller-invoked, Task-input-only, canonically meaningful, durable, and exact single-use; it preserves normal approval, Attempt, provider, circuit, resource, lease, concurrency, Failure, and Verification controls. Goal/Task-structure revision, replanning, research, cancellation, distributed execution, UI work, Electron authority cutover, and automatic/background recovery remain deferred.
 
 ## Reconstruction Pointers
 

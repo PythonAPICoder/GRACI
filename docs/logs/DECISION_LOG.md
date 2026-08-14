@@ -39,6 +39,31 @@ Use this log for decisions that matter but do not yet justify a dedicated ADR sy
 
 ---
 
+### DEC-0017 - Phase 1P Governed Task Input Revision
+
+**Date**
+
+- 2026-08-14
+
+**Decision**
+
+- Authorize only caller-invoked revision of canonical Task inputs for the exact current Phase 1L `input_revision_required` diagnosis with `proven_unsuccessful` outcome certainty.
+- Require a canonically meaningful plain-JSON change while preserving every prior Attempt snapshot and all immutable history.
+- Reconstruct the complete authority, approval, Attempt-limit, conflict, input-correspondence, mutation, and Event gates inside the writing `BEGIN IMMEDIATE` transaction.
+- Bind durable authority to the exact next Attempt number and full revised input snapshot, consuming it atomically once while preserving every normal execution and Verification control.
+- Preserve the absolute rule that unknown external outcomes stop and cannot use input revision.
+
+**Rationale**
+
+- Correctable Task data should be replaceable without rewriting failed execution history, weakening concurrent authority checks, or creating a parallel retry system.
+
+**Consequences**
+
+- Schema version 13 stores immutable input revisions and single-use Attempt consumption.
+- Goal, Task structure, graph revision, replanning, automatic repair, research, UI, and Electron authority cutover remain deferred.
+
+---
+
 ### DEC-0016 - Phase 1O Scoped Circuit Breakers and Consumable Bound Probes
 
 **Date**

@@ -776,8 +776,53 @@ const migration012: Migration = {
   },
 };
 
+const migration013: Migration = {
+  version: 13,
+  name: 'architecture_2_phase_1p_governed_input_revision',
+  up(database) {
+    database.exec(`
+      CREATE UNIQUE INDEX idx_failures_input_revision_authority ON failures(id, task_id, attempt_id);
+      CREATE UNIQUE INDEX idx_diagnoses_input_revision_authority ON failure_diagnoses(id, task_id, failure_id, attempt_id);
+      CREATE TABLE input_revisions (
+        id TEXT PRIMARY KEY,
+        task_id TEXT NOT NULL REFERENCES tasks(id) ON DELETE RESTRICT,
+        failed_attempt_id TEXT NOT NULL,
+        failure_id TEXT NOT NULL,
+        diagnosis_id TEXT NOT NULL UNIQUE,
+        prior_inputs_json TEXT NOT NULL CHECK (json_valid(prior_inputs_json) AND json_type(prior_inputs_json)='object'),
+        prior_inputs_digest TEXT NOT NULL CHECK (length(prior_inputs_digest)=64),
+        revised_inputs_json TEXT NOT NULL CHECK (json_valid(revised_inputs_json) AND json_type(revised_inputs_json)='object'),
+        revised_inputs_digest TEXT NOT NULL CHECK (length(revised_inputs_digest)=64),
+        next_attempt_number INTEGER NOT NULL CHECK (next_attempt_number >= 1),
+        actor TEXT NOT NULL CHECK (length(trim(actor)) > 0), authorized_at TEXT NOT NULL,
+        event_id TEXT NOT NULL UNIQUE REFERENCES events(id) ON DELETE RESTRICT,
+        UNIQUE (task_id, next_attempt_number),
+        CHECK (prior_inputs_digest <> revised_inputs_digest),
+        FOREIGN KEY (failed_attempt_id, task_id) REFERENCES attempts(id, task_id) ON DELETE RESTRICT,
+        FOREIGN KEY (failure_id, task_id, failed_attempt_id) REFERENCES failures(id, task_id, attempt_id) ON DELETE RESTRICT,
+        FOREIGN KEY (diagnosis_id, task_id, failure_id, failed_attempt_id)
+          REFERENCES failure_diagnoses(id, task_id, failure_id, attempt_id) ON DELETE RESTRICT
+      ) STRICT;
+      CREATE TABLE input_revision_consumptions (
+        revision_id TEXT PRIMARY KEY REFERENCES input_revisions(id) ON DELETE RESTRICT,
+        attempt_id TEXT NOT NULL UNIQUE REFERENCES attempts(id) ON DELETE RESTRICT,
+        consumed_at TEXT NOT NULL
+      ) STRICT, WITHOUT ROWID;
+      CREATE INDEX idx_input_revisions_task ON input_revisions(task_id, next_attempt_number, id);
+      CREATE TRIGGER input_revisions_no_update BEFORE UPDATE ON input_revisions
+        BEGIN SELECT RAISE(ABORT, 'input revisions are immutable'); END;
+      CREATE TRIGGER input_revisions_no_delete BEFORE DELETE ON input_revisions
+        BEGIN SELECT RAISE(ABORT, 'input revisions are immutable'); END;
+      CREATE TRIGGER input_revision_consumptions_no_update BEFORE UPDATE ON input_revision_consumptions
+        BEGIN SELECT RAISE(ABORT, 'input revision consumption is immutable'); END;
+      CREATE TRIGGER input_revision_consumptions_no_delete BEFORE DELETE ON input_revision_consumptions
+        BEGIN SELECT RAISE(ABORT, 'input revision consumption is immutable'); END;
+    `);
+  },
+};
+
 export const migrations: readonly Migration[] = [migration001, migration002, migration003, migration004, migration005,
-  migration006, migration007, migration008, migration009, migration010, migration011, migration012];
+  migration006, migration007, migration008, migration009, migration010, migration011, migration012, migration013];
 
 export function migrate(database: DatabaseSync): number {
   database.exec(`

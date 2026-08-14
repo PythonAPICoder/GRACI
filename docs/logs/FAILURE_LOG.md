@@ -1,5 +1,28 @@
 # G.R.A.C.I. Phase 1 — Autonomous Recovery and Continuation
 
+## 2026-08-14 - Phase 1P Transactional Authority Race Correction
+
+**Failure**
+
+- Review found that pre-transaction input-revision authority checks could race a concurrent approval, Task supersession, or other authority-changing write.
+
+**Root Cause**
+
+- The initial design treated trusted-core checks performed before the SQLite write transaction as sufficient authorization, leaving a time-of-check/time-of-use window before revision and Task state were committed.
+
+**Correction**
+
+- Reconstructed and revalidated the complete Task, latest Attempt, latest Failure, current diagnosis, conflicting recovery, pending approval, Attempt-limit, prior-input, exact mutation, optimistic-version, and Event gates inside the same `BEGIN IMMEDIATE` transaction that writes the immutable revision and Task update.
+- Expanded tests to exercise authority changes at the persistence boundary and require fail-closed behavior without a revision or Task mutation.
+
+**Regression Result**
+
+- Dedicated Phase 1P suite passed 9/9; relevant Phase 1L through Phase 1O regressions passed 45/45 and the full suite passed 217/217.
+- TypeScript validation, production build, runtime/import checks, schema migration/reopen, Electron startup, and diff hygiene passed.
+- The first Electron smoke wrapper reported the controlled post-smoke exit code instead of the five-second liveness sample. A corrected direct-process wrapper recorded the application alive at five seconds with the expected startup log and empty stderr, then stopped the process tree.
+
+---
+
 ## 2026-08-14 - Phase 1O Probe Authority and Verification Attribution Correction
 
 **Failure**
