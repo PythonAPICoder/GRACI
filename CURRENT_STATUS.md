@@ -158,7 +158,7 @@ The next assembly stages need to teach the robot how to diagnose failures intell
 
 Major roadmap areas from Addendum 005 and later deferred boundaries include:
 
-- Slice 4 failure intelligence and governed research: normalized diagnosis, circuit breakers, alternatives, and bounded research.
+- Governed but not implemented Phase 1L failure diagnosis and recovery disposition, followed later by separately governed circuit breakers, alternatives, and bounded research.
 - Slice 5 purpose-specific memory with provenance, correction, privacy, and retention.
 - Slice 6 product observability and expanded autonomy.
 - Goal intake, planning, replanning, policy enforcement, and approval UX.
@@ -170,11 +170,11 @@ Major roadmap areas from Addendum 005 and later deferred boundaries include:
 
 ### Simple Explanation
 
-Phase 1K is the latest completed governed phase. The next Architecture 2 phase has not yet been formally defined. Its purpose and boundaries must be agreed and written down before implementation begins.
+Phase 1K is still the latest completed phase. Phase 1L has now been approved as the rulebook for diagnosing failures and recording the one safe next recommendation, but none of that Phase 1L behavior has been built yet.
 
 ### Technical Detail
 
-Architecture 2 Phase 1K is the latest completed phase with an approved governance addendum. No subsequent Architecture 2 phase currently has a formally established name or implementation scope. The next phase must be inspected, explicitly scoped, and governed through the applicable approval and addendum process before implementation. Roadmap material in earlier governance may inform that decision but does not itself establish the next phase.
+Architecture 2 Phase 1K remains the latest implemented and accepted phase. Addendum 017 governs Phase 1L, Durable Failure Diagnosis and Recovery Disposition, and approves only controlled future implementation of deterministic durable diagnosis, outcome certainty, existing-policy retry decisions, changed-condition evidence, and one bounded diagnostic disposition. Phase 1L source code and tests have not been implemented, its acceptance verification has not been run, and its advanced recommendations do not authorize failover, alternate-Node retry, reconciliation execution, cancellation, replanning, research, distributed execution, UI work, or Electron authority cutover.
 
 ## Reconstruction Pointers
 

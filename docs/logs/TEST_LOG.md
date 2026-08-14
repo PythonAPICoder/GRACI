@@ -331,6 +331,25 @@ Record meaningful verification results. Do not duplicate raw automated-test outp
 
 - Not required: documentation-only update; production source, tests, configuration, and runtime behavior are unchanged.
 
+### 2026-08-14 — Architecture 2 Phase 1L Governance Authorization
+
+**Verification Scope**
+
+- Expected repository checkpoint, clean starting worktree, next-unused addendum number, and governance precedence.
+- Phase 1L alignment with Addendum 005 Slice 4, current Phase 1K behavior, existing retry and approval semantics, and explicitly deferred recovery boundaries.
+- Documentation-only changed paths, implementation-status claims, reference consistency, and whitespace hygiene.
+
+**Runtime / Integration Verification**
+
+- Not applicable: this checkpoint governs future implementation and changes no source, tests, dependencies, configuration, persistence schema, or runtime behavior.
+
+**Result**
+
+- PASS. Addendum 017 is the next unused number and is indexed after Addendum 016.
+- PASS. Changed paths are documentation only; no source, test, dependency, configuration, schema, generated output, or `CURRENT_ARCHITECTURE.md` file changed.
+- PASS. Phase 1K remains identified as the latest implemented and accepted phase, while Phase 1L is explicitly governed but not implemented.
+- PASS. `git diff --check` reported no whitespace errors.
+
 ---
 
 ### 2026-08-12 — Architecture 2 Phase 1B Workflow Kernel

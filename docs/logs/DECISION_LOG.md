@@ -39,6 +39,32 @@ Use this log for decisions that matter but do not yet justify a dedicated ADR sy
 
 ---
 
+### DEC-0013 — Phase 1L Durable Failure Diagnosis Boundary
+
+**Date**
+
+- 2026-08-14
+
+**Decision**
+
+- Approve Addendum 017 for controlled future implementation of deterministic, durable failure diagnosis and exactly one bounded recovery disposition.
+- Keep cause, outcome certainty, retryability, and disposition separate, and require missing or malformed evidence to fail closed.
+- Preserve existing Attempt limits, opt-in verification retry, approval semantics, conservative indeterminate-outcome handling, and Phase 1K independent supervision.
+- Require small factual changed-condition evidence before a non-transient future Attempt could be authorized, without introducing generalized cost, elapsed-time, risk-budget, or policy infrastructure.
+- Treat alternative, reconciliation, approval, replanning, and research dispositions as recommendations only; authorize no automatic advanced recovery action.
+
+**Rationale**
+
+- Existing durable Attempts, Failures, Verifications, provider and Node bindings, retry policy, and audit history provide sufficient evidence for a bounded diagnosis layer. Durable judgment must precede circuit breakers, alternative execution, replanning, and research so later recovery cannot become blind replay or provider-authored authority.
+
+**Consequences**
+
+- Phase 1K remains the latest implemented and accepted phase.
+- Phase 1L is governed but not implemented.
+- Failover, alternate-Node retry, cancellation, circuit breakers, reconciliation execution, replanning, research, distributed execution, and Electron authority changes remain unauthorized.
+
+---
+
 ### DEC-0012 — Phase 1K Bounded Concurrent Scheduling
 
 **Date**

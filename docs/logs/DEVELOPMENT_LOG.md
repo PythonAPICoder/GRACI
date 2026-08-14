@@ -497,3 +497,15 @@ Implementation remains paused pending Product Owner and Architect review.
 - Clearly separated implemented and tested Architecture 2 behavior from configured adapters, planned/deferred capabilities, and the still-authoritative Architecture 1 Electron startup path.
 - Updated `README.md` so both documents are discoverable without changing governance precedence or policy.
 - No production source, tests, dependencies, configuration, governance addenda, or runtime behavior changed.
+
+---
+
+## Architecture 2 Phase 1L — Governance Authorization — August 14, 2026
+
+- Verified the clean expected `main` checkpoint `1eb5b2d98eb8472fefb8cbd25c3410de27585a5c` before documentation changes.
+- Added Addendum 017 and DEC-0013 authorizing controlled future implementation of durable failure diagnosis and one bounded recovery disposition.
+- Required deterministic cause classification, separately represented outcome certainty and retryability, fail-closed malformed evidence, immutable diagnosis history, factual changed-condition evidence, restart reconstruction, and Phase 1K supervision isolation.
+- Preserved existing Attempt limits, verification-retry opt-in, approval behavior, conservative indeterminate-outcome handling, lease behavior, and Architecture 1 Electron authority.
+- Kept circuit breakers, failover, alternate-Node retry, reconciliation execution, cancellation, replanning, research, generalized policy, tools, memory, UI, and distributed execution deferred.
+- Updated the Governance Index and `CURRENT_STATUS.md` to distinguish governed Phase 1L from implemented and accepted Phase 1K.
+- No Phase 1L source, tests, migration, dependency, configuration, runtime, or `CURRENT_ARCHITECTURE.md` change was made.
