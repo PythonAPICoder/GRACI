@@ -41,6 +41,7 @@ export type ReplanningDecisionId = Identifier<'ReplanningDecision'>;
 export type ResearchRequestId = Identifier<'ResearchRequest'>;
 export type ResearchEvidenceId = Identifier<'ResearchEvidence'>;
 export type ResearchDecisionId = Identifier<'ResearchDecision'>;
+export type ResearchProviderExecutionId = Identifier<'ResearchProviderExecution'>;
 
 const IDENTIFIER_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 

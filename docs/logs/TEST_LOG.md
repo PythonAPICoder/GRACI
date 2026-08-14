@@ -1,5 +1,13 @@
 # G.R.A.C.I. Test Log
 
+### 2026-08-14 - Architecture 2 Phase 1T Governed Research Provider Execution
+
+- Focused Phase 1T plus Phase 1R/provider milestone: PASS, 15/15 across 3 files before the expanded open-circuit, stale-authority, and schema-16 migration cases were added.
+- `npm.cmd run validate`: PASS at both implementation milestones. `git diff --check`: PASS at the first milestone.
+- Final focused Phase 1T suite: PASS, 7/7. Research/provider/recovery regression command: initial 72/74 due to two synthetic downgrade fixtures, then corrected failed set PASS 16/16. Persistence/runtime/orchestration regression command: PASS, 74/74.
+- Full `npm.cmd test`: PASS, 239/239 across 23 files. `npm.cmd run build`: PASS with all three expected output files. Final `npm.cmd run validate`: PASS.
+- Direct Electron smoke: PASS; process remained alive for five seconds, emitted `Electron app starting`, and produced empty stderr before controlled shutdown. Final `git diff --check`: PASS.
+
 ### 2026-08-14 - Architecture 2 Phase 1S Research-Assisted Recovery
 
 - `npx.cmd vitest run tests/architecture2-research-assisted-recovery.test.ts`: PASS, 7/7.

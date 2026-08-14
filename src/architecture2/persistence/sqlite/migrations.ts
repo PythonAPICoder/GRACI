@@ -947,9 +947,47 @@ const migration016: Migration = {
   },
 };
 
+const migration017: Migration = {
+  version: 17,
+  name: 'architecture_2_phase_1t_research_provider_execution',
+  up(database) {
+    database.exec(`
+      CREATE TABLE research_provider_executions (
+        id TEXT PRIMARY KEY,
+        request_id TEXT NOT NULL UNIQUE REFERENCES research_requests(id) ON DELETE RESTRICT,
+        resolution_decision_id TEXT NOT NULL UNIQUE REFERENCES provider_resolution_decisions(id) ON DELETE RESTRICT,
+        provider_id TEXT NOT NULL REFERENCES providers(id) ON DELETE RESTRICT,
+        offering_id TEXT NOT NULL REFERENCES provider_offerings(id) ON DELETE RESTRICT,
+        provider_contract_version INTEGER NOT NULL CHECK (provider_contract_version > 0),
+        idempotency_key TEXT NOT NULL UNIQUE CHECK (length(trim(idempotency_key)) BETWEEN 1 AND 256),
+        status TEXT NOT NULL CHECK (status IN ('running','succeeded','failed','indeterminate')),
+        started_at TEXT NOT NULL,
+        completed_at TEXT,
+        evidence_id TEXT UNIQUE REFERENCES research_evidence(id) ON DELETE RESTRICT,
+        failure_category TEXT,
+        failure_classification TEXT,
+        failure_code TEXT,
+        failure_summary TEXT,
+        start_event_id TEXT NOT NULL UNIQUE REFERENCES events(id) ON DELETE RESTRICT,
+        completion_event_id TEXT UNIQUE REFERENCES events(id) ON DELETE RESTRICT,
+        CHECK ((status='running' AND completed_at IS NULL AND evidence_id IS NULL AND failure_code IS NULL AND completion_event_id IS NULL)
+          OR (status='succeeded' AND completed_at IS NOT NULL AND evidence_id IS NOT NULL AND failure_code IS NULL AND completion_event_id IS NOT NULL)
+          OR (status IN ('failed','indeterminate') AND completed_at IS NOT NULL AND evidence_id IS NULL
+            AND failure_category IS NOT NULL AND failure_classification IS NOT NULL AND length(trim(failure_code)) > 0
+            AND length(trim(failure_summary)) > 0 AND completion_event_id IS NOT NULL))
+      ) STRICT;
+      CREATE INDEX idx_research_provider_executions_request ON research_provider_executions(request_id, started_at, id);
+      CREATE TRIGGER research_provider_executions_no_delete BEFORE DELETE ON research_provider_executions
+        BEGIN SELECT RAISE(ABORT, 'research provider executions cannot be deleted'); END;
+      CREATE TRIGGER research_provider_executions_terminal_no_update BEFORE UPDATE ON research_provider_executions
+        WHEN OLD.status <> 'running' BEGIN SELECT RAISE(ABORT, 'terminal research provider executions are immutable'); END;
+    `);
+  },
+};
+
 export const migrations: readonly Migration[] = [migration001, migration002, migration003, migration004, migration005,
   migration006, migration007, migration008, migration009, migration010, migration011, migration012, migration013,
-  migration014, migration015, migration016];
+  migration014, migration015, migration016, migration017];
 
 export function migrate(database: DatabaseSync): number {
   database.exec(`

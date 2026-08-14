@@ -21,6 +21,7 @@ import type {
   ReconciliationDecisionId,
   CircuitId, CircuitTransitionId, CircuitEvidenceId, CircuitProbeId,
   InputRevisionId, ReplanningDecisionId, ResearchRequestId, ResearchEvidenceId, ResearchDecisionId,
+  ResearchProviderExecutionId,
 } from './ids.js';
 
 export type IsoTimestamp = string;
@@ -201,6 +202,28 @@ export interface ResearchRecoveryLink {
   failureId: FailureId;
   diagnosisId: FailureDiagnosisId;
   linkedAt: IsoTimestamp;
+}
+
+export type ResearchProviderExecutionStatus = 'running' | 'succeeded' | 'failed' | 'indeterminate';
+
+export interface ResearchProviderExecution {
+  id: ResearchProviderExecutionId;
+  requestId: ResearchRequestId;
+  resolutionDecisionId: ResolutionDecisionId;
+  providerId: ProviderId;
+  offeringId: ProviderOfferingId;
+  providerContractVersion: number;
+  idempotencyKey: string;
+  status: ResearchProviderExecutionStatus;
+  startedAt: IsoTimestamp;
+  completedAt?: IsoTimestamp;
+  evidenceId?: ResearchEvidenceId;
+  failureCategory?: Failure['category'];
+  failureClassification?: Failure['classification'];
+  failureCode?: string;
+  failureSummary?: string;
+  startEventId: EventId;
+  completionEventId?: EventId;
 }
 
 export type AttemptStatus = 'created' | 'running' | 'succeeded' | 'failed' | 'cancelled' | 'indeterminate';

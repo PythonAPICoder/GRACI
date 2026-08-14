@@ -9,10 +9,12 @@ import { reconcileExternalOutcome, type ReconciliationCommand,
 import { diagnosePersistedFailure, inspectQueue, MinimalOrchestrator, recoverWithAlternative,
   acquireCircuitProbe, claimCircuitProbe, inspectCircuits, recordCircuitFailure, recordCircuitProbeOutcome,
   authorizeInputRevision, authorizeReplanning, createResearchRequest, recordResearchEvidence, decideResearchEvidence,
+  executeResearchRequest,
   type AcquireCircuitProbeCommand, type AlternativeRecoveryCommand, type OrchestratorOptions,
   type ClaimCircuitProbeCommand, type RecordCircuitFailureCommand, type RecordCircuitProbeOutcomeCommand,
   type AuthorizeInputRevisionCommand, type AuthorizeReplanningCommand, type CreateResearchRequestCommand,
-  type RecordResearchEvidenceCommand, type DecideResearchEvidenceCommand } from '../workflow/index.js';
+  type RecordResearchEvidenceCommand, type DecideResearchEvidenceCommand, type ExecuteResearchRequestCommand,
+  type ExecuteResearchRequestOptions } from '../workflow/index.js';
 
 export interface Architecture2RuntimeConfiguration {
   databasePath: string;
@@ -115,6 +117,14 @@ export class Architecture2Runtime implements Disposable {
 
   inspectAcceptedResearchEvidence(requestId: CreateResearchRequestCommand['id']) {
     return this.persistence.getAcceptedResearchEvidence(requestId);
+  }
+
+  executeResearchRequest(command: ExecuteResearchRequestCommand, options: ExecuteResearchRequestOptions) {
+    return executeResearchRequest(this.persistence, command, options);
+  }
+
+  inspectResearchProviderExecutions(requestId: CreateResearchRequestCommand['id']) {
+    return this.persistence.getResearchProviderExecutions(requestId);
   }
 
   inspectCircuits() {

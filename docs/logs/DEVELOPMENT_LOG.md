@@ -1,5 +1,12 @@
 # G.R.A.C.I. Phase 1 — Development Log
 
+## Architecture 2 Phase 1T - Governed Research Provider Execution - August 14, 2026
+
+- Added Addendum 025, a provider-neutral Research Provider contract, caller-invoked execution coordinator, schema 17 execution provenance/failure history, runtime execution/inspection APIs, and focused tests.
+- Reused deterministic provider resolution, qualification, health, privacy/contract constraints, and provider-offering circuit rejection. Exact current Research Request authority and duplicate exclusion are revalidated under `BEGIN IMMEDIATE` before invocation.
+- Successful provider output enters Phase 1R as unaccepted evidence. Known and indeterminate failures are durable and create no evidence, retry, provider switch, Task mutation, or recovery authority. Unknown remains stopped.
+- Final verification passed: 7/7 focused Phase 1T tests, 74/74 research/provider/recovery regressions after fixture correction, 74/74 persistence/runtime/orchestration regressions, 239/239 full tests, TypeScript validation, production build, schema-17 migration/reopen, Electron startup, and diff hygiene.
+
 ## Architecture 2 Phase 1S - Research-Assisted Recovery - August 14, 2026
 
 - Added Addendum 024, schema 16, immutable generic research-recovery links, optional exact evidence citations on existing input-revision/replanning commands, persistence inspection, and runtime inspection wrappers.

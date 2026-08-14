@@ -2,9 +2,9 @@
 
 > **Living document:** Update this file whenever Architecture 2 module boundaries, lifecycle behavior, persistence authority, runtime composition, or intentionally deferred capabilities change. This is an implementation map, not immutable governance. The master specification and numbered addenda under `docs/governance/` remain authoritative.
 
-**Architecture represented:** Current Phase 1S research-assisted recovery
+**Architecture represented:** Current Phase 1T governed research provider execution
 
-**Implementation working tree starting basis:** clean main repository HEAD `8201eb8`
+**Implementation working tree starting basis:** clean main repository HEAD `1026f6d`
 
 ## System Shape
 
@@ -21,7 +21,7 @@ Architecture 2 is a TypeScript modular monolith under `src/architecture2/` with 
 - `workflow/`: state machine, dependency evaluation, graph validation, deterministic scheduling, orchestration, queue inspection, trusted deterministic failure diagnosis, bounded recovery, governed Task/graph revision, and governed research records.
 - `execution/`: provider-neutral Task execution contract and deterministic test provider.
 - `verification/`: independent Task verification contract and deterministic verifier.
-- `providers/`: capability/provider resolution and Ollama Model Provider adapter.
+- `providers/`: capability/provider resolution, versioned Model and Research Provider contracts, and Ollama Model Provider adapter.
 - `resources/`: Node inspection, deterministic resource scheduling, process snapshots, and workstation availability policy.
 - `reconciliation/`: provider-neutral external-outcome evidence and trusted reconciliation conclusions.
 - `legacy/`: read-only Architecture 1 state assessment and inert history import.
@@ -63,7 +63,7 @@ SQLite is G.R.A.C.I.'s notebook. The assistant does not rely on remembering what
 
 `SqliteArchitecture2Persistence` is the current authoritative store behind `Architecture2Persistence`. Callers supply the database path. The implementation uses built-in `node:sqlite`, foreign keys, strict tables, WAL mode, `synchronous = FULL`, a busy timeout, and `BEGIN IMMEDIATE` write transactions.
 
-Current schema version is 16. Phase 1S adds immutable one-use research recovery links from accepted evidence to an exact Input Revision or Replanning Decision while retaining all earlier authority records unchanged.
+Current schema version is 17. Phase 1T adds durable one-per-request research-provider execution history linked to exact provider resolution, Provider, offering, evidence or normalized failure, and audit Events.
 
 Important invariants include:
 
@@ -78,6 +78,7 @@ Important invariants include:
 - New Orchestrator Failures atomically write their diagnosis, disposition, Task transition, and Events.
 - Diagnosis and changed-condition records are append-only and survive close/reopen reconstruction.
 - Research lifecycle is derived from immutable request, evidence, and decision records; accepted evidence remains information rather than independent authority, with Phase 1S permitting only an explicit one-use citation on the existing governed input-revision or replanning command.
+- Research-provider execution revalidates current request authority and persists its exact selected route before invocation; success atomically records unaccepted Phase 1R evidence, while known and indeterminate failures record no evidence or recovery authority.
 - Accepted research evidence becomes relevant only when explicitly cited by an existing input-revision or replanning command; exact chain validation and linkage insertion occur in that action's `BEGIN IMMEDIATE` transaction.
 - Reconciliation history is immutable, source-attributed, idempotent, and reconstructed with its lifecycle and consumption relationships.
 - Circuit transitions and evidence are immutable; probe claim and consumption are transactional and bound to exact routing and Attempt identities.
@@ -211,6 +212,8 @@ Qualification is explicit evidence; provider availability or model inventory doe
 
 `OllamaModelProvider` implements a versioned boundary for health/version inspection, model inventory, and bounded non-streaming text generation. It is caller-configured and independent of Architecture 1 singleton registries. Cloud routing, streaming, multimodal generation, embeddings, tool calling, and automatic qualification are deferred.
 
+`ResearchProvider` is a separate versioned provider-neutral boundary for one bounded Research Request. The caller binds the exact resolved offering to an adapter. Provider output records information only; no direct web/search or vendor adapter is included.
+
 ## Nodes and Resources
 
 ### Simple Explanation
@@ -343,7 +346,7 @@ Major deferred capabilities include:
 - Distributed locks, multiple Orchestrators, remote workers, and high availability.
 - Dynamic load balancing, dynamic concurrency, speculative execution, and priority displacement.
 - Automatic discovery, polling, monitoring, and scheduler-triggered workstation policy.
-- Research-provider execution, web/model research, evidence consumption beyond the explicit Phase 1S input-revision/replanning citation, automatic recovery, and recovery dispositions beyond the separately governed existing paths.
+- Direct web/search integration, autonomous research, provider retry/switching, evidence consumption beyond the explicit Phase 1S input-revision/replanning citation, automatic recovery, and recovery dispositions beyond the separately governed existing paths.
 - Purpose-specific memory and retrieval.
 - Broad tool, agent, cloud, productivity, voice, media, notification, and UI integration.
 - Architecture 2 Electron authority cutover and production hardening.

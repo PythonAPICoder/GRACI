@@ -1,5 +1,10 @@
 # G.R.A.C.I. Phase 1 — Autonomous Recovery and Continuation
 
+## 2026-08-14 - Phase 1T Current-Schema Fixture Correction
+
+- The first related regression run passed provider resolution but Phase 1R retained a schema-16 assertion and its synthetic schema-14 rollback left the new schema-17 table in place.
+- Updated current-version assertions to 17 and made the synthetic rollback remove schema-17 objects before migration replay. No production migration defect was present.
+
 ## 2026-08-14 - Phase 1R TypeScript Collection Declaration Correction
 
 - Initial TypeScript validation rejected `readonly Array<...>` because TypeScript permits the `readonly` modifier only on array and tuple literal types.

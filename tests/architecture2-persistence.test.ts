@@ -124,7 +124,7 @@ describe('Architecture 2 SQLite persistence', () => {
   }
 
   it('initializes a new database through the current schema version', () => {
-    expect(persistence.getSchemaVersion()).toBe(16);
+    expect(persistence.getSchemaVersion()).toBe(17);
     expect(persistence.getEvents()).toEqual([]);
   });
 
@@ -288,7 +288,7 @@ describe('Architecture 2 SQLite persistence', () => {
     second.initialize();
     try {
       persistence.appendEvent(event('first', 'first.created'));
-      expect(second.getSchemaVersion()).toBe(16);
+      expect(second.getSchemaVersion()).toBe(17);
       expect(second.getEvents()).toEqual([]);
     } finally {
       second.close();
@@ -338,7 +338,7 @@ describe('Architecture 2 SQLite persistence', () => {
 
     persistence = new SqliteArchitecture2Persistence({ databasePath });
     persistence.initialize();
-    expect(persistence.getSchemaVersion()).toBe(16);
+    expect(persistence.getSchemaVersion()).toBe(17);
     expect(persistence.getTask(asIdentifier<'Task'>('legacy-task'))?.status).toBe('failed');
     const failures = persistence.getFailures(asIdentifier<'Task'>('legacy-task'));
     expect(failures).toHaveLength(5);
@@ -381,7 +381,7 @@ describe('Architecture 2 SQLite persistence', () => {
     prior.close();
     persistence = new SqliteArchitecture2Persistence({ databasePath });
     persistence.initialize();
-    expect(persistence.getSchemaVersion()).toBe(16);
+    expect(persistence.getSchemaVersion()).toBe(17);
     expect(persistence.getAttempts(asIdentifier<'Task'>('old-task')).map((value) => value.id)).toEqual(['old-attempt']);
   });
 
@@ -429,7 +429,7 @@ describe('Architecture 2 SQLite persistence', () => {
     persistence = new SqliteArchitecture2Persistence({ databasePath });
     persistence.initialize();
 
-    expect(persistence.getSchemaVersion()).toBe(16);
+    expect(persistence.getSchemaVersion()).toBe(17);
     expect(persistence.getGoal(asIdentifier<'Goal'>('schema3-goal'))?.goal).toMatchObject({
       id: 'schema3-goal', objective: 'Preserve schema 3', constraints: { constraint: 'retained' }, version: 2,
     });
@@ -588,7 +588,7 @@ describe('Architecture 2 SQLite persistence', () => {
     prior.close();
     persistence = new SqliteArchitecture2Persistence({ databasePath });
     persistence.initialize();
-    expect(persistence.getSchemaVersion()).toBe(16);
+    expect(persistence.getSchemaVersion()).toBe(17);
     expect(persistence.getNodes()).toEqual([{ id: 'old-node', name: 'Old Node', administrativeState: 'draining',
       configurationReference: 'config:old', createdAt: NOW, version: 1 }]);
   });
@@ -655,7 +655,7 @@ describe('Architecture 2 SQLite persistence', () => {
     prior.close();
     persistence = new SqliteArchitecture2Persistence({ databasePath });
     persistence.initialize();
-    expect(persistence.getSchemaVersion()).toBe(16);
+    expect(persistence.getSchemaVersion()).toBe(17);
     expect(persistence.getNodes()).toEqual([{ id: 'schema6-node', name: 'Schema 6 Node', administrativeState: 'draining',
       configurationReference: 'config:schema6', createdAt: NOW, version: 3 }]);
     expect(persistence.getWorkstationWorkloadEvaluations(asIdentifier<'Node'>('schema6-node'))).toEqual([]);

@@ -1,5 +1,12 @@
 # G.R.A.C.I. Engineering Decision Log
 
+### DEC-0021 - Phase 1T Separate Research Execution Authority
+
+- **Date:** 2026-08-14
+- Keep Research Request execution separate from canonical Task Attempts and reuse the existing provider resolver, qualification, health, and offering-circuit filters.
+- Persist one schema-17 execution per request before invocation, bound to the exact resolution, Provider, offering, contract version, and idempotency key.
+- Atomically finalize success with unaccepted Phase 1R evidence or finalize a bounded known/indeterminate failure without retry or recovery authority.
+
 ### DEC-0020 - Phase 1S Exact Research Support Linkage
 
 - **Date:** 2026-08-14

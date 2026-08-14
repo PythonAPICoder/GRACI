@@ -2,9 +2,9 @@
 
 > **Living document:** Update this file whenever an Architecture 2 phase changes implemented behavior, verification evidence, runtime authority, major limitations, or the recommended next phase. Governance under `docs/governance/` remains authoritative when this summary differs from an approved specification.
 
-**Implementation working tree starting basis:** clean main repository HEAD `8201eb8`
+**Implementation working tree starting basis:** clean main repository HEAD `1026f6d`
 
-**Current implementation:** Architecture 2 Phase 1S, Research-Assisted Recovery (`ADDENDUM_024_ARCHITECTURE_2_PHASE_1S.md`)
+**Current implementation:** Architecture 2 Phase 1T, Governed Research Provider Execution (`ADDENDUM_025_ARCHITECTURE_2_PHASE_1T.md`)
 
 ## Product Direction
 
@@ -26,7 +26,7 @@ The project has built G.R.A.C.I.'s notebook, work checklist, traffic controller,
 
 ### Technical Detail
 
-Implemented Architecture 2 work through Phase 1S includes:
+Implemented Architecture 2 work through Phase 1T includes:
 
 - **Foundation and Phase 1A:** canonical identifiers and records, SQLite persistence, migrations, transactional state-plus-event writes, optimistic versions, immutable history, and hash-chained events.
 - **Phase 1B:** guarded Task lifecycle, persisted DAG execution, deterministic verification, and conservative interrupted-work recovery.
@@ -47,8 +47,9 @@ Implemented Architecture 2 work through Phase 1S includes:
 - **Phase 1Q:** caller-invoked atomic replacement of safe unfinished graph work after exact governed replanning authority, with immutable lineage, explicit mappings, active-revision concurrency, and normal scheduling controls.
 - **Phase 1R:** caller-invoked failure-scoped Research Requests, immutable supplier evidence, separate accepted/rejected decisions, derived lifecycle, and information-only inspection with no execution authority.
 - **Phase 1S:** optional exact accepted-research citations on existing input-revision and replanning commands, transactionally validated current-chain admission, one-use immutable support linkage, and inspection by recovery identity.
+- **Phase 1T:** caller-invoked execution of one current Research Request through an eligible qualified provider offering, with exact route provenance, durable failure/indeterminate outcomes, unaccepted evidence, and duplicate-safe restart reconstruction.
 
-The precise governed boundaries are in `docs/governance/ADDENDUM_006_ARCHITECTURE_2_PHASE_1A.md` through `ADDENDUM_024_ARCHITECTURE_2_PHASE_1S.md`.
+The precise governed boundaries are in `docs/governance/ADDENDUM_006_ARCHITECTURE_2_PHASE_1A.md` through `ADDENDUM_025_ARCHITECTURE_2_PHASE_1T.md`.
 
 ## What Works Today
 
@@ -109,7 +110,7 @@ Not currently implemented or not connected as live product behavior:
 - Distributed locking, multiple active Orchestrators, remote workers, or high availability.
 - Dynamic concurrency optimization, load balancing, priority displacement, or speculative execution.
 - Automatic node discovery, background health polling, or scheduler-triggered workstation evaluation/application.
-- Research-provider execution, web/model research, automatic evidence-driven action selection, background reconciliation, adaptive/background circuit operation, or execution of other Phase 1L recovery dispositions.
+- Direct web/search integration, autonomous research, automatic evidence acceptance or action selection, provider retries/switching, background reconciliation, adaptive/background circuit operation, or execution of other Phase 1L recovery dispositions.
 - Purpose-specific working, episodic, semantic, procedural, and preference memory.
 - Complete observability UI, cost reporting, traces, notifications, voice, productivity integrations, and broad autonomous actions.
 
@@ -138,10 +139,10 @@ The recorded automated checks are green, including schema migration, database cl
 Current Phase 1S agent evidence in `docs/logs/TEST_LOG.md`:
 
 - TypeScript validation: PASS.
-- Full automated regression suite: **232/232 passed** across 22 files.
-- Dedicated Phase 1S tests: **7/7 passed**; research/recovery regressions: **69/69 passed**; persistence/runtime/orchestration regressions: **89/89 passed**.
-- Schema-16 migration from populated schema 15, SQLite close/reopen reconstruction, and persisted-link corruption diagnostics are covered by the Phase 1S focused run.
-- Production build: PASS. Persistence, runtime/import, Orchestrator, provider-resolution, and resource-scheduling regressions: **89/89 passed**.
+- Full automated regression suite: **239/239 passed** across 23 files.
+- Dedicated Phase 1T tests: **7/7 passed**; research/provider/recovery regression set passed after correcting two synthetic downgrade fixtures; persistence/runtime/orchestration regressions: **74/74 passed**.
+- Schema-17 migration from populated schema 16, SQLite close/reopen reconstruction, duplicate exclusion, exact provenance, and unknown-outcome stop behavior are covered by the Phase 1T focused run.
+- Production build: PASS. TypeScript validation: PASS.
 - Electron startup regression: PASS; the application remained alive for five seconds, emitted `Electron app starting`, and produced empty stderr before controlled shutdown.
 - Diff whitespace hygiene: PASS.
 - Architecture 1 remains the configured live Electron authority; Phase 1S did not alter startup composition.
@@ -192,7 +193,7 @@ Phase 1S is implemented. G.R.A.C.I. can explicitly cite exact accepted evidence 
 
 ### Technical Detail
 
-Architecture 2 Phase 1S is the current implemented phase. Research remains caller-invoked and information-only unless one exact accepted evidence identity is explicitly supplied to the existing governed input-revision or replanning action. Autonomous research, automatic action selection, evidence-driven retry, cancellation, distributed execution, UI work, Electron authority cutover, and automatic/background recovery remain deferred.
+Architecture 2 Phase 1T is the current implemented phase. One existing authorized Research Request may be explicitly executed through an eligible qualified provider offering. Successful output remains unaccepted information; indeterminate outcomes stop. Direct web/search integration, autonomous research, retries, automatic action selection, cancellation, distributed execution, UI work, Electron authority cutover, and automatic/background recovery remain deferred.
 
 ## Reconstruction Pointers
 

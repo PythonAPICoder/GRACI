@@ -31,7 +31,7 @@ import type {
   CircuitRecord, CircuitTransition, CircuitEvidence, CircuitProbe, CircuitBreakerPolicy, CircuitTargetType,
   InputRevision, InputRevisionId, ReplanningDecision, ReplanningDecisionId,
   ResearchRequest, ResearchRequestId, ResearchEvidence, ResearchEvidenceId, ResearchDecision, ResearchRequestInspection,
-  ResearchRecoveryLink,
+  ResearchRecoveryLink, ResearchProviderExecution,
 } from '../../domain/index.js';
 import { assertIdentifier } from '../../domain/index.js';
 import type {
@@ -1433,6 +1433,103 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
       .map((row) => this.mapResearchEvidence(row));
   }
 
+  startResearchProviderExecution(value: ResearchProviderExecution, event: AuditEventInput): ResearchProviderExecution {
+    return this.transaction(() => {
+      const existing = this.db().prepare('SELECT * FROM research_provider_executions WHERE request_id=?')
+        .get(value.requestId) as Row | undefined;
+      if (existing) throw new Error(`Research Request already has provider execution authority: ${value.requestId}`);
+      this.validateResearchProviderExecution(value);
+      if (value.status !== 'running' || value.completedAt || value.evidenceId || value.failureCode || value.completionEventId) {
+        throw new Error('Research provider execution must begin in running state');
+      }
+      const request = this.getResearchRequest(value.requestId);
+      const resolution = this.getProviderResolution(value.resolutionDecisionId);
+      const offering = this.getProviderOfferings().find((item) => item.id === value.offeringId);
+      const provider = this.getProvider(value.providerId);
+      const latestAttempt = request ? this.db().prepare('SELECT id,status FROM attempts WHERE task_id=? ORDER BY attempt_number DESC,id DESC LIMIT 1')
+        .get(request.taskId) as Row | undefined : undefined;
+      const latestFailure = request ? this.db().prepare(`SELECT id FROM failures WHERE task_id=? AND attempt_id=?
+        ORDER BY created_at DESC,id DESC LIMIT 1`).get(request.taskId, request.attemptId) as Row | undefined : undefined;
+      const task = request ? this.getTask(request.taskId) : undefined;
+      const diagnosis = request ? this.getFailureDiagnosisById(request.diagnosisId) : undefined;
+      if (!request || !task || task.status !== 'failed' || latestAttempt?.id !== request.attemptId || latestAttempt.status !== 'failed' ||
+          latestFailure?.id !== request.failureId || !diagnosis || diagnosis.disposition !== 'research_recommended' ||
+          diagnosis.outcomeCertainty !== 'proven_unsuccessful' || resolution?.selectedOfferingId !== value.offeringId ||
+          resolution.request.id !== value.resolutionDecisionId || !offering || offering.providerId !== value.providerId || !provider) {
+        throw new Error('Research provider execution authority is stale, invalid, or mismatched');
+      }
+      if (this.getOfferingLocations(offering.id).length > 0) {
+        throw new Error('Research provider offering requires governed Node/resource binding');
+      }
+      if (event.id !== value.startEventId || event.aggregateType !== 'research_provider_execution' ||
+          event.aggregateId !== value.id || event.eventType !== 'research.provider-execution-started' ||
+          event.occurredAt !== value.startedAt) throw new Error('Research provider execution start Event mismatch');
+      this.insertEvent(event);
+      this.db().prepare(`INSERT INTO research_provider_executions
+        (id,request_id,resolution_decision_id,provider_id,offering_id,provider_contract_version,idempotency_key,status,
+         started_at,completed_at,evidence_id,failure_category,failure_classification,failure_code,failure_summary,
+         start_event_id,completion_event_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(value.id, value.requestId,
+          value.resolutionDecisionId, value.providerId, value.offeringId, value.providerContractVersion,
+          value.idempotencyKey, value.status, value.startedAt, null, null, null, null, null, null, value.startEventId, null);
+      return value;
+    });
+  }
+
+  completeResearchProviderExecution(value: ResearchProviderExecution, evidence: ResearchEvidence | undefined,
+    events: readonly AuditEventInput[]): ResearchProviderExecution {
+    return this.transaction(() => {
+      const row = this.db().prepare('SELECT * FROM research_provider_executions WHERE id=?').get(value.id) as Row | undefined;
+      if (!row) throw new Error(`Research provider execution not found: ${value.id}`);
+      const current = this.mapResearchProviderExecution(row);
+      if (current.status !== 'running') {
+        if (canonicalize(current) === canonicalize(value)) return current;
+        throw new Error(`Research provider execution already terminal: ${value.id}`);
+      }
+      this.validateResearchProviderExecution(value);
+      if (value.status === 'running' || !value.completedAt || !value.completionEventId ||
+          value.requestId !== current.requestId || value.resolutionDecisionId !== current.resolutionDecisionId ||
+          value.providerId !== current.providerId || value.offeringId !== current.offeringId ||
+          value.idempotencyKey !== current.idempotencyKey || value.startEventId !== current.startEventId) {
+        throw new Error('Research provider execution completion mismatch');
+      }
+      const completionEvent = events.find((event) => event.id === value.completionEventId);
+      if (!completionEvent || completionEvent.aggregateType !== 'research_provider_execution' ||
+          completionEvent.aggregateId !== value.id || completionEvent.occurredAt !== value.completedAt) {
+        throw new Error('Research provider execution completion Event mismatch');
+      }
+      if (value.status === 'succeeded') {
+        if (!evidence || value.evidenceId !== evidence.id || evidence.requestId !== value.requestId || events.length !== 2) {
+          throw new Error('Successful research provider execution requires exact evidence');
+        }
+        this.validateResearchEvidence(evidence);
+        const evidenceEvent = events.find((event) => event.id === evidence.eventId);
+        if (!evidenceEvent || evidenceEvent.aggregateType !== 'research_request' || evidenceEvent.aggregateId !== value.requestId ||
+            evidenceEvent.eventType !== 'research.evidence-recorded') throw new Error('Research provider evidence Event mismatch');
+        this.insertEvents(events);
+        this.db().prepare(`INSERT INTO research_evidence
+          (id,request_id,supplier_id,supplier_type,supplied_at,source,reference,content_json,integrity_json,recorded_by,recorded_at,event_id)
+          VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`).run(evidence.id, evidence.requestId, evidence.supplierId, evidence.supplierType,
+            evidence.suppliedAt, evidence.source, evidence.reference, json(evidence.content), evidence.integrity ? json(evidence.integrity) : null,
+            evidence.recordedBy, evidence.recordedAt, evidence.eventId);
+      } else {
+        if (evidence || events.length !== 1 || !value.failureCategory || !value.failureClassification ||
+            !value.failureCode?.trim() || !value.failureSummary?.trim()) throw new Error('Failed research provider execution requires bounded failure evidence');
+        this.insertEvent(completionEvent);
+      }
+      this.db().prepare(`UPDATE research_provider_executions SET status=?,completed_at=?,evidence_id=?,failure_category=?,
+        failure_classification=?,failure_code=?,failure_summary=?,completion_event_id=? WHERE id=? AND status='running'`)
+        .run(value.status, value.completedAt, value.evidenceId ?? null, value.failureCategory ?? null,
+          value.failureClassification ?? null, value.failureCode ?? null, value.failureSummary ?? null,
+          value.completionEventId, value.id);
+      return value;
+    });
+  }
+
+  getResearchProviderExecutions(requestId: ResearchRequestId): ResearchProviderExecution[] {
+    return (this.db().prepare(`SELECT * FROM research_provider_executions WHERE request_id=? ORDER BY started_at,id`)
+      .all(requestId) as Row[]).map((row) => this.mapResearchProviderExecution(row));
+  }
+
   recordCircuitEvidence(targetType: CircuitTargetType, targetId: string, diagnosis: FailureDiagnosis,
     policy: CircuitBreakerPolicy, evidence: CircuitEvidence, transition: CircuitTransition | undefined,
     event: AuditEventInput): CircuitRecord {
@@ -2380,6 +2477,54 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
     if (!value.question.trim() || value.question.length > 4000 || !value.purpose.trim() || value.purpose.length > 2000 ||
         !value.requestedBy.trim() || value.requestedBy.length > 256) throw new Error('Research request fields are missing or exceed bounds');
     if (new Date(value.requestedAt).toISOString() !== value.requestedAt) throw new Error('Research request time must be canonical UTC');
+  }
+
+  private validateResearchProviderExecution(value: ResearchProviderExecution): void {
+    for (const [id, label] of [[value.id, 'execution'], [value.requestId, 'request'],
+      [value.resolutionDecisionId, 'resolution decision'], [value.providerId, 'provider'],
+      [value.offeringId, 'offering'], [value.startEventId, 'start Event']] as const) {
+      assertIdentifier(id, `research provider ${label} id`);
+    }
+    if (value.completionEventId) assertIdentifier(value.completionEventId, 'research provider completion Event id');
+    if (value.evidenceId) assertIdentifier(value.evidenceId, 'research provider evidence id');
+    if (!Number.isInteger(value.providerContractVersion) || value.providerContractVersion < 1 ||
+        !value.idempotencyKey.trim() || value.idempotencyKey.length > 256 ||
+        !['running', 'succeeded', 'failed', 'indeterminate'].includes(value.status)) {
+      throw new Error('Research provider execution fields are invalid');
+    }
+    validateTimestamp(value.startedAt, 'research provider execution start timestamp');
+    if (value.completedAt) validateTimestamp(value.completedAt, 'research provider execution completion timestamp');
+    if (value.failureCategory && !FAILURE_CATEGORIES.has(value.failureCategory)) throw new Error('Invalid research provider failure category');
+    if (value.failureClassification && !FAILURE_CLASSIFICATIONS.has(value.failureClassification)) {
+      throw new Error('Invalid research provider failure classification');
+    }
+  }
+
+  private mapResearchProviderExecution(row: Row): ResearchProviderExecution {
+    const value: ResearchProviderExecution = {
+      id: String(row.id) as ResearchProviderExecution['id'], requestId: String(row.request_id) as ResearchRequestId,
+      resolutionDecisionId: String(row.resolution_decision_id) as ResearchProviderExecution['resolutionDecisionId'],
+      providerId: String(row.provider_id) as ResearchProviderExecution['providerId'],
+      offeringId: String(row.offering_id) as ResearchProviderExecution['offeringId'],
+      providerContractVersion: Number(row.provider_contract_version), idempotencyKey: String(row.idempotency_key),
+      status: String(row.status) as ResearchProviderExecution['status'], startedAt: String(row.started_at),
+      completedAt: optionalString(row.completed_at), evidenceId: row.evidence_id === null ? undefined : String(row.evidence_id) as ResearchEvidenceId,
+      failureCategory: row.failure_category === null ? undefined : String(row.failure_category) as Failure['category'],
+      failureClassification: row.failure_classification === null ? undefined : String(row.failure_classification) as Failure['classification'],
+      failureCode: optionalString(row.failure_code), failureSummary: optionalString(row.failure_summary),
+      startEventId: String(row.start_event_id) as ResearchProviderExecution['startEventId'],
+      completionEventId: row.completion_event_id === null ? undefined : String(row.completion_event_id) as ResearchProviderExecution['completionEventId'],
+    };
+    try { this.validateResearchProviderExecution(value); } catch (error) {
+      throw new Error(`Corrupt persisted Research Provider Execution: ${value.id}`, { cause: error });
+    }
+    const terminal = value.status !== 'running';
+    if (terminal !== Boolean(value.completedAt) || terminal !== Boolean(value.completionEventId) ||
+        (value.status === 'succeeded') !== Boolean(value.evidenceId) ||
+        (['failed', 'indeterminate'].includes(value.status)) !== Boolean(value.failureCode)) {
+      throw new Error(`Corrupt persisted Research Provider Execution: ${value.id}`);
+    }
+    return value;
   }
 
   private validateResearchRecoveryEvidence(evidenceId: ResearchEvidenceId, goalId: GoalId, taskId: TaskId,
