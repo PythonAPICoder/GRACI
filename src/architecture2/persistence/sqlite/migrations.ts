@@ -542,8 +542,73 @@ const migration008: Migration = {
   },
 };
 
+const migration009: Migration = {
+  version: 9,
+  name: 'architecture_2_phase_1l_failure_diagnosis',
+  up(database) {
+    database.exec(`
+      CREATE TABLE failure_diagnoses (
+        id TEXT PRIMARY KEY,
+        failure_id TEXT NOT NULL REFERENCES failures(id) ON DELETE RESTRICT,
+        task_id TEXT NOT NULL REFERENCES tasks(id) ON DELETE RESTRICT,
+        attempt_id TEXT REFERENCES attempts(id) ON DELETE RESTRICT,
+        verification_id TEXT REFERENCES verifications(id) ON DELETE RESTRICT,
+        approval_id TEXT REFERENCES approvals(id) ON DELETE RESTRICT,
+        provider_offering_id TEXT,
+        compute_node_id TEXT,
+        offering_location_id TEXT REFERENCES offering_locations(id) ON DELETE RESTRICT,
+        cause TEXT NOT NULL CHECK (cause IN ('transient_infrastructure','resource_unavailable',
+          'provider_or_capability_mismatch','invalid_input_or_precondition','policy_or_approval','execution_defect',
+          'verification_failure','external_outcome_indeterminate','cancelled_or_preempted','unknown')),
+        outcome_certainty TEXT NOT NULL CHECK (outcome_certainty IN ('proven_completed','proven_unsuccessful',
+          'indeterminate_external_outcome','insufficient_or_malformed_evidence')),
+        retryable INTEGER NOT NULL CHECK (retryable IN (0,1)),
+        retry_reason TEXT NOT NULL CHECK (length(trim(retry_reason)) > 0),
+        disposition TEXT NOT NULL CHECK (disposition IN ('terminal_failure','retry_same_path',
+          'alternative_offering_recommended','alternative_node_recommended','reconciliation_required',
+          'approval_required','input_revision_required','replanning_recommended','research_recommended')),
+        diagnostic_reason TEXT NOT NULL CHECK (length(trim(diagnostic_reason)) > 0),
+        policy_id TEXT NOT NULL CHECK (length(trim(policy_id)) > 0),
+        policy_version INTEGER NOT NULL CHECK (policy_version >= 1),
+        evidence_fingerprint TEXT NOT NULL CHECK (length(evidence_fingerprint) = 64),
+        diagnosed_by TEXT NOT NULL CHECK (length(trim(diagnosed_by)) > 0),
+        diagnosed_at TEXT NOT NULL,
+        event_id TEXT NOT NULL UNIQUE REFERENCES events(id) ON DELETE RESTRICT,
+        UNIQUE (failure_id, policy_id, policy_version),
+        CHECK (disposition <> 'retry_same_path' OR retryable = 1),
+        CHECK (cause <> 'external_outcome_indeterminate' OR
+          (outcome_certainty = 'indeterminate_external_outcome' AND retryable = 0 AND disposition = 'reconciliation_required'))
+      ) STRICT;
+      CREATE INDEX idx_failure_diagnoses_task ON failure_diagnoses(task_id, diagnosed_at, id);
+      CREATE INDEX idx_failure_diagnoses_failure ON failure_diagnoses(failure_id, policy_id, policy_version);
+
+      CREATE TABLE changed_condition_evidence (
+        id TEXT PRIMARY KEY,
+        diagnosis_id TEXT NOT NULL REFERENCES failure_diagnoses(id) ON DELETE RESTRICT,
+        condition_type TEXT NOT NULL CHECK (length(trim(condition_type)) BETWEEN 1 AND 128),
+        prior_fact_reference TEXT CHECK (prior_fact_reference IS NULL OR length(prior_fact_reference) BETWEEN 1 AND 512),
+        changed_fact_reference TEXT CHECK (changed_fact_reference IS NULL OR length(changed_fact_reference) BETWEEN 1 AND 512),
+        source TEXT NOT NULL CHECK (length(trim(source)) BETWEEN 1 AND 128),
+        observed_at TEXT NOT NULL,
+        event_id TEXT NOT NULL UNIQUE REFERENCES events(id) ON DELETE RESTRICT,
+        CHECK (prior_fact_reference IS NOT NULL OR changed_fact_reference IS NOT NULL)
+      ) STRICT;
+      CREATE INDEX idx_changed_condition_diagnosis ON changed_condition_evidence(diagnosis_id, observed_at, id);
+
+      CREATE TRIGGER failure_diagnoses_no_update BEFORE UPDATE ON failure_diagnoses
+        BEGIN SELECT RAISE(ABORT, 'failure diagnoses are immutable'); END;
+      CREATE TRIGGER failure_diagnoses_no_delete BEFORE DELETE ON failure_diagnoses
+        BEGIN SELECT RAISE(ABORT, 'failure diagnoses are immutable'); END;
+      CREATE TRIGGER changed_condition_evidence_no_update BEFORE UPDATE ON changed_condition_evidence
+        BEGIN SELECT RAISE(ABORT, 'changed-condition evidence is immutable'); END;
+      CREATE TRIGGER changed_condition_evidence_no_delete BEFORE DELETE ON changed_condition_evidence
+        BEGIN SELECT RAISE(ABORT, 'changed-condition evidence is immutable'); END;
+    `);
+  },
+};
+
 export const migrations: readonly Migration[] = [migration001, migration002, migration003, migration004, migration005,
-  migration006, migration007, migration008];
+  migration006, migration007, migration008, migration009];
 
 export function migrate(database: DatabaseSync): number {
   database.exec(`

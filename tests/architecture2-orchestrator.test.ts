@@ -203,6 +203,8 @@ describe('Architecture 2 Phase 1B workflow kernel', () => {
     expect(result.status).toBe('failed');
     expect(persistence.getTask(taskId('task-a'))?.status).toBe('failed');
     expect(persistence.getTask(taskId('task-b'))?.status).toBe('succeeded');
+    expect(persistence.getFailureDiagnoses(taskId('task-a'))).toHaveLength(1);
+    expect(persistence.getFailureDiagnoses(taskId('task-b'))).toEqual([]);
   });
 
   it('pauses one task for approval while unrelated admitted work continues', async () => {
@@ -501,6 +503,9 @@ describe('Architecture 2 Phase 1B workflow kernel', () => {
     expect(persistence.getFailures(taskId('task-a'))[0]).toMatchObject({
       category: 'external_outcome_indeterminate', classification: 'external_outcome_indeterminate', retryable: false,
     });
+    expect(persistence.getFailureDiagnoses(taskId('task-a'))[0]).toMatchObject({
+      outcomeCertainty: 'indeterminate_external_outcome', retryable: false, disposition: 'reconciliation_required',
+    });
   });
 
   it('recovers interrupted scheduled work as diagnosed failure without replay', async () => {
@@ -518,6 +523,7 @@ describe('Architecture 2 Phase 1B workflow kernel', () => {
     expect(persistence.getTask(taskId('task-a'))).toMatchObject({
       status: 'failed', terminalReason: 'INTERRUPTED_SCHEDULED_TASK',
     });
+    expect(persistence.getFailureDiagnoses(taskId('task-a'))[0]?.disposition).toBe('reconciliation_required');
   });
 
   it('fails explicitly when a running Task lacks its persisted running Attempt', async () => {
@@ -565,6 +571,7 @@ describe('Architecture 2 Phase 1B workflow kernel', () => {
     expect(persistence.getAttempts(taskId('task-a')).map(({ attemptNumber, status }) => ({ attemptNumber, status })))
       .toEqual([{ attemptNumber: 1, status: 'failed' }, { attemptNumber: 2, status: 'succeeded' }]);
     expect(persistence.getFailures(taskId('task-a'))[0]).toMatchObject({ classification: 'transient', retryable: true });
+    expect(persistence.getFailureDiagnoses(taskId('task-a'))[0]?.disposition).toBe('retry_same_path');
   });
 
   it('stops transient retries at the durable maximum and remains exhausted after restart', async () => {
@@ -612,6 +619,7 @@ describe('Architecture 2 Phase 1B workflow kernel', () => {
     expect(persistence.getFailures(taskId('task-a'))[0]).toMatchObject({
       classification: 'approval_required', retryable: false,
     });
+    expect(persistence.getFailureDiagnoses(taskId('task-a'))[0]?.disposition).toBe('approval_required');
 
     persistence.close();
     persistence = new SqliteArchitecture2Persistence({ databasePath });
@@ -643,6 +651,9 @@ describe('Architecture 2 Phase 1B workflow kernel', () => {
       .toEqual(['failed', 'passed']);
     expect(persistence.getFailures(taskId('task-a'))[0]).toMatchObject({
       classification: 'verification_failed', retryable: true,
+    });
+    expect(persistence.getFailureDiagnoses(taskId('task-a'))[0]).toMatchObject({
+      outcomeCertainty: 'proven_completed', disposition: 'retry_same_path',
     });
   });
 

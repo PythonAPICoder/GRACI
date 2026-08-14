@@ -59,8 +59,9 @@ Use this log for decisions that matter but do not yet justify a dedicated ADR sy
 
 **Consequences**
 
-- Phase 1K remains the latest implemented and accepted phase.
-- Phase 1L is governed but not implemented.
+- Phase 1L is implemented as the latest verified Architecture 2 phase.
+- Diagnosis authority is unique per `(Failure ID, diagnosis policy ID, policy version)` and uses a deterministic SHA-256-derived diagnosis ID plus evidence fingerprint.
+- Every new Orchestrator Failure is diagnosed in its existing atomic lifecycle transaction; migration does not fabricate diagnoses for historical Failures, which remain explicitly diagnosable.
 - Failover, alternate-Node retry, cancellation, circuit breakers, reconciliation execution, replanning, research, distributed execution, and Electron authority changes remain unauthorized.
 
 ---

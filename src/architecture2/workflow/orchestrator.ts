@@ -13,6 +13,8 @@ import {
   type ResourceLease,
   type ResourceSchedulingDecision,
   type Verification,
+  type FailureDiagnosis,
+  type OfferingLocationId,
 } from '../domain/index.js';
 import type { TaskExecutionProvider, TaskExecutionResult } from '../execution/index.js';
 import type { Architecture2Persistence } from '../persistence/index.js';
@@ -21,6 +23,8 @@ import { evaluateTaskDependencies, graphHasTerminalCondition } from './dependenc
 import { getReadyTasksInScheduleOrder } from './deterministic-scheduler.js';
 import { validateTaskGraph } from './task-graph-validator.js';
 import { TaskStateMachine } from './task-state-machine.js';
+import { createFailureDiagnosis, existingRetryAuthorized, PHASE_1L_DIAGNOSIS_POLICY_ID,
+  PHASE_1L_DIAGNOSIS_POLICY_VERSION } from './failure-diagnoser.js';
 
 export type WorkflowRunStatus = 'succeeded' | 'failed' | 'incomplete';
 
@@ -190,15 +194,17 @@ export class MinimalOrchestrator {
       });
       const events = [
         this.event(task.id, 'failure.recorded', { failureId: failure.id, code: failure.code }, now),
+        this.event(task.id, 'failure.diagnosed', { failureId: failure.id }, now),
         this.event(task.id, 'task.transitioned', { from: task.status, to: 'failed', reason: failure.code }, now),
       ];
+      const diagnosis = this.diagnosis(task, failure, recoveredAttempt, undefined, undefined, undefined, events[1]!.id, now);
       if (recoveredAttempt) {
         this.persistence.recordAttemptOutcome(failedTask, task.version, recoveredAttempt, failure, [
           this.event(task.id, 'attempt.indeterminate', { attemptId: recoveredAttempt.id }, now),
           ...events,
-        ]);
+        ], diagnosis);
       } else {
-        this.persistence.recordTaskFailure(failedTask, task.version, failure, events);
+        this.persistence.recordTaskFailure(failedTask, task.version, failure, events, diagnosis);
       }
     }
   }
@@ -236,17 +242,24 @@ export class MinimalOrchestrator {
       const latestFailure = latestAttempt
         ? failures.slice().reverse().find((failure) => failure.attemptId === latestAttempt.id)
         : undefined;
-      if (!latestFailure || !this.isAutomaticRetryAuthorized(current, latestFailure, attempts.length)) {
+      const diagnosis = latestFailure ? this.persistence.getFailureDiagnosis(latestFailure.id,
+        PHASE_1L_DIAGNOSIS_POLICY_ID, PHASE_1L_DIAGNOSIS_POLICY_VERSION) : undefined;
+      if (!latestFailure || diagnosis?.disposition !== 'retry_same_path' ||
+          !existingRetryAuthorized(current, latestFailure, attempts.length)) {
         const failure = this.failure(current, latestAttempt, 'execution_defect', 'permanent',
           'UNSAFE_RETRY_PENDING_STATE', 'Durable retry authorization could not be proven',
           { attemptsUsed: attempts.length, priorFailureId: latestFailure?.id ?? null }, false, now);
         const failed = this.stateMachine.prepare(current, 'failed', now, { terminalReason: failure.code });
+        const diagnosisEvent = this.event(current.id, 'failure.diagnosed', { failureId: failure.id }, now);
+        const unsafeDiagnosis = this.diagnosis(current, failure, latestAttempt, undefined, undefined, undefined,
+          diagnosisEvent.id, now);
         this.persistence.recordTaskFailure(failed, current.version, failure, [
           this.event(current.id, 'failure.recorded', { failureId: failure.id, code: failure.code }, now),
+          diagnosisEvent,
           this.event(current.id, 'task.transitioned', {
             from: 'retry_pending', to: 'failed', reason: failure.code,
           }, now),
-        ]);
+        ], unsafeDiagnosis);
         continue;
       }
       this.stateMachine.transition(this.persistence, current, 'ready', now,
@@ -325,17 +338,24 @@ export class MinimalOrchestrator {
         result.classification, result.code, result.summary, result.details, retryable, completedAt);
       if (result.classification === 'approval_required') {
         const approval = this.approval(task, failedAttempt, failure, completedAt);
+        const diagnosisEvent = this.event(task.id, 'failure.diagnosed', { failureId: failure.id }, completedAt);
+        const diagnosis = this.diagnosis(task, failure, failedAttempt, undefined, approval, lease?.locationId,
+          diagnosisEvent.id, completedAt);
         const paused = this.stateMachine.prepare(running, 'waiting_for_approval', completedAt,
           { attempt: failedAttempt, approvalPauseAuthorized: true });
         this.persistence.recordApprovalPause(paused, running.version, failedAttempt, failure, approval, [
           this.event(task.id, 'attempt.failed', { attemptId: attempt.id, code: failure.code }, completedAt),
           this.event(task.id, 'failure.recorded', { failureId: failure.id, classification: failure.classification }, completedAt),
+          diagnosisEvent,
           this.event(task.id, 'approval.requested', { approvalId: approval.id, reason: failure.summary }, completedAt),
           this.event(task.id, 'task.transitioned', { from: 'running', to: 'waiting_for_approval' }, completedAt),
-        ]);
+        ], diagnosis);
         return;
       }
-      const target = retryable ? 'retry_pending' : 'failed';
+      const diagnosisEvent = this.event(task.id, 'failure.diagnosed', { failureId: failure.id }, completedAt);
+      const diagnosis = this.diagnosis(task, failure, failedAttempt, undefined, undefined, lease?.locationId,
+        diagnosisEvent.id, completedAt);
+      const target = diagnosis.disposition === 'retry_same_path' ? 'retry_pending' : 'failed';
       const failedTask = this.stateMachine.prepare(running, target, completedAt,
         retryable
           ? { attempt: failedAttempt, retryAuthorized: true }
@@ -343,8 +363,9 @@ export class MinimalOrchestrator {
       this.persistence.recordAttemptOutcome(failedTask, running.version, failedAttempt, failure, [
         this.event(task.id, 'attempt.failed', { attemptId: attempt.id, code: failure.code }, completedAt),
         this.event(task.id, 'failure.recorded', { failureId: failure.id, code: failure.code }, completedAt),
+        diagnosisEvent,
         this.event(task.id, 'task.transitioned', { from: 'running', to: target, reason: failure.code }, completedAt),
-      ]);
+      ], diagnosis);
       return;
     }
 
@@ -386,7 +407,10 @@ export class MinimalOrchestrator {
     const failure = this.failure(verifying, successfulAttempt, 'verification_failure', 'verification_failed',
       'DETERMINISTIC_VERIFICATION_FAILED', 'Deterministic verification rejected the execution result',
       { verdict: decision.verdict }, retryable, verifiedAt);
-    const target = retryable ? 'retry_pending' : 'failed';
+    const diagnosisEvent = this.event(task.id, 'failure.diagnosed', { failureId: failure.id }, verifiedAt);
+    const diagnosis = this.diagnosis(task, failure, successfulAttempt, verification, undefined, lease?.locationId,
+      diagnosisEvent.id, verifiedAt);
+    const target = diagnosis.disposition === 'retry_same_path' ? 'retry_pending' : 'failed';
     const failed = this.stateMachine.prepare(verifying, target, verifiedAt,
       retryable
         ? { verification, retryAuthorized: true }
@@ -394,8 +418,9 @@ export class MinimalOrchestrator {
     this.persistence.recordVerificationOutcome(failed, verifying.version, verification, failure, [
       this.event(task.id, 'verification.failed', { verificationId: verification.id }, verifiedAt),
       this.event(task.id, 'failure.recorded', { failureId: failure.id, code: failure.code }, verifiedAt),
+      diagnosisEvent,
       this.event(task.id, 'task.transitioned', { from: 'verifying', to: target, reason: failure.code }, verifiedAt),
-    ]);
+    ], diagnosis);
   }
 
   private failure(
@@ -418,18 +443,20 @@ export class MinimalOrchestrator {
     return typeof configured === 'number' && Number.isInteger(configured) && configured >= 1 ? configured : 3;
   }
 
-  private isAutomaticRetryAuthorized(task: Task, failure: Failure, attemptsUsed: number): boolean {
-    if (!failure.retryable || attemptsUsed >= this.maxAttempts(task)) return false;
-    if (failure.classification === 'transient') return true;
-    return failure.classification === 'verification_failed' && task.retryPolicy.retryVerificationFailures === true;
-  }
-
   private approval(task: Task, attempt: Attempt, failure: Failure, requestedAt: string): Approval {
     const action = 'resume_task_after_approval';
     return { id: asIdentifier<'Approval'>(this.nextId('approval')), goalId: task.goalId, taskId: task.id,
       attemptId: attempt.id, action, scope: { reason: failure.summary, failureId: failure.id },
       actionDigest: createHash('sha256').update(`${task.id}:${attempt.id}:${action}:${failure.code}`).digest('hex'),
       decision: 'requested', requestedAt };
+  }
+
+  private diagnosis(task: Task, failure: Failure, attempt: Attempt | undefined, verification: Verification | undefined,
+    approval: Approval | undefined, offeringLocationId: OfferingLocationId | undefined,
+    eventId: AuditEventInput['id'], diagnosedAt: string): FailureDiagnosis {
+    const attempts = this.persistence.getAttempts(task.id);
+    return createFailureDiagnosis({ evidence: { task, failure, attempts, attempt, verification, approval, offeringLocationId },
+      eventId, diagnosedAt, diagnosedBy: this.actor });
   }
 
   private event(taskId: TaskId, eventType: string, payload: JsonObject, occurredAt: string): AuditEventInput {

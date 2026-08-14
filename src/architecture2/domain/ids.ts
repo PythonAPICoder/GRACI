@@ -28,6 +28,8 @@ export type ResourceLeaseId = Identifier<'ResourceLease'>;
 export type NodeInspectionId = Identifier<'NodeInspection'>;
 export type WorkstationWorkloadEvaluationId = Identifier<'WorkstationWorkloadEvaluation'>;
 export type WorkstationAvailabilityPolicyApplicationId = Identifier<'WorkstationAvailabilityPolicyApplication'>;
+export type FailureDiagnosisId = Identifier<'FailureDiagnosis'>;
+export type ChangedConditionEvidenceId = Identifier<'ChangedConditionEvidence'>;
 
 const IDENTIFIER_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 

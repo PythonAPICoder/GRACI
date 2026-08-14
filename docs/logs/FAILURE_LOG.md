@@ -1,5 +1,16 @@
 # G.R.A.C.I. Phase 1 — Autonomous Recovery and Continuation
 
+## 2026-08-14 — Phase 1L Verification Corrections
+
+- The first full regression run passed 152/161 tests. All nine failures were current-schema assertions still expecting version 8 after migration 9 correctly initialized schema version 9. The affected fixtures were updated; no runtime migration defect existed.
+- The first focused Phase 1L run passed 70/71 tests. Two diagnoses created at the same controlled timestamp were ordered by deterministic hashed diagnosis ID rather than causal Attempt order, reversing the expected history projection. Diagnosis inspection now orders by durable Attempt number, then diagnosis timestamp and ID.
+- A later full hardening run passed 167/168 tests after diagnosis/Event consistency checks were added. Equivalent idempotent repetition was incorrectly validating an unused new Event before returning the existing diagnosis. Existing-authority comparison now occurs first; equivalent repetition returns the immutable record without a duplicate Event, while conflicting evidence still fails.
+- Independent review found that explicit historical diagnosis counted Attempts created after the target Failure and that contradictory category/classification/Attempt evidence was not fully rejected. Diagnosis now uses the causal Attempt number, validates coherent evidence combinations, bounds and sanitizes changed-condition references, and revalidates Event, Verification, Approval, and offering-location attribution after reopen.
+- The first review-hardening focused run then exposed two test-fixture assumptions: a Failure was selected by same-timestamp lexical order instead of its diagnosis link, and a changed-condition Event used the generic test aggregate type. The fixtures were corrected without changing runtime semantics.
+- Final focused result: 92/92 tests passed across 5 files. Final full result: 169/169 tests passed across 15 files.
+
+---
+
 ## 2026-08-13 — Phase 1J Transaction and Corruption Fixture Corrections
 
 - The first focused Phase 1J run failed 8 tests because the new application row referenced its audit Event before that Event was inserted in the same transaction. SQLite foreign-key enforcement correctly rolled back every attempt. The Event insertion was moved before dependent rows within the same atomic transaction; focused behavior then passed except for one fixture.

@@ -2,9 +2,9 @@
 
 > **Living document:** Update this file whenever Architecture 2 module boundaries, lifecycle behavior, persistence authority, runtime composition, or intentionally deferred capabilities change. This is an implementation map, not immutable governance. The master specification and numbered addenda under `docs/governance/` remain authoritative.
 
-**Architecture represented:** Implemented and accepted through Architecture 2 Phase 1K
+**Architecture represented:** Implemented and verified through Architecture 2 Phase 1L
 
-**Repository HEAD:** `522f50f725f2038943d548a3cb3e41e02effa062`
+**Implementation working tree based on repository HEAD:** `9e2c2bacf90a695375225faca7b3c048476f199a`
 
 ## System Shape
 
@@ -18,7 +18,7 @@ Architecture 2 is a TypeScript modular monolith under `src/architecture2/` with 
 
 - `domain/`: canonical records and branded identifiers.
 - `persistence/`: provider-independent contract and SQLite implementation.
-- `workflow/`: state machine, dependency evaluation, graph validation, deterministic scheduling, orchestration, and queue inspection.
+- `workflow/`: state machine, dependency evaluation, graph validation, deterministic scheduling, orchestration, queue inspection, and trusted deterministic failure diagnosis.
 - `execution/`: provider-neutral Task execution contract and deterministic test provider.
 - `verification/`: independent Task verification contract and deterministic verifier.
 - `providers/`: capability/provider resolution and Ollama Model Provider adapter.
@@ -62,7 +62,7 @@ SQLite is G.R.A.C.I.'s notebook. The assistant does not rely on remembering what
 
 `SqliteArchitecture2Persistence` is the current authoritative store behind `Architecture2Persistence`. Callers supply the database path. The implementation uses built-in `node:sqlite`, foreign keys, strict tables, WAL mode, `synchronous = FULL`, a busy timeout, and `BEGIN IMMEDIATE` write transactions.
 
-Current schema version is 8. Phase 1K required no migration because existing Task, Attempt, decision, lease, and Event records can represent multiple running Tasks.
+Current schema version is 9. Phase 1L adds immutable failure-diagnosis and changed-condition evidence tables with one authoritative diagnosis per Failure and diagnosis policy/version.
 
 Important invariants include:
 
@@ -74,6 +74,8 @@ Important invariants include:
 - Events are append-only, globally sequenced, and SHA-256 hash chained.
 - Resource capacity is rechecked within the lease-acquisition transaction.
 - Resource-aware workflow scheduling atomically writes the Task transition, scheduling decision, lease, and Events.
+- New Orchestrator Failures atomically write their diagnosis, disposition, Task transition, and Events.
+- Diagnosis and changed-condition records are append-only and survive close/reopen reconstruction.
 
 ## Dependency Handling
 
@@ -146,6 +148,24 @@ The default maximum is three total Attempts unless a valid Task retry policy ove
 - `permanent`, `approval_required`, and `external_outcome_indeterminate`: not automatically retried.
 
 Before `retry_pending -> ready`, the Orchestrator revalidates the latest relevant Failure, retryability, classification, and remaining budget. Unprovable authorization fails closed.
+
+Phase 1L additionally requires the matching persisted diagnosis to select `retry_same_path`. Verification retry remains opt-in, and exhausted Attempt budgets produce a non-retryable terminal diagnosis.
+
+## Failure Diagnosis
+
+### Simple Explanation
+
+When a job fails, G.R.A.C.I. now writes a permanent troubleshooting card. The card separately records what kind of problem occurred, whether the outside result is known, whether the existing retry rules permit another identical try, and the one allowed recommendation. The card does not itself switch machines, research solutions, or perform another advanced recovery action.
+
+### Technical Detail
+
+Every new Orchestrator-created Failure is diagnosed by trusted deterministic code before persistence and committed in the same transaction as its lifecycle transition. Historical Failures may be diagnosed explicitly through the runtime without fabricating diagnoses during migration.
+
+Diagnosis identity is the deterministic SHA-256-derived identity of `(Failure ID, diagnosis policy ID, policy version)`. SQLite also enforces uniqueness on that tuple. An evidence fingerprint excludes operational timestamps and generated Event IDs; equivalent repeated diagnosis returns the existing record, while conflicting evidence is rejected as competing authority.
+
+Cause, outcome certainty, retryability, and disposition are independent fields. Missing or inconsistent required evidence produces `insufficient_or_malformed_evidence` with `terminal_failure`. `external_outcome_indeterminate` always produces `reconciliation_required`, cannot authorize replay, and remains terminal under current recovery behavior.
+
+Inspection orders diagnosis history by durable Attempt number, then diagnosis time and ID. Changed-condition evidence stores only bounded factual references and never authorizes a recovery action by itself.
 
 ## Execution and Verification
 
@@ -239,7 +259,7 @@ On each run, the Orchestrator reconstructs graph position from persisted Tasks, 
 
 Persisted `running` work must have a matching running Attempt. Without provider reconciliation, interrupted running Attempts become `indeterminate`, record non-retryable `external_outcome_indeterminate` Failures, and fail atomically. Interrupted `scheduled` Tasks also fail conservatively. Corrupt running state without an Attempt produces an explicit error.
 
-Phase 1K preserves this behavior for multiple running Tasks. Automatic replay, checkpoint resume, failover, migration, and external-effect reconciliation are deferred.
+Phase 1L records `reconciliation_required` for this behavior across multiple running Tasks. Automatic replay, checkpoint resume, failover, migration, and external-effect reconciliation remain deferred.
 
 ## Audit and Governance
 
@@ -291,7 +311,7 @@ Major deferred capabilities include:
 - Distributed locks, multiple Orchestrators, remote workers, and high availability.
 - Dynamic load balancing, dynamic concurrency, speculative execution, and priority displacement.
 - Automatic discovery, polling, monitoring, and scheduler-triggered workstation policy.
-- Failure diagnosis, circuit breakers, governed research, and generalized alternatives.
+- Circuit breakers, reconciliation execution, governed research, and executable alternatives beyond Phase 1L recommendations.
 - Purpose-specific memory and retrieval.
 - Broad tool, agent, cloud, productivity, voice, media, notification, and UI integration.
 - Architecture 2 Electron authority cutover and production hardening.

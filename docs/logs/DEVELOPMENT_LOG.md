@@ -509,3 +509,18 @@ Implementation remains paused pending Product Owner and Architect review.
 - Kept circuit breakers, failover, alternate-Node retry, reconciliation execution, cancellation, replanning, research, generalized policy, tools, memory, UI, and distributed execution deferred.
 - Updated the Governance Index and `CURRENT_STATUS.md` to distinguish governed Phase 1L from implemented and accepted Phase 1K.
 - No Phase 1L source, tests, migration, dependency, configuration, runtime, or `CURRENT_ARCHITECTURE.md` change was made.
+
+---
+
+## Architecture 2 Phase 1L — Durable Failure Diagnosis and Recovery Disposition — August 14, 2026
+
+- Verified clean expected baseline `9e2c2bacf90a695375225faca7b3c048476f199a` before implementation.
+- Added stable Failure Diagnosis and Changed-Condition Evidence domain records and schema migration 9 with append-only enforcement.
+- Chose deterministic diagnosis identity from `(Failure ID, policy ID, policy version)` and added tuple uniqueness plus an evidence fingerprint to prevent competing authority.
+- Added trusted deterministic diagnosis rules separating cause, outcome certainty, retryability, and exactly one bounded disposition.
+- Diagnosed every new Orchestrator Failure in the same transaction as its Failure, lifecycle transition, and Events.
+- Required a matching `retry_same_path` diagnosis before `retry_pending -> ready`, while preserving existing Attempt limits and verification-retry opt-in.
+- Added explicit historical-Failure diagnosis without fabricating results during schema migration.
+- Added deterministic diagnosis and changed-condition inspection, duplicate idempotency/conflict handling, corruption diagnostics, and close/reopen reconstruction.
+- Preserved Phase 1K independent supervision, approval behavior, resource/Node/workstation state, lease-release ordering, Architecture 1 startup authority, and every deferred recovery boundary.
+- Added a focused Phase 1L test file and expanded Orchestrator assertions; no dependency, package, configuration, UI, or Architecture 1 source changed.

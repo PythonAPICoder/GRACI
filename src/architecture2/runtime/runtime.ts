@@ -1,9 +1,10 @@
-import type { TaskGraphRevisionId, TaskId } from '../domain/index.js';
+import { randomUUID } from 'node:crypto';
+import { asIdentifier, type FailureId, type TaskGraphRevisionId, type TaskId } from '../domain/index.js';
 import type { TaskExecutionProvider } from '../execution/index.js';
 import { assessLegacyState, importLegacyState, type LegacyImportOptions } from '../legacy/index.js';
 import { SqliteArchitecture2Persistence } from '../persistence/index.js';
 import type { TaskVerifier } from '../verification/index.js';
-import { inspectQueue, MinimalOrchestrator, type OrchestratorOptions } from '../workflow/index.js';
+import { diagnosePersistedFailure, inspectQueue, MinimalOrchestrator, type OrchestratorOptions } from '../workflow/index.js';
 
 export interface Architecture2RuntimeConfiguration {
   databasePath: string;
@@ -37,6 +38,12 @@ export class Architecture2Runtime implements Disposable {
 
   denyTask(taskId: TaskId, reason: string, decidedBy?: string) {
     return this.orchestrator.denyTask(taskId, reason, decidedBy);
+  }
+
+  diagnoseFailure(failureId: FailureId, diagnosedBy = 'architecture2-failure-diagnoser',
+    diagnosedAt = new Date().toISOString()) {
+    return diagnosePersistedFailure(this.persistence, { failureId, diagnosedBy, diagnosedAt,
+      eventId: asIdentifier<'Event'>(`event-${randomUUID()}`) });
   }
 
   assessLegacy(sourceReference: string) {

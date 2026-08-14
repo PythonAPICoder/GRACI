@@ -25,6 +25,7 @@ import type {
   Node, OfferingLocation, NodeHealthObservation, NodeInspectionObservation, ResourceSchedulingDecision, ResourceLease,
   WorkstationWorkloadEvaluation, WorkstationAvailabilityPolicyApplication,
   WorkstationAvailabilityPolicyApplicationRequest,
+  FailureDiagnosis, FailureDiagnosisId, FailureId, ChangedConditionEvidence,
 } from '../../domain/index.js';
 import { assertIdentifier } from '../../domain/index.js';
 import type {
@@ -46,6 +47,16 @@ const TASK_STATUSES = new Set<Task['status']>([
 const TASK_PRIORITIES = new Set<Task['priority']>(['critical', 'interactive', 'normal', 'background', 'idle']);
 const PRIVACY_CLASSES = new Set<Task['privacyClass']>(['public', 'internal', 'personal', 'confidential', 'secret']);
 const ATTEMPT_STATUSES = new Set<Attempt['status']>(['created', 'running', 'succeeded', 'failed', 'cancelled', 'indeterminate']);
+const FAILURE_CATEGORIES = new Set<Failure['category']>(['transient_infrastructure', 'resource_unavailable',
+  'provider_or_capability_mismatch', 'invalid_input_or_precondition', 'policy_or_approval', 'execution_defect',
+  'verification_failure', 'external_outcome_indeterminate', 'cancelled_or_preempted', 'unknown']);
+const FAILURE_CLASSIFICATIONS = new Set<Failure['classification']>(['transient', 'permanent', 'verification_failed',
+  'approval_required', 'external_outcome_indeterminate']);
+const OUTCOME_CERTAINTIES = new Set<FailureDiagnosis['outcomeCertainty']>(['proven_completed', 'proven_unsuccessful',
+  'indeterminate_external_outcome', 'insufficient_or_malformed_evidence']);
+const RECOVERY_DISPOSITIONS = new Set<FailureDiagnosis['disposition']>(['terminal_failure', 'retry_same_path',
+  'alternative_offering_recommended', 'alternative_node_recommended', 'reconciliation_required', 'approval_required',
+  'input_revision_required', 'replanning_recommended', 'research_recommended']);
 
 export interface SqlitePersistenceOptions {
   databasePath: string;
@@ -781,12 +792,15 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
     attempt: Attempt,
     failure: Failure | undefined,
     events: readonly AuditEventInput[],
+    diagnosis?: FailureDiagnosis,
   ): void {
     this.transaction(() => {
       this.updateAttemptRow(attempt);
       if (failure) this.insertFailure(failure);
-      this.updateTaskRow(task, expectedVersion);
+      this.validateFailureDiagnosisPair(failure, diagnosis);
       this.insertEvents(events);
+      if (diagnosis) this.insertFailureDiagnosis(diagnosis);
+      this.updateTaskRow(task, expectedVersion);
     });
   }
 
@@ -796,20 +810,26 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
     verification: Verification,
     failure: Failure | undefined,
     events: readonly AuditEventInput[],
+    diagnosis?: FailureDiagnosis,
   ): void {
     this.transaction(() => {
       this.insertVerification(verification);
       if (failure) this.insertFailure(failure);
-      this.updateTaskRow(task, expectedVersion);
+      this.validateFailureDiagnosisPair(failure, diagnosis);
       this.insertEvents(events);
+      if (diagnosis) this.insertFailureDiagnosis(diagnosis);
+      this.updateTaskRow(task, expectedVersion);
     });
   }
 
-  recordTaskFailure(task: Task, expectedVersion: number, failure: Failure, events: readonly AuditEventInput[]): void {
+  recordTaskFailure(task: Task, expectedVersion: number, failure: Failure, events: readonly AuditEventInput[],
+    diagnosis?: FailureDiagnosis): void {
     this.transaction(() => {
       this.insertFailure(failure);
-      this.updateTaskRow(task, expectedVersion);
+      this.validateFailureDiagnosisPair(failure, diagnosis);
       this.insertEvents(events);
+      if (diagnosis) this.insertFailureDiagnosis(diagnosis);
+      this.updateTaskRow(task, expectedVersion);
     });
   }
 
@@ -835,13 +855,66 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
     });
   }
 
+  getFailure(id: FailureId): Failure | undefined {
+    const row = this.db().prepare('SELECT * FROM failures WHERE id = ?').get(id) as Row | undefined;
+    return row ? this.mapFailure(row) : undefined;
+  }
+
   getFailures(taskId: TaskId): Failure[] {
     return (this.db().prepare('SELECT * FROM failures WHERE task_id = ? ORDER BY created_at, id').all(taskId) as Row[])
-      .map((row) => ({ id: String(row.id) as Failure['id'], taskId: String(row.task_id) as TaskId,
-        attemptId: optionalString(row.attempt_id) as Failure['attemptId'], category: String(row.category) as Failure['category'],
-        classification: String(row.classification) as Failure['classification'],
-        code: String(row.code), summary: String(row.summary), details: parseObject(row.details_json),
-        retryable: bool(row.retryable), createdAt: String(row.created_at) }));
+      .map((row) => this.mapFailure(row));
+  }
+
+  recordFailureDiagnosis(diagnosis: FailureDiagnosis, event: AuditEventInput): FailureDiagnosis {
+    const existing = this.getFailureDiagnosis(diagnosis.failureId, diagnosis.policyId, diagnosis.policyVersion);
+    if (existing) {
+      if (existing.evidenceFingerprint !== diagnosis.evidenceFingerprint || existing.id !== diagnosis.id) {
+        throw new Error(`Failure diagnosis authority conflict: ${diagnosis.failureId}`);
+      }
+      return existing;
+    }
+    if (event.id !== diagnosis.eventId || event.aggregateId !== diagnosis.taskId || event.eventType !== 'failure.diagnosed') {
+      throw new Error('Failure diagnosis Event does not match the diagnosis');
+    }
+    return this.transaction(() => {
+      this.insertEvent(event);
+      this.insertFailureDiagnosis(diagnosis);
+      return diagnosis;
+    });
+  }
+
+  getFailureDiagnosis(failureId: FailureId, policyId: string, policyVersion: number): FailureDiagnosis | undefined {
+    const row = this.db().prepare(`SELECT * FROM failure_diagnoses
+      WHERE failure_id = ? AND policy_id = ? AND policy_version = ?`).get(failureId, policyId, policyVersion) as Row | undefined;
+    return row ? this.mapFailureDiagnosis(row) : undefined;
+  }
+
+  getFailureDiagnoses(taskId: TaskId): FailureDiagnosis[] {
+    return (this.db().prepare(`SELECT d.* FROM failure_diagnoses d
+      LEFT JOIN attempts a ON a.id = d.attempt_id WHERE d.task_id = ?
+      ORDER BY COALESCE(a.attempt_number, 0), d.diagnosed_at, d.id`).all(taskId) as Row[])
+      .map((row) => this.mapFailureDiagnosis(row));
+  }
+
+  recordChangedConditionEvidence(value: ChangedConditionEvidence, event: AuditEventInput): void {
+    this.validateChangedConditionEvidence(value);
+    const diagnosis = this.db().prepare('SELECT task_id FROM failure_diagnoses WHERE id = ?').get(value.diagnosisId) as Row | undefined;
+    if (!diagnosis || event.id !== value.eventId || event.aggregateType !== 'task' ||
+        event.aggregateId !== String(diagnosis.task_id) || event.eventType !== 'failure.changed-condition-recorded') {
+      throw new Error('Changed-condition Event does not match the evidence');
+    }
+    this.transaction(() => {
+      this.insertEvent(event);
+      this.db().prepare(`INSERT INTO changed_condition_evidence
+        (id, diagnosis_id, condition_type, prior_fact_reference, changed_fact_reference, source, observed_at, event_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`).run(value.id, value.diagnosisId, value.conditionType,
+        value.priorFactReference ?? null, value.changedFactReference ?? null, value.source, value.observedAt, value.eventId);
+    });
+  }
+
+  getChangedConditionEvidence(diagnosisId: FailureDiagnosisId): ChangedConditionEvidence[] {
+    return (this.db().prepare(`SELECT * FROM changed_condition_evidence WHERE diagnosis_id = ?
+      ORDER BY observed_at, id`).all(diagnosisId) as Row[]).map((row) => this.mapChangedConditionEvidence(row));
   }
 
   createApproval(value: Approval, event: AuditEventInput): void {
@@ -865,13 +938,15 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
   }
 
   recordApprovalPause(task: Task, expectedVersion: number, attempt: Attempt, failure: Failure,
-    approval: Approval, events: readonly AuditEventInput[]): void {
+    approval: Approval, events: readonly AuditEventInput[], diagnosis?: FailureDiagnosis): void {
     this.transaction(() => {
       this.updateAttemptRow(attempt);
       this.insertFailure(failure);
       this.insertApproval(approval);
-      this.updateTaskRow(task, expectedVersion);
+      this.validateFailureDiagnosisPair(failure, diagnosis);
       this.insertEvents(events);
+      if (diagnosis) this.insertFailureDiagnosis(diagnosis);
+      this.updateTaskRow(task, expectedVersion);
     });
   }
 
@@ -1023,6 +1098,182 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
       .run(value.id, value.taskId, value.attemptId ?? null, value.category, value.classification, value.code, value.summary,
         json(value.details), value.retryable ? 1 : 0, value.createdAt);
+  }
+
+  private validateFailureDiagnosisPair(failure: Failure | undefined, diagnosis: FailureDiagnosis | undefined): void {
+    if (Boolean(failure) !== Boolean(diagnosis)) throw new Error('Failure and diagnosis must be persisted together');
+    if (failure && diagnosis && (diagnosis.failureId !== failure.id || diagnosis.taskId !== failure.taskId ||
+        diagnosis.attemptId !== failure.attemptId)) throw new Error('Failure diagnosis does not match its Failure');
+  }
+
+  private insertFailureDiagnosis(value: FailureDiagnosis): void {
+    this.validateFailureDiagnosis(value);
+    const failure = this.getFailure(value.failureId);
+    if (!failure || failure.taskId !== value.taskId || failure.attemptId !== value.attemptId) {
+      throw new Error('Failure diagnosis attribution does not match persisted Failure');
+    }
+    if (value.attemptId) {
+      const attempt = this.db().prepare('SELECT task_id, provider_offering_id, compute_node_id FROM attempts WHERE id = ?')
+        .get(value.attemptId) as Row | undefined;
+      if (!attempt || String(attempt.task_id) !== value.taskId ||
+          optionalString(attempt.provider_offering_id) !== value.providerOfferingId ||
+          optionalString(attempt.compute_node_id) !== value.computeNodeId) {
+        throw new Error('Failure diagnosis Attempt attribution is inconsistent');
+      }
+    }
+    if (value.verificationId) {
+      const verification = this.db().prepare('SELECT task_id, attempt_id FROM verifications WHERE id = ?')
+        .get(value.verificationId) as Row | undefined;
+      if (!verification || String(verification.task_id) !== value.taskId ||
+          optionalString(verification.attempt_id) !== value.attemptId) throw new Error('Failure diagnosis Verification attribution is inconsistent');
+    }
+    if (value.approvalId) {
+      const approval = this.db().prepare('SELECT task_id, attempt_id FROM approvals WHERE id = ?').get(value.approvalId) as Row | undefined;
+      if (!approval || optionalString(approval.task_id) !== value.taskId ||
+          optionalString(approval.attempt_id) !== value.attemptId) throw new Error('Failure diagnosis Approval attribution is inconsistent');
+    }
+    if (value.offeringLocationId) {
+      const location = this.db().prepare('SELECT offering_id, node_id FROM offering_locations WHERE id = ?')
+        .get(value.offeringLocationId) as Row | undefined;
+      if (!location || String(location.offering_id) !== value.providerOfferingId ||
+          String(location.node_id) !== value.computeNodeId) throw new Error('Failure diagnosis location attribution is inconsistent');
+    }
+    const diagnosisEvent = this.db().prepare('SELECT aggregate_id, event_type FROM events WHERE id = ?').get(value.eventId) as Row | undefined;
+    if (!diagnosisEvent || String(diagnosisEvent.aggregate_id) !== value.taskId ||
+        String(diagnosisEvent.event_type) !== 'failure.diagnosed') {
+      throw new Error('Failure diagnosis Event is not persisted');
+    }
+    this.db().prepare(`INSERT INTO failure_diagnoses
+      (id, failure_id, task_id, attempt_id, verification_id, approval_id, provider_offering_id, compute_node_id,
+       offering_location_id, cause, outcome_certainty, retryable, retry_reason, disposition, diagnostic_reason,
+       policy_id, policy_version, evidence_fingerprint, diagnosed_by, diagnosed_at, event_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(value.id, value.failureId,
+      value.taskId, value.attemptId ?? null, value.verificationId ?? null, value.approvalId ?? null,
+      value.providerOfferingId ?? null, value.computeNodeId ?? null, value.offeringLocationId ?? null, value.cause,
+      value.outcomeCertainty, value.retryable ? 1 : 0, value.retryReason, value.disposition, value.diagnosticReason,
+      value.policyId, value.policyVersion, value.evidenceFingerprint, value.diagnosedBy, value.diagnosedAt, value.eventId);
+  }
+
+  private validateFailureDiagnosis(value: FailureDiagnosis): void {
+    assertIdentifier(value.id, 'failure diagnosis id');
+    assertIdentifier(value.failureId, 'failure diagnosis failure id');
+    assertIdentifier(value.taskId, 'failure diagnosis task id');
+    assertIdentifier(value.eventId, 'failure diagnosis event id');
+    if (!FAILURE_CATEGORIES.has(value.cause) || !OUTCOME_CERTAINTIES.has(value.outcomeCertainty) ||
+        !RECOVERY_DISPOSITIONS.has(value.disposition) || !value.retryReason.trim() || !value.diagnosticReason.trim() ||
+        !value.policyId.trim() || !value.diagnosedBy.trim() || !Number.isInteger(value.policyVersion) ||
+        value.policyVersion < 1 || !/^[a-f0-9]{64}$/.test(value.evidenceFingerprint) ||
+        (!value.attemptId && (value.providerOfferingId || value.computeNodeId || value.offeringLocationId)) ||
+        (value.disposition === 'retry_same_path' && !value.retryable) ||
+        (value.cause === 'external_outcome_indeterminate' && (value.outcomeCertainty !== 'indeterminate_external_outcome' ||
+          value.retryable || value.disposition !== 'reconciliation_required'))) {
+      throw new Error('Invalid Failure Diagnosis');
+    }
+    validateTimestamp(value.diagnosedAt, 'failure diagnosis timestamp');
+    if (!value.diagnosedAt.endsWith('Z') || new Date(value.diagnosedAt).toISOString() !== value.diagnosedAt) {
+      throw new Error('Failure diagnosis timestamp must be canonical UTC');
+    }
+  }
+
+  private validateChangedConditionEvidence(value: ChangedConditionEvidence): void {
+    assertIdentifier(value.id, 'changed-condition evidence id');
+    assertIdentifier(value.diagnosisId, 'changed-condition diagnosis id');
+    assertIdentifier(value.eventId, 'changed-condition event id');
+    const text = [value.conditionType, value.source, value.priorFactReference, value.changedFactReference]
+      .filter((entry): entry is string => entry !== undefined);
+    if (!value.conditionType.trim() || !value.source.trim() || value.conditionType.length > 128 || value.source.length > 128 ||
+        (value.priorFactReference?.length ?? 0) > 512 || (value.changedFactReference?.length ?? 0) > 512 ||
+        text.some((entry) => /[\x00-\x1f\x7f]/.test(entry) || /(?:password|secret|token|credential)\s*=/i.test(entry)) ||
+        (value.priorFactReference === undefined && value.changedFactReference === undefined)) {
+      throw new Error('Changed-condition evidence requires a type, source, and factual reference');
+    }
+    validateTimestamp(value.observedAt, 'changed-condition observation timestamp');
+    if (!value.observedAt.endsWith('Z') || new Date(value.observedAt).toISOString() !== value.observedAt) {
+      throw new Error('Changed-condition observation timestamp must be canonical UTC');
+    }
+  }
+
+  private mapFailure(row: Row): Failure {
+    const value: Failure = { id: String(row.id) as Failure['id'], taskId: String(row.task_id) as TaskId,
+      attemptId: optionalString(row.attempt_id) as Failure['attemptId'], category: String(row.category) as Failure['category'],
+      classification: String(row.classification) as Failure['classification'], code: String(row.code),
+      summary: String(row.summary), details: parseObject(row.details_json), retryable: bool(row.retryable),
+      createdAt: this.validatedTimestamp(row.created_at, 'failure timestamp') };
+    assertIdentifier(value.id, 'persisted failure id');
+    assertIdentifier(value.taskId, 'persisted failure task id');
+    if (!FAILURE_CATEGORIES.has(value.category) || !FAILURE_CLASSIFICATIONS.has(value.classification) ||
+        !value.code.trim() || !value.summary.trim()) throw new Error(`Corrupt persisted Failure: ${value.id}`);
+    return value;
+  }
+
+  private mapFailureDiagnosis(row: Row): FailureDiagnosis {
+    const id = String(row.id) as FailureDiagnosis['id'];
+    try {
+      const value: FailureDiagnosis = { id, failureId: String(row.failure_id) as FailureId,
+        taskId: String(row.task_id) as TaskId, attemptId: optionalString(row.attempt_id) as FailureDiagnosis['attemptId'],
+        verificationId: optionalString(row.verification_id) as FailureDiagnosis['verificationId'],
+        approvalId: optionalString(row.approval_id) as FailureDiagnosis['approvalId'],
+        providerOfferingId: optionalString(row.provider_offering_id), computeNodeId: optionalString(row.compute_node_id),
+        offeringLocationId: optionalString(row.offering_location_id) as FailureDiagnosis['offeringLocationId'],
+        cause: String(row.cause) as Failure['category'], outcomeCertainty: String(row.outcome_certainty) as FailureDiagnosis['outcomeCertainty'],
+        retryable: bool(row.retryable), retryReason: String(row.retry_reason),
+        disposition: String(row.disposition) as FailureDiagnosis['disposition'], diagnosticReason: String(row.diagnostic_reason),
+        policyId: String(row.policy_id), policyVersion: Number(row.policy_version), evidenceFingerprint: String(row.evidence_fingerprint),
+        diagnosedBy: String(row.diagnosed_by), diagnosedAt: String(row.diagnosed_at), eventId: String(row.event_id) as FailureDiagnosis['eventId'] };
+      this.validateFailureDiagnosis(value);
+      const failure = this.getFailure(value.failureId);
+      if (!failure || failure.taskId !== value.taskId || failure.attemptId !== value.attemptId) throw new Error('failure mismatch');
+      if (value.attemptId) {
+        const attempt = this.db().prepare('SELECT task_id, provider_offering_id, compute_node_id FROM attempts WHERE id = ?')
+          .get(value.attemptId) as Row | undefined;
+        if (!attempt || String(attempt.task_id) !== value.taskId ||
+            optionalString(attempt.provider_offering_id) !== value.providerOfferingId ||
+            optionalString(attempt.compute_node_id) !== value.computeNodeId) throw new Error('attempt mismatch');
+      }
+      if (value.verificationId) {
+        const verification = this.db().prepare('SELECT task_id, attempt_id FROM verifications WHERE id = ?')
+          .get(value.verificationId) as Row | undefined;
+        if (!verification || String(verification.task_id) !== value.taskId ||
+            optionalString(verification.attempt_id) !== value.attemptId) throw new Error('verification mismatch');
+      }
+      if (value.approvalId) {
+        const approval = this.db().prepare('SELECT task_id, attempt_id FROM approvals WHERE id = ?')
+          .get(value.approvalId) as Row | undefined;
+        if (!approval || optionalString(approval.task_id) !== value.taskId ||
+            optionalString(approval.attempt_id) !== value.attemptId) throw new Error('approval mismatch');
+      }
+      if (value.offeringLocationId) {
+        const location = this.db().prepare('SELECT offering_id, node_id FROM offering_locations WHERE id = ?')
+          .get(value.offeringLocationId) as Row | undefined;
+        if (!location || String(location.offering_id) !== value.providerOfferingId ||
+            String(location.node_id) !== value.computeNodeId) throw new Error('location mismatch');
+      }
+      const diagnosisEvent = this.db().prepare('SELECT aggregate_id, event_type FROM events WHERE id = ?')
+        .get(value.eventId) as Row | undefined;
+      if (!diagnosisEvent || String(diagnosisEvent.aggregate_id) !== value.taskId ||
+          String(diagnosisEvent.event_type) !== 'failure.diagnosed') throw new Error('event mismatch');
+      return value;
+    } catch (error) {
+      throw new Error(`Corrupt persisted Failure Diagnosis: ${id}`, { cause: error });
+    }
+  }
+
+  private mapChangedConditionEvidence(row: Row): ChangedConditionEvidence {
+    const id = String(row.id) as ChangedConditionEvidence['id'];
+    try {
+      const value: ChangedConditionEvidence = { id, diagnosisId: String(row.diagnosis_id) as FailureDiagnosisId,
+        conditionType: String(row.condition_type), priorFactReference: optionalString(row.prior_fact_reference),
+        changedFactReference: optionalString(row.changed_fact_reference), source: String(row.source),
+        observedAt: String(row.observed_at), eventId: String(row.event_id) as ChangedConditionEvidence['eventId'] };
+      this.validateChangedConditionEvidence(value);
+      const relation = this.db().prepare(`SELECT d.task_id, e.aggregate_type, e.aggregate_id, e.event_type
+        FROM failure_diagnoses d JOIN events e ON e.id = ? WHERE d.id = ?`).get(value.eventId, value.diagnosisId) as Row | undefined;
+      if (!relation || String(relation.aggregate_type) !== 'task' || String(relation.aggregate_id) !== String(relation.task_id) ||
+          String(relation.event_type) !== 'failure.changed-condition-recorded') throw new Error('event mismatch');
+      return value;
+    } catch (error) {
+      throw new Error(`Corrupt persisted Changed-Condition Evidence: ${id}`, { cause: error });
+    }
   }
 
   private insertApproval(value: Approval): void {

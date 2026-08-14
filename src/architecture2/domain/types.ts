@@ -15,6 +15,8 @@ import type {
   NodeInspectionId,
   WorkstationWorkloadEvaluationId,
   WorkstationAvailabilityPolicyApplicationId,
+  FailureDiagnosisId,
+  ChangedConditionEvidenceId,
 } from './ids.js';
 
 export type IsoTimestamp = string;
@@ -165,6 +167,58 @@ export interface Failure {
   details: JsonObject;
   retryable: boolean;
   createdAt: IsoTimestamp;
+}
+
+export type FailureOutcomeCertainty =
+  | 'proven_completed'
+  | 'proven_unsuccessful'
+  | 'indeterminate_external_outcome'
+  | 'insufficient_or_malformed_evidence';
+
+export type RecoveryDisposition =
+  | 'terminal_failure'
+  | 'retry_same_path'
+  | 'alternative_offering_recommended'
+  | 'alternative_node_recommended'
+  | 'reconciliation_required'
+  | 'approval_required'
+  | 'input_revision_required'
+  | 'replanning_recommended'
+  | 'research_recommended';
+
+export interface FailureDiagnosis {
+  id: FailureDiagnosisId;
+  failureId: FailureId;
+  taskId: TaskId;
+  attemptId?: AttemptId;
+  verificationId?: VerificationId;
+  approvalId?: ApprovalId;
+  providerOfferingId?: string;
+  computeNodeId?: string;
+  offeringLocationId?: OfferingLocationId;
+  cause: Failure['category'];
+  outcomeCertainty: FailureOutcomeCertainty;
+  retryable: boolean;
+  retryReason: string;
+  disposition: RecoveryDisposition;
+  diagnosticReason: string;
+  policyId: string;
+  policyVersion: number;
+  evidenceFingerprint: string;
+  diagnosedBy: string;
+  diagnosedAt: IsoTimestamp;
+  eventId: EventId;
+}
+
+export interface ChangedConditionEvidence {
+  id: ChangedConditionEvidenceId;
+  diagnosisId: FailureDiagnosisId;
+  conditionType: string;
+  priorFactReference?: string;
+  changedFactReference?: string;
+  source: string;
+  observedAt: IsoTimestamp;
+  eventId: EventId;
 }
 
 export interface Approval {
