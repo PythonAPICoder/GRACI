@@ -2,9 +2,9 @@
 
 > **Living document:** Update this file whenever an Architecture 2 phase changes implemented behavior, verification evidence, runtime authority, major limitations, or the recommended next phase. Governance under `docs/governance/` remains authoritative when this summary differs from an approved specification.
 
-**Implementation working tree starting basis:** accepted Phase 1P repository HEAD `c24e0e00f9821ccc057b126d48e5e85716e894ed`
+**Implementation working tree starting basis:** clean main repository HEAD `eca3e04`
 
-**Current implementation:** Architecture 2 Phase 1Q, Governed Replanning Foundation (`ADDENDUM_022_ARCHITECTURE_2_PHASE_1Q.md`)
+**Current implementation:** Architecture 2 Phase 1R, Governed Research Foundation (`ADDENDUM_023_ARCHITECTURE_2_PHASE_1R.md`)
 
 ## Product Direction
 
@@ -26,7 +26,7 @@ The project has built G.R.A.C.I.'s notebook, work checklist, traffic controller,
 
 ### Technical Detail
 
-Implemented Architecture 2 work through Phase 1Q includes:
+Implemented Architecture 2 work through Phase 1R includes:
 
 - **Foundation and Phase 1A:** canonical identifiers and records, SQLite persistence, migrations, transactional state-plus-event writes, optimistic versions, immutable history, and hash-chained events.
 - **Phase 1B:** guarded Task lifecycle, persisted DAG execution, deterministic verification, and conservative interrupted-work recovery.
@@ -45,8 +45,9 @@ Implemented Architecture 2 work through Phase 1Q includes:
 - **Phase 1O:** independent provider-offering, Node, and offering-location circuit breakers with deterministic windows/cooldown, durable one-at-a-time probes, exact route/Attempt binding, Verification-only close, and qualifying-failure reopen.
 - **Phase 1P:** caller-invoked revision of only canonical Task inputs after exact current `input_revision_required` authority, with canonical meaningful-change checks, immutable history, transactional concurrency gates, and exact single-use next-Attempt binding.
 - **Phase 1Q:** caller-invoked atomic replacement of safe unfinished graph work after exact governed replanning authority, with immutable lineage, explicit mappings, active-revision concurrency, and normal scheduling controls.
+- **Phase 1R:** caller-invoked failure-scoped Research Requests, immutable supplier evidence, separate accepted/rejected decisions, derived lifecycle, and information-only inspection with no execution authority.
 
-The precise governed boundaries are in `docs/governance/ADDENDUM_006_ARCHITECTURE_2_PHASE_1A.md` through `ADDENDUM_021_ARCHITECTURE_2_PHASE_1P.md`.
+The precise governed boundaries are in `docs/governance/ADDENDUM_006_ARCHITECTURE_2_PHASE_1A.md` through `ADDENDUM_023_ARCHITECTURE_2_PHASE_1R.md`.
 
 ## What Works Today
 
@@ -107,7 +108,7 @@ Not currently implemented or not connected as live product behavior:
 - Distributed locking, multiple active Orchestrators, remote workers, or high availability.
 - Dynamic concurrency optimization, load balancing, priority displacement, or speculative execution.
 - Automatic node discovery, background health polling, or scheduler-triggered workstation evaluation/application.
-- Governed research, background reconciliation, adaptive/background circuit operation, or execution of other Phase 1L recovery dispositions.
+- Research-provider execution, web/model research, evidence consumption, background reconciliation, adaptive/background circuit operation, or execution of other Phase 1L recovery dispositions.
 - Purpose-specific working, episodic, semantic, procedural, and preference memory.
 - Complete observability UI, cost reporting, traces, notifications, voice, productivity integrations, and broad autonomous actions.
 
@@ -133,16 +134,16 @@ The recorded automated checks are green, including schema migration, database cl
 
 ### Technical Detail
 
-Current Phase 1P agent evidence in `docs/logs/TEST_LOG.md`:
+Current Phase 1R agent evidence in `docs/logs/TEST_LOG.md`:
 
 - TypeScript validation: PASS.
-- Full automated regression suite: **217/217 passed**.
-- Dedicated Phase 1P tests: **9/9 passed**; relevant Phase 1L through Phase 1O regressions: **45/45 passed**.
-- Schema-13 migration and SQLite close/reopen behavior are covered by the Phase 1P focused run.
-- Production build: PASS. Runtime/import plus Phase 1P integration: **18/18 passed**.
+- Full automated regression suite: **225/225 passed** across 21 files.
+- Dedicated Phase 1R tests: **6/6 passed**; recovery/replanning regressions: **62/62 passed**.
+- Schema-15 migration from populated schema 14 and SQLite close/reopen reconstruction are covered by the Phase 1R focused run.
+- Production build: PASS. Persistence, runtime/import, and Orchestrator regressions: **74/74 passed**.
 - Electron startup regression: PASS; the application remained alive for five seconds, emitted `Electron app starting`, and produced empty stderr before controlled shutdown.
 - Diff whitespace hygiene: PASS.
-- Architecture 1 remains the configured live Electron authority; Phase 1P did not alter startup composition.
+- Architecture 1 remains the configured live Electron authority; Phase 1R did not alter startup composition.
 
 This is recorded verification evidence, not a claim that deferred end-user capabilities exist.
 
@@ -174,7 +175,7 @@ The next assembly stages need to add the remaining governed recovery capabilitie
 
 Major roadmap areas from Addendum 005 and later deferred boundaries include:
 
-- Later Slice 4 recovery work: separately governed replanning and bounded research, plus any future automatic/adaptive circuit operation.
+- Later Slice 4 recovery work: future governed use of accepted research and any automatic/adaptive circuit operation.
 - Slice 5 purpose-specific memory with provenance, correction, privacy, and retention.
 - Slice 6 product observability and expanded autonomy.
 - Goal intake, planning, replanning, policy enforcement, and approval UX.
@@ -186,11 +187,11 @@ Major roadmap areas from Addendum 005 and later deferred boundaries include:
 
 ### Simple Explanation
 
-Phase 1P is implemented and has passed the recorded automated, build, runtime/import, migration/reopen, and Electron startup checks. G.R.A.C.I. can revise only canonical Task inputs after an exact current `input_revision_required` diagnosis and bind that change to one exact next Attempt while preserving prior history. Unknown still means stop.
+Phase 1R is implemented and has passed the recorded automated, build, runtime/import, migration/reopen, and Electron startup checks. G.R.A.C.I. can durably request bounded failure research, record provenance-rich evidence, and separately accept or reject it. Unknown still means stop.
 
 ### Technical Detail
 
-Architecture 2 Phase 1P is the current implemented phase. Input revision is caller-invoked, Task-input-only, canonically meaningful, durable, and exact single-use; it preserves normal approval, Attempt, provider, circuit, resource, lease, concurrency, Failure, and Verification controls. Goal/Task-structure revision, replanning, research, cancellation, distributed execution, UI work, Electron authority cutover, and automatic/background recovery remain deferred.
+Architecture 2 Phase 1R is the current implemented phase. Research is caller-invoked, bounded to exact current `research_recommended` failure authority, provenance-preserving, durable, and decision-separated. Accepted evidence is information only: autonomous research, evidence-driven retry/input revision/replanning, cancellation, distributed execution, UI work, Electron authority cutover, and automatic/background recovery remain deferred.
 
 ## Reconstruction Pointers
 

@@ -24,6 +24,7 @@ import type {
   ReconciliationDecision, ReconciliationDecisionId,
   CircuitRecord, CircuitTransition, CircuitEvidence, CircuitProbe, CircuitBreakerPolicy, CircuitTargetType,
   InputRevision, InputRevisionId, ReplanningDecision, ReplanningDecisionId,
+  ResearchRequest, ResearchRequestId, ResearchEvidence, ResearchEvidenceId, ResearchDecision, ResearchRequestInspection,
 } from '../domain/index.js';
 
 export interface LegacyImportOperation {
@@ -170,6 +171,13 @@ export interface Architecture2Persistence extends Disposable {
   getReplanningDecision(id: ReplanningDecisionId): ReplanningDecision | undefined;
   getReplanningDecisionByDiagnosis(diagnosisId: FailureDiagnosisId): ReplanningDecision | undefined;
   getReplanningDecisions(goalId: GoalId): ReplanningDecision[];
+  createResearchRequest(value: ResearchRequest, event: AuditEventInput): ResearchRequest;
+  getResearchRequest(id: ResearchRequestId): ResearchRequest | undefined;
+  inspectResearchRequest(id: ResearchRequestId): ResearchRequestInspection | undefined;
+  recordResearchEvidence(value: ResearchEvidence, event: AuditEventInput): ResearchEvidence;
+  getResearchEvidence(id: ResearchEvidenceId): ResearchEvidence | undefined;
+  decideResearchEvidence(value: ResearchDecision, event: AuditEventInput): ResearchDecision;
+  getAcceptedResearchEvidence(requestId: ResearchRequestId): ResearchEvidence[];
   recordCircuitEvidence(targetType: CircuitTargetType, targetId: string, diagnosis: FailureDiagnosis,
     policy: CircuitBreakerPolicy, evidence: CircuitEvidence, transition: CircuitTransition | undefined,
     event: AuditEventInput): CircuitRecord;

@@ -1,5 +1,19 @@
 # G.R.A.C.I. Test Log
 
+### 2026-08-14 - Architecture 2 Phase 1R Governed Research Foundation
+
+- `npx.cmd vitest run tests/architecture2-research.test.ts`: PASS, 6/6.
+- `npm.cmd run validate`: PASS after correcting one TypeScript collection-type declaration found during implementation.
+- Coverage includes schema-14 populated migration, SQLite restart reconstruction, exact Phase 1L authority, Phase 1N unknown stop, bounded plain JSON, evidence/decision separation, accepted inspection, equivalent idempotency, conflicting cross-connection final-decision rejection, and workflow non-mutation.
+- Initial related regression run: FAIL, 3 stale schema-version assertions; corrected as recorded in `FAILURE_LOG.md` and retested.
+- `npx.cmd vitest run tests/architecture2-research.test.ts tests/architecture2-failure-diagnosis.test.ts tests/architecture2-replanning.test.ts tests/architecture2-runtime-import.test.ts`: PASS, 25/25 across 4 files after correction.
+- Final `npm.cmd run validate`: PASS. Final `git diff --check`: PASS. No stale schema-14 current-version assertions remain.
+- Recovery/replanning regression command: PASS, 62/62 across 7 files after correcting the synthetic schema-12 fixture.
+- Persistence, runtime/import, and Orchestrator regression command: PASS, 74/74 across 3 files.
+- Full `npm.cmd test`: PASS, 225/225 across 21 files.
+- `npm.cmd run build`: PASS; `dist/main.js`, `dist/preload.js`, and `dist/ui/index.html` verified.
+- Direct Electron smoke: PASS; process remained alive for five seconds, emitted `Electron app starting`, and produced empty stderr before controlled process-tree shutdown.
+
 ### 2026-08-14 - Architecture 2 Phase 1Q Governed Replanning
 
 - Focused Phase 1Q suite: PASS, 2/2.

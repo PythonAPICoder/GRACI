@@ -97,7 +97,7 @@ describe('Architecture 2 Phase 1N external outcome reconciliation', () => {
     persistence.close();
     persistence = new SqliteArchitecture2Persistence({ databasePath: path });
     persistence.initialize();
-    expect(persistence.getSchemaVersion()).toBe(14);
+    expect(persistence.getSchemaVersion()).toBe(15);
     expect(persistence.getReconciliationDecision(decision.id)).toEqual(decision);
     expect(persistence.getAttempts(task.id)).toHaveLength(1);
   });
@@ -315,7 +315,7 @@ describe('Architecture 2 Phase 1N external outcome reconciliation', () => {
     database.close();
     persistence = new SqliteArchitecture2Persistence({ databasePath: path });
     persistence.initialize();
-    expect(persistence.getSchemaVersion()).toBe(14);
+    expect(persistence.getSchemaVersion()).toBe(15);
     expect(persistence.getReconciliationDecisions(asIdentifier<'FailureDiagnosis'>('absent'))).toEqual([]);
   });
 });

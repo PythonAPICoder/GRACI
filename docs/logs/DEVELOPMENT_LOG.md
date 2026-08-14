@@ -1,5 +1,12 @@
 # G.R.A.C.I. Phase 1 — Development Log
 
+## Architecture 2 Phase 1R - Governed Research Foundation - August 14, 2026
+
+- Added Addendum 023, schema 15, branded research identifiers and records, immutable request/evidence/decision persistence, derived lifecycle inspection, and explicit runtime APIs.
+- Research admission is limited to the exact current trusted `research_recommended` plus `proven_unsuccessful` Phase 1L authority chain and is revalidated inside `BEGIN IMMEDIATE`.
+- Accepted evidence remains information only; no consumption record or workflow, provider, qualification, health, Node, lease, circuit, retry, replanning, approval, or execution mutation was introduced.
+- Final verification passed: 6/6 focused tests, 62/62 recovery/replanning regressions, 74/74 persistence/runtime/orchestration regressions, 225/225 full tests, TypeScript validation, production build, schema-15 migration/reopen, Electron startup, and diff hygiene.
+
 ## Architecture 2 Phase 1Q - Governed Replanning Foundation - August 14, 2026
 
 - Added the caller-invoked replanning workflow, precise trusted diagnosis trigger, immutable decision/mapping records, schema 14, active-revision Orchestrator guard, runtime inspection, and focused tests.

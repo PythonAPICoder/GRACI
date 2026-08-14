@@ -20,7 +20,7 @@ import type {
   AlternativeRecoveryDecisionId,
   ReconciliationDecisionId,
   CircuitId, CircuitTransitionId, CircuitEvidenceId, CircuitProbeId,
-  InputRevisionId, ReplanningDecisionId,
+  InputRevisionId, ReplanningDecisionId, ResearchRequestId, ResearchEvidenceId, ResearchDecisionId,
 } from './ids.js';
 
 export type IsoTimestamp = string;
@@ -139,6 +139,53 @@ export interface ReplanningDecision {
   actor: string;
   authorizedAt: IsoTimestamp;
   eventId: EventId;
+}
+
+export interface ResearchRequest {
+  id: ResearchRequestId;
+  goalId: GoalId;
+  taskId: TaskId;
+  attemptId: AttemptId;
+  failureId: FailureId;
+  diagnosisId: FailureDiagnosisId;
+  question: string;
+  purpose: string;
+  requestedBy: string;
+  requestedAt: IsoTimestamp;
+  eventId: EventId;
+}
+
+export interface ResearchEvidence {
+  id: ResearchEvidenceId;
+  requestId: ResearchRequestId;
+  supplierId: string;
+  supplierType: string;
+  suppliedAt: IsoTimestamp;
+  source: string;
+  reference: string;
+  content: JsonObject;
+  integrity?: JsonObject;
+  recordedBy: string;
+  recordedAt: IsoTimestamp;
+  eventId: EventId;
+}
+
+export interface ResearchDecision {
+  id: ResearchDecisionId;
+  evidenceId: ResearchEvidenceId;
+  decision: 'accepted' | 'rejected';
+  actor: string;
+  reason: string;
+  decidedAt: IsoTimestamp;
+  eventId: EventId;
+}
+
+export type ResearchRequestLifecycle = 'requested' | 'evidence_recorded' | 'accepted' | 'rejected';
+
+export interface ResearchRequestInspection {
+  request: ResearchRequest;
+  lifecycle: ResearchRequestLifecycle;
+  evidence: ReadonlyArray<{ evidence: ResearchEvidence; decision?: ResearchDecision }>;
 }
 
 export type AttemptStatus = 'created' | 'running' | 'succeeded' | 'failed' | 'cancelled' | 'indeterminate';

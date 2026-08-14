@@ -242,7 +242,7 @@ describe('Architecture 2 Phase 1P governed input revision', () => {
     persistence.close();
     persistence = new SqliteArchitecture2Persistence({ databasePath: path });
     persistence.initialize();
-    expect(persistence.getSchemaVersion()).toBe(14);
+    expect(persistence.getSchemaVersion()).toBe(15);
     expect(persistence.getInputRevision(revision.id)).toEqual(revision);
 
     const oldPath = join(directory, 'schema12.sqlite');
@@ -251,14 +251,16 @@ describe('Architecture 2 Phase 1P governed input revision', () => {
     const populated = seed();
     persistence.close();
     const database = new DatabaseSync(oldPath);
-    database.exec(`DROP TABLE replanning_replacements; DROP TABLE replanning_decisions;
+    database.exec(`DROP TABLE research_decisions; DROP TABLE research_evidence; DROP TABLE research_requests;
+      DROP INDEX idx_failures_research_authority; DROP INDEX idx_diagnoses_research_authority;
+      DROP TABLE replanning_replacements; DROP TABLE replanning_decisions;
       DROP TABLE input_revision_consumptions; DROP TABLE input_revisions;
       DROP INDEX idx_failures_input_revision_authority; DROP INDEX idx_diagnoses_input_revision_authority;
       DELETE FROM schema_migrations WHERE version>=13; PRAGMA user_version=12;`);
     database.close();
     const migrated = new SqliteArchitecture2Persistence({ databasePath: oldPath });
     migrated.initialize();
-    expect(migrated.getSchemaVersion()).toBe(14);
+    expect(migrated.getSchemaVersion()).toBe(15);
     expect(migrated.getTask(populated.task.id)?.status).toBe('failed');
     expect(migrated.getAttempts(populated.task.id)).toHaveLength(1);
     expect(migrated.getFailure(populated.failure.id)).toEqual(populated.failure);

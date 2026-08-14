@@ -1,5 +1,23 @@
 # G.R.A.C.I. Phase 1 — Autonomous Recovery and Continuation
 
+## 2026-08-14 - Phase 1R TypeScript Collection Declaration Correction
+
+- Initial TypeScript validation rejected `readonly Array<...>` because TypeScript permits the `readonly` modifier only on array and tuple literal types.
+- Replaced it with the equivalent `ReadonlyArray<...>` declaration in `ResearchRequestInspection`.
+- TypeScript validation and the focused Phase 1R suite passed after correction.
+
+## 2026-08-14 - Phase 1R Current-Schema Assertion Correction
+
+- The first focused regression run passed Phase 1R but three prior suites retained hard-coded schema-14 current-version assertions and failed after the governed schema-15 migration.
+- Updated all current-schema assertions to 15 without changing fixtures that intentionally simulate older source schemas.
+- The same focused regression set passed after correction.
+
+## 2026-08-14 - Phase 1R Synthetic Schema-12 Fixture Correction
+
+- The first broad recovery regression failed because the Phase 1P synthetic schema-12 downgrade removed schema-13 and schema-14 objects but retained new schema-15 research indexes.
+- The failure was confined to the test fixture; a genuine schema-14 database cannot already contain schema-15 indexes.
+- Updated the fixture to remove all schema-15 research tables and indexes before replaying migrations. The recovery/replanning set then passed 62/62, and the full suite passed 225/225.
+
 ## 2026-08-14 - Phase 1Q Schema Baseline Fixture Correction
 
 - Regression tests initially retained schema-13 expectations and one schema-12 fixture left schema-14 metadata/tables present.

@@ -30,6 +30,7 @@ import type {
   ReconciliationDecision, ReconciliationDecisionId,
   CircuitRecord, CircuitTransition, CircuitEvidence, CircuitProbe, CircuitBreakerPolicy, CircuitTargetType,
   InputRevision, InputRevisionId, ReplanningDecision, ReplanningDecisionId,
+  ResearchRequest, ResearchRequestId, ResearchEvidence, ResearchEvidenceId, ResearchDecision, ResearchRequestInspection,
 } from '../../domain/index.js';
 import { assertIdentifier } from '../../domain/index.js';
 import type {
@@ -1283,6 +1284,126 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
       .all(goalId) as Row[]).map((row) => this.mapReplanningDecision(row));
   }
 
+  createResearchRequest(value: ResearchRequest, event: AuditEventInput): ResearchRequest {
+    return this.transaction(() => {
+      const existing = this.db().prepare('SELECT * FROM research_requests WHERE diagnosis_id=?')
+        .get(value.diagnosisId) as Row | undefined;
+      if (existing) {
+        const mapped = this.mapResearchRequest(existing);
+        if (canonicalize(mapped) !== canonicalize(value)) throw new Error(`Research request authority conflict: ${value.diagnosisId}`);
+        return mapped;
+      }
+      const taskRow = this.db().prepare('SELECT * FROM tasks WHERE id=?').get(value.taskId) as Row | undefined;
+      const task = taskRow ? this.mapTask(taskRow) : undefined;
+      const attemptRow = this.db().prepare('SELECT * FROM attempts WHERE task_id=? ORDER BY attempt_number DESC,id DESC LIMIT 1')
+        .get(value.taskId) as Row | undefined;
+      const attempt = attemptRow ? this.mapAttempt(attemptRow) : undefined;
+      const failureRow = attempt ? this.db().prepare(`SELECT * FROM failures WHERE task_id=? AND attempt_id=?
+        ORDER BY created_at DESC,id DESC LIMIT 1`).get(value.taskId, attempt.id) as Row | undefined : undefined;
+      const diagnosisRow = this.db().prepare('SELECT * FROM failure_diagnoses WHERE id=?').get(value.diagnosisId) as Row | undefined;
+      const diagnosis = diagnosisRow ? this.mapFailureDiagnosis(diagnosisRow) : undefined;
+      const currentDiagnosis = failureRow ? this.db().prepare(`SELECT * FROM failure_diagnoses WHERE failure_id=?
+        AND policy_id='architecture2.phase1l.deterministic' AND policy_version=1 LIMIT 1`).get(String(failureRow.id)) as Row | undefined : undefined;
+      if (!task || task.goalId !== value.goalId || task.status !== 'failed' || !attempt || attempt.id !== value.attemptId ||
+          attempt.status !== 'failed' || String(failureRow?.id) !== value.failureId || !diagnosis ||
+          diagnosis.id !== value.diagnosisId || diagnosis.taskId !== value.taskId || diagnosis.attemptId !== value.attemptId ||
+          diagnosis.failureId !== value.failureId || String(currentDiagnosis?.id) !== value.diagnosisId ||
+          diagnosis.policyId !== 'architecture2.phase1l.deterministic' || diagnosis.policyVersion !== 1 ||
+          diagnosis.disposition !== 'research_recommended' || diagnosis.outcomeCertainty !== 'proven_unsuccessful') {
+        throw new Error('Research request authority is no longer current');
+      }
+      this.validateResearchRequest(value);
+      if (event.id !== value.eventId || event.aggregateType !== 'research_request' || event.aggregateId !== value.id ||
+          event.eventType !== 'research.requested' || event.actor !== value.requestedBy || event.occurredAt !== value.requestedAt) {
+        throw new Error('Research request Event mismatch');
+      }
+      this.insertEvent(event);
+      this.db().prepare(`INSERT INTO research_requests
+        (id,goal_id,task_id,attempt_id,failure_id,diagnosis_id,question,purpose,requested_by,requested_at,event_id)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?)`).run(value.id, value.goalId, value.taskId, value.attemptId, value.failureId,
+          value.diagnosisId, value.question, value.purpose, value.requestedBy, value.requestedAt, value.eventId);
+      return value;
+    });
+  }
+
+  getResearchRequest(id: ResearchRequestId): ResearchRequest | undefined {
+    const row = this.db().prepare('SELECT * FROM research_requests WHERE id=?').get(id) as Row | undefined;
+    return row ? this.mapResearchRequest(row) : undefined;
+  }
+
+  inspectResearchRequest(id: ResearchRequestId): ResearchRequestInspection | undefined {
+    const request = this.getResearchRequest(id);
+    if (!request) return undefined;
+    const evidence = (this.db().prepare(`SELECT e.*,d.id decision_id,d.decision,d.actor decision_actor,
+      d.reason decision_reason,d.decided_at,d.event_id decision_event_id FROM research_evidence e
+      LEFT JOIN research_decisions d ON d.evidence_id=e.id WHERE e.request_id=? ORDER BY e.supplied_at,e.id`).all(id) as Row[])
+      .map((row) => ({ evidence: this.mapResearchEvidence(row), decision: row.decision_id === null ? undefined : this.mapResearchDecision({
+        id: row.decision_id, evidence_id: row.id, decision: row.decision, actor: row.decision_actor,
+        reason: row.decision_reason, decided_at: row.decided_at, event_id: row.decision_event_id }) }));
+    const verdicts = new Set(evidence.map((item) => item.decision?.decision).filter(Boolean));
+    const lifecycle = verdicts.has('accepted') ? 'accepted' : verdicts.has('rejected') ? 'rejected' :
+      evidence.length > 0 ? 'evidence_recorded' : 'requested';
+    return { request, lifecycle, evidence };
+  }
+
+  recordResearchEvidence(value: ResearchEvidence, event: AuditEventInput): ResearchEvidence {
+    this.validateResearchEvidence(value);
+    return this.transaction(() => {
+      const existing = this.db().prepare('SELECT * FROM research_evidence WHERE id=?').get(value.id) as Row | undefined;
+      if (existing) {
+        const mapped = this.mapResearchEvidence(existing);
+        if (canonicalize(mapped) !== canonicalize(value)) throw new Error(`Research evidence conflict: ${value.id}`);
+        return mapped;
+      }
+      if (!this.getResearchRequest(value.requestId)) throw new Error(`Research request not found: ${value.requestId}`);
+      if (event.id !== value.eventId || event.aggregateType !== 'research_request' || event.aggregateId !== value.requestId ||
+          event.eventType !== 'research.evidence-recorded' || event.actor !== value.recordedBy || event.occurredAt !== value.recordedAt) {
+        throw new Error('Research evidence Event mismatch');
+      }
+      this.insertEvent(event);
+      this.db().prepare(`INSERT INTO research_evidence
+        (id,request_id,supplier_id,supplier_type,supplied_at,source,reference,content_json,integrity_json,recorded_by,recorded_at,event_id)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`).run(value.id, value.requestId, value.supplierId, value.supplierType,
+          value.suppliedAt, value.source, value.reference, json(value.content), value.integrity ? json(value.integrity) : null,
+          value.recordedBy, value.recordedAt, value.eventId);
+      return value;
+    });
+  }
+
+  getResearchEvidence(id: ResearchEvidenceId): ResearchEvidence | undefined {
+    const row = this.db().prepare('SELECT * FROM research_evidence WHERE id=?').get(id) as Row | undefined;
+    return row ? this.mapResearchEvidence(row) : undefined;
+  }
+
+  decideResearchEvidence(value: ResearchDecision, event: AuditEventInput): ResearchDecision {
+    return this.transaction(() => {
+      const existing = this.db().prepare('SELECT * FROM research_decisions WHERE evidence_id=?').get(value.evidenceId) as Row | undefined;
+      if (existing) {
+        const mapped = this.mapResearchDecision(existing);
+        if (canonicalize(mapped) !== canonicalize(value)) throw new Error(`Research evidence already has a conflicting final decision: ${value.evidenceId}`);
+        return mapped;
+      }
+      this.validateResearchDecision(value);
+      const evidence = this.getResearchEvidence(value.evidenceId);
+      if (!evidence) throw new Error(`Research evidence not found: ${value.evidenceId}`);
+      if (event.id !== value.eventId || event.aggregateType !== 'research_evidence' || event.aggregateId !== value.evidenceId ||
+          event.eventType !== `research.${value.decision}` || event.actor !== value.actor || event.occurredAt !== value.decidedAt) {
+        throw new Error('Research decision Event mismatch');
+      }
+      this.insertEvent(event);
+      this.db().prepare(`INSERT INTO research_decisions (id,evidence_id,decision,actor,reason,decided_at,event_id)
+        VALUES (?,?,?,?,?,?,?)`).run(value.id, value.evidenceId, value.decision, value.actor, value.reason,
+          value.decidedAt, value.eventId);
+      return value;
+    });
+  }
+
+  getAcceptedResearchEvidence(requestId: ResearchRequestId): ResearchEvidence[] {
+    return (this.db().prepare(`SELECT e.* FROM research_evidence e JOIN research_decisions d ON d.evidence_id=e.id
+      WHERE e.request_id=? AND d.decision='accepted' ORDER BY e.supplied_at,e.id`).all(requestId) as Row[])
+      .map((row) => this.mapResearchEvidence(row));
+  }
+
   recordCircuitEvidence(targetType: CircuitTargetType, targetId: string, diagnosis: FailureDiagnosis,
     policy: CircuitBreakerPolicy, evidence: CircuitEvidence, transition: CircuitTransition | undefined,
     event: AuditEventInput): CircuitRecord {
@@ -2218,6 +2339,77 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
     if (!value.reason.trim() || !value.actor.trim() || value.replacements.length === 0 ||
         value.replacements.some((mapping) => mapping.replacementTaskIds.length === 0)) {
       throw new Error(`Corrupt persisted Replanning Decision: ${value.id}`);
+    }
+    return value;
+  }
+
+  private validateResearchRequest(value: ResearchRequest): void {
+    for (const [id, label] of [[value.id, 'research request id'], [value.goalId, 'research request goal id'],
+      [value.taskId, 'research request task id'], [value.attemptId, 'research request attempt id'],
+      [value.failureId, 'research request failure id'], [value.diagnosisId, 'research request diagnosis id'],
+      [value.eventId, 'research request event id']] as const) assertIdentifier(id, label);
+    if (!value.question.trim() || value.question.length > 4000 || !value.purpose.trim() || value.purpose.length > 2000 ||
+        !value.requestedBy.trim() || value.requestedBy.length > 256) throw new Error('Research request fields are missing or exceed bounds');
+    if (new Date(value.requestedAt).toISOString() !== value.requestedAt) throw new Error('Research request time must be canonical UTC');
+  }
+
+  private validateResearchEvidence(value: ResearchEvidence): void {
+    assertIdentifier(value.id, 'research evidence id');
+    assertIdentifier(value.requestId, 'research evidence request id');
+    assertIdentifier(value.eventId, 'research evidence event id');
+    assertPlainJsonObject(value.content, 'Research evidence content');
+    if (value.integrity) assertPlainJsonObject(value.integrity, 'Research evidence integrity');
+    if (!value.supplierId.trim() || value.supplierId.length > 256 || !value.supplierType.trim() || value.supplierType.length > 128 ||
+        !value.source.trim() || value.source.length > 1000 || !value.reference.trim() || value.reference.length > 2000 ||
+        !value.recordedBy.trim() || value.recordedBy.length > 256 || Buffer.byteLength(json(value.content)) > 65536 ||
+        value.integrity && Buffer.byteLength(json(value.integrity)) > 8192) throw new Error('Research evidence fields are missing or exceed bounds');
+    if (new Date(value.suppliedAt).toISOString() !== value.suppliedAt || new Date(value.recordedAt).toISOString() !== value.recordedAt) {
+      throw new Error('Research evidence times must be canonical UTC');
+    }
+  }
+
+  private validateResearchDecision(value: ResearchDecision): void {
+    assertIdentifier(value.id, 'research decision id');
+    assertIdentifier(value.evidenceId, 'research decision evidence id');
+    assertIdentifier(value.eventId, 'research decision event id');
+    if (!['accepted', 'rejected'].includes(value.decision) || !value.actor.trim() || value.actor.length > 256 ||
+        !value.reason.trim() || value.reason.length > 2000) throw new Error('Research decision fields are invalid or exceed bounds');
+    if (new Date(value.decidedAt).toISOString() !== value.decidedAt) throw new Error('Research decision time must be canonical UTC');
+  }
+
+  private mapResearchRequest(row: Row): ResearchRequest {
+    const value: ResearchRequest = { id: String(row.id) as ResearchRequestId, goalId: String(row.goal_id) as GoalId,
+      taskId: String(row.task_id) as TaskId, attemptId: String(row.attempt_id) as ResearchRequest['attemptId'],
+      failureId: String(row.failure_id) as FailureId, diagnosisId: String(row.diagnosis_id) as FailureDiagnosisId,
+      question: String(row.question), purpose: String(row.purpose), requestedBy: String(row.requested_by),
+      requestedAt: String(row.requested_at), eventId: String(row.event_id) as ResearchRequest['eventId'] };
+    try { this.validateResearchRequest(value); } catch (error) {
+      throw new Error(`Corrupt persisted Research Request: ${value.id}`, { cause: error });
+    }
+    return value;
+  }
+
+  private mapResearchEvidence(row: Row): ResearchEvidence {
+    const value: ResearchEvidence = { id: String(row.id) as ResearchEvidenceId,
+      requestId: String(row.request_id) as ResearchRequestId, supplierId: String(row.supplier_id),
+      supplierType: String(row.supplier_type), suppliedAt: String(row.supplied_at), source: String(row.source),
+      reference: String(row.reference), content: parseObject(row.content_json),
+      integrity: row.integrity_json === null ? undefined : parseObject(row.integrity_json),
+      recordedBy: String(row.recorded_by), recordedAt: String(row.recorded_at),
+      eventId: String(row.event_id) as ResearchEvidence['eventId'] };
+    try { this.validateResearchEvidence(value); } catch (error) {
+      throw new Error(`Corrupt persisted Research Evidence: ${value.id}`, { cause: error });
+    }
+    return value;
+  }
+
+  private mapResearchDecision(row: Row): ResearchDecision {
+    const value: ResearchDecision = { id: String(row.id) as ResearchDecision['id'],
+      evidenceId: String(row.evidence_id) as ResearchEvidenceId, decision: String(row.decision) as ResearchDecision['decision'],
+      actor: String(row.actor), reason: String(row.reason), decidedAt: String(row.decided_at),
+      eventId: String(row.event_id) as ResearchDecision['eventId'] };
+    try { this.validateResearchDecision(value); } catch (error) {
+      throw new Error(`Corrupt persisted Research Decision: ${value.id}`, { cause: error });
     }
     return value;
   }

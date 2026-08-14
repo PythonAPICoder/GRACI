@@ -858,9 +858,68 @@ const migration014: Migration = {
   },
 };
 
+const migration015: Migration = {
+  version: 15,
+  name: 'architecture_2_phase_1r_governed_research',
+  up(database) {
+    database.exec(`
+      CREATE UNIQUE INDEX idx_failures_research_authority ON failures(id, task_id, attempt_id);
+      CREATE UNIQUE INDEX idx_diagnoses_research_authority ON failure_diagnoses(id, task_id, failure_id, attempt_id);
+      CREATE TABLE research_requests (
+        id TEXT PRIMARY KEY,
+        goal_id TEXT NOT NULL REFERENCES goals(id) ON DELETE RESTRICT,
+        task_id TEXT NOT NULL,
+        attempt_id TEXT NOT NULL,
+        failure_id TEXT NOT NULL,
+        diagnosis_id TEXT NOT NULL UNIQUE,
+        question TEXT NOT NULL CHECK (length(trim(question)) BETWEEN 1 AND 4000),
+        purpose TEXT NOT NULL CHECK (length(trim(purpose)) BETWEEN 1 AND 2000),
+        requested_by TEXT NOT NULL CHECK (length(trim(requested_by)) BETWEEN 1 AND 256),
+        requested_at TEXT NOT NULL,
+        event_id TEXT NOT NULL UNIQUE REFERENCES events(id) ON DELETE RESTRICT,
+        FOREIGN KEY (task_id, goal_id) REFERENCES tasks(id, goal_id) ON DELETE RESTRICT,
+        FOREIGN KEY (attempt_id, task_id) REFERENCES attempts(id, task_id) ON DELETE RESTRICT,
+        FOREIGN KEY (failure_id, task_id, attempt_id) REFERENCES failures(id, task_id, attempt_id) ON DELETE RESTRICT,
+        FOREIGN KEY (diagnosis_id, task_id, failure_id, attempt_id)
+          REFERENCES failure_diagnoses(id, task_id, failure_id, attempt_id) ON DELETE RESTRICT
+      ) STRICT;
+      CREATE TABLE research_evidence (
+        id TEXT PRIMARY KEY,
+        request_id TEXT NOT NULL REFERENCES research_requests(id) ON DELETE RESTRICT,
+        supplier_id TEXT NOT NULL CHECK (length(trim(supplier_id)) BETWEEN 1 AND 256),
+        supplier_type TEXT NOT NULL CHECK (length(trim(supplier_type)) BETWEEN 1 AND 128),
+        supplied_at TEXT NOT NULL,
+        source TEXT NOT NULL CHECK (length(trim(source)) BETWEEN 1 AND 1000),
+        reference TEXT NOT NULL CHECK (length(trim(reference)) BETWEEN 1 AND 2000),
+        content_json TEXT NOT NULL CHECK (length(content_json) <= 65536 AND json_valid(content_json) AND json_type(content_json)='object'),
+        integrity_json TEXT CHECK (integrity_json IS NULL OR (length(integrity_json) <= 8192 AND json_valid(integrity_json) AND json_type(integrity_json)='object')),
+        recorded_by TEXT NOT NULL CHECK (length(trim(recorded_by)) BETWEEN 1 AND 256),
+        recorded_at TEXT NOT NULL,
+        event_id TEXT NOT NULL UNIQUE REFERENCES events(id) ON DELETE RESTRICT
+      ) STRICT;
+      CREATE TABLE research_decisions (
+        id TEXT PRIMARY KEY,
+        evidence_id TEXT NOT NULL UNIQUE REFERENCES research_evidence(id) ON DELETE RESTRICT,
+        decision TEXT NOT NULL CHECK (decision IN ('accepted','rejected')),
+        actor TEXT NOT NULL CHECK (length(trim(actor)) BETWEEN 1 AND 256),
+        reason TEXT NOT NULL CHECK (length(trim(reason)) BETWEEN 1 AND 2000),
+        decided_at TEXT NOT NULL,
+        event_id TEXT NOT NULL UNIQUE REFERENCES events(id) ON DELETE RESTRICT
+      ) STRICT;
+      CREATE INDEX idx_research_evidence_request ON research_evidence(request_id, supplied_at, id);
+      CREATE TRIGGER research_requests_no_update BEFORE UPDATE ON research_requests BEGIN SELECT RAISE(ABORT, 'research requests are immutable'); END;
+      CREATE TRIGGER research_requests_no_delete BEFORE DELETE ON research_requests BEGIN SELECT RAISE(ABORT, 'research requests are immutable'); END;
+      CREATE TRIGGER research_evidence_no_update BEFORE UPDATE ON research_evidence BEGIN SELECT RAISE(ABORT, 'research evidence is immutable'); END;
+      CREATE TRIGGER research_evidence_no_delete BEFORE DELETE ON research_evidence BEGIN SELECT RAISE(ABORT, 'research evidence is immutable'); END;
+      CREATE TRIGGER research_decisions_no_update BEFORE UPDATE ON research_decisions BEGIN SELECT RAISE(ABORT, 'research decisions are immutable'); END;
+      CREATE TRIGGER research_decisions_no_delete BEFORE DELETE ON research_decisions BEGIN SELECT RAISE(ABORT, 'research decisions are immutable'); END;
+    `);
+  },
+};
+
 export const migrations: readonly Migration[] = [migration001, migration002, migration003, migration004, migration005,
   migration006, migration007, migration008, migration009, migration010, migration011, migration012, migration013,
-  migration014];
+  migration014, migration015];
 
 export function migrate(database: DatabaseSync): number {
   database.exec(`

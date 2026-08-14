@@ -38,6 +38,9 @@ export type CircuitEvidenceId = Identifier<'CircuitEvidence'>;
 export type CircuitProbeId = Identifier<'CircuitProbe'>;
 export type InputRevisionId = Identifier<'InputRevision'>;
 export type ReplanningDecisionId = Identifier<'ReplanningDecision'>;
+export type ResearchRequestId = Identifier<'ResearchRequest'>;
+export type ResearchEvidenceId = Identifier<'ResearchEvidence'>;
+export type ResearchDecisionId = Identifier<'ResearchDecision'>;
 
 const IDENTIFIER_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 

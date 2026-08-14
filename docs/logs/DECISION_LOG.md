@@ -1,5 +1,13 @@
 # G.R.A.C.I. Engineering Decision Log
 
+### DEC-0019 - Phase 1R Failure-Scoped Governed Research Records
+
+- **Date:** 2026-08-14
+- Scope request creation to the exact current trusted `research_recommended` and `proven_unsuccessful` Phase 1L diagnosis chain.
+- Store immutable requests, supplier evidence, and one separate accepted/rejected decision per evidence in schema 15; derive lifecycle and create no consumption table.
+- Revalidate request authority and serialize final decisions inside `BEGIN IMMEDIATE`.
+- Treat accepted evidence as information only, with no workflow, routing, qualification, health, resource, recovery, or execution authority.
+
 ### DEC-0018 - Phase 1Q Governed Replanning
 
 - **Date:** 2026-08-14

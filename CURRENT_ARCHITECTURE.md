@@ -2,9 +2,9 @@
 
 > **Living document:** Update this file whenever Architecture 2 module boundaries, lifecycle behavior, persistence authority, runtime composition, or intentionally deferred capabilities change. This is an implementation map, not immutable governance. The master specification and numbered addenda under `docs/governance/` remain authoritative.
 
-**Architecture represented:** Current Phase 1Q governed replanning foundation
+**Architecture represented:** Current Phase 1R governed research foundation
 
-**Implementation working tree starting basis:** accepted Phase 1P repository HEAD `c24e0e00f9821ccc057b126d48e5e85716e894ed`
+**Implementation working tree starting basis:** clean main repository HEAD `eca3e04`
 
 ## System Shape
 
@@ -18,7 +18,7 @@ Architecture 2 is a TypeScript modular monolith under `src/architecture2/` with 
 
 - `domain/`: canonical records and branded identifiers.
 - `persistence/`: provider-independent contract and SQLite implementation.
-- `workflow/`: state machine, dependency evaluation, graph validation, deterministic scheduling, orchestration, queue inspection, trusted deterministic failure diagnosis, alternative recovery, scoped circuit breakers, and governed Task input revision.
+- `workflow/`: state machine, dependency evaluation, graph validation, deterministic scheduling, orchestration, queue inspection, trusted deterministic failure diagnosis, bounded recovery, governed Task/graph revision, and governed research records.
 - `execution/`: provider-neutral Task execution contract and deterministic test provider.
 - `verification/`: independent Task verification contract and deterministic verifier.
 - `providers/`: capability/provider resolution and Ollama Model Provider adapter.
@@ -51,7 +51,7 @@ retry_pending -> blocked | ready | failed
 waiting_for_approval -> ready | failed
 ```
 
-Cancellation and supersession exist in the domain state vocabulary, but Phase 1P does not implement user cancellation or cancellation propagation. `TaskStateMachine` centrally validates transition legality and evidence guards. Persistence independently enforces optimistic Task versions and atomic writes.
+Cancellation and supersession exist in the domain state vocabulary, but the current implementation does not provide user cancellation or cancellation propagation. `TaskStateMachine` centrally validates transition legality and evidence guards. Persistence independently enforces optimistic Task versions and atomic writes.
 
 ## Persistence and SQLite Authority
 
@@ -63,7 +63,7 @@ SQLite is G.R.A.C.I.'s notebook. The assistant does not rely on remembering what
 
 `SqliteArchitecture2Persistence` is the current authoritative store behind `Architecture2Persistence`. Callers supply the database path. The implementation uses built-in `node:sqlite`, foreign keys, strict tables, WAL mode, `synchronous = FULL`, a busy timeout, and `BEGIN IMMEDIATE` write transactions.
 
-Current schema version is 14. Phase 1Q adds immutable replanning decisions and replacement mappings while retaining all earlier recovery history.
+Current schema version is 15. Phase 1R adds immutable Research Requests, Research Evidence, and final Research Decisions while retaining all earlier workflow and recovery history.
 
 Important invariants include:
 
@@ -77,6 +77,7 @@ Important invariants include:
 - Resource-aware workflow scheduling atomically writes the Task transition, scheduling decision, lease, and Events.
 - New Orchestrator Failures atomically write their diagnosis, disposition, Task transition, and Events.
 - Diagnosis and changed-condition records are append-only and survive close/reopen reconstruction.
+- Research lifecycle is derived from immutable request, evidence, and decision records; accepted evidence is information only and has no consumption or execution authority.
 - Reconciliation history is immutable, source-attributed, idempotent, and reconstructed with its lifecycle and consumption relationships.
 - Circuit transitions and evidence are immutable; probe claim and consumption are transactional and bound to exact routing and Attempt identities.
 - Input revisions preserve prior Attempt snapshots, change only canonical Task inputs and lifecycle metadata, and are consumed atomically by one exact next Attempt.
@@ -341,7 +342,7 @@ Major deferred capabilities include:
 - Distributed locks, multiple Orchestrators, remote workers, and high availability.
 - Dynamic load balancing, dynamic concurrency, speculative execution, and priority displacement.
 - Automatic discovery, polling, monitoring, and scheduler-triggered workstation policy.
-- Governed research and recovery dispositions other than the Phase 1M alternatives, Phase 1N reconciliation, Phase 1O route filtering/bound probes, and Phase 1P Task input revision.
+- Research-provider execution, web/model research, evidence consumption, automatic recovery, and recovery dispositions beyond the separately governed existing paths.
 - Purpose-specific memory and retrieval.
 - Broad tool, agent, cloud, productivity, voice, media, notification, and UI integration.
 - Architecture 2 Electron authority cutover and production hardening.

@@ -8,10 +8,11 @@ import { reconcileExternalOutcome, type ReconciliationCommand,
   type ReconciliationProvider } from '../reconciliation/index.js';
 import { diagnosePersistedFailure, inspectQueue, MinimalOrchestrator, recoverWithAlternative,
   acquireCircuitProbe, claimCircuitProbe, inspectCircuits, recordCircuitFailure, recordCircuitProbeOutcome,
-  authorizeInputRevision, authorizeReplanning,
+  authorizeInputRevision, authorizeReplanning, createResearchRequest, recordResearchEvidence, decideResearchEvidence,
   type AcquireCircuitProbeCommand, type AlternativeRecoveryCommand, type OrchestratorOptions,
   type ClaimCircuitProbeCommand, type RecordCircuitFailureCommand, type RecordCircuitProbeOutcomeCommand,
-  type AuthorizeInputRevisionCommand, type AuthorizeReplanningCommand } from '../workflow/index.js';
+  type AuthorizeInputRevisionCommand, type AuthorizeReplanningCommand, type CreateResearchRequestCommand,
+  type RecordResearchEvidenceCommand, type DecideResearchEvidenceCommand } from '../workflow/index.js';
 
 export interface Architecture2RuntimeConfiguration {
   databasePath: string;
@@ -82,6 +83,30 @@ export class Architecture2Runtime implements Disposable {
   inspectGraphRevisions(goalId: Parameters<SqliteArchitecture2Persistence['getTaskGraphRevisions']>[0]) {
     return { goal: this.persistence.getGoal(goalId)?.goal,
       revisions: this.persistence.getTaskGraphRevisions(goalId), decisions: this.persistence.getReplanningDecisions(goalId) };
+  }
+
+  createResearchRequest(command: CreateResearchRequestCommand) {
+    return createResearchRequest(this.persistence, command);
+  }
+
+  inspectResearchRequest(id: CreateResearchRequestCommand['id']) {
+    return this.persistence.inspectResearchRequest(id);
+  }
+
+  recordResearchEvidence(command: RecordResearchEvidenceCommand) {
+    return recordResearchEvidence(this.persistence, command);
+  }
+
+  acceptResearchEvidence(command: Omit<DecideResearchEvidenceCommand, 'decision'>) {
+    return decideResearchEvidence(this.persistence, { ...command, decision: 'accepted' });
+  }
+
+  rejectResearchEvidence(command: Omit<DecideResearchEvidenceCommand, 'decision'>) {
+    return decideResearchEvidence(this.persistence, { ...command, decision: 'rejected' });
+  }
+
+  inspectAcceptedResearchEvidence(requestId: CreateResearchRequestCommand['id']) {
+    return this.persistence.getAcceptedResearchEvidence(requestId);
   }
 
   inspectCircuits() {
