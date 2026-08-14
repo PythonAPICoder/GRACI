@@ -530,6 +530,37 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
     });
   }
 
+  scheduleTaskWithResource(task: Task, expectedVersion: number, value: ResourceSchedulingDecision,
+    lease: ResourceLease, events: readonly AuditEventInput[]): boolean {
+    if (events.length === 0) throw new Error('Resource scheduling requires an audit event');
+    if (task.status !== 'scheduled' || value.request.id !== lease.decisionId ||
+        value.request.offeringId !== lease.offeringId || value.selectedLocationId !== lease.locationId ||
+        value.selectedNodeId !== lease.nodeId || lease.status !== 'active') {
+      throw new Error('Resource lease does not match its workflow scheduling decision');
+    }
+    return this.transaction(() => {
+      const location = this.db().prepare('SELECT node_id, offering_id, capacity FROM offering_locations WHERE id = ?')
+        .get(lease.locationId) as Row | undefined;
+      if (!location || String(location.node_id) !== lease.nodeId || String(location.offering_id) !== lease.offeringId) {
+        throw new Error('Resource lease binding does not match its offering location');
+      }
+      const used = Number((this.db().prepare(`SELECT COALESCE(SUM(capacity), 0) AS capacity FROM resource_leases
+        WHERE location_id = ? AND status = 'active' AND expires_at > ?`).get(lease.locationId, lease.acquiredAt) as Row).capacity);
+      if (used + lease.capacity > Number(location.capacity)) return false;
+      this.updateTaskRow(task, expectedVersion);
+      this.db().prepare(`INSERT INTO resource_scheduling_decisions
+        (id, offering_id, request_json, candidates_json, selected_location_id, selected_node_id, explanation, decided_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`).run(value.request.id, value.request.offeringId, json(value.request),
+        json(value.candidates), value.selectedLocationId ?? null, value.selectedNodeId ?? null, value.explanation, value.decidedAt);
+      this.db().prepare(`INSERT INTO resource_leases
+        (id, decision_id, offering_id, location_id, node_id, capacity, status, acquired_at, expires_at, released_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(lease.id, lease.decisionId, lease.offeringId, lease.locationId,
+        lease.nodeId, lease.capacity, lease.status, lease.acquiredAt, lease.expiresAt, lease.releasedAt ?? null);
+      this.insertEvents(events);
+      return true;
+    });
+  }
+
   getResourceSchedulingDecision(id: ResourceSchedulingDecision['request']['id']): ResourceSchedulingDecision | undefined {
     const row = this.db().prepare('SELECT * FROM resource_scheduling_decisions WHERE id = ?').get(id) as Row | undefined;
     return row ? this.mapResourceSchedulingDecision(row) : undefined;

@@ -13,7 +13,8 @@ import {
   type TaskId,
   type Verification,
 } from '../src/architecture2/domain/index.js';
-import { DeterministicTestProvider, type DeterministicBehavior } from '../src/architecture2/execution/index.js';
+import { DeterministicTestProvider, type DeterministicBehavior, type TaskExecutionProvider,
+  type TaskExecutionRequest, type TaskExecutionResult } from '../src/architecture2/execution/index.js';
 import { SqliteArchitecture2Persistence } from '../src/architecture2/persistence/index.js';
 import { DeterministicVerifier } from '../src/architecture2/verification/index.js';
 import { InvalidTaskTransitionError, MinimalOrchestrator, TaskStateMachine } from '../src/architecture2/workflow/index.js';
@@ -119,6 +120,165 @@ describe('Architecture 2 Phase 1B workflow kernel', () => {
     return { value, provider };
   }
 
+  function controlledProvider(expectedStarts: number, failingTaskId?: TaskId) {
+    let active = 0;
+    let maximumActive = 0;
+    let release!: () => void;
+    let started!: () => void;
+    const gate = new Promise<void>((resolve) => { release = resolve; });
+    const allStarted = new Promise<void>((resolve) => { started = resolve; });
+    const startedTaskIds: TaskId[] = [];
+    const provider: TaskExecutionProvider = {
+      providerId: 'controlled-concurrency-provider',
+      async execute(request: TaskExecutionRequest): Promise<TaskExecutionResult> {
+        active += 1;
+        maximumActive = Math.max(maximumActive, active);
+        startedTaskIds.push(request.taskId);
+        if (startedTaskIds.length === expectedStarts) started();
+        await gate;
+        active -= 1;
+        return request.taskId === failingTaskId
+          ? { status: 'failed', classification: 'permanent', code: 'CONTROLLED_FAILURE',
+            summary: 'Controlled task failure', details: {} }
+          : { status: 'succeeded', output: {}, evidence: { deterministic: true, verificationPasses: true } };
+      },
+    };
+    return { provider, allStarted, release: () => release(), startedTaskIds, maximumActive: () => maximumActive };
+  }
+
+  it.each([0, -1, 1.5, Number.NaN])('rejects invalid maxConcurrentTasks %s', (maxConcurrentTasks) => {
+    expect(() => new MinimalOrchestrator(persistence, new DeterministicTestProvider(), new DeterministicVerifier(),
+      { maxConcurrentTasks })).toThrow(/positive integer/);
+  });
+
+  it('rejects resource acquisition without offering resolution', () => {
+    expect(() => new MinimalOrchestrator(persistence, new DeterministicTestProvider(), new DeterministicVerifier(), {
+      acquireResource: () => undefined,
+    })).toThrow(/requires resolveOffering/);
+  });
+
+  it('overlaps independent tasks in deterministic order without exceeding the configured limit', async () => {
+    seedGraph([task('task-c'), task('task-b'), task('task-a')]);
+    const controlled = controlledProvider(2);
+    const value = new MinimalOrchestrator(persistence, controlled.provider, new DeterministicVerifier(), {
+      actor: 'phase1k-test', now: () => NOW, nextId, maxConcurrentTasks: 2,
+    });
+    const running = value.run(graphId());
+    await controlled.allStarted;
+    expect(controlled.startedTaskIds).toEqual([taskId('task-a'), taskId('task-b')]);
+    expect(controlled.maximumActive()).toBe(2);
+    expect(persistence.getTask(taskId('task-a'))?.status).toBe('running');
+    expect(persistence.getTask(taskId('task-b'))?.status).toBe('running');
+    expect(persistence.getTask(taskId('task-c'))?.status).toBe('ready');
+    controlled.release();
+    const result = await running;
+    expect(result.executedTaskIds).toEqual([taskId('task-a'), taskId('task-b'), taskId('task-c')]);
+    expect(result.status).toBe('succeeded');
+    expect(controlled.maximumActive()).toBe(2);
+  });
+
+  it('rejects an overlapping run invocation on the same Orchestrator', async () => {
+    seedGraph([task('task-a')]);
+    const controlled = controlledProvider(1);
+    const value = new MinimalOrchestrator(persistence, controlled.provider, new DeterministicVerifier(), {
+      now: () => NOW, nextId,
+    });
+    const first = value.run(graphId());
+    await controlled.allStarted;
+    await expect(value.run(graphId())).rejects.toThrow(/already active/);
+    controlled.release();
+    await expect(first).resolves.toMatchObject({ status: 'succeeded' });
+  });
+
+  it('isolates one concurrent task failure from unrelated running work', async () => {
+    seedGraph([task('task-a'), task('task-b')]);
+    const controlled = controlledProvider(2, taskId('task-a'));
+    const value = new MinimalOrchestrator(persistence, controlled.provider, new DeterministicVerifier(), {
+      now: () => NOW, nextId, maxConcurrentTasks: 2,
+    });
+    const running = value.run(graphId());
+    await controlled.allStarted;
+    controlled.release();
+    const result = await running;
+    expect(result.status).toBe('failed');
+    expect(persistence.getTask(taskId('task-a'))?.status).toBe('failed');
+    expect(persistence.getTask(taskId('task-b'))?.status).toBe('succeeded');
+  });
+
+  it('pauses one task for approval while unrelated admitted work continues', async () => {
+    seedGraph([task('task-a'), task('task-b')]);
+    let release!: () => void;
+    let secondStarted!: () => void;
+    const gate = new Promise<void>((resolve) => { release = resolve; });
+    const started = new Promise<void>((resolve) => { secondStarted = resolve; });
+    const provider: TaskExecutionProvider = { providerId: 'approval-isolation-provider', async execute(request) {
+      if (request.taskId === taskId('task-a')) return { status: 'failed', classification: 'approval_required',
+        code: 'APPROVAL_REQUIRED', summary: 'Approval required', details: {} };
+      secondStarted();
+      await gate;
+      return { status: 'succeeded', output: {}, evidence: { deterministic: true, verificationPasses: true } };
+    } };
+    const value = new MinimalOrchestrator(persistence, provider, new DeterministicVerifier(), {
+      now: () => NOW, nextId, maxConcurrentTasks: 2,
+    });
+    const running = value.run(graphId());
+    await started;
+    await Promise.resolve();
+    expect(persistence.getTask(taskId('task-a'))?.status).toBe('waiting_for_approval');
+    expect(persistence.getTask(taskId('task-b'))?.status).toBe('running');
+    release();
+    const result = await running;
+    expect(result.status).toBe('incomplete');
+    expect(persistence.getTask(taskId('task-b'))?.status).toBe('succeeded');
+  });
+
+  it('does not admit a dependent task while its predecessor is running', async () => {
+    seedGraph([task('task-a'), task('task-b')], [['task-a', 'task-b']]);
+    const controlled = controlledProvider(1);
+    const value = new MinimalOrchestrator(persistence, controlled.provider, new DeterministicVerifier(), {
+      now: () => NOW, nextId, maxConcurrentTasks: 2,
+    });
+    const running = value.run(graphId());
+    await controlled.allStarted;
+    expect(controlled.startedTaskIds).toEqual([taskId('task-a')]);
+    expect(persistence.getTask(taskId('task-b'))?.status).toBe('planned');
+    controlled.release();
+    await running;
+    expect(controlled.startedTaskIds).toEqual([taskId('task-a'), taskId('task-b')]);
+  });
+
+  it('defers a resource-blocked task and continues scanning later ready work', async () => {
+    seedGraph([task('task-a'), task('task-b')]);
+    const offeringId = asIdentifier<'ProviderOffering'>('offering-phase1k');
+    const locationId = asIdentifier<'OfferingLocation'>('location-phase1k');
+    const nodeId = asIdentifier<'Node'>('node-phase1k');
+    vi.spyOn(persistence, 'scheduleTaskWithResource').mockImplementation((scheduled, expectedVersion) => {
+      if (scheduled.id === taskId('task-a')) return false;
+      persistence.updateTask(scheduled, expectedVersion, event(scheduled.id, 'task.transitioned.resource-test'));
+      return true;
+    });
+    vi.spyOn(persistence, 'releaseResourceLease').mockImplementation(() => undefined);
+    const value = new MinimalOrchestrator(persistence, new DeterministicTestProvider(), new DeterministicVerifier(), {
+      now: () => NOW, nextId, maxConcurrentTasks: 2, resolveOffering: () => offeringId,
+      acquireResource: (valueTask) => {
+        const decisionId = asIdentifier<'ResourceSchedulingDecision'>(`decision-${valueTask.id}`);
+        return { decision: { request: { id: decisionId, offeringId, privacyClass: 'internal', requiredCapacity: 1,
+          maximumHealthAgeMs: 60_000, requestedAt: NOW }, candidates: [{ locationId, nodeId, eligible: true,
+          rejectionReasons: [], availableCapacity: 1, healthObservedAt: NOW }], selectedLocationId: locationId,
+          selectedNodeId: nodeId, explanation: 'selected', decidedAt: NOW }, lease: {
+          id: asIdentifier<'ResourceLease'>(`lease-${valueTask.id}`), decisionId, offeringId, locationId, nodeId,
+          capacity: 1, status: 'active', acquiredAt: NOW, expiresAt: '2026-08-13T21:00:00.000Z',
+        } };
+      },
+    });
+    const result = await value.run(graphId());
+    expect(result.executedTaskIds).toEqual([taskId('task-b')]);
+    expect(result.status).toBe('incomplete');
+    expect(persistence.getTask(taskId('task-a'))?.status).toBe('ready');
+    expect(persistence.getAttempts(taskId('task-a'))).toEqual([]);
+    expect(persistence.getTask(taskId('task-b'))?.status).toBe('succeeded');
+  });
+
   it('persists a resolved offering on the Attempt before provider execution', async () => {
     seedGraph([task('task-resolved')]);
     const provider = new DeterministicTestProvider();
@@ -138,10 +298,19 @@ describe('Architecture 2 Phase 1B workflow kernel', () => {
       decisionId: asIdentifier<'ResourceSchedulingDecision'>('decision-test'), offeringId,
       locationId: asIdentifier<'OfferingLocation'>('location-test'), nodeId: asIdentifier<'Node'>('node-test'),
       capacity: 1, status: 'active' as const, acquiredAt: NOW, expiresAt: '2026-08-13T21:00:00.000Z' };
+    vi.spyOn(persistence, 'scheduleTaskWithResource').mockImplementation((scheduled, expectedVersion) => {
+      persistence.updateTask(scheduled, expectedVersion, event(scheduled.id, 'task.transitioned.resource-test'));
+      return true;
+    });
     const release = vi.spyOn(persistence, 'releaseResourceLease').mockImplementation(() => undefined);
     const value = new MinimalOrchestrator(persistence, provider, new DeterministicVerifier(), {
       actor: 'phase1g-test-orchestrator', now: () => NOW, nextId,
-      resolveOffering: () => offeringId, acquireResource: () => lease,
+      resolveOffering: () => offeringId, acquireResource: () => ({ decision: {
+        request: { id: lease.decisionId, offeringId, privacyClass: 'internal', requiredCapacity: 1,
+          maximumHealthAgeMs: 60_000, requestedAt: NOW }, candidates: [{ locationId: lease.locationId,
+          nodeId: lease.nodeId, eligible: true, rejectionReasons: [], availableCapacity: 1, healthObservedAt: NOW }],
+        selectedLocationId: lease.locationId, selectedNodeId: lease.nodeId, explanation: 'selected', decidedAt: NOW,
+      }, lease }),
     });
     await value.run(graphId());
     expect(persistence.getAttempts(taskId('task-leased'))[0]?.computeNodeId).toBe('node-test');

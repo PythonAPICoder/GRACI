@@ -86,6 +86,8 @@ export interface Architecture2Persistence extends Disposable {
     reason: string, occurredAt: string, event: AuditEventInput): Node & { version: number };
   recordResourceSchedulingDecision(value: ResourceSchedulingDecision, lease: ResourceLease,
     events: readonly AuditEventInput[]): void;
+  scheduleTaskWithResource(task: Task, expectedVersion: number, value: ResourceSchedulingDecision,
+    lease: ResourceLease, events: readonly AuditEventInput[]): boolean;
   getResourceSchedulingDecision(id: ResourceSchedulingDecision['request']['id']): ResourceSchedulingDecision | undefined;
   getResourceLeases(locationId?: OfferingLocation['id']): ResourceLease[];
   releaseResourceLease(value: ResourceLease, event: AuditEventInput): void;

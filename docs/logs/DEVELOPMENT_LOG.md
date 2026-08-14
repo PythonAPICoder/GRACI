@@ -472,3 +472,18 @@ Implementation remains paused pending Product Owner and Architect review.
 - Preserved active leases and Attempts and relied on the existing scheduler exclusion of draining/disabled Nodes.
 - Added focused migration, reopen, corruption, rollback, ownership, idempotency, stale-evidence, and scheduler-invariant tests.
 - No dependency, polling, startup behavior, scheduler trigger, Orchestrator change, Architecture 1 change, UI, telemetry, preemption, failover, or Phase 1K capability was introduced.
+
+---
+
+## Architecture 2 Phase 1K — Bounded Concurrent Scheduling — August 14, 2026
+
+- Verified the clean Phase 1J baseline with TypeScript validation and 149/149 tests before changes.
+- Added Addendum 016 and DEC-0012 authorizing bounded single-process concurrency only.
+- Added validated `maxConcurrentTasks`, defaulting to one, and rejected overlapping `run()` calls on one Orchestrator.
+- Reused the Phase 1D `createdAt`, then Task-ID ordering to admit independent ready Tasks up to the configured limit.
+- Added independent settled supervision so one Task failure or approval pause does not stop unrelated admitted work.
+- Added resource deferral that leaves unavailable Tasks ready without an Attempt or retry charge while later ordered Tasks remain admissible.
+- Added a composite persistence operation that atomically commits `ready -> scheduled`, resource decision, active lease, and Events while preserving transactional capacity enforcement.
+- Kept runtime slot accounting process-local and added no queue table, lifecycle state, dependency, schema migration, cancellation, failover, migration, worker, or distributed-lock behavior.
+- Preserved existing per-Task retry, approval, verification, lease release, and conservative interrupted-work recovery semantics.
+- Architecture 1 remains the live Electron authority.

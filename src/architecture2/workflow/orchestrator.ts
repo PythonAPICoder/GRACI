@@ -11,13 +11,14 @@ import {
   type TaskId,
   type ProviderOfferingId,
   type ResourceLease,
+  type ResourceSchedulingDecision,
   type Verification,
 } from '../domain/index.js';
 import type { TaskExecutionProvider, TaskExecutionResult } from '../execution/index.js';
 import type { Architecture2Persistence } from '../persistence/index.js';
 import type { TaskVerifier } from '../verification/index.js';
 import { evaluateTaskDependencies, graphHasTerminalCondition } from './dependency-evaluator.js';
-import { selectNextReadyTask } from './deterministic-scheduler.js';
+import { getReadyTasksInScheduleOrder } from './deterministic-scheduler.js';
 import { validateTaskGraph } from './task-graph-validator.js';
 import { TaskStateMachine } from './task-state-machine.js';
 
@@ -36,7 +37,11 @@ export interface OrchestratorOptions {
   now?: () => string;
   nextId?: (kind: 'attempt' | 'verification' | 'failure' | 'approval' | 'event') => string;
   resolveOffering?: (task: Task) => ProviderOfferingId;
-  acquireResource?: (task: Task, offeringId: ProviderOfferingId) => ResourceLease;
+  acquireResource?: (task: Task, offeringId: ProviderOfferingId) => {
+    decision: ResourceSchedulingDecision;
+    lease: ResourceLease;
+  } | undefined;
+  maxConcurrentTasks?: number;
 }
 
 export class MinimalOrchestrator {
@@ -46,6 +51,8 @@ export class MinimalOrchestrator {
   private readonly nextId: NonNullable<OrchestratorOptions['nextId']>;
   private readonly resolveOffering?: OrchestratorOptions['resolveOffering'];
   private readonly acquireResource?: OrchestratorOptions['acquireResource'];
+  private readonly maxConcurrentTasks: number;
+  private runActive = false;
 
   constructor(
     private readonly persistence: Architecture2Persistence,
@@ -58,9 +65,26 @@ export class MinimalOrchestrator {
     this.nextId = options.nextId ?? ((kind) => `${kind}-${randomUUID()}`);
     this.resolveOffering = options.resolveOffering;
     this.acquireResource = options.acquireResource;
+    if (this.acquireResource && !this.resolveOffering) {
+      throw new Error('acquireResource requires resolveOffering');
+    }
+    this.maxConcurrentTasks = options.maxConcurrentTasks ?? 1;
+    if (!Number.isInteger(this.maxConcurrentTasks) || this.maxConcurrentTasks < 1) {
+      throw new Error('maxConcurrentTasks must be a positive integer');
+    }
   }
 
   async run(graphRevisionId: TaskGraphRevisionId): Promise<WorkflowRunResult> {
+    if (this.runActive) throw new Error('An Orchestrator run is already active');
+    this.runActive = true;
+    try {
+      return await this.runOwned(graphRevisionId);
+    } finally {
+      this.runActive = false;
+    }
+  }
+
+  private async runOwned(graphRevisionId: TaskGraphRevisionId): Promise<WorkflowRunResult> {
     const executedTaskIds: TaskId[] = [];
     const revision = this.persistence.getTaskGraphRevision(graphRevisionId);
     if (!revision) throw new Error(`Unknown Task Graph Revision: ${graphRevisionId}`);
@@ -68,13 +92,31 @@ export class MinimalOrchestrator {
       this.persistence.getTaskDependencies(graphRevisionId));
     this.recoverInterruptedWork(graphRevisionId);
 
+    const active = new Map<TaskId, Promise<{ taskId: TaskId; error?: unknown }>>();
+    let supervisionError: unknown;
     while (true) {
       this.evaluateAndPersistEligibility(graphRevisionId);
-      const runnable = selectNextReadyTask(this.persistence.getTasks(graphRevisionId));
-      if (!runnable) break;
-      await this.executeTask(runnable);
-      executedTaskIds.push(runnable.id);
+      if (supervisionError === undefined) {
+        const ready = getReadyTasksInScheduleOrder(this.persistence.getTasks(graphRevisionId));
+        for (const task of ready) {
+          if (active.size >= this.maxConcurrentTasks) break;
+          const execution = this.startTask(task);
+          if (!execution) continue;
+          executedTaskIds.push(task.id);
+          const supervised = execution.then(
+            () => ({ taskId: task.id }),
+            (error: unknown) => ({ taskId: task.id, error }),
+          );
+          active.set(task.id, supervised);
+        }
+      }
+      if (active.size === 0) break;
+      const settled = await Promise.race(active.values());
+      active.delete(settled.taskId);
+      if (settled.error !== undefined && supervisionError === undefined) supervisionError = settled.error;
     }
+
+    if (supervisionError !== undefined) throw supervisionError;
 
     const tasks = this.persistence.getTasks(graphRevisionId);
     const requiredFailure = tasks.some((task) => task.required &&
@@ -213,13 +255,27 @@ export class MinimalOrchestrator {
     }
   }
 
-  private async executeTask(task: Task): Promise<void> {
+  private startTask(task: Task): Promise<void> | undefined {
     const selectedOfferingId = this.resolveOffering?.(task);
-    const lease = selectedOfferingId && this.acquireResource ? this.acquireResource(task, selectedOfferingId) : undefined;
+    const resource = selectedOfferingId && this.acquireResource ? this.acquireResource(task, selectedOfferingId) : undefined;
+    const lease = resource?.lease;
+    if (this.acquireResource && selectedOfferingId && !resource) return undefined;
     if (lease && lease.offeringId !== selectedOfferingId) throw new Error('Resource lease offering does not match selected offering');
     const scheduledAt = this.now();
-    const scheduled = this.stateMachine.transition(this.persistence, task, 'scheduled', scheduledAt,
-      this.event(task.id, 'task.transitioned', { from: 'ready', to: 'scheduled' }, scheduledAt));
+    const schedulingEvent = this.event(task.id, 'task.transitioned', { from: 'ready', to: 'scheduled' }, scheduledAt);
+    const scheduled = this.stateMachine.prepare(task, 'scheduled', scheduledAt);
+    if (resource) {
+      const resourceLease = resource.lease;
+      const admitted = this.persistence.scheduleTaskWithResource(scheduled, task.version, resource.decision, resourceLease, [
+        this.event(task.id, 'resource.scheduled', {
+          decisionId: resource.decision.request.id, leaseId: resourceLease.id, nodeId: resourceLease.nodeId,
+        }, scheduledAt),
+        schedulingEvent,
+      ]);
+      if (!admitted) return undefined;
+    } else {
+      this.persistence.updateTask(scheduled, task.version, schedulingEvent);
+    }
     const attempts = this.persistence.getAttempts(task.id);
     const attemptNumber = (attempts.at(-1)?.attemptNumber ?? 0) + 1;
     const startedAt = this.now();
@@ -240,6 +296,11 @@ export class MinimalOrchestrator {
       this.event(task.id, 'task.transitioned', { from: 'scheduled', to: 'running' }, startedAt),
     ]);
 
+    return this.completeTask(task, running, attempt, lease, attemptNumber);
+  }
+
+  private async completeTask(task: Task, running: Task, attempt: Attempt,
+    lease: ResourceLease | undefined, attemptNumber: number): Promise<void> {
     let result: TaskExecutionResult;
     try {
       result = await this.provider.execute({ taskId: task.id, attemptId: attempt.id, attemptNumber,

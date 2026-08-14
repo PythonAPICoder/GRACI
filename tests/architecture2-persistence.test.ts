@@ -464,6 +464,7 @@ describe('Architecture 2 SQLite persistence', () => {
   });
 
   it('atomically registers, reopens, leases capacity, and releases', () => {
+    createGraphWithTasks();
     const providerId = asIdentifier<'Provider'>('lease-provider');
     const capabilityId = asIdentifier<'Capability'>('lease-capability');
     const offeringId = asIdentifier<'ProviderOffering'>('lease-offering');
@@ -497,7 +498,13 @@ describe('Architecture 2 SQLite persistence', () => {
       capacity: 2, status: 'active', acquiredAt: NOW, expiresAt: '2026-08-12T21:00:00.000Z' });
     const firstDecision = decision('decision-1');
     const firstLease = lease('lease-1', firstDecision.request.id);
-    persistence.recordResourceSchedulingDecision(firstDecision, firstLease, [event(firstDecision.request.id, 'resource.scheduled')]);
+    const planned = persistence.getTask(asIdentifier<'Task'>('task-1'))!;
+    const ready: Task = { ...planned, status: 'ready', version: 2, updatedAt: NOW };
+    persistence.updateTask(ready, planned.version, event(ready.id, 'task.transitioned.ready'));
+    const scheduled: Task = { ...ready, status: 'scheduled', version: 3, updatedAt: NOW };
+    expect(persistence.scheduleTaskWithResource(scheduled, ready.version, firstDecision, firstLease,
+      [event(firstDecision.request.id, 'resource.scheduled'), event(scheduled.id, 'task.transitioned.scheduled')])).toBe(true);
+    expect(persistence.getTask(scheduled.id)?.status).toBe('scheduled');
     persistence.transitionNodeAdministrativeState(node.id, 1, 'active', 'draining', 'phase1a-test',
       'Stop new work while preserving the active lease', NOW, event(node.id, 'node.administrative-state-transitioned'));
     expect(persistence.getResourceLeases(location.id)).toEqual([firstLease]);
@@ -513,6 +520,48 @@ describe('Architecture 2 SQLite persistence', () => {
       [event(conflictDecision.request.id, 'resource.scheduled')]);
     expect(persistence.getResourceSchedulingDecision(firstDecision.request.id)).toEqual(firstDecision);
     expect(persistence.getResourceLeases(location.id)).toHaveLength(2);
+  });
+
+  it('defers an atomic workflow resource admission without changing Task, lease, decision, or Events', () => {
+    createGraphWithTasks();
+    const providerId = asIdentifier<'Provider'>('defer-provider');
+    const capabilityId = asIdentifier<'Capability'>('defer-capability');
+    const offeringId = asIdentifier<'ProviderOffering'>('defer-offering');
+    persistence.registerProvider({ provider: { id: providerId, adapterType: 'test', adapterVersion: '1',
+      configurationReference: 'config:test', createdAt: NOW }, capabilities: [{ id: capabilityId, contractVersion: 1,
+      description: 'test', inputSchemaReference: 'in', outputSchemaReference: 'out', createdAt: NOW }], offerings: [{
+      id: offeringId, providerId, capabilityId, contractVersion: 1, privacyDestinations: ['internal'], permissions: [],
+      features: [], supportedFormats: [], inputSchemaReference: 'in', outputSchemaReference: 'out',
+      qualificationFingerprint: 'test', qualityLevel: 1, expectedLatencyMs: 1, maximumCost: 0,
+      sideEffectClass: 'none', createdAt: NOW }] }, [event(providerId, 'provider.registered')]);
+    const node: Node = { id: asIdentifier<'Node'>('defer-node'), name: 'Defer Node', administrativeState: 'active',
+      configurationReference: 'config:defer', createdAt: NOW };
+    const location: OfferingLocation = { id: asIdentifier<'OfferingLocation'>('defer-location'), nodeId: node.id,
+      offeringId, enabled: true, capacity: 1, privacyClasses: ['internal'], createdAt: NOW };
+    persistence.registerNode(node, [location], [event(node.id, 'node.registered')]);
+    const activeDecisionId = asIdentifier<'ResourceSchedulingDecision'>('defer-active-decision');
+    const activeDecision: ResourceSchedulingDecision = { request: { id: activeDecisionId, offeringId,
+      privacyClass: 'internal', requiredCapacity: 1, maximumHealthAgeMs: 60_000, requestedAt: NOW }, candidates: [],
+      selectedLocationId: location.id, selectedNodeId: node.id, explanation: 'selected', decidedAt: NOW };
+    persistence.recordResourceSchedulingDecision(activeDecision, { id: asIdentifier<'ResourceLease'>('defer-active-lease'),
+      decisionId: activeDecisionId, offeringId, locationId: location.id, nodeId: node.id, capacity: 1, status: 'active',
+      acquiredAt: NOW, expiresAt: '2026-08-12T21:00:00.000Z' }, [event(activeDecisionId, 'resource.scheduled')]);
+    const original = persistence.getTask(asIdentifier<'Task'>('task-1'))!;
+    const ready: Task = { ...original, status: 'ready', version: 2, updatedAt: NOW };
+    persistence.updateTask(ready, original.version, event(ready.id, 'task.ready'));
+    const scheduled: Task = { ...ready, status: 'scheduled', version: 3, updatedAt: NOW };
+    const deferredDecisionId = asIdentifier<'ResourceSchedulingDecision'>('defer-blocked-decision');
+    const deferredDecision: ResourceSchedulingDecision = { ...activeDecision,
+      request: { ...activeDecision.request, id: deferredDecisionId }, decidedAt: NOW };
+    const beforeEvents = persistence.getEvents().length;
+    expect(persistence.scheduleTaskWithResource(scheduled, ready.version, deferredDecision, {
+      id: asIdentifier<'ResourceLease'>('defer-blocked-lease'), decisionId: deferredDecisionId, offeringId,
+      locationId: location.id, nodeId: node.id, capacity: 1, status: 'active', acquiredAt: NOW,
+      expiresAt: '2026-08-12T21:00:00.000Z' }, [event(deferredDecisionId, 'resource.scheduled')])).toBe(false);
+    expect(persistence.getTask(ready.id)).toEqual(ready);
+    expect(persistence.getResourceSchedulingDecision(deferredDecisionId)).toBeUndefined();
+    expect(persistence.getResourceLeases()).toHaveLength(1);
+    expect(persistence.getEvents()).toHaveLength(beforeEvents);
   });
 
   it('rolls back node registration when its event fails', () => {

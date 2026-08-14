@@ -39,6 +39,27 @@ Use this log for decisions that matter but do not yet justify a dedicated ADR sy
 
 ---
 
+### DEC-0012 — Phase 1K Bounded Concurrent Scheduling
+
+**Date**
+
+- 2026-08-14
+
+**Decision**
+
+- Approve caller-configured positive-integer `maxConcurrentTasks`, defaulting to one.
+- Admit ready Tasks in the existing `createdAt`, then Task-ID order while allowing independent admitted Tasks to overlap.
+- Keep resource-unavailable Tasks ready without an Attempt or retry charge and continue scanning later ordered Tasks.
+- Atomically persist resource scheduling, lease acquisition, and `ready -> scheduled` when resource routing is used.
+- Use independent settled supervision and reject overlapping `run()` calls on one Orchestrator.
+- Keep runtime slots process-local and use existing capacity leases for effective exclusivity; add no queue, lock service, worker layer, or schema migration.
+
+**Rationale**
+
+- Provider, node, lease, and workstation safeguards established through Phase 1J are sufficient for bounded single-process concurrency. Preserving canonical Task state and transactional capacity enforcement adds concurrency without weakening dependency, recovery, approval, retry, or audit semantics.
+
+---
+
 ### DEC-0011 — Phase 1J Evidence-Linked Workstation Policy Application
 
 **Date**
