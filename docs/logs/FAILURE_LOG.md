@@ -1,5 +1,14 @@
 # G.R.A.C.I. Phase 1 — Autonomous Recovery and Continuation
 
+## 2026-08-14 — Phase 1M Authority Ordering Correction
+
+- Initial Phase 1M recovery authorization inferred the latest diagnosis from deterministic history ordering that could use hashed diagnosis IDs as a tie-break across equal timestamps.
+- Focused Node and failed-recovery scenarios exposed that this did not prove authority for the latest Attempt.
+- Recovery now anchors to the latest immutable Attempt, selects the latest Failure for that exact Attempt, and requires the current Phase 1L policy/version diagnosis for that Failure.
+- Focused recovery, diagnosis, resolver, and scheduler verification passed 35/35 after correction.
+
+---
+
 ## 2026-08-14 — Phase 1L Verification Corrections
 
 - The first full regression run passed 152/161 tests. All nine failures were current-schema assertions still expecting version 8 after migration 9 correctly initialized schema version 9. The affected fixtures were updated; no runtime migration defect existed.

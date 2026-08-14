@@ -5,3 +5,4 @@ export * from './task-graph-validator.js';
 export * from './deterministic-scheduler.js';
 export * from './failure-diagnoser.js';
 export * from './queue-inspector.js';
+export * from './alternative-recovery.js';

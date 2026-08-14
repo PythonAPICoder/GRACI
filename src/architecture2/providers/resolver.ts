@@ -39,6 +39,7 @@ export class DeterministicProviderResolver {
 
   private evaluate(offering: ProviderOffering, request: ProviderResolutionRequest): ProviderResolutionCandidate {
     const reasons: ResolutionRejectionReason[] = [];
+    if (request.excludedOfferingIds?.includes(offering.id)) reasons.push('explicitly_excluded');
     if (offering.contractVersion !== request.contractVersion) reasons.push('contract_version_mismatch');
     if (!offering.privacyDestinations.includes(request.privacyClass)) reasons.push('privacy_destination_disallowed');
     if (request.requiredPermissions.some((value) => !offering.permissions.includes(value))) reasons.push('permission_missing');

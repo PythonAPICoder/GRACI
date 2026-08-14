@@ -30,6 +30,7 @@ export type WorkstationWorkloadEvaluationId = Identifier<'WorkstationWorkloadEva
 export type WorkstationAvailabilityPolicyApplicationId = Identifier<'WorkstationAvailabilityPolicyApplication'>;
 export type FailureDiagnosisId = Identifier<'FailureDiagnosis'>;
 export type ChangedConditionEvidenceId = Identifier<'ChangedConditionEvidence'>;
+export type AlternativeRecoveryDecisionId = Identifier<'AlternativeRecoveryDecision'>;
 
 const IDENTIFIER_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 

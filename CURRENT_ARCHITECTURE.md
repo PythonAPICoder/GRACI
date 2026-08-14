@@ -2,9 +2,9 @@
 
 > **Living document:** Update this file whenever Architecture 2 module boundaries, lifecycle behavior, persistence authority, runtime composition, or intentionally deferred capabilities change. This is an implementation map, not immutable governance. The master specification and numbered addenda under `docs/governance/` remain authoritative.
 
-**Architecture represented:** Implemented and verified through Architecture 2 Phase 1L
+**Architecture represented:** Implemented and verified through Architecture 2 Phase 1M
 
-**Implementation working tree based on repository HEAD:** `9e2c2bacf90a695375225faca7b3c048476f199a`
+**Implementation working tree based on accepted Phase 1L repository HEAD:** `204f937b0a154b3200950f2a54372187cd0bdbdc`
 
 ## System Shape
 
@@ -62,7 +62,7 @@ SQLite is G.R.A.C.I.'s notebook. The assistant does not rely on remembering what
 
 `SqliteArchitecture2Persistence` is the current authoritative store behind `Architecture2Persistence`. Callers supply the database path. The implementation uses built-in `node:sqlite`, foreign keys, strict tables, WAL mode, `synchronous = FULL`, a busy timeout, and `BEGIN IMMEDIATE` write transactions.
 
-Current schema version is 9. Phase 1L adds immutable failure-diagnosis and changed-condition evidence tables with one authoritative diagnosis per Failure and diagnosis policy/version.
+Current schema version is 10. Phase 1M adds immutable alternative-recovery decisions and single-use Attempt-consumption history while retaining Phase 1L diagnosis and changed-condition evidence.
 
 Important invariants include:
 
@@ -261,6 +261,12 @@ Persisted `running` work must have a matching running Attempt. Without provider 
 
 Phase 1L records `reconciliation_required` for this behavior across multiple running Tasks. Automatic replay, checkpoint resume, failover, migration, and external-effect reconciliation remain deferred.
 
+### Bounded Alternatives
+
+Phase 1M allows a caller to execute only `alternative_offering_recommended` and `alternative_node_recommended` after a proven unsuccessful latest Attempt. The recovery service revalidates the exact latest Failure and Phase 1L diagnosis, total Attempt limit, pending approvals, and current provider/resource evidence. It explicitly excludes the failed offering, Node, and location as applicable.
+
+An immutable recovery decision and changed-condition evidence commit atomically before the Task returns to `ready`. The next Attempt consumes that authorization once, receives the next number, and must use the selected binding. Offering recovery resolves an offering-bound execution provider. Node recovery uses normal resource scheduling and lease acquisition. Both paths execute and verify normally; a failed alternative creates a normal Failure and Phase 1L diagnosis.
+
 ## Audit and Governance
 
 ### Simple Explanation
@@ -307,11 +313,11 @@ Major deferred capabilities include:
 - Predicate dependency execution.
 - Generalized policy engine and standing approvals.
 - User cancellation, preemption, checkpointing, and forced interruption.
-- Node failover, alternate-node retry, execution migration, and reconciliation.
+- Interrupted-work failover, execution migration, and reconciliation.
 - Distributed locks, multiple Orchestrators, remote workers, and high availability.
 - Dynamic load balancing, dynamic concurrency, speculative execution, and priority displacement.
 - Automatic discovery, polling, monitoring, and scheduler-triggered workstation policy.
-- Circuit breakers, reconciliation execution, governed research, and executable alternatives beyond Phase 1L recommendations.
+- Circuit breakers, reconciliation execution, governed research, and recovery dispositions other than the two Phase 1M alternatives.
 - Purpose-specific memory and retrieval.
 - Broad tool, agent, cloud, productivity, voice, media, notification, and UI integration.
 - Architecture 2 Electron authority cutover and production hardening.

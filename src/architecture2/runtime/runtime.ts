@@ -4,7 +4,8 @@ import type { TaskExecutionProvider } from '../execution/index.js';
 import { assessLegacyState, importLegacyState, type LegacyImportOptions } from '../legacy/index.js';
 import { SqliteArchitecture2Persistence } from '../persistence/index.js';
 import type { TaskVerifier } from '../verification/index.js';
-import { diagnosePersistedFailure, inspectQueue, MinimalOrchestrator, type OrchestratorOptions } from '../workflow/index.js';
+import { diagnosePersistedFailure, inspectQueue, MinimalOrchestrator, recoverWithAlternative,
+  type AlternativeRecoveryCommand, type OrchestratorOptions } from '../workflow/index.js';
 
 export interface Architecture2RuntimeConfiguration {
   databasePath: string;
@@ -44,6 +45,10 @@ export class Architecture2Runtime implements Disposable {
     diagnosedAt = new Date().toISOString()) {
     return diagnosePersistedFailure(this.persistence, { failureId, diagnosedBy, diagnosedAt,
       eventId: asIdentifier<'Event'>(`event-${randomUUID()}`) });
+  }
+
+  recoverAlternative(command: AlternativeRecoveryCommand) {
+    return recoverWithAlternative(this.persistence, command);
   }
 
   assessLegacy(sourceReference: string) {

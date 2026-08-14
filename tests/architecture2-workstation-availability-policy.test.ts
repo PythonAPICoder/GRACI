@@ -218,7 +218,7 @@ describe('Architecture 2 workstation availability policy', () => {
     prior.close();
     persistence = new SqliteArchitecture2Persistence({ databasePath });
     persistence.initialize();
-    expect(persistence.getSchemaVersion()).toBe(9);
+    expect(persistence.getSchemaVersion()).toBe(10);
     expect(persistence.getNodes()[0]).toMatchObject({ id: 'schema7-node', version: 4 });
     expect(persistence.getWorkstationWorkloadEvaluations(asIdentifier<'Node'>('schema7-node'))[0]?.id).toBe('schema7-evaluation');
   });

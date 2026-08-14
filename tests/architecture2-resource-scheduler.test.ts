@@ -26,6 +26,19 @@ const lease = (id: string, locationId: string, nodeId: string, capacity: number,
 const schedule = (records: ResourceSchedulingRecords, value = request) => new DeterministicResourceScheduler().schedule(value, records);
 
 describe('Architecture 2 deterministic resource scheduler', () => {
+  it('explicitly excludes failed Nodes and locations and selects a genuinely different binding', () => {
+    const records = { nodes: [node('node-a'), node('node-b'), node('node-c')],
+      locations: [location('location-a', 'node-a'), location('location-b', 'node-b'), location('location-c', 'node-c')],
+      healthObservations: [health('node-a'), health('node-b'), health('node-c')], leases: [] };
+    const decision = schedule(records, { ...request, excludedNodeIds: [asIdentifier<'Node'>('node-a')],
+      excludedLocationIds: [asIdentifier<'OfferingLocation'>('location-b')] });
+    expect(decision.selectedLocationId).toBe('location-c');
+    expect(decision.candidates.map(({ locationId, rejectionReasons }) => ({ locationId, rejectionReasons }))).toEqual([
+      { locationId: 'location-a', rejectionReasons: ['node_explicitly_excluded'] },
+      { locationId: 'location-b', rejectionReasons: ['location_explicitly_excluded'] },
+      { locationId: 'location-c', rejectionReasons: [] },
+    ]);
+  });
   it('ranks capacity, health time, node ID, and location ID in that order', () => {
     const records = { nodes: [node('node-b'), node('node-a')], locations: [location('location-b', 'node-b', 5),
       location('location-z', 'node-a', 5), location('location-a', 'node-a', 5)],

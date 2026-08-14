@@ -63,6 +63,8 @@ export class DeterministicResourceScheduler {
         const node = nodes.get(location.nodeId);
         const health = observations.get(location.nodeId);
         const reasons: ResourceSchedulingRejectionReason[] = [];
+        if (request.excludedNodeIds?.includes(location.nodeId)) reasons.push('node_explicitly_excluded');
+        if (request.excludedLocationIds?.includes(location.id)) reasons.push('location_explicitly_excluded');
         const availableCapacity = Math.max(0, location.capacity - (usedCapacity.get(location.id) ?? 0));
         if (!node) reasons.push('node_missing');
         else if (node.administrativeState === 'draining') reasons.push('node_draining');

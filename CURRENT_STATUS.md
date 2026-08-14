@@ -2,9 +2,9 @@
 
 > **Living document:** Update this file whenever an Architecture 2 phase changes implemented behavior, verification evidence, runtime authority, major limitations, or the recommended next phase. Governance under `docs/governance/` remains authoritative when this summary differs from an approved specification.
 
-**Implementation working tree based on repository HEAD:** `9e2c2bacf90a695375225faca7b3c048476f199a` (`docs: govern Architecture 2 phase 1L`)
+**Implementation working tree based on accepted Phase 1L repository HEAD:** `204f937b0a154b3200950f2a54372187cd0bdbdc`
 
-**Implemented and verified through:** Architecture 2 Phase 1L, Durable Failure Diagnosis and Recovery Disposition (`ADDENDUM_017_ARCHITECTURE_2_PHASE_1L.md`)
+**Implemented and verified through:** Architecture 2 Phase 1M, Bounded Alternative Recovery (`ADDENDUM_018_ARCHITECTURE_2_PHASE_1M.md`)
 
 ## Product Direction
 
@@ -40,6 +40,7 @@ Implemented Architecture 2 work through Phase 1L includes:
 - **Phase 1J:** explicit evidence-linked application of workstation recommendations with optimistic Node versions and policy ownership.
 - **Phase 1K:** bounded concurrent execution, deterministic admission, resource deferral, atomic workflow scheduling plus lease acquisition, independent supervision, and single-flight Orchestrator ownership.
 - **Phase 1L:** immutable deterministic failure diagnoses, separately represented outcome certainty and retryability, one bounded recovery disposition, stable diagnosis identity, factual changed-condition evidence, and restart-safe inspection.
+- **Phase 1M:** caller-invoked, single-use alternative-offering and alternative-Node recovery with failed-binding exclusion, durable decisions, changed-condition evidence, and normal Attempt, lease, execution, diagnosis, and Verification paths.
 
 The precise governed boundaries are in `docs/governance/ADDENDUM_006_ARCHITECTURE_2_PHASE_1A.md` through `ADDENDUM_017_ARCHITECTURE_2_PHASE_1L.md`.
 
@@ -72,6 +73,7 @@ Implemented and tested capabilities include:
 - Conservatively fail interrupted scheduled/running work whose outcome cannot be proven, without blind replay.
 - Diagnose every new Orchestrator Failure through trusted deterministic rules and persist cause, outcome certainty, retryability, and exactly one disposition atomically with the Failure transition.
 - Inspect immutable diagnosis and changed-condition history deterministically across SQLite close/reopen.
+- Execute the two authorized alternative dispositions only after current-state, certainty, approval, Attempt-limit, provider, and resource gates pass.
 
 These capabilities are available through code under `src/architecture2/` and the explicit `bootstrapArchitecture2` composition boundary. They are not automatically enabled by normal Electron startup.
 
@@ -91,11 +93,11 @@ Not currently implemented or not connected as live product behavior:
 - Generalized policy engine, standing-policy UX, or approval UI.
 - Predicate dependency evaluation.
 - User cancellation, cancellation propagation, forced interruption, preemption, or checkpoint resume.
-- Node-loss recovery, automatic failover, execution migration, or alternate-node retry.
+- Node-loss recovery for interrupted work, automatic background failover, or execution migration.
 - Distributed locking, multiple active Orchestrators, remote workers, or high availability.
 - Dynamic concurrency optimization, load balancing, priority displacement, or speculative execution.
 - Automatic node discovery, background health polling, or scheduler-triggered workstation evaluation/application.
-- Circuit breakers, governed research, or automatic alternative selection; Phase 1L recommendations do not execute recovery actions.
+- Circuit breakers, governed research, reconciliation execution, or execution of Phase 1L dispositions other than the two bounded Phase 1M alternatives.
 - Purpose-specific working, episodic, semantic, procedural, and preference memory.
 - Complete observability UI, cost reporting, traces, notifications, voice, productivity integrations, and broad autonomous actions.
 
@@ -121,13 +123,13 @@ The assembly checks passed: all automated checks were green, the software compil
 
 ### Technical Detail
 
-Latest recorded Phase 1L evidence in `docs/logs/TEST_LOG.md`:
+Latest recorded Phase 1M evidence in `docs/logs/TEST_LOG.md`:
 
 - TypeScript validation: PASS.
-- Full automated regression suite: **169/169 tests passed across 15 files**.
+- Full automated regression suite: **183/183 tests passed across 16 files**.
 - Production build: PASS.
-- Focused Phase 1L and affected SQLite/workflow suites: **92/92 tests passed across 5 files**.
-- Real file-backed SQLite schema-8 migration, schema-9 close/reopen reconstruction, immutability, and duplicate-authority verification: PASS.
+- Focused Phase 1M recovery, diagnosis, resolver, and scheduler suites: **35/35 tests passed across 4 files**.
+- Real file-backed SQLite schema-10 migration, close/reopen recovery reconstruction, immutability, atomicity, and single-use consumption verification: PASS.
 - Electron startup smoke: PASS for eight seconds with expected startup output and empty stderr.
 - Diff whitespace hygiene: PASS.
 - Architecture 1 remained the live Electron authority during smoke verification.
@@ -174,11 +176,11 @@ Major roadmap areas from Addendum 005 and later deferred boundaries include:
 
 ### Simple Explanation
 
-Phase 1L is now implemented and verified. G.R.A.C.I. can write down why a job failed and the one permitted next recommendation, but it still does not automatically carry out advanced recovery such as changing machines, reconciling an outside action, replanning, or researching a new capability.
+Phase 1M is now implemented and verified. G.R.A.C.I. can carry out a bounded caller-invoked change of offering or Node after a proven unsuccessful Attempt, but it still stops for indeterminate outcomes and does not reconcile, replan, research, migrate live work, or run background failover.
 
 ### Technical Detail
 
-Architecture 2 Phase 1L is the latest implemented and verified phase. No subsequent phase has a governed name or scope. Phase 1L remains a decision layer: alternative-offering, alternative-Node, reconciliation, approval, input-revision, replanning, and research dispositions are durable recommendations only and do not authorize those actions. Failover, cancellation, distributed execution, UI work, and Electron authority cutover remain deferred.
+Architecture 2 Phase 1M is the latest implemented and verified phase. Only `alternative_offering_recommended` and `alternative_node_recommended` are executable, through an explicit bounded recovery command. Reconciliation, input revision, replanning, research, cancellation, distributed execution, UI work, and Electron authority cutover remain deferred.
 
 ## Reconstruction Pointers
 

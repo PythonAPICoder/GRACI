@@ -376,6 +376,30 @@ Record meaningful verification results. Do not duplicate raw automated-test outp
 - Expected `Electron app starting` output present; stderr empty.
 - Architecture 1 remained the normal Electron startup authority.
 
+### 2026-08-14 — Architecture 2 Phase 1M Implementation
+
+**Automated Verification**
+
+- TypeScript validation: PASS (`npm.cmd run validate`).
+- Focused recovery, diagnosis, resolver, and scheduler suite: PASS, 35/35 across 4 files.
+- Phase 1M end-to-end recovery suite: PASS, 12/12.
+- Full automated regression suite and production build: recorded after final validation below.
+
+**Recovery and Durability Verification**
+
+- Different offering and Node/location selection, failed-binding exclusion, deterministic ranking, and no-candidate behavior: PASS.
+- Latest-diagnosis authority, stale/superseded rejection, indeterminate prohibition, approvals, and total Attempt limits: PASS.
+- Changed-condition evidence before Attempt, immutable next numbering, single-use consumption, lease acquisition/release, and normal Verification: PASS.
+- Failed alternative rediagnosis, unrelated concurrent Task isolation, atomic rollback, migration 10, immutability, idempotency, and close/reopen reconstruction: PASS.
+
+**Final Verification**
+
+- Full automated regression suite: PASS, 183/183 across 16 files.
+- Production build: PASS; `dist/main.js`, `dist/preload.js`, and `dist/ui/index.html` verified.
+- Electron startup smoke: PASS; process remained alive for eight seconds, emitted `Electron app starting`, and stderr was empty.
+- Architecture 1 remained the normal Electron startup authority.
+- Diff whitespace hygiene: PASS (`git diff --check`).
+
 ---
 
 ### 2026-08-12 — Architecture 2 Phase 1B Workflow Kernel

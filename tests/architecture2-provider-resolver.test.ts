@@ -108,4 +108,14 @@ describe('Architecture 2 deterministic provider resolver', () => {
     [event(providerId, 'provider.registered')]);
     expect(resolve('resolution-missing').candidates[0]?.rejectionReasons).toEqual(['qualification_missing', 'health_missing']);
   });
+
+  it('explicitly excludes the failed offering while preserving deterministic alternative ranking', () => {
+    register('offering-b', 2); register('offering-a', 2); register('offering-c', 1);
+    const decision = resolve('resolution-alternative', {
+      excludedOfferingIds: [asIdentifier<'ProviderOffering'>('offering-a')],
+    });
+    expect(decision.selectedOfferingId).toBe('offering-b');
+    expect(decision.candidates.find((candidate) => candidate.offeringId === 'offering-a'))
+      .toMatchObject({ eligible: false, rejectionReasons: ['explicitly_excluded'] });
+  });
 });

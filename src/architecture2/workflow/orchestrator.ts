@@ -41,7 +41,9 @@ export interface OrchestratorOptions {
   now?: () => string;
   nextId?: (kind: 'attempt' | 'verification' | 'failure' | 'approval' | 'event') => string;
   resolveOffering?: (task: Task) => ProviderOfferingId;
-  acquireResource?: (task: Task, offeringId: ProviderOfferingId) => {
+  resolveExecutionProvider?: (offeringId: ProviderOfferingId) => TaskExecutionProvider;
+  acquireResource?: (task: Task, offeringId: ProviderOfferingId,
+    recovery?: import('../domain/index.js').AlternativeRecoveryDecision) => {
     decision: ResourceSchedulingDecision;
     lease: ResourceLease;
   } | undefined;
@@ -55,6 +57,7 @@ export class MinimalOrchestrator {
   private readonly nextId: NonNullable<OrchestratorOptions['nextId']>;
   private readonly resolveOffering?: OrchestratorOptions['resolveOffering'];
   private readonly acquireResource?: OrchestratorOptions['acquireResource'];
+  private readonly resolveExecutionProvider?: OrchestratorOptions['resolveExecutionProvider'];
   private readonly maxConcurrentTasks: number;
   private runActive = false;
 
@@ -69,6 +72,7 @@ export class MinimalOrchestrator {
     this.nextId = options.nextId ?? ((kind) => `${kind}-${randomUUID()}`);
     this.resolveOffering = options.resolveOffering;
     this.acquireResource = options.acquireResource;
+    this.resolveExecutionProvider = options.resolveExecutionProvider;
     if (this.acquireResource && !this.resolveOffering) {
       throw new Error('acquireResource requires resolveOffering');
     }
@@ -269,10 +273,13 @@ export class MinimalOrchestrator {
   }
 
   private startTask(task: Task): Promise<void> | undefined {
-    const selectedOfferingId = this.resolveOffering?.(task);
-    const resource = selectedOfferingId && this.acquireResource ? this.acquireResource(task, selectedOfferingId) : undefined;
+    const recovery = this.persistence.getPendingAlternativeRecovery(task.id);
+    const selectedOfferingId = recovery?.selectedOfferingId ?? this.resolveOffering?.(task);
+    const resource = selectedOfferingId && this.acquireResource ? this.acquireResource(task, selectedOfferingId, recovery) : undefined;
     const lease = resource?.lease;
     if (this.acquireResource && selectedOfferingId && !resource) return undefined;
+    if (recovery?.selectedNodeId && (resource?.lease.nodeId !== recovery.selectedNodeId ||
+        resource.lease.locationId !== recovery.selectedLocationId)) return undefined;
     if (lease && lease.offeringId !== selectedOfferingId) throw new Error('Resource lease offering does not match selected offering');
     const scheduledAt = this.now();
     const schedulingEvent = this.event(task.id, 'task.transitioned', { from: 'ready', to: 'scheduled' }, scheduledAt);
@@ -307,16 +314,21 @@ export class MinimalOrchestrator {
     this.persistence.startAttempt(running, scheduled.version, attempt, [
       this.event(task.id, 'attempt.started', { attemptId: attempt.id, attemptNumber }, startedAt),
       this.event(task.id, 'task.transitioned', { from: 'scheduled', to: 'running' }, startedAt),
-    ]);
+    ], recovery?.id);
 
-    return this.completeTask(task, running, attempt, lease, attemptNumber);
+    const executionProvider = selectedOfferingId && this.resolveExecutionProvider
+      ? this.resolveExecutionProvider(selectedOfferingId) : this.provider;
+    if (this.resolveExecutionProvider && executionProvider.providerId !== selectedOfferingId) {
+      throw new Error(`Execution provider is not bound to selected offering: ${selectedOfferingId}`);
+    }
+    return this.completeTask(task, running, attempt, lease, attemptNumber, executionProvider);
   }
 
   private async completeTask(task: Task, running: Task, attempt: Attempt,
-    lease: ResourceLease | undefined, attemptNumber: number): Promise<void> {
+    lease: ResourceLease | undefined, attemptNumber: number, executionProvider: TaskExecutionProvider): Promise<void> {
     let result: TaskExecutionResult;
     try {
-      result = await this.provider.execute({ taskId: task.id, attemptId: attempt.id, attemptNumber,
+      result = await executionProvider.execute({ taskId: task.id, attemptId: attempt.id, attemptNumber,
         objective: task.objective, inputs: task.inputs, requiredCapabilities: task.requiredCapabilities });
     } catch (error) {
       result = { status: 'failed', classification: 'permanent', code: 'PROVIDER_EXCEPTION', summary: 'Execution provider threw an exception',

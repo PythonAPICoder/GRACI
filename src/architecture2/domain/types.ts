@@ -17,6 +17,7 @@ import type {
   WorkstationAvailabilityPolicyApplicationId,
   FailureDiagnosisId,
   ChangedConditionEvidenceId,
+  AlternativeRecoveryDecisionId,
 } from './ids.js';
 
 export type IsoTimestamp = string;
@@ -221,6 +222,32 @@ export interface ChangedConditionEvidence {
   eventId: EventId;
 }
 
+export type AlternativeRecoveryDecisionDisposition = 'authorized' | 'no_candidate' | 'rejected';
+
+export interface AlternativeRecoveryDecision {
+  id: AlternativeRecoveryDecisionId;
+  diagnosisId: FailureDiagnosisId;
+  failureId: FailureId;
+  taskId: TaskId;
+  failedAttemptId: AttemptId;
+  requestedDisposition: 'alternative_offering_recommended' | 'alternative_node_recommended';
+  disposition: AlternativeRecoveryDecisionDisposition;
+  reason: string;
+  nextAttemptNumber?: number;
+  failedOfferingId?: ProviderOfferingId;
+  failedNodeId?: NodeId;
+  failedLocationId?: OfferingLocationId;
+  selectedOfferingId?: ProviderOfferingId;
+  selectedNodeId?: NodeId;
+  selectedLocationId?: OfferingLocationId;
+  providerResolutionId?: ResolutionDecisionId;
+  resourceSchedulingDecisionId?: ResourceSchedulingDecisionId;
+  changedConditionEvidenceId?: ChangedConditionEvidenceId;
+  actor: string;
+  decidedAt: IsoTimestamp;
+  eventId: EventId;
+}
+
 export interface Approval {
   id: ApprovalId;
   goalId: GoalId;
@@ -342,7 +369,8 @@ export type ResolutionRejectionReason =
   | 'qualification_expired' | 'qualification_insufficient' | 'health_missing'
   | 'health_stale' | 'health_unacceptable' | 'qualification_fingerprint_mismatch'
   | 'input_schema_mismatch' | 'output_schema_mismatch' | 'format_unsupported'
-  | 'side_effect_class_mismatch' | 'quality_insufficient' | 'latency_exceeded' | 'cost_exceeded';
+  | 'side_effect_class_mismatch' | 'quality_insufficient' | 'latency_exceeded' | 'cost_exceeded'
+  | 'explicitly_excluded';
 
 export interface ProviderResolutionRequest {
   id: ResolutionDecisionId;
@@ -362,6 +390,7 @@ export interface ProviderResolutionRequest {
   maximumCost?: number;
   maximumHealthAgeMs: number;
   requestedAt: IsoTimestamp;
+  excludedOfferingIds?: readonly ProviderOfferingId[];
 }
 
 export interface ProviderResolutionCandidate {
@@ -446,7 +475,9 @@ export type ResourceSchedulingRejectionReason =
   | 'health_stale'
   | 'health_unacceptable'
   | 'privacy_incompatible'
-  | 'capacity_insufficient';
+  | 'capacity_insufficient'
+  | 'node_explicitly_excluded'
+  | 'location_explicitly_excluded';
 
 export interface ResourceSchedulingRequest {
   id: ResourceSchedulingDecisionId;
@@ -455,6 +486,8 @@ export interface ResourceSchedulingRequest {
   requiredCapacity: number;
   maximumHealthAgeMs: number;
   requestedAt: IsoTimestamp;
+  excludedNodeIds?: readonly NodeId[];
+  excludedLocationIds?: readonly OfferingLocationId[];
 }
 
 export interface ResourceSchedulingCandidate {

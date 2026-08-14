@@ -607,8 +607,51 @@ const migration009: Migration = {
   },
 };
 
+const migration010: Migration = {
+  version: 10,
+  name: 'architecture_2_phase_1m_alternative_recovery',
+  up(database) {
+    database.exec(`
+      CREATE TABLE alternative_recovery_decisions (
+        id TEXT PRIMARY KEY,
+        diagnosis_id TEXT NOT NULL UNIQUE REFERENCES failure_diagnoses(id) ON DELETE RESTRICT,
+        failure_id TEXT NOT NULL REFERENCES failures(id) ON DELETE RESTRICT,
+        task_id TEXT NOT NULL REFERENCES tasks(id) ON DELETE RESTRICT,
+        failed_attempt_id TEXT NOT NULL REFERENCES attempts(id) ON DELETE RESTRICT,
+        requested_disposition TEXT NOT NULL CHECK (requested_disposition IN ('alternative_offering_recommended','alternative_node_recommended')),
+        disposition TEXT NOT NULL CHECK (disposition IN ('authorized','no_candidate','rejected')),
+        reason TEXT NOT NULL CHECK (length(trim(reason)) > 0),
+        next_attempt_number INTEGER CHECK (next_attempt_number >= 1),
+        failed_offering_id TEXT, failed_node_id TEXT, failed_location_id TEXT,
+        selected_offering_id TEXT, selected_node_id TEXT, selected_location_id TEXT,
+        provider_resolution_id TEXT REFERENCES provider_resolution_decisions(id) ON DELETE RESTRICT,
+        resource_scheduling_decision_id TEXT,
+        changed_condition_evidence_id TEXT REFERENCES changed_condition_evidence(id) ON DELETE RESTRICT,
+        actor TEXT NOT NULL CHECK (length(trim(actor)) > 0), decided_at TEXT NOT NULL,
+        event_id TEXT NOT NULL UNIQUE REFERENCES events(id) ON DELETE RESTRICT,
+        CHECK ((disposition = 'authorized') = (next_attempt_number IS NOT NULL)),
+        CHECK (disposition <> 'authorized' OR changed_condition_evidence_id IS NOT NULL)
+      ) STRICT;
+      CREATE TABLE alternative_recovery_consumptions (
+        decision_id TEXT PRIMARY KEY REFERENCES alternative_recovery_decisions(id) ON DELETE RESTRICT,
+        attempt_id TEXT NOT NULL UNIQUE REFERENCES attempts(id) ON DELETE RESTRICT,
+        consumed_at TEXT NOT NULL
+      ) STRICT, WITHOUT ROWID;
+      CREATE INDEX idx_alternative_recovery_task ON alternative_recovery_decisions(task_id, decided_at, id);
+      CREATE TRIGGER alternative_recovery_no_update BEFORE UPDATE ON alternative_recovery_decisions
+        BEGIN SELECT RAISE(ABORT, 'alternative recovery decisions are immutable'); END;
+      CREATE TRIGGER alternative_recovery_no_delete BEFORE DELETE ON alternative_recovery_decisions
+        BEGIN SELECT RAISE(ABORT, 'alternative recovery decisions are immutable'); END;
+      CREATE TRIGGER alternative_recovery_consumptions_no_update BEFORE UPDATE ON alternative_recovery_consumptions
+        BEGIN SELECT RAISE(ABORT, 'alternative recovery consumption is immutable'); END;
+      CREATE TRIGGER alternative_recovery_consumptions_no_delete BEFORE DELETE ON alternative_recovery_consumptions
+        BEGIN SELECT RAISE(ABORT, 'alternative recovery consumption is immutable'); END;
+    `);
+  },
+};
+
 export const migrations: readonly Migration[] = [migration001, migration002, migration003, migration004, migration005,
-  migration006, migration007, migration008, migration009];
+  migration006, migration007, migration008, migration009, migration010];
 
 export function migrate(database: DatabaseSync): number {
   database.exec(`

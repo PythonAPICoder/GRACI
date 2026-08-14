@@ -39,6 +39,32 @@ Use this log for decisions that matter but do not yet justify a dedicated ADR sy
 
 ---
 
+### DEC-0014 — Phase 1M Single-Use Alternative Recovery
+
+**Date**
+
+- 2026-08-14
+
+**Decision**
+
+- Authorize only caller-invoked execution of `alternative_offering_recommended` and `alternative_node_recommended`.
+- Persist one immutable recovery decision per authoritative diagnosis and atomically record changed-condition evidence before returning the Task to `ready`.
+- Exclude the failed offering, Node, and location explicitly through the existing deterministic resolver and scheduler.
+- Count every alternative against the existing total Attempt limit and consume an authorization only through its exact next Attempt binding.
+- Keep indeterminate outcomes, reconciliation, replanning, research, migration, cancellation, circuit breakers, UI, and distributed execution deferred.
+
+**Rationale**
+
+- Phase 1L supplies durable authoritative diagnosis, while existing provider qualification, Node health, resource leases, Attempts, and Verification supply the minimum safe foundation for bounded alternatives without introducing a generalized recovery engine.
+
+**Consequences**
+
+- Alternative offering execution resolves the adapter by the durably selected offering.
+- Alternative Node execution retains normal atomic resource scheduling and lease rules.
+- A failed recovery Attempt returns through the normal Failure and Phase 1L diagnosis path.
+
+---
+
 ### DEC-0013 — Phase 1L Durable Failure Diagnosis Boundary
 
 **Date**

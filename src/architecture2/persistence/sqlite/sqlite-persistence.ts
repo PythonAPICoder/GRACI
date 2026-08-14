@@ -26,6 +26,7 @@ import type {
   WorkstationWorkloadEvaluation, WorkstationAvailabilityPolicyApplication,
   WorkstationAvailabilityPolicyApplicationRequest,
   FailureDiagnosis, FailureDiagnosisId, FailureId, ChangedConditionEvidence,
+  AlternativeRecoveryDecision, AlternativeRecoveryDecisionId,
 } from '../../domain/index.js';
 import { assertIdentifier } from '../../domain/index.js';
 import type {
@@ -778,10 +779,12 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
       .map((row) => this.mapAttempt(row));
   }
 
-  startAttempt(task: Task, expectedVersion: number, attempt: Attempt, events: readonly AuditEventInput[]): void {
+  startAttempt(task: Task, expectedVersion: number, attempt: Attempt, events: readonly AuditEventInput[],
+    recoveryDecisionId?: AlternativeRecoveryDecisionId): void {
     this.transaction(() => {
       this.updateTaskRow(task, expectedVersion);
       this.insertAttempt(attempt);
+      if (recoveryDecisionId) this.insertAlternativeRecoveryConsumption(recoveryDecisionId, attempt, attempt.startedAt ?? attempt.createdAt);
       this.insertEvents(events);
     });
   }
@@ -889,6 +892,11 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
     return row ? this.mapFailureDiagnosis(row) : undefined;
   }
 
+  getFailureDiagnosisById(id: FailureDiagnosisId): FailureDiagnosis | undefined {
+    const row = this.db().prepare('SELECT * FROM failure_diagnoses WHERE id = ?').get(id) as Row | undefined;
+    return row ? this.mapFailureDiagnosis(row) : undefined;
+  }
+
   getFailureDiagnoses(taskId: TaskId): FailureDiagnosis[] {
     return (this.db().prepare(`SELECT d.* FROM failure_diagnoses d
       LEFT JOIN attempts a ON a.id = d.attempt_id WHERE d.task_id = ?
@@ -915,6 +923,70 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
   getChangedConditionEvidence(diagnosisId: FailureDiagnosisId): ChangedConditionEvidence[] {
     return (this.db().prepare(`SELECT * FROM changed_condition_evidence WHERE diagnosis_id = ?
       ORDER BY observed_at, id`).all(diagnosisId) as Row[]).map((row) => this.mapChangedConditionEvidence(row));
+  }
+
+  recordAlternativeRecoveryDecision(value: AlternativeRecoveryDecision, evidence: ChangedConditionEvidence | undefined,
+    task: Task | undefined, expectedTaskVersion: number | undefined, events: readonly AuditEventInput[]): AlternativeRecoveryDecision {
+    const existing = this.getAlternativeRecoveryDecision(value.diagnosisId);
+    if (existing) {
+      if (canonicalize(existing) !== canonicalize(value)) throw new Error(`Alternative recovery authority conflict: ${value.diagnosisId}`);
+      return existing;
+    }
+    if (events.length === 0 || events.at(-1)?.id !== value.eventId) throw new Error('Alternative recovery decision Event mismatch');
+    if ((value.disposition === 'authorized') !== Boolean(evidence && task && expectedTaskVersion !== undefined)) {
+      throw new Error('Authorized alternative recovery requires evidence and Task transition');
+    }
+    return this.transaction(() => {
+      this.insertEvents(events);
+      if (evidence) {
+        this.validateChangedConditionEvidence(evidence);
+        this.db().prepare(`INSERT INTO changed_condition_evidence
+          (id, diagnosis_id, condition_type, prior_fact_reference, changed_fact_reference, source, observed_at, event_id)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`).run(evidence.id, evidence.diagnosisId, evidence.conditionType,
+          evidence.priorFactReference ?? null, evidence.changedFactReference ?? null, evidence.source,
+          evidence.observedAt, evidence.eventId);
+      }
+      this.db().prepare(`INSERT INTO alternative_recovery_decisions
+        (id, diagnosis_id, failure_id, task_id, failed_attempt_id, requested_disposition, disposition, reason,
+         next_attempt_number, failed_offering_id, failed_node_id, failed_location_id, selected_offering_id,
+         selected_node_id, selected_location_id, provider_resolution_id, resource_scheduling_decision_id,
+         changed_condition_evidence_id, actor, decided_at, event_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+        .run(value.id, value.diagnosisId, value.failureId, value.taskId, value.failedAttemptId,
+          value.requestedDisposition, value.disposition, value.reason, value.nextAttemptNumber ?? null,
+          value.failedOfferingId ?? null, value.failedNodeId ?? null, value.failedLocationId ?? null,
+          value.selectedOfferingId ?? null, value.selectedNodeId ?? null, value.selectedLocationId ?? null,
+          value.providerResolutionId ?? null, value.resourceSchedulingDecisionId ?? null,
+          value.changedConditionEvidenceId ?? null, value.actor, value.decidedAt, value.eventId);
+      if (task && expectedTaskVersion !== undefined) this.updateTaskRow(task, expectedTaskVersion);
+      return value;
+    });
+  }
+
+  getAlternativeRecoveryDecision(diagnosisId: FailureDiagnosisId): AlternativeRecoveryDecision | undefined {
+    const row = this.db().prepare('SELECT * FROM alternative_recovery_decisions WHERE diagnosis_id = ?')
+      .get(diagnosisId) as Row | undefined;
+    return row ? this.mapAlternativeRecoveryDecision(row) : undefined;
+  }
+
+  getPendingAlternativeRecovery(taskId: TaskId): AlternativeRecoveryDecision | undefined {
+    const row = this.db().prepare(`SELECT d.* FROM alternative_recovery_decisions d
+      LEFT JOIN alternative_recovery_consumptions c ON c.decision_id = d.id
+      WHERE d.task_id = ? AND d.disposition = 'authorized' AND c.decision_id IS NULL
+      ORDER BY d.decided_at DESC, d.id DESC LIMIT 1`).get(taskId) as Row | undefined;
+    return row ? this.mapAlternativeRecoveryDecision(row) : undefined;
+  }
+
+  private insertAlternativeRecoveryConsumption(decisionId: AlternativeRecoveryDecisionId, attempt: Attempt, consumedAt: string): void {
+      const decision = this.db().prepare(`SELECT * FROM alternative_recovery_decisions WHERE id = ? AND disposition = 'authorized'`)
+        .get(decisionId) as Row | undefined;
+      if (!decision || Number(decision.next_attempt_number) !== attempt.attemptNumber || String(decision.task_id) !== attempt.taskId ||
+          optionalString(decision.selected_offering_id) !== attempt.providerOfferingId ||
+          (decision.selected_node_id !== null && String(decision.selected_node_id) !== attempt.computeNodeId)) {
+        throw new Error('Attempt does not match alternative recovery authorization');
+      }
+      this.db().prepare(`INSERT INTO alternative_recovery_consumptions (decision_id, attempt_id, consumed_at) VALUES (?, ?, ?)`)
+        .run(decisionId, attempt.id, consumedAt);
   }
 
   createApproval(value: Approval, event: AuditEventInput): void {
@@ -1274,6 +1346,34 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
     } catch (error) {
       throw new Error(`Corrupt persisted Changed-Condition Evidence: ${id}`, { cause: error });
     }
+  }
+
+  private mapAlternativeRecoveryDecision(row: Row): AlternativeRecoveryDecision {
+    const value: AlternativeRecoveryDecision = {
+      id: String(row.id) as AlternativeRecoveryDecision['id'],
+      diagnosisId: String(row.diagnosis_id) as FailureDiagnosisId,
+      failureId: String(row.failure_id) as FailureId,
+      taskId: String(row.task_id) as TaskId,
+      failedAttemptId: String(row.failed_attempt_id) as AlternativeRecoveryDecision['failedAttemptId'],
+      requestedDisposition: String(row.requested_disposition) as AlternativeRecoveryDecision['requestedDisposition'],
+      disposition: String(row.disposition) as AlternativeRecoveryDecision['disposition'], reason: String(row.reason),
+      nextAttemptNumber: row.next_attempt_number === null ? undefined : Number(row.next_attempt_number),
+      failedOfferingId: optionalString(row.failed_offering_id) as AlternativeRecoveryDecision['failedOfferingId'],
+      failedNodeId: optionalString(row.failed_node_id) as AlternativeRecoveryDecision['failedNodeId'],
+      failedLocationId: optionalString(row.failed_location_id) as AlternativeRecoveryDecision['failedLocationId'],
+      selectedOfferingId: optionalString(row.selected_offering_id) as AlternativeRecoveryDecision['selectedOfferingId'],
+      selectedNodeId: optionalString(row.selected_node_id) as AlternativeRecoveryDecision['selectedNodeId'],
+      selectedLocationId: optionalString(row.selected_location_id) as AlternativeRecoveryDecision['selectedLocationId'],
+      providerResolutionId: optionalString(row.provider_resolution_id) as AlternativeRecoveryDecision['providerResolutionId'],
+      resourceSchedulingDecisionId: optionalString(row.resource_scheduling_decision_id) as AlternativeRecoveryDecision['resourceSchedulingDecisionId'],
+      changedConditionEvidenceId: optionalString(row.changed_condition_evidence_id) as AlternativeRecoveryDecision['changedConditionEvidenceId'],
+      actor: String(row.actor), decidedAt: String(row.decided_at), eventId: String(row.event_id) as AlternativeRecoveryDecision['eventId'],
+    };
+    if (!value.reason.trim() || !value.actor.trim() || Number.isNaN(Date.parse(value.decidedAt)) ||
+        (value.disposition === 'authorized' && (!value.nextAttemptNumber || !value.changedConditionEvidenceId))) {
+      throw new Error(`Corrupt persisted Alternative Recovery Decision: ${value.id}`);
+    }
+    return value;
   }
 
   private insertApproval(value: Approval): void {

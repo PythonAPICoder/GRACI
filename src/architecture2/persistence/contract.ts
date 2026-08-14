@@ -20,6 +20,7 @@ import type {
   WorkstationWorkloadEvaluation, WorkstationAvailabilityPolicyApplication,
   WorkstationAvailabilityPolicyApplicationRequest,
   FailureDiagnosis, FailureDiagnosisId, FailureId, ChangedConditionEvidence,
+  AlternativeRecoveryDecision, AlternativeRecoveryDecisionId,
 } from '../domain/index.js';
 
 export interface LegacyImportOperation {
@@ -114,7 +115,8 @@ export interface Architecture2Persistence extends Disposable {
 
   createAttempt(attempt: Attempt, event: AuditEventInput): void;
   getAttempts(taskId: TaskId): Attempt[];
-  startAttempt(task: Task, expectedVersion: number, attempt: Attempt, events: readonly AuditEventInput[]): void;
+  startAttempt(task: Task, expectedVersion: number, attempt: Attempt, events: readonly AuditEventInput[],
+    recoveryDecisionId?: AlternativeRecoveryDecisionId): void;
   recordAttemptOutcome(
     task: Task,
     expectedVersion: number,
@@ -140,9 +142,14 @@ export interface Architecture2Persistence extends Disposable {
   getFailures(taskId: TaskId): Failure[];
   recordFailureDiagnosis(diagnosis: FailureDiagnosis, event: AuditEventInput): FailureDiagnosis;
   getFailureDiagnosis(failureId: FailureId, policyId: string, policyVersion: number): FailureDiagnosis | undefined;
+  getFailureDiagnosisById(id: FailureDiagnosisId): FailureDiagnosis | undefined;
   getFailureDiagnoses(taskId: TaskId): FailureDiagnosis[];
   recordChangedConditionEvidence(value: ChangedConditionEvidence, event: AuditEventInput): void;
   getChangedConditionEvidence(diagnosisId: FailureDiagnosisId): ChangedConditionEvidence[];
+  recordAlternativeRecoveryDecision(value: AlternativeRecoveryDecision, evidence: ChangedConditionEvidence | undefined,
+    task: Task | undefined, expectedTaskVersion: number | undefined, events: readonly AuditEventInput[]): AlternativeRecoveryDecision;
+  getAlternativeRecoveryDecision(diagnosisId: FailureDiagnosisId): AlternativeRecoveryDecision | undefined;
+  getPendingAlternativeRecovery(taskId: TaskId): AlternativeRecoveryDecision | undefined;
   createApproval(approval: Approval, event: AuditEventInput): void;
   getApprovals(taskId: TaskId): Approval[];
   recordApprovalPause(task: Task, expectedVersion: number, attempt: Attempt, failure: Failure,

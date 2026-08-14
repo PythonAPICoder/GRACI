@@ -524,3 +524,17 @@ Implementation remains paused pending Product Owner and Architect review.
 - Added deterministic diagnosis and changed-condition inspection, duplicate idempotency/conflict handling, corruption diagnostics, and close/reopen reconstruction.
 - Preserved Phase 1K independent supervision, approval behavior, resource/Node/workstation state, lease-release ordering, Architecture 1 startup authority, and every deferred recovery boundary.
 - Added a focused Phase 1L test file and expanded Orchestrator assertions; no dependency, package, configuration, UI, or Architecture 1 source changed.
+
+---
+
+## Architecture 2 Phase 1M — Bounded Alternative Recovery — August 14, 2026
+
+- Verified clean synchronized `main` at accepted Phase 1L HEAD `204f937b0a154b3200950f2a54372187cd0bdbdc` with 169/169 accepted baseline tests.
+- Added Addendum 018 and registered it without altering historical governance.
+- Added schema migration 10 for immutable recovery decisions and single-use Attempt consumption.
+- Added caller-invoked recovery authority gates anchored to the latest Attempt, its latest Failure, and the exact current Phase 1L diagnosis.
+- Added explicit failed-offering, failed-Node, and failed-location exclusions to existing deterministic selection.
+- Atomically persist authorized recovery, changed-condition evidence, audit Events, and the controlled Task return to `ready` before any new Attempt.
+- Bound the exact next Attempt to the selected offering and optional Node/location; reused normal resource leases, execution, Failure diagnosis, and Verification.
+- Preserved total Attempt limits, pending approvals, indeterminate-outcome reconciliation, concurrent Task isolation, Architecture 1 Electron authority, and all deferred Phase 1M boundaries.
+- No dependency, package, configuration, UI, automatic installation, Planner, reconciliation, circuit-breaker, migration, cancellation, or distributed-worker change was introduced.
