@@ -2,9 +2,9 @@
 
 > **Living document:** Update this file whenever an Architecture 2 phase changes implemented behavior, verification evidence, runtime authority, major limitations, or the recommended next phase. Governance under `docs/governance/` remains authoritative when this summary differs from an approved specification.
 
-**Implementation working tree starting basis:** accepted Phase 1O repository HEAD `b7b784f7ec11d356f4867a829e953ccb49aaed0e`
+**Implementation working tree starting basis:** accepted Phase 1P repository HEAD `c24e0e00f9821ccc057b126d48e5e85716e894ed`
 
-**Current implementation:** Architecture 2 Phase 1P, Governed Task Input Revision (`ADDENDUM_021_ARCHITECTURE_2_PHASE_1P.md`), with automated, build, runtime/import, migration/reopen, and Electron startup verification complete
+**Current implementation:** Architecture 2 Phase 1Q, Governed Replanning Foundation (`ADDENDUM_022_ARCHITECTURE_2_PHASE_1Q.md`)
 
 ## Product Direction
 
@@ -26,7 +26,7 @@ The project has built G.R.A.C.I.'s notebook, work checklist, traffic controller,
 
 ### Technical Detail
 
-Implemented Architecture 2 work through Phase 1P includes:
+Implemented Architecture 2 work through Phase 1Q includes:
 
 - **Foundation and Phase 1A:** canonical identifiers and records, SQLite persistence, migrations, transactional state-plus-event writes, optimistic versions, immutable history, and hash-chained events.
 - **Phase 1B:** guarded Task lifecycle, persisted DAG execution, deterministic verification, and conservative interrupted-work recovery.
@@ -44,6 +44,7 @@ Implemented Architecture 2 work through Phase 1P includes:
 - **Phase 1N:** caller-invoked provider-neutral reconciliation of exact indeterminate external outcomes, with trusted conclusions, immutable evidence, Verification-only success, and gated single-use fresh-Attempt authority.
 - **Phase 1O:** independent provider-offering, Node, and offering-location circuit breakers with deterministic windows/cooldown, durable one-at-a-time probes, exact route/Attempt binding, Verification-only close, and qualifying-failure reopen.
 - **Phase 1P:** caller-invoked revision of only canonical Task inputs after exact current `input_revision_required` authority, with canonical meaningful-change checks, immutable history, transactional concurrency gates, and exact single-use next-Attempt binding.
+- **Phase 1Q:** caller-invoked atomic replacement of safe unfinished graph work after exact governed replanning authority, with immutable lineage, explicit mappings, active-revision concurrency, and normal scheduling controls.
 
 The precise governed boundaries are in `docs/governance/ADDENDUM_006_ARCHITECTURE_2_PHASE_1A.md` through `ADDENDUM_021_ARCHITECTURE_2_PHASE_1P.md`.
 

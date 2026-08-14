@@ -1,5 +1,12 @@
 # G.R.A.C.I. Phase 1 — Autonomous Recovery and Continuation
 
+## 2026-08-14 - Phase 1Q Schema Baseline Fixture Correction
+
+- Regression tests initially retained schema-13 expectations and one schema-12 fixture left schema-14 metadata/tables present.
+- Root cause was stale test baseline/setup after the required schema advance, not migration or runtime behavior.
+- Updated assertions to schema 14 and removed both schema-13 and schema-14 objects in the simulated old database before retesting.
+- The first Electron smoke wrapper hung on redirected child handles after terminating its `npm` parent; direct Electron invocation replaced the harness and passed with clean stderr.
+
 ## 2026-08-14 - Phase 1P Transactional Authority Race Correction
 
 **Failure**

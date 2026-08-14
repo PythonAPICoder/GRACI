@@ -2,9 +2,9 @@
 
 > **Living document:** Update this file whenever Architecture 2 module boundaries, lifecycle behavior, persistence authority, runtime composition, or intentionally deferred capabilities change. This is an implementation map, not immutable governance. The master specification and numbered addenda under `docs/governance/` remain authoritative.
 
-**Architecture represented:** Current Phase 1P implementation with automated, build, runtime/import, migration/reopen, and Electron startup verification complete
+**Architecture represented:** Current Phase 1Q governed replanning foundation
 
-**Implementation working tree starting basis:** accepted Phase 1O repository HEAD `b7b784f7ec11d356f4867a829e953ccb49aaed0e`
+**Implementation working tree starting basis:** accepted Phase 1P repository HEAD `c24e0e00f9821ccc057b126d48e5e85716e894ed`
 
 ## System Shape
 
@@ -63,7 +63,7 @@ SQLite is G.R.A.C.I.'s notebook. The assistant does not rely on remembering what
 
 `SqliteArchitecture2Persistence` is the current authoritative store behind `Architecture2Persistence`. Callers supply the database path. The implementation uses built-in `node:sqlite`, foreign keys, strict tables, WAL mode, `synchronous = FULL`, a busy timeout, and `BEGIN IMMEDIATE` write transactions.
 
-Current schema version is 13. Phase 1P adds immutable input-revision authority and exact single-use Attempt consumption while retaining Phase 1O circuit and Phase 1N reconciliation history.
+Current schema version is 14. Phase 1Q adds immutable replanning decisions and replacement mappings while retaining all earlier recovery history.
 
 Important invariants include:
 
@@ -333,7 +333,7 @@ Several advanced robot features are deliberately left disconnected until the fou
 
 Major deferred capabilities include:
 
-- Autonomous planning, replanning, and dynamic graph mutation.
+- Autonomous planning, model-authored replanning, and automatic graph mutation.
 - Predicate dependency execution.
 - Generalized policy engine and standing approvals.
 - User cancellation, preemption, checkpointing, and forced interruption.

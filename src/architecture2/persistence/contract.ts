@@ -23,7 +23,7 @@ import type {
   AlternativeRecoveryDecision, AlternativeRecoveryDecisionId,
   ReconciliationDecision, ReconciliationDecisionId,
   CircuitRecord, CircuitTransition, CircuitEvidence, CircuitProbe, CircuitBreakerPolicy, CircuitTargetType,
-  InputRevision, InputRevisionId,
+  InputRevision, InputRevisionId, ReplanningDecision, ReplanningDecisionId,
 } from '../domain/index.js';
 
 export interface LegacyImportOperation {
@@ -165,6 +165,11 @@ export interface Architecture2Persistence extends Disposable {
   getInputRevision(id: InputRevisionId): InputRevision | undefined;
   getInputRevisionByDiagnosis(diagnosisId: FailureDiagnosisId): InputRevision | undefined;
   getPendingInputRevision(taskId: TaskId): InputRevision | undefined;
+  authorizeReplanning(value: ReplanningDecision, revision: TaskGraphRevision, tasks: readonly Task[],
+    dependencies: readonly TaskDependency[], expectedGoalVersion: number, events: readonly AuditEventInput[]): ReplanningDecision;
+  getReplanningDecision(id: ReplanningDecisionId): ReplanningDecision | undefined;
+  getReplanningDecisionByDiagnosis(diagnosisId: FailureDiagnosisId): ReplanningDecision | undefined;
+  getReplanningDecisions(goalId: GoalId): ReplanningDecision[];
   recordCircuitEvidence(targetType: CircuitTargetType, targetId: string, diagnosis: FailureDiagnosis,
     policy: CircuitBreakerPolicy, evidence: CircuitEvidence, transition: CircuitTransition | undefined,
     event: AuditEventInput): CircuitRecord;

@@ -8,10 +8,10 @@ import { reconcileExternalOutcome, type ReconciliationCommand,
   type ReconciliationProvider } from '../reconciliation/index.js';
 import { diagnosePersistedFailure, inspectQueue, MinimalOrchestrator, recoverWithAlternative,
   acquireCircuitProbe, claimCircuitProbe, inspectCircuits, recordCircuitFailure, recordCircuitProbeOutcome,
-  authorizeInputRevision,
+  authorizeInputRevision, authorizeReplanning,
   type AcquireCircuitProbeCommand, type AlternativeRecoveryCommand, type OrchestratorOptions,
   type ClaimCircuitProbeCommand, type RecordCircuitFailureCommand, type RecordCircuitProbeOutcomeCommand,
-  type AuthorizeInputRevisionCommand } from '../workflow/index.js';
+  type AuthorizeInputRevisionCommand, type AuthorizeReplanningCommand } from '../workflow/index.js';
 
 export interface Architecture2RuntimeConfiguration {
   databasePath: string;
@@ -69,6 +69,19 @@ export class Architecture2Runtime implements Disposable {
 
   inspectInputRevision(id: AuthorizeInputRevisionCommand['id']) {
     return this.persistence.getInputRevision(id);
+  }
+
+  authorizeReplanning(command: AuthorizeReplanningCommand) {
+    return authorizeReplanning(this.persistence, command);
+  }
+
+  inspectReplanningDecision(id: AuthorizeReplanningCommand['id']) {
+    return this.persistence.getReplanningDecision(id);
+  }
+
+  inspectGraphRevisions(goalId: Parameters<SqliteArchitecture2Persistence['getTaskGraphRevisions']>[0]) {
+    return { goal: this.persistence.getGoal(goalId)?.goal,
+      revisions: this.persistence.getTaskGraphRevisions(goalId), decisions: this.persistence.getReplanningDecisions(goalId) };
   }
 
   inspectCircuits() {

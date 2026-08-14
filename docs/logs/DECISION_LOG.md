@@ -1,5 +1,13 @@
 # G.R.A.C.I. Engineering Decision Log
 
+### DEC-0018 - Phase 1Q Governed Replanning
+
+- **Date:** 2026-08-14
+- Use only exact trusted `TASK_GRAPH_STRUCTURE_INVALID` / `replanning_recommended` authority.
+- Store immutable lineage and normalized replacement mappings in schema 14.
+- Atomically validate, admit, supersede, and activate under `BEGIN IMMEDIATE`; historical revisions are inspection-only.
+- Preserve completed and evidence-bearing history; reject in-flight, approval-bound, conflicting, stale, ambiguous, and indeterminate work.
+
 Use this log for decisions that matter but do not yet justify a dedicated ADR system.
 
 ## Entry Template

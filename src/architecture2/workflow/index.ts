@@ -8,3 +8,4 @@ export * from './queue-inspector.js';
 export * from './alternative-recovery.js';
 export * from './circuit-breaker.js';
 export * from './input-revision.js';
+export * from './replanning.js';

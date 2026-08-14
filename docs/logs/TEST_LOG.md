@@ -1,5 +1,14 @@
 # G.R.A.C.I. Test Log
 
+### 2026-08-14 - Architecture 2 Phase 1Q Governed Replanning
+
+- Focused Phase 1Q suite: PASS, 2/2.
+- TypeScript validation: PASS after correcting raw SQLite-row identifier normalization.
+- Phase 1P plus Phase 1Q focused migration/reopen regression: PASS, 11/11.
+- Full automated suite: PASS, 219/219 across 20 files.
+- Production build: PASS. Runtime/import suite: PASS, 9/9. `git diff --check`: PASS.
+- Electron startup smoke: PASS; direct Electron process remained alive for five seconds, emitted `Electron app starting`, and produced empty stderr before controlled shutdown.
+
 Record meaningful verification results. Do not duplicate raw automated-test output unless it is useful for diagnosis.
 
 ## Entry Template

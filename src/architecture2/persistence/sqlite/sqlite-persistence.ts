@@ -29,7 +29,7 @@ import type {
   AlternativeRecoveryDecision, AlternativeRecoveryDecisionId,
   ReconciliationDecision, ReconciliationDecisionId,
   CircuitRecord, CircuitTransition, CircuitEvidence, CircuitProbe, CircuitBreakerPolicy, CircuitTargetType,
-  InputRevision, InputRevisionId,
+  InputRevision, InputRevisionId, ReplanningDecision, ReplanningDecisionId,
 } from '../../domain/index.js';
 import { assertIdentifier } from '../../domain/index.js';
 import type {
@@ -1183,6 +1183,106 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
     return row ? this.mapInputRevision(row) : undefined;
   }
 
+  authorizeReplanning(value: ReplanningDecision, revision: TaskGraphRevision, tasks: readonly Task[],
+    dependencies: readonly TaskDependency[], expectedGoalVersion: number,
+    events: readonly AuditEventInput[]): ReplanningDecision {
+    this.validateTaskGraphRevision(revision);
+    for (const task of tasks) this.validateTask(task);
+    for (const dependency of dependencies) validateTimestamp(dependency.createdAt, 'task dependency timestamp');
+    validateTaskGraph(revision, tasks, dependencies);
+    return this.transaction(() => {
+      const existing = this.db().prepare('SELECT * FROM replanning_decisions WHERE diagnosis_id=?')
+        .get(value.diagnosisId) as Row | undefined;
+      if (existing) {
+        const mapped = this.mapReplanningDecision(existing);
+        if (mapped.id !== value.id || mapped.replacementGraphRevisionId !== value.replacementGraphRevisionId) {
+          throw new Error(`Replanning authority conflict: ${value.diagnosisId}`);
+        }
+        return mapped;
+      }
+      const goalRow = this.db().prepare('SELECT * FROM goals WHERE id=?').get(value.goalId) as Row | undefined;
+      const goal = goalRow ? this.mapGoal(goalRow) : undefined;
+      const diagnosisRow = this.db().prepare('SELECT * FROM failure_diagnoses WHERE id=?').get(value.diagnosisId) as Row | undefined;
+      const diagnosis = diagnosisRow ? this.mapFailureDiagnosis(diagnosisRow) : undefined;
+      const sourceTaskRow = this.db().prepare('SELECT * FROM tasks WHERE id=?').get(value.sourceTaskId) as Row | undefined;
+      const sourceTask = sourceTaskRow ? this.mapTask(sourceTaskRow) : undefined;
+      const latestAttempt = sourceTask ? (this.db().prepare(`SELECT * FROM attempts WHERE task_id=? ORDER BY attempt_number DESC,id DESC LIMIT 1`)
+        .get(sourceTask.id) as Row | undefined) : undefined;
+      const latestFailure = latestAttempt ? this.db().prepare(`SELECT * FROM failures WHERE task_id=? AND attempt_id=? ORDER BY created_at DESC,id DESC LIMIT 1`)
+        .get(sourceTask!.id, String(latestAttempt.id)) as Row | undefined : undefined;
+      const conflicts = this.db().prepare(`SELECT 1 found FROM alternative_recovery_decisions WHERE diagnosis_id=?
+        UNION ALL SELECT 1 FROM reconciliation_decisions WHERE diagnosis_id=?
+        UNION ALL SELECT 1 FROM input_revisions WHERE diagnosis_id=? LIMIT 1`)
+        .get(value.diagnosisId, value.diagnosisId, value.diagnosisId) as Row | undefined;
+      if (!goal || goal.version !== expectedGoalVersion || goal.activeGraphRevisionId !== value.sourceGraphRevisionId ||
+          revision.goalId !== goal.id || revision.id !== value.replacementGraphRevisionId ||
+          revision.revision !== Math.max(...this.getTaskGraphRevisions(goal.id).map((item) => item.revision)) + 1 ||
+          !diagnosis || diagnosis.id !== value.diagnosisId || diagnosis.failureId !== value.failureId ||
+          diagnosis.taskId !== value.sourceTaskId || diagnosis.disposition !== 'replanning_recommended' ||
+          diagnosis.outcomeCertainty !== 'proven_unsuccessful' || diagnosis.policyId !== 'architecture2.phase1l.deterministic' ||
+          diagnosis.policyVersion !== 1 || sourceTask?.graphRevisionId !== value.sourceGraphRevisionId ||
+          String(latestFailure?.id) !== value.failureId || conflicts) {
+        throw new Error('Replanning authority is no longer current');
+      }
+      const oldTasks = new Map(this.getTasks(value.sourceGraphRevisionId).map((task) => [task.id, task]));
+      const newIds = new Set(tasks.map((task) => task.id));
+      const mappedOld = new Set<string>();
+      for (const mapping of value.replacements) {
+        const old = oldTasks.get(mapping.supersededTaskId);
+        if (!old || mappedOld.has(old.id) || !['planned','blocked','ready','waiting_for_approval','retry_pending'].includes(old.status) ||
+            mapping.replacementTaskIds.length === 0 || new Set(mapping.replacementTaskIds).size !== mapping.replacementTaskIds.length ||
+            mapping.replacementTaskIds.some((id) => !newIds.has(id))) {
+          throw new Error('Replanning replacement mapping is ambiguous or ineligible');
+        }
+        if (this.getApprovals(old.id).some((approval) => approval.decision === 'requested')) {
+          throw new Error('Replanning cannot bypass pending approval');
+        }
+        mappedOld.add(old.id);
+      }
+      const unfinished = [...oldTasks.values()].filter((task) => ['planned','blocked','ready','waiting_for_approval','retry_pending'].includes(task.status));
+      if (unfinished.some((task) => !mappedOld.has(task.id))) throw new Error('Every unfinished Task must have one replacement mapping');
+      if (events.length !== 1 + tasks.length + dependencies.length + value.replacements.length || events[0]?.id !== value.eventId) {
+        throw new Error('Replanning Event set mismatch');
+      }
+      this.insertTaskGraphRevision(revision);
+      for (const task of tasks) this.insertTask(task);
+      for (const dependency of dependencies) this.insertTaskDependency(dependency);
+      this.insertEvents(events);
+      this.db().prepare(`INSERT INTO replanning_decisions
+        (id,goal_id,source_graph_revision_id,replacement_graph_revision_id,diagnosis_id,failure_id,source_task_id,reason,actor,authorized_at,event_id)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?)`).run(value.id, value.goalId, value.sourceGraphRevisionId,
+          value.replacementGraphRevisionId, value.diagnosisId, value.failureId, value.sourceTaskId,
+          value.reason, value.actor, value.authorizedAt, value.eventId);
+      for (const mapping of value.replacements) {
+        const old = oldTasks.get(mapping.supersededTaskId)!;
+        for (const replacementId of mapping.replacementTaskIds) this.db().prepare(`INSERT INTO replanning_replacements
+          (decision_id,superseded_task_id,replacement_task_id) VALUES (?,?,?)`).run(value.id, old.id, replacementId);
+        this.updateTaskRow({ ...old, status: 'superseded', terminalReason: `REPLANNED:${revision.id}`,
+          version: old.version + 1, updatedAt: value.authorizedAt, completedAt: value.authorizedAt }, old.version);
+      }
+      const result = this.db().prepare(`UPDATE goals SET active_graph_revision_id=?,version=version+1,updated_at=?
+        WHERE id=? AND version=? AND active_graph_revision_id=?`).run(revision.id, value.authorizedAt, goal.id,
+          expectedGoalVersion, value.sourceGraphRevisionId);
+      if (Number(result.changes) !== 1) throw new Error(`Goal concurrency conflict: ${goal.id}`);
+      return value;
+    });
+  }
+
+  getReplanningDecision(id: ReplanningDecisionId): ReplanningDecision | undefined {
+    const row = this.db().prepare('SELECT * FROM replanning_decisions WHERE id=?').get(id) as Row | undefined;
+    return row ? this.mapReplanningDecision(row) : undefined;
+  }
+
+  getReplanningDecisionByDiagnosis(diagnosisId: FailureDiagnosisId): ReplanningDecision | undefined {
+    const row = this.db().prepare('SELECT * FROM replanning_decisions WHERE diagnosis_id=?').get(diagnosisId) as Row | undefined;
+    return row ? this.mapReplanningDecision(row) : undefined;
+  }
+
+  getReplanningDecisions(goalId: GoalId): ReplanningDecision[] {
+    return (this.db().prepare('SELECT * FROM replanning_decisions WHERE goal_id=? ORDER BY authorized_at,id')
+      .all(goalId) as Row[]).map((row) => this.mapReplanningDecision(row));
+  }
+
   recordCircuitEvidence(targetType: CircuitTargetType, targetId: string, diagnosis: FailureDiagnosis,
     policy: CircuitBreakerPolicy, evidence: CircuitEvidence, transition: CircuitTransition | undefined,
     event: AuditEventInput): CircuitRecord {
@@ -2090,6 +2190,35 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
         createHash('sha256').update(canonicalize(value.priorInputs)).digest('hex') !== value.priorInputsDigest ||
         createHash('sha256').update(canonicalize(value.revisedInputs)).digest('hex') !== value.revisedInputsDigest ||
         value.priorInputsDigest === value.revisedInputsDigest) throw new Error(`Corrupt persisted Input Revision: ${value.id}`);
+    return value;
+  }
+
+  private mapReplanningDecision(row: Row): ReplanningDecision {
+    const replacements = (this.db().prepare(`SELECT superseded_task_id,replacement_task_id
+      FROM replanning_replacements WHERE decision_id=? ORDER BY superseded_task_id,replacement_task_id`)
+      .all(String(row.id)) as Row[]).reduce<Map<string, TaskId[]>>((result, item) => {
+        const oldId = String(item.superseded_task_id);
+        const values = result.get(oldId) ?? [];
+        values.push(String(item.replacement_task_id) as TaskId);
+        result.set(oldId, values);
+        return result;
+      }, new Map());
+    const value: ReplanningDecision = { id: String(row.id) as ReplanningDecisionId,
+      goalId: String(row.goal_id) as GoalId,
+      sourceGraphRevisionId: String(row.source_graph_revision_id) as TaskGraphRevisionId,
+      replacementGraphRevisionId: String(row.replacement_graph_revision_id) as TaskGraphRevisionId,
+      diagnosisId: String(row.diagnosis_id) as FailureDiagnosisId, failureId: String(row.failure_id) as FailureId,
+      sourceTaskId: String(row.source_task_id) as TaskId,
+      replacements: [...replacements].map(([supersededTaskId, replacementTaskIds]) =>
+        ({ supersededTaskId: supersededTaskId as TaskId, replacementTaskIds })),
+      reason: String(row.reason), actor: String(row.actor), authorizedAt: String(row.authorized_at),
+      eventId: String(row.event_id) as ReplanningDecision['eventId'] };
+    assertIdentifier(value.id, 'persisted replanning decision id');
+    validateTimestamp(value.authorizedAt, 'persisted replanning authorization timestamp');
+    if (!value.reason.trim() || !value.actor.trim() || value.replacements.length === 0 ||
+        value.replacements.some((mapping) => mapping.replacementTaskIds.length === 0)) {
+      throw new Error(`Corrupt persisted Replanning Decision: ${value.id}`);
+    }
     return value;
   }
 

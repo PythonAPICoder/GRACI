@@ -821,8 +821,46 @@ const migration013: Migration = {
   },
 };
 
+const migration014: Migration = {
+  version: 14,
+  name: 'architecture_2_phase_1q_governed_replanning',
+  up(database) {
+    database.exec(`
+      CREATE TABLE replanning_decisions (
+        id TEXT PRIMARY KEY,
+        goal_id TEXT NOT NULL REFERENCES goals(id) ON DELETE RESTRICT,
+        source_graph_revision_id TEXT NOT NULL REFERENCES task_graph_revisions(id) ON DELETE RESTRICT,
+        replacement_graph_revision_id TEXT NOT NULL UNIQUE REFERENCES task_graph_revisions(id) ON DELETE RESTRICT,
+        diagnosis_id TEXT NOT NULL UNIQUE REFERENCES failure_diagnoses(id) ON DELETE RESTRICT,
+        failure_id TEXT NOT NULL REFERENCES failures(id) ON DELETE RESTRICT,
+        source_task_id TEXT NOT NULL REFERENCES tasks(id) ON DELETE RESTRICT,
+        reason TEXT NOT NULL CHECK (length(trim(reason)) > 0),
+        actor TEXT NOT NULL CHECK (length(trim(actor)) > 0), authorized_at TEXT NOT NULL,
+        event_id TEXT NOT NULL UNIQUE REFERENCES events(id) ON DELETE RESTRICT,
+        CHECK (source_graph_revision_id <> replacement_graph_revision_id)
+      ) STRICT;
+      CREATE TABLE replanning_replacements (
+        decision_id TEXT NOT NULL REFERENCES replanning_decisions(id) ON DELETE RESTRICT,
+        superseded_task_id TEXT NOT NULL REFERENCES tasks(id) ON DELETE RESTRICT,
+        replacement_task_id TEXT NOT NULL REFERENCES tasks(id) ON DELETE RESTRICT,
+        PRIMARY KEY (decision_id, superseded_task_id, replacement_task_id)
+      ) STRICT, WITHOUT ROWID;
+      CREATE INDEX idx_replanning_goal ON replanning_decisions(goal_id, authorized_at, id);
+      CREATE TRIGGER replanning_decisions_no_update BEFORE UPDATE ON replanning_decisions
+        BEGIN SELECT RAISE(ABORT, 'replanning decisions are immutable'); END;
+      CREATE TRIGGER replanning_decisions_no_delete BEFORE DELETE ON replanning_decisions
+        BEGIN SELECT RAISE(ABORT, 'replanning decisions are immutable'); END;
+      CREATE TRIGGER replanning_replacements_no_update BEFORE UPDATE ON replanning_replacements
+        BEGIN SELECT RAISE(ABORT, 'replanning replacements are immutable'); END;
+      CREATE TRIGGER replanning_replacements_no_delete BEFORE DELETE ON replanning_replacements
+        BEGIN SELECT RAISE(ABORT, 'replanning replacements are immutable'); END;
+    `);
+  },
+};
+
 export const migrations: readonly Migration[] = [migration001, migration002, migration003, migration004, migration005,
-  migration006, migration007, migration008, migration009, migration010, migration011, migration012, migration013];
+  migration006, migration007, migration008, migration009, migration010, migration011, migration012, migration013,
+  migration014];
 
 export function migrate(database: DatabaseSync): number {
   database.exec(`

@@ -96,6 +96,10 @@ export class MinimalOrchestrator {
     const executedTaskIds: TaskId[] = [];
     const revision = this.persistence.getTaskGraphRevision(graphRevisionId);
     if (!revision) throw new Error(`Unknown Task Graph Revision: ${graphRevisionId}`);
+    const goal = this.persistence.getGoal(revision.goalId)?.goal;
+    if (goal?.activeGraphRevisionId && goal.activeGraphRevisionId !== graphRevisionId) {
+      throw new Error(`Task Graph Revision is not authoritative: ${graphRevisionId}`);
+    }
     validateTaskGraph(revision, this.persistence.getTasks(graphRevisionId),
       this.persistence.getTaskDependencies(graphRevisionId));
     this.recoverInterruptedWork(graphRevisionId);

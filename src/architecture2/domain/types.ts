@@ -20,7 +20,7 @@ import type {
   AlternativeRecoveryDecisionId,
   ReconciliationDecisionId,
   CircuitId, CircuitTransitionId, CircuitEvidenceId, CircuitProbeId,
-  InputRevisionId,
+  InputRevisionId, ReplanningDecisionId,
 } from './ids.js';
 
 export type IsoTimestamp = string;
@@ -119,6 +119,26 @@ export interface TaskDependency {
   condition: 'success' | 'completion' | 'predicate';
   predicate?: JsonObject;
   createdAt: IsoTimestamp;
+}
+
+export interface ReplanningReplacement {
+  supersededTaskId: TaskId;
+  replacementTaskIds: readonly TaskId[];
+}
+
+export interface ReplanningDecision {
+  id: ReplanningDecisionId;
+  goalId: GoalId;
+  sourceGraphRevisionId: TaskGraphRevisionId;
+  replacementGraphRevisionId: TaskGraphRevisionId;
+  diagnosisId: FailureDiagnosisId;
+  failureId: FailureId;
+  sourceTaskId: TaskId;
+  replacements: readonly ReplanningReplacement[];
+  reason: string;
+  actor: string;
+  authorizedAt: IsoTimestamp;
+  eventId: EventId;
 }
 
 export type AttemptStatus = 'created' | 'running' | 'succeeded' | 'failed' | 'cancelled' | 'indeterminate';

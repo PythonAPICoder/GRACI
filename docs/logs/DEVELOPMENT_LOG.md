@@ -1,5 +1,11 @@
 # G.R.A.C.I. Phase 1 — Development Log
 
+## Architecture 2 Phase 1Q - Governed Replanning Foundation - August 14, 2026
+
+- Added the caller-invoked replanning workflow, precise trusted diagnosis trigger, immutable decision/mapping records, schema 14, active-revision Orchestrator guard, runtime inspection, and focused tests.
+- Replanning uses the existing validator and scheduler, preserves historical evidence, supersedes only safe unfinished Tasks, and creates no Attempt or automatic execution.
+- Final verification passed: 2/2 focused replanning tests, 11/11 Phase 1P/1Q migration tests, 219/219 full tests, TypeScript validation, production build, runtime/import, schema-14 reopen, Electron startup, and diff hygiene.
+
 **Date:** August 7, 2026
 **Agent:** Implementation Engineer (Autonomous)
 **Phase:** Phase 1 — Core Runtime

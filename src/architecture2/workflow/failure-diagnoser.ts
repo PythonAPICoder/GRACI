@@ -127,6 +127,9 @@ export function createFailureDiagnosis(command: FailureDiagnosisCommand): Failur
     } else if (failure.category === 'invalid_input_or_precondition') {
       disposition = 'input_revision_required';
       diagnosticReason = 'input_or_precondition_invalid';
+    } else if (failure.category === 'execution_defect' && failure.code === 'TASK_GRAPH_STRUCTURE_INVALID') {
+      disposition = 'replanning_recommended';
+      diagnosticReason = 'task_graph_structure_invalid';
     } else if (failure.category === 'unknown') {
       disposition = 'research_recommended';
       diagnosticReason = 'cause_unknown_with_valid_evidence';
