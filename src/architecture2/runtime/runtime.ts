@@ -4,6 +4,8 @@ import type { TaskExecutionProvider } from '../execution/index.js';
 import { assessLegacyState, importLegacyState, type LegacyImportOptions } from '../legacy/index.js';
 import { SqliteArchitecture2Persistence } from '../persistence/index.js';
 import type { TaskVerifier } from '../verification/index.js';
+import { reconcileExternalOutcome, type ReconciliationCommand,
+  type ReconciliationProvider } from '../reconciliation/index.js';
 import { diagnosePersistedFailure, inspectQueue, MinimalOrchestrator, recoverWithAlternative,
   type AlternativeRecoveryCommand, type OrchestratorOptions } from '../workflow/index.js';
 
@@ -17,10 +19,12 @@ export interface Architecture2RuntimeConfiguration {
 export class Architecture2Runtime implements Disposable {
   readonly persistence: SqliteArchitecture2Persistence;
   readonly orchestrator: MinimalOrchestrator;
+  private readonly verifier: TaskVerifier;
 
   constructor(configuration: Architecture2RuntimeConfiguration) {
     this.persistence = new SqliteArchitecture2Persistence({ databasePath: configuration.databasePath });
     this.persistence.initialize();
+    this.verifier = configuration.verifier;
     this.orchestrator = new MinimalOrchestrator(this.persistence,
       configuration.executionProvider, configuration.verifier, configuration.orchestrator);
   }
@@ -49,6 +53,10 @@ export class Architecture2Runtime implements Disposable {
 
   recoverAlternative(command: AlternativeRecoveryCommand) {
     return recoverWithAlternative(this.persistence, command);
+  }
+
+  reconcile(provider: ReconciliationProvider, command: ReconciliationCommand) {
+    return reconcileExternalOutcome(this.persistence, this.verifier, provider, command);
   }
 
   assessLegacy(sourceReference: string) {

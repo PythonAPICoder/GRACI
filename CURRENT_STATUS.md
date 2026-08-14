@@ -2,9 +2,9 @@
 
 > **Living document:** Update this file whenever an Architecture 2 phase changes implemented behavior, verification evidence, runtime authority, major limitations, or the recommended next phase. Governance under `docs/governance/` remains authoritative when this summary differs from an approved specification.
 
-**Implementation working tree based on accepted Phase 1L repository HEAD:** `204f937b0a154b3200950f2a54372187cd0bdbdc`
+**Implementation working tree based on accepted Phase 1M repository HEAD:** `4db48d164b240451032f2167f654a8bccf18262e`
 
-**Implemented and verified through:** Architecture 2 Phase 1M, Bounded Alternative Recovery (`ADDENDUM_018_ARCHITECTURE_2_PHASE_1M.md`)
+**Implemented and verified through:** Architecture 2 Phase 1N, External Outcome Reconciliation (`ADDENDUM_019_ARCHITECTURE_2_PHASE_1N.md`)
 
 ## Product Direction
 
@@ -41,8 +41,9 @@ Implemented Architecture 2 work through Phase 1L includes:
 - **Phase 1K:** bounded concurrent execution, deterministic admission, resource deferral, atomic workflow scheduling plus lease acquisition, independent supervision, and single-flight Orchestrator ownership.
 - **Phase 1L:** immutable deterministic failure diagnoses, separately represented outcome certainty and retryability, one bounded recovery disposition, stable diagnosis identity, factual changed-condition evidence, and restart-safe inspection.
 - **Phase 1M:** caller-invoked, single-use alternative-offering and alternative-Node recovery with failed-binding exclusion, durable decisions, changed-condition evidence, and normal Attempt, lease, execution, diagnosis, and Verification paths.
+- **Phase 1N:** caller-invoked provider-neutral reconciliation of exact indeterminate external outcomes, with trusted conclusions, immutable evidence, Verification-only success, and gated single-use fresh-Attempt authority.
 
-The precise governed boundaries are in `docs/governance/ADDENDUM_006_ARCHITECTURE_2_PHASE_1A.md` through `ADDENDUM_017_ARCHITECTURE_2_PHASE_1L.md`.
+The precise governed boundaries are in `docs/governance/ADDENDUM_006_ARCHITECTURE_2_PHASE_1A.md` through `ADDENDUM_019_ARCHITECTURE_2_PHASE_1N.md`.
 
 ## What Works Today
 
@@ -74,6 +75,8 @@ Implemented and tested capabilities include:
 - Diagnose every new Orchestrator Failure through trusted deterministic rules and persist cause, outcome certainty, retryability, and exactly one disposition atomically with the Failure transition.
 - Inspect immutable diagnosis and changed-condition history deterministically across SQLite close/reopen.
 - Execute the two authorized alternative dispositions only after current-state, certainty, approval, Attempt-limit, provider, and resource gates pass.
+- Reconcile an exact current indeterminate Attempt as completed, not completed, or still indeterminate without treating provider evidence as lifecycle authority.
+- Persist `proven_not_completed` even when Attempt budget or approval gates correctly withhold fresh execution authority.
 
 These capabilities are available through code under `src/architecture2/` and the explicit `bootstrapArchitecture2` composition boundary. They are not automatically enabled by normal Electron startup.
 
@@ -97,7 +100,7 @@ Not currently implemented or not connected as live product behavior:
 - Distributed locking, multiple active Orchestrators, remote workers, or high availability.
 - Dynamic concurrency optimization, load balancing, priority displacement, or speculative execution.
 - Automatic node discovery, background health polling, or scheduler-triggered workstation evaluation/application.
-- Circuit breakers, governed research, reconciliation execution, or execution of Phase 1L dispositions other than the two bounded Phase 1M alternatives.
+- Circuit breakers, governed research, background reconciliation, or execution of other Phase 1L recovery dispositions.
 - Purpose-specific working, episodic, semantic, procedural, and preference memory.
 - Complete observability UI, cost reporting, traces, notifications, voice, productivity integrations, and broad autonomous actions.
 
@@ -123,14 +126,14 @@ The assembly checks passed: all automated checks were green, the software compil
 
 ### Technical Detail
 
-Latest recorded Phase 1M evidence in `docs/logs/TEST_LOG.md`:
+Latest recorded Phase 1N evidence in `docs/logs/TEST_LOG.md`:
 
 - TypeScript validation: PASS.
-- Full automated regression suite: **183/183 tests passed across 16 files**.
+- Full automated regression suite: **197/197 tests passed across 17 files**.
 - Production build: PASS.
-- Focused Phase 1M recovery, diagnosis, resolver, and scheduler suites: **35/35 tests passed across 4 files**.
-- Real file-backed SQLite schema-10 migration, close/reopen recovery reconstruction, immutability, atomicity, and single-use consumption verification: PASS.
-- Electron startup smoke: PASS for eight seconds with expected startup output and empty stderr.
+- Focused affected suite: **118/118 tests passed across 7 files**; dedicated Phase 1N reconciliation coverage: **14 tests passed**.
+- Build, TypeScript validation, runtime import, schema-11 migration, SQLite close/reopen reconstruction, and diff hygiene: PASS.
+- Electron startup smoke: PASS; application remained alive for more than eight seconds, emitted expected startup output, and stderr was empty.
 - Diff whitespace hygiene: PASS.
 - Architecture 1 remained the live Electron authority during smoke verification.
 
@@ -144,7 +147,7 @@ If the lights go out while a worker is using an outside tool, G.R.A.C.I. cannot 
 
 ### Technical Detail
 
-- Restart recovery intentionally marks unprovable scheduled/running work failed or indeterminate; provider reconciliation is not implemented.
+- Restart recovery intentionally marks unprovable scheduled/running work failed or indeterminate; reconciliation remains explicit and caller-invoked.
 - One authoritative process and one active `run()` call per Orchestrator are required.
 - SQLite is the authoritative local store; multi-process orchestration is outside the accepted design.
 - Concurrent slot accounting is process-local, while canonical Task/Attempt state remains durable.
@@ -164,7 +167,7 @@ The next assembly stages need to teach the robot how to diagnose failures intell
 
 Major roadmap areas from Addendum 005 and later deferred boundaries include:
 
-- Later Slice 4 recovery work: separately governed circuit breakers, alternatives, reconciliation execution, replanning, and bounded research.
+- Later Slice 4 recovery work: separately governed circuit breakers, replanning, and bounded research.
 - Slice 5 purpose-specific memory with provenance, correction, privacy, and retention.
 - Slice 6 product observability and expanded autonomy.
 - Goal intake, planning, replanning, policy enforcement, and approval UX.
@@ -176,11 +179,11 @@ Major roadmap areas from Addendum 005 and later deferred boundaries include:
 
 ### Simple Explanation
 
-Phase 1M is now implemented and verified. G.R.A.C.I. can carry out a bounded caller-invoked change of offering or Node after a proven unsuccessful Attempt, but it still stops for indeterminate outcomes and does not reconcile, replan, research, migrate live work, or run background failover.
+Phase 1N is now implemented and verified. G.R.A.C.I. can explicitly reconcile an exact indeterminate external outcome, but unknown still means stop and no background polling, replanning, research, live migration, or automatic failover occurs.
 
 ### Technical Detail
 
-Architecture 2 Phase 1M is the latest implemented and verified phase. Only `alternative_offering_recommended` and `alternative_node_recommended` are executable, through an explicit bounded recovery command. Reconciliation, input revision, replanning, research, cancellation, distributed execution, UI work, and Electron authority cutover remain deferred.
+Architecture 2 Phase 1N is the latest implemented and verified phase. Reconciliation is caller-invoked and provider-neutral: completed work enters Verification, not-completed work receives fresh execution authority only when budget and approval permit, and indeterminate work remains stopped. Input revision, replanning, research, cancellation, distributed execution, UI work, and Electron authority cutover remain deferred.
 
 ## Reconstruction Pointers
 

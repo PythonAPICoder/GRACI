@@ -538,3 +538,15 @@ Implementation remains paused pending Product Owner and Architect review.
 - Bound the exact next Attempt to the selected offering and optional Node/location; reused normal resource leases, execution, Failure diagnosis, and Verification.
 - Preserved total Attempt limits, pending approvals, indeterminate-outcome reconciliation, concurrent Task isolation, Architecture 1 Electron authority, and all deferred Phase 1M boundaries.
 - No dependency, package, configuration, UI, automatic installation, Planner, reconciliation, circuit-breaker, migration, cancellation, or distributed-worker change was introduced.
+
+---
+
+## Architecture 2 Phase 1N - External Outcome Reconciliation - August 14, 2026
+
+- Started from accepted Phase 1M HEAD `4db48d164b240451032f2167f654a8bccf18262e`.
+- Added a provider-neutral, caller-invoked reconciliation module and exposed it through explicit Architecture 2 runtime composition.
+- Added schema migration 11 for immutable reconciliation decisions/evidence and exact single-use Attempt or Verification consumption.
+- Added strict latest-authority and external-operation identity checks, idempotent observation ordering, conflict rejection, and close/reopen reconstruction.
+- `proven_completed` resumes only through normal Verification; `proven_not_completed` persists even when budget or approval withholds execution authority; `remains_indeterminate` preserves the stop invariant.
+- Preserved Phase 1M alternatives, total Attempt limits, approvals, provider/resource gates, leases, Task isolation, Architecture 1 Electron authority, and deferred boundaries.
+- No dependency, package, configuration, UI, background polling, Planner, research, cancellation, or distributed-worker change was introduced.

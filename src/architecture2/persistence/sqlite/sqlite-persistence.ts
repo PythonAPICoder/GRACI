@@ -27,6 +27,7 @@ import type {
   WorkstationAvailabilityPolicyApplicationRequest,
   FailureDiagnosis, FailureDiagnosisId, FailureId, ChangedConditionEvidence,
   AlternativeRecoveryDecision, AlternativeRecoveryDecisionId,
+  ReconciliationDecision, ReconciliationDecisionId,
 } from '../../domain/index.js';
 import { assertIdentifier } from '../../domain/index.js';
 import type {
@@ -780,11 +781,13 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
   }
 
   startAttempt(task: Task, expectedVersion: number, attempt: Attempt, events: readonly AuditEventInput[],
-    recoveryDecisionId?: AlternativeRecoveryDecisionId): void {
+    recoveryDecisionId?: AlternativeRecoveryDecisionId, reconciliationDecisionId?: ReconciliationDecisionId): void {
     this.transaction(() => {
       this.updateTaskRow(task, expectedVersion);
       this.insertAttempt(attempt);
       if (recoveryDecisionId) this.insertAlternativeRecoveryConsumption(recoveryDecisionId, attempt, attempt.startedAt ?? attempt.createdAt);
+      if (reconciliationDecisionId) this.insertReconciliationAttemptConsumption(reconciliationDecisionId, attempt,
+        attempt.startedAt ?? attempt.createdAt);
       this.insertEvents(events);
     });
   }
@@ -977,6 +980,71 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
     return row ? this.mapAlternativeRecoveryDecision(row) : undefined;
   }
 
+  recordReconciliationDecision(value: ReconciliationDecision, task: Task | undefined,
+    expectedTaskVersion: number | undefined, verification: Verification | undefined, failure: Failure | undefined,
+    diagnosis: FailureDiagnosis | undefined, events: readonly AuditEventInput[]): ReconciliationDecision {
+    const sameEvidence = this.db().prepare(`SELECT * FROM reconciliation_decisions WHERE attempt_id = ? AND failure_id = ?
+      AND diagnosis_id = ? AND provider_id = ? AND provider_version = ? AND evidence_fingerprint = ?`)
+      .get(value.attemptId, value.failureId, value.diagnosisId, value.providerId, value.providerVersion,
+        value.evidenceFingerprint) as Row | undefined;
+    if (sameEvidence) {
+      const existing = this.mapReconciliationDecision(sameEvidence);
+      if (existing.conclusion !== value.conclusion || existing.operationId !== value.operationId) {
+        throw new Error(`Reconciliation authority conflict: ${value.attemptId}`);
+      }
+      return existing;
+    }
+    const conclusive = this.db().prepare(`SELECT * FROM reconciliation_decisions WHERE attempt_id = ? AND failure_id = ?
+      AND diagnosis_id = ? AND conclusion <> 'remains_indeterminate'`).get(value.attemptId, value.failureId,
+        value.diagnosisId) as Row | undefined;
+    if (conclusive) throw new Error(`Reconciliation authority already concluded: ${value.attemptId}`);
+    if (events.length === 0 || events[0]?.id !== value.eventId) throw new Error('Reconciliation decision Event mismatch');
+    const hasTaskUpdate = Boolean(task && expectedTaskVersion !== undefined);
+    if ((value.conclusion === 'proven_not_completed' && Boolean(value.nextAttemptNumber) !== hasTaskUpdate) ||
+        (value.conclusion === 'proven_completed' && (!hasTaskUpdate || !verification)) ||
+        (value.conclusion === 'remains_indeterminate' && (hasTaskUpdate || verification))) {
+      throw new Error('Reconciliation lifecycle result does not match its conclusion');
+    }
+    return this.transaction(() => {
+      this.insertEvents(events);
+      if (verification) this.insertVerification(verification);
+      if (failure) this.insertFailure(failure);
+      this.validateFailureDiagnosisPair(failure, diagnosis);
+      if (diagnosis) this.insertFailureDiagnosis(diagnosis);
+      this.db().prepare(`INSERT INTO reconciliation_decisions
+        (id, task_id, attempt_id, failure_id, diagnosis_id, provider_id, provider_version, operation_id,
+         evidence_json, evidence_fingerprint, conclusion, reason, observation_number, next_attempt_number,
+         verification_id, actor, decided_at, event_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+        .run(value.id, value.taskId, value.attemptId, value.failureId, value.diagnosisId, value.providerId,
+          value.providerVersion, value.operationId, json(value.evidence), value.evidenceFingerprint, value.conclusion,
+          value.reason, value.observationNumber, value.nextAttemptNumber ?? null, value.verificationId ?? null,
+          value.actor, value.decidedAt, value.eventId);
+      if (verification) this.db().prepare(`INSERT INTO reconciliation_verification_consumptions
+        (decision_id, verification_id, consumed_at) VALUES (?, ?, ?)`).run(value.id, verification.id, value.decidedAt);
+      if (task && expectedTaskVersion !== undefined) this.updateTaskRow(task, expectedTaskVersion);
+      return value;
+    });
+  }
+
+  getReconciliationDecision(id: ReconciliationDecisionId): ReconciliationDecision | undefined {
+    const row = this.db().prepare('SELECT * FROM reconciliation_decisions WHERE id = ?').get(id) as Row | undefined;
+    return row ? this.mapReconciliationDecision(row) : undefined;
+  }
+
+  getReconciliationDecisions(diagnosisId: FailureDiagnosisId): ReconciliationDecision[] {
+    return (this.db().prepare(`SELECT * FROM reconciliation_decisions WHERE diagnosis_id = ?
+      ORDER BY observation_number, id`).all(diagnosisId) as Row[]).map((row) => this.mapReconciliationDecision(row));
+  }
+
+  getPendingReconciliation(taskId: TaskId): ReconciliationDecision | undefined {
+    const row = this.db().prepare(`SELECT d.* FROM reconciliation_decisions d
+      LEFT JOIN reconciliation_attempt_consumptions c ON c.decision_id = d.id
+      WHERE d.task_id = ? AND d.conclusion = 'proven_not_completed' AND d.next_attempt_number IS NOT NULL
+        AND c.decision_id IS NULL
+      ORDER BY d.observation_number DESC, d.id DESC LIMIT 1`).get(taskId) as Row | undefined;
+    return row ? this.mapReconciliationDecision(row) : undefined;
+  }
+
   private insertAlternativeRecoveryConsumption(decisionId: AlternativeRecoveryDecisionId, attempt: Attempt, consumedAt: string): void {
       const decision = this.db().prepare(`SELECT * FROM alternative_recovery_decisions WHERE id = ? AND disposition = 'authorized'`)
         .get(decisionId) as Row | undefined;
@@ -987,6 +1055,17 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
       }
       this.db().prepare(`INSERT INTO alternative_recovery_consumptions (decision_id, attempt_id, consumed_at) VALUES (?, ?, ?)`)
         .run(decisionId, attempt.id, consumedAt);
+  }
+
+  private insertReconciliationAttemptConsumption(decisionId: ReconciliationDecisionId, attempt: Attempt, consumedAt: string): void {
+    const decision = this.db().prepare(`SELECT * FROM reconciliation_decisions WHERE id = ?
+      AND conclusion = 'proven_not_completed'`).get(decisionId) as Row | undefined;
+    if (!decision || String(decision.task_id) !== attempt.taskId ||
+        Number(decision.next_attempt_number) !== attempt.attemptNumber) {
+      throw new Error('Attempt does not match reconciliation authorization');
+    }
+    this.db().prepare(`INSERT INTO reconciliation_attempt_consumptions (decision_id, attempt_id, consumed_at)
+      VALUES (?, ?, ?)`).run(decisionId, attempt.id, consumedAt);
   }
 
   createApproval(value: Approval, event: AuditEventInput): void {
@@ -1374,6 +1453,40 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
       throw new Error(`Corrupt persisted Alternative Recovery Decision: ${value.id}`);
     }
     return value;
+  }
+
+  private mapReconciliationDecision(row: Row): ReconciliationDecision {
+    const id = String(row.id) as ReconciliationDecision['id'];
+    try {
+      const value: ReconciliationDecision = { id, taskId: String(row.task_id) as TaskId,
+        attemptId: String(row.attempt_id) as ReconciliationDecision['attemptId'],
+        failureId: String(row.failure_id) as FailureId, diagnosisId: String(row.diagnosis_id) as FailureDiagnosisId,
+        providerId: String(row.provider_id), providerVersion: Number(row.provider_version),
+        operationId: String(row.operation_id), evidence: parseObject(row.evidence_json),
+        evidenceFingerprint: String(row.evidence_fingerprint),
+        conclusion: String(row.conclusion) as ReconciliationDecision['conclusion'], reason: String(row.reason),
+        observationNumber: Number(row.observation_number),
+        nextAttemptNumber: row.next_attempt_number === null ? undefined : Number(row.next_attempt_number),
+        verificationId: optionalString(row.verification_id) as ReconciliationDecision['verificationId'],
+        actor: String(row.actor), decidedAt: this.validatedTimestamp(row.decided_at, 'reconciliation timestamp'),
+        eventId: String(row.event_id) as ReconciliationDecision['eventId'] };
+      if (!value.providerId.trim() || value.providerVersion < 1 || !value.operationId.trim() || !value.reason.trim() ||
+          !/^[a-f0-9]{64}$/.test(value.evidenceFingerprint) || value.observationNumber < 1 ||
+          !['proven_completed', 'proven_not_completed', 'remains_indeterminate'].includes(value.conclusion) ||
+          (value.conclusion !== 'proven_not_completed' && value.nextAttemptNumber !== undefined)) throw new Error('invalid fields');
+      const source = this.db().prepare(`SELECT a.task_id, a.status, f.task_id failure_task_id, f.attempt_id failure_attempt_id,
+        d.task_id diagnosis_task_id, d.failure_id diagnosis_failure_id, d.attempt_id diagnosis_attempt_id
+        FROM attempts a JOIN failures f ON f.id = ? JOIN failure_diagnoses d ON d.id = ? WHERE a.id = ?`)
+        .get(value.failureId, value.diagnosisId, value.attemptId) as Row | undefined;
+      if (!source || String(source.task_id) !== value.taskId || String(source.failure_task_id) !== value.taskId ||
+          String(source.failure_attempt_id) !== value.attemptId || String(source.diagnosis_task_id) !== value.taskId ||
+          String(source.diagnosis_failure_id) !== value.failureId || String(source.diagnosis_attempt_id) !== value.attemptId) {
+        throw new Error('source attribution mismatch');
+      }
+      return value;
+    } catch (error) {
+      throw new Error(`Corrupt persisted Reconciliation Decision: ${id}`, { cause: error });
+    }
   }
 
   private insertApproval(value: Approval): void {

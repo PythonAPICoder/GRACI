@@ -1,5 +1,14 @@
 # G.R.A.C.I. Phase 1 — Autonomous Recovery and Continuation
 
+## 2026-08-14 - Phase 1N Reconciliation Corrections
+
+- The initial `proven_not_completed` schema constraint incorrectly required retry authorization even when the existing Attempt budget or approval gate withheld it.
+- The constraint was corrected so the trusted conclusion and evidence persist without creating execution authority; a fresh Attempt remains available only when all existing gates permit it.
+- The initial Electron smoke wrapper was interrupted by the harness, not the application. Electron remained alive and startup logs proved normal startup with empty stderr; the process tree was then cleaned.
+- Final focused result was 118/118 across 7 files, including 14 Phase 1N tests. Full regression passed 197/197 across 17 files; build, validation, runtime import, reopen, and diff checks passed.
+
+---
+
 ## 2026-08-14 — Phase 1M Authority Ordering Correction
 
 - Initial Phase 1M recovery authorization inferred the latest diagnosis from deterministic history ordering that could use hashed diagnosis IDs as a tie-break across equal timestamps.

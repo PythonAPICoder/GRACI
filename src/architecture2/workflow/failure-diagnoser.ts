@@ -84,8 +84,10 @@ export function createFailureDiagnosis(command: FailureDiagnosisCommand): Failur
     (failure.classification !== 'approval_required' || failure.category === 'policy_or_approval') &&
     (failure.classification !== 'external_outcome_indeterminate' || failure.category === 'external_outcome_indeterminate') &&
     (failure.category !== 'external_outcome_indeterminate' || failure.classification === 'external_outcome_indeterminate');
+  const reconciledCompletion = verification?.evidence.reconciliationProvenCompleted === true;
   const attemptStatusMatches = !attempt ||
-    (failure.classification === 'verification_failed' ? attempt.status === 'succeeded' :
+    (failure.classification === 'verification_failed'
+      ? attempt.status === 'succeeded' || (attempt.status === 'indeterminate' && reconciledCompletion) :
       failure.classification === 'external_outcome_indeterminate' ? attempt.status === 'indeterminate' :
         attempt.status === 'failed');
   const structurallyValid = taskMatches && attemptMatches && verificationMatches && approvalMatches &&
@@ -102,7 +104,8 @@ export function createFailureDiagnosis(command: FailureDiagnosisCommand): Failur
     disposition = 'terminal_failure';
     diagnosticReason = 'authoritative_evidence_missing_or_malformed';
   } else if (failure.category === 'external_outcome_indeterminate' ||
-      failure.classification === 'external_outcome_indeterminate' || attempt?.status === 'indeterminate') {
+      failure.classification === 'external_outcome_indeterminate' ||
+      (attempt?.status === 'indeterminate' && !reconciledCompletion)) {
     outcomeCertainty = 'indeterminate_external_outcome';
     disposition = 'reconciliation_required';
     diagnosticReason = 'external_outcome_cannot_be_proven';
@@ -138,6 +141,7 @@ export function createFailureDiagnosis(command: FailureDiagnosisCommand): Failur
     classification: failure.classification, failureRetryable: failure.retryable, code: failure.code,
     retryPolicy: task.retryPolicy, attemptsUsed, attemptStatus: attempt?.status ?? null,
     verificationId: verification?.id ?? null, verificationVerdict: verification?.verdict ?? null,
+    reconciliationProvenCompleted: reconciledCompletion,
     approvalId: approval?.id ?? null, approvalDecision: approval?.decision ?? null,
     providerOfferingId: attempt?.providerOfferingId ?? null, computeNodeId: attempt?.computeNodeId ?? null,
     offeringLocationId: offeringLocationId ?? null, policyId, policyVersion,

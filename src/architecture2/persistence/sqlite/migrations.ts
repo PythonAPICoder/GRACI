@@ -650,8 +650,67 @@ const migration010: Migration = {
   },
 };
 
+const migration011: Migration = {
+  version: 11,
+  name: 'architecture_2_phase_1n_external_outcome_reconciliation',
+  up(database) {
+    database.exec(`
+      CREATE TABLE reconciliation_decisions (
+        id TEXT PRIMARY KEY,
+        task_id TEXT NOT NULL REFERENCES tasks(id) ON DELETE RESTRICT,
+        attempt_id TEXT NOT NULL REFERENCES attempts(id) ON DELETE RESTRICT,
+        failure_id TEXT NOT NULL REFERENCES failures(id) ON DELETE RESTRICT,
+        diagnosis_id TEXT NOT NULL REFERENCES failure_diagnoses(id) ON DELETE RESTRICT,
+        provider_id TEXT NOT NULL CHECK (length(trim(provider_id)) > 0),
+        provider_version INTEGER NOT NULL CHECK (provider_version >= 1),
+        operation_id TEXT NOT NULL CHECK (length(trim(operation_id)) BETWEEN 1 AND 512),
+        evidence_json TEXT NOT NULL CHECK (json_valid(evidence_json) AND json_type(evidence_json) = 'object'),
+        evidence_fingerprint TEXT NOT NULL CHECK (length(evidence_fingerprint) = 64),
+        conclusion TEXT NOT NULL CHECK (conclusion IN ('proven_completed','proven_not_completed','remains_indeterminate')),
+        reason TEXT NOT NULL CHECK (length(trim(reason)) BETWEEN 1 AND 512),
+        observation_number INTEGER NOT NULL CHECK (observation_number >= 1),
+        next_attempt_number INTEGER CHECK (next_attempt_number >= 1),
+        verification_id TEXT REFERENCES verifications(id) ON DELETE RESTRICT,
+        actor TEXT NOT NULL CHECK (length(trim(actor)) > 0),
+        decided_at TEXT NOT NULL,
+        event_id TEXT NOT NULL UNIQUE REFERENCES events(id) ON DELETE RESTRICT,
+        UNIQUE (attempt_id, failure_id, diagnosis_id, observation_number),
+        UNIQUE (attempt_id, failure_id, diagnosis_id, provider_id, provider_version, evidence_fingerprint),
+        CHECK (conclusion = 'proven_not_completed' OR next_attempt_number IS NULL),
+        CHECK (verification_id IS NULL OR conclusion = 'proven_completed')
+      ) STRICT;
+      CREATE UNIQUE INDEX idx_reconciliation_conclusive_authority
+        ON reconciliation_decisions(attempt_id, failure_id, diagnosis_id)
+        WHERE conclusion <> 'remains_indeterminate';
+      CREATE TABLE reconciliation_attempt_consumptions (
+        decision_id TEXT PRIMARY KEY REFERENCES reconciliation_decisions(id) ON DELETE RESTRICT,
+        attempt_id TEXT NOT NULL UNIQUE REFERENCES attempts(id) ON DELETE RESTRICT,
+        consumed_at TEXT NOT NULL
+      ) STRICT, WITHOUT ROWID;
+      CREATE TABLE reconciliation_verification_consumptions (
+        decision_id TEXT PRIMARY KEY REFERENCES reconciliation_decisions(id) ON DELETE RESTRICT,
+        verification_id TEXT NOT NULL UNIQUE REFERENCES verifications(id) ON DELETE RESTRICT,
+        consumed_at TEXT NOT NULL
+      ) STRICT, WITHOUT ROWID;
+      CREATE INDEX idx_reconciliation_source ON reconciliation_decisions(task_id, attempt_id, observation_number);
+      CREATE TRIGGER reconciliation_decisions_no_update BEFORE UPDATE ON reconciliation_decisions
+        BEGIN SELECT RAISE(ABORT, 'reconciliation decisions are immutable'); END;
+      CREATE TRIGGER reconciliation_decisions_no_delete BEFORE DELETE ON reconciliation_decisions
+        BEGIN SELECT RAISE(ABORT, 'reconciliation decisions are immutable'); END;
+      CREATE TRIGGER reconciliation_attempt_consumptions_no_update BEFORE UPDATE ON reconciliation_attempt_consumptions
+        BEGIN SELECT RAISE(ABORT, 'reconciliation Attempt consumption is immutable'); END;
+      CREATE TRIGGER reconciliation_attempt_consumptions_no_delete BEFORE DELETE ON reconciliation_attempt_consumptions
+        BEGIN SELECT RAISE(ABORT, 'reconciliation Attempt consumption is immutable'); END;
+      CREATE TRIGGER reconciliation_verification_consumptions_no_update BEFORE UPDATE ON reconciliation_verification_consumptions
+        BEGIN SELECT RAISE(ABORT, 'reconciliation Verification consumption is immutable'); END;
+      CREATE TRIGGER reconciliation_verification_consumptions_no_delete BEFORE DELETE ON reconciliation_verification_consumptions
+        BEGIN SELECT RAISE(ABORT, 'reconciliation Verification consumption is immutable'); END;
+    `);
+  },
+};
+
 export const migrations: readonly Migration[] = [migration001, migration002, migration003, migration004, migration005,
-  migration006, migration007, migration008, migration009, migration010];
+  migration006, migration007, migration008, migration009, migration010, migration011];
 
 export function migrate(database: DatabaseSync): number {
   database.exec(`

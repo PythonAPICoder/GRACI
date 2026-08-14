@@ -39,6 +39,31 @@ Use this log for decisions that matter but do not yet justify a dedicated ADR sy
 
 ---
 
+### DEC-0015 - Phase 1N Provider-Neutral External Outcome Reconciliation
+
+**Date**
+
+- 2026-08-14
+
+**Decision**
+
+- Reconcile only the exact current indeterminate Attempt through a caller-invoked provider-neutral evidence boundary.
+- Keep lifecycle authority in trusted core and permit only `proven_completed`, `proven_not_completed`, or `remains_indeterminate`.
+- Route proven completion through normal Verification without a replacement Attempt.
+- Persist proven non-completion regardless of retry authority, granting single-use next-Attempt authority only when existing Attempt and approval gates permit it.
+- Keep remaining uncertainty stopped and prohibit conflicting conclusive authority.
+
+**Rationale**
+
+- External evidence can resolve uncertainty without allowing providers to declare success or bypass existing retry, approval, resource, and Verification controls.
+
+**Consequences**
+
+- Schema version 11 stores immutable reconciliation evidence, decisions, and exact Attempt or Verification consumption relationships.
+- Reconciliation remains explicit; no startup, background, or scheduler polling is introduced.
+
+---
+
 ### DEC-0014 — Phase 1M Single-Use Alternative Recovery
 
 **Date**

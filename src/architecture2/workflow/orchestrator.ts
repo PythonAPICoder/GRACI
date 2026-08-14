@@ -274,7 +274,11 @@ export class MinimalOrchestrator {
 
   private startTask(task: Task): Promise<void> | undefined {
     const recovery = this.persistence.getPendingAlternativeRecovery(task.id);
-    const selectedOfferingId = recovery?.selectedOfferingId ?? this.resolveOffering?.(task);
+    const reconciliation = this.persistence.getPendingReconciliation(task.id);
+    const sourceAttempt = reconciliation ? this.persistence.getAttempts(task.id)
+      .find((attempt) => attempt.id === reconciliation.attemptId) : undefined;
+    const selectedOfferingId = recovery?.selectedOfferingId ??
+      (sourceAttempt?.providerOfferingId as ProviderOfferingId | undefined) ?? this.resolveOffering?.(task);
     const resource = selectedOfferingId && this.acquireResource ? this.acquireResource(task, selectedOfferingId, recovery) : undefined;
     const lease = resource?.lease;
     if (this.acquireResource && selectedOfferingId && !resource) return undefined;
@@ -307,6 +311,7 @@ export class MinimalOrchestrator {
       providerOfferingId: selectedOfferingId ?? this.provider.providerId,
       computeNodeId: lease?.nodeId,
       inputSnapshot: { objective: task.objective, inputs: task.inputs, requiredCapabilities: task.requiredCapabilities },
+      idempotencyKey: `${task.id}:${attemptNumber}`,
       startedAt,
       createdAt: startedAt,
     };
@@ -314,7 +319,7 @@ export class MinimalOrchestrator {
     this.persistence.startAttempt(running, scheduled.version, attempt, [
       this.event(task.id, 'attempt.started', { attemptId: attempt.id, attemptNumber }, startedAt),
       this.event(task.id, 'task.transitioned', { from: 'scheduled', to: 'running' }, startedAt),
-    ], recovery?.id);
+    ], recovery?.id, reconciliation?.id);
 
     const executionProvider = selectedOfferingId && this.resolveExecutionProvider
       ? this.resolveExecutionProvider(selectedOfferingId) : this.provider;

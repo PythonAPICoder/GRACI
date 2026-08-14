@@ -18,6 +18,7 @@ import type {
   FailureDiagnosisId,
   ChangedConditionEvidenceId,
   AlternativeRecoveryDecisionId,
+  ReconciliationDecisionId,
 } from './ids.js';
 
 export type IsoTimestamp = string;
@@ -243,6 +244,29 @@ export interface AlternativeRecoveryDecision {
   providerResolutionId?: ResolutionDecisionId;
   resourceSchedulingDecisionId?: ResourceSchedulingDecisionId;
   changedConditionEvidenceId?: ChangedConditionEvidenceId;
+  actor: string;
+  decidedAt: IsoTimestamp;
+  eventId: EventId;
+}
+
+export type ReconciliationConclusion = 'proven_completed' | 'proven_not_completed' | 'remains_indeterminate';
+
+export interface ReconciliationDecision {
+  id: ReconciliationDecisionId;
+  taskId: TaskId;
+  attemptId: AttemptId;
+  failureId: FailureId;
+  diagnosisId: FailureDiagnosisId;
+  providerId: string;
+  providerVersion: number;
+  operationId: string;
+  evidence: JsonObject;
+  evidenceFingerprint: string;
+  conclusion: ReconciliationConclusion;
+  reason: string;
+  observationNumber: number;
+  nextAttemptNumber?: number;
+  verificationId?: VerificationId;
   actor: string;
   decidedAt: IsoTimestamp;
   eventId: EventId;

@@ -21,6 +21,7 @@ import type {
   WorkstationAvailabilityPolicyApplicationRequest,
   FailureDiagnosis, FailureDiagnosisId, FailureId, ChangedConditionEvidence,
   AlternativeRecoveryDecision, AlternativeRecoveryDecisionId,
+  ReconciliationDecision, ReconciliationDecisionId,
 } from '../domain/index.js';
 
 export interface LegacyImportOperation {
@@ -116,7 +117,7 @@ export interface Architecture2Persistence extends Disposable {
   createAttempt(attempt: Attempt, event: AuditEventInput): void;
   getAttempts(taskId: TaskId): Attempt[];
   startAttempt(task: Task, expectedVersion: number, attempt: Attempt, events: readonly AuditEventInput[],
-    recoveryDecisionId?: AlternativeRecoveryDecisionId): void;
+    recoveryDecisionId?: AlternativeRecoveryDecisionId, reconciliationDecisionId?: ReconciliationDecisionId): void;
   recordAttemptOutcome(
     task: Task,
     expectedVersion: number,
@@ -150,6 +151,12 @@ export interface Architecture2Persistence extends Disposable {
     task: Task | undefined, expectedTaskVersion: number | undefined, events: readonly AuditEventInput[]): AlternativeRecoveryDecision;
   getAlternativeRecoveryDecision(diagnosisId: FailureDiagnosisId): AlternativeRecoveryDecision | undefined;
   getPendingAlternativeRecovery(taskId: TaskId): AlternativeRecoveryDecision | undefined;
+  recordReconciliationDecision(value: ReconciliationDecision, task: Task | undefined,
+    expectedTaskVersion: number | undefined, verification: Verification | undefined, failure: Failure | undefined,
+    diagnosis: FailureDiagnosis | undefined, events: readonly AuditEventInput[]): ReconciliationDecision;
+  getReconciliationDecision(id: ReconciliationDecisionId): ReconciliationDecision | undefined;
+  getReconciliationDecisions(diagnosisId: FailureDiagnosisId): ReconciliationDecision[];
+  getPendingReconciliation(taskId: TaskId): ReconciliationDecision | undefined;
   createApproval(approval: Approval, event: AuditEventInput): void;
   getApprovals(taskId: TaskId): Approval[];
   recordApprovalPause(task: Task, expectedVersion: number, attempt: Attempt, failure: Failure,

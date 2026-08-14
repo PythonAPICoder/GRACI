@@ -2,9 +2,9 @@
 
 > **Living document:** Update this file whenever Architecture 2 module boundaries, lifecycle behavior, persistence authority, runtime composition, or intentionally deferred capabilities change. This is an implementation map, not immutable governance. The master specification and numbered addenda under `docs/governance/` remain authoritative.
 
-**Architecture represented:** Implemented and verified through Architecture 2 Phase 1M
+**Architecture represented:** Implemented and verified through Architecture 2 Phase 1N
 
-**Implementation working tree based on accepted Phase 1L repository HEAD:** `204f937b0a154b3200950f2a54372187cd0bdbdc`
+**Implementation working tree based on accepted Phase 1M repository HEAD:** `4db48d164b240451032f2167f654a8bccf18262e`
 
 ## System Shape
 
@@ -23,6 +23,7 @@ Architecture 2 is a TypeScript modular monolith under `src/architecture2/` with 
 - `verification/`: independent Task verification contract and deterministic verifier.
 - `providers/`: capability/provider resolution and Ollama Model Provider adapter.
 - `resources/`: Node inspection, deterministic resource scheduling, process snapshots, and workstation availability policy.
+- `reconciliation/`: provider-neutral external-outcome evidence and trusted reconciliation conclusions.
 - `legacy/`: read-only Architecture 1 state assessment and inert history import.
 - `runtime/`: explicit caller-configured Architecture 2 composition.
 
@@ -62,7 +63,7 @@ SQLite is G.R.A.C.I.'s notebook. The assistant does not rely on remembering what
 
 `SqliteArchitecture2Persistence` is the current authoritative store behind `Architecture2Persistence`. Callers supply the database path. The implementation uses built-in `node:sqlite`, foreign keys, strict tables, WAL mode, `synchronous = FULL`, a busy timeout, and `BEGIN IMMEDIATE` write transactions.
 
-Current schema version is 10. Phase 1M adds immutable alternative-recovery decisions and single-use Attempt-consumption history while retaining Phase 1L diagnosis and changed-condition evidence.
+Current schema version is 11. Phase 1N adds immutable reconciliation decisions and evidence plus single-use Attempt or Verification consumption relationships while retaining Phase 1M recovery history.
 
 Important invariants include:
 
@@ -76,6 +77,7 @@ Important invariants include:
 - Resource-aware workflow scheduling atomically writes the Task transition, scheduling decision, lease, and Events.
 - New Orchestrator Failures atomically write their diagnosis, disposition, Task transition, and Events.
 - Diagnosis and changed-condition records are append-only and survive close/reopen reconstruction.
+- Reconciliation history is immutable, source-attributed, idempotent, and reconstructed with its lifecycle and consumption relationships.
 
 ## Dependency Handling
 
@@ -163,7 +165,7 @@ Every new Orchestrator-created Failure is diagnosed by trusted deterministic cod
 
 Diagnosis identity is the deterministic SHA-256-derived identity of `(Failure ID, diagnosis policy ID, policy version)`. SQLite also enforces uniqueness on that tuple. An evidence fingerprint excludes operational timestamps and generated Event IDs; equivalent repeated diagnosis returns the existing record, while conflicting evidence is rejected as competing authority.
 
-Cause, outcome certainty, retryability, and disposition are independent fields. Missing or inconsistent required evidence produces `insufficient_or_malformed_evidence` with `terminal_failure`. `external_outcome_indeterminate` always produces `reconciliation_required`, cannot authorize replay, and remains terminal under current recovery behavior.
+Cause, outcome certainty, retryability, and disposition are independent fields. Missing or inconsistent required evidence produces `insufficient_or_malformed_evidence` with `terminal_failure`. `external_outcome_indeterminate` always produces `reconciliation_required` and cannot authorize replay without a conclusive trusted Phase 1N reconciliation.
 
 Inspection orders diagnosis history by durable Attempt number, then diagnosis time and ID. Changed-condition evidence stores only bounded factual references and never authorizes a recovery action by itself.
 
@@ -257,15 +259,21 @@ After the lights go out, G.R.A.C.I. checks its notebook instead of guessing. If 
 
 On each run, the Orchestrator reconstructs graph position from persisted Tasks, dependencies, Attempts, Verifications, Failures, and approvals. Terminal Tasks are not automatically re-executed. Planned and retry-pending eligibility is recomputed from durable evidence.
 
-Persisted `running` work must have a matching running Attempt. Without provider reconciliation, interrupted running Attempts become `indeterminate`, record non-retryable `external_outcome_indeterminate` Failures, and fail atomically. Interrupted `scheduled` Tasks also fail conservatively. Corrupt running state without an Attempt produces an explicit error.
+Persisted `running` work must have a matching running Attempt. Interrupted running Attempts become `indeterminate`, record non-retryable `external_outcome_indeterminate` Failures, and fail atomically. Interrupted `scheduled` Tasks also fail conservatively. Corrupt running state without an Attempt produces an explicit error.
 
-Phase 1L records `reconciliation_required` for this behavior across multiple running Tasks. Automatic replay, checkpoint resume, failover, migration, and external-effect reconciliation remain deferred.
+Phase 1L records `reconciliation_required` for this behavior. Automatic replay, checkpoint resume, failover, migration, and background reconciliation remain deferred.
 
 ### Bounded Alternatives
 
 Phase 1M allows a caller to execute only `alternative_offering_recommended` and `alternative_node_recommended` after a proven unsuccessful latest Attempt. The recovery service revalidates the exact latest Failure and Phase 1L diagnosis, total Attempt limit, pending approvals, and current provider/resource evidence. It explicitly excludes the failed offering, Node, and location as applicable.
 
 An immutable recovery decision and changed-condition evidence commit atomically before the Task returns to `ready`. The next Attempt consumes that authorization once, receives the next number, and must use the selected binding. Offering recovery resolves an offering-bound execution provider. Node recovery uses normal resource scheduling and lease acquisition. Both paths execute and verify normally; a failed alternative creates a normal Failure and Phase 1L diagnosis.
+
+### External Outcome Reconciliation
+
+Phase 1N allows a caller to reconcile the exact latest indeterminate Attempt through a caller-supplied provider-neutral evidence source. Trusted core revalidates Task, Attempt, Failure, diagnosis, operation identity, and current authority before selecting `proven_completed`, `proven_not_completed`, or `remains_indeterminate`.
+
+`proven_completed` creates no replacement Attempt and enters the normal Verification path; only a passing Verification succeeds the Task. `proven_not_completed` always persists the conclusion, but creates single-use next-Attempt authority only when the existing Attempt budget and approval gates permit it. `remains_indeterminate` keeps the Task stopped and may be followed only by explicitly ordered new reconciliation evidence; conclusive authority cannot be contradicted or replaced.
 
 ## Audit and Governance
 
@@ -313,11 +321,11 @@ Major deferred capabilities include:
 - Predicate dependency execution.
 - Generalized policy engine and standing approvals.
 - User cancellation, preemption, checkpointing, and forced interruption.
-- Interrupted-work failover, execution migration, and reconciliation.
+- Interrupted-work failover, execution migration, and background reconciliation.
 - Distributed locks, multiple Orchestrators, remote workers, and high availability.
 - Dynamic load balancing, dynamic concurrency, speculative execution, and priority displacement.
 - Automatic discovery, polling, monitoring, and scheduler-triggered workstation policy.
-- Circuit breakers, reconciliation execution, governed research, and recovery dispositions other than the two Phase 1M alternatives.
+- Circuit breakers, governed research, and recovery dispositions other than the Phase 1M alternatives and Phase 1N reconciliation.
 - Purpose-specific memory and retrieval.
 - Broad tool, agent, cloud, productivity, voice, media, notification, and UI integration.
 - Architecture 2 Electron authority cutover and production hardening.

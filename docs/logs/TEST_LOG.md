@@ -400,6 +400,25 @@ Record meaningful verification results. Do not duplicate raw automated-test outp
 - Architecture 1 remained the normal Electron startup authority.
 - Diff whitespace hygiene: PASS (`git diff --check`).
 
+### 2026-08-14 - Architecture 2 Phase 1N Implementation
+
+**Automated Verification**
+
+- TypeScript validation: PASS.
+- Dedicated Phase 1N reconciliation tests: PASS, 14 tests.
+- Focused affected suite: PASS, 118/118 across 7 files.
+- Full automated regression suite: PASS, 197/197 across 17 files.
+- Production build and diff hygiene: PASS.
+
+**Runtime and Durability Verification**
+
+- Schema-10 to schema-11 migration, immutable/idempotent decisions, conflict rejection, single-use consumption, and SQLite close/reopen reconstruction: PASS.
+- Proven-completed Verification flow, proven-not-completed gated fresh Attempt, and remains-indeterminate stop behavior: PASS.
+- Runtime-import verification: PASS.
+- Electron startup smoke: PASS; application remained alive for more than eight seconds with expected startup output and empty stderr.
+- The initial wrapper interruption was harness-only; application logs proved startup and the live application remained healthy. The process tree was cleaned after verification.
+- Architecture 1 remained the normal Electron startup authority.
+
 ---
 
 ### 2026-08-12 — Architecture 2 Phase 1B Workflow Kernel
