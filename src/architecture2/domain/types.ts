@@ -22,6 +22,7 @@ import type {
   CircuitId, CircuitTransitionId, CircuitEvidenceId, CircuitProbeId,
   InputRevisionId, ReplanningDecisionId, ResearchRequestId, ResearchEvidenceId, ResearchDecisionId,
   ResearchProviderExecutionId,
+  MemoryId,
 } from './ids.js';
 
 export type IsoTimestamp = string;
@@ -224,6 +225,31 @@ export interface ResearchProviderExecution {
   failureSummary?: string;
   startEventId: EventId;
   completionEventId?: EventId;
+}
+
+export type MemoryScope = 'goal' | 'reusable';
+export type MemoryTrustStatus = 'untrusted' | 'trusted' | 'disputed';
+
+export interface MemoryRecord {
+  id: MemoryId;
+  scope: MemoryScope;
+  goalId?: GoalId;
+  content: JsonObject;
+  sourceType: string;
+  sourceReference: string;
+  createdBy: string;
+  createdAt: IsoTimestamp;
+  trustStatus: MemoryTrustStatus;
+  validUntil?: IsoTimestamp;
+  reusablePermission?: string;
+  supersedesMemoryId?: MemoryId;
+  eventId: EventId;
+}
+
+export interface MemoryInspection {
+  memory: MemoryRecord;
+  supersededByMemoryId?: MemoryId;
+  history: readonly MemoryRecord[];
 }
 
 export type AttemptStatus = 'created' | 'running' | 'succeeded' | 'failed' | 'cancelled' | 'indeterminate';

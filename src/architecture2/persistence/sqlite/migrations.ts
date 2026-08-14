@@ -985,9 +985,42 @@ const migration017: Migration = {
   },
 };
 
+const migration018: Migration = {
+  version: 18,
+  name: 'architecture_2_phase_1u_durable_working_memory',
+  up(database) {
+    database.exec(`
+      CREATE TABLE memory_records (
+        id TEXT PRIMARY KEY,
+        scope TEXT NOT NULL CHECK (scope IN ('goal','reusable')),
+        goal_id TEXT REFERENCES goals(id) ON DELETE RESTRICT,
+        content_json TEXT NOT NULL,
+        source_type TEXT NOT NULL CHECK (length(trim(source_type)) BETWEEN 1 AND 128),
+        source_reference TEXT NOT NULL CHECK (length(trim(source_reference)) BETWEEN 1 AND 2000),
+        created_by TEXT NOT NULL CHECK (length(trim(created_by)) BETWEEN 1 AND 256),
+        created_at TEXT NOT NULL,
+        trust_status TEXT NOT NULL CHECK (trust_status IN ('untrusted','trusted','disputed')),
+        valid_until TEXT,
+        reusable_permission TEXT,
+        supersedes_memory_id TEXT UNIQUE REFERENCES memory_records(id) ON DELETE RESTRICT,
+        event_id TEXT NOT NULL UNIQUE REFERENCES events(id) ON DELETE RESTRICT,
+        CHECK ((scope='goal' AND goal_id IS NOT NULL AND reusable_permission IS NULL)
+          OR (scope='reusable' AND goal_id IS NULL AND length(trim(reusable_permission)) BETWEEN 1 AND 1000)),
+        CHECK (supersedes_memory_id IS NULL OR supersedes_memory_id <> id)
+      ) STRICT;
+      CREATE INDEX idx_memory_goal_retrieval ON memory_records(goal_id, created_at, id);
+      CREATE INDEX idx_memory_reusable_retrieval ON memory_records(scope, created_at, id);
+      CREATE TRIGGER memory_records_no_update BEFORE UPDATE ON memory_records
+        BEGIN SELECT RAISE(ABORT, 'memory records are immutable'); END;
+      CREATE TRIGGER memory_records_no_delete BEFORE DELETE ON memory_records
+        BEGIN SELECT RAISE(ABORT, 'memory records are immutable'); END;
+    `);
+  },
+};
+
 export const migrations: readonly Migration[] = [migration001, migration002, migration003, migration004, migration005,
   migration006, migration007, migration008, migration009, migration010, migration011, migration012, migration013,
-  migration014, migration015, migration016, migration017];
+  migration014, migration015, migration016, migration017, migration018];
 
 export function migrate(database: DatabaseSync): number {
   database.exec(`

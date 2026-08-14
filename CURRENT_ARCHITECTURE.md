@@ -2,9 +2,9 @@
 
 > **Living document:** Update this file whenever Architecture 2 module boundaries, lifecycle behavior, persistence authority, runtime composition, or intentionally deferred capabilities change. This is an implementation map, not immutable governance. The master specification and numbered addenda under `docs/governance/` remain authoritative.
 
-**Architecture represented:** Current Phase 1T governed research provider execution
+**Architecture represented:** Current Phase 1U durable working memory foundation
 
-**Implementation working tree starting basis:** clean main repository HEAD `1026f6d`
+**Implementation working tree starting basis:** clean main repository HEAD `afa956e`
 
 ## System Shape
 
@@ -18,7 +18,7 @@ Architecture 2 is a TypeScript modular monolith under `src/architecture2/` with 
 
 - `domain/`: canonical records and branded identifiers.
 - `persistence/`: provider-independent contract and SQLite implementation.
-- `workflow/`: state machine, dependency evaluation, graph validation, deterministic scheduling, orchestration, queue inspection, trusted deterministic failure diagnosis, bounded recovery, governed Task/graph revision, and governed research records.
+- `workflow/`: state machine, dependency evaluation, graph validation, deterministic scheduling, orchestration, queue inspection, trusted deterministic failure diagnosis, bounded recovery, governed Task/graph revision, governed research, and caller-invoked memory operations.
 - `execution/`: provider-neutral Task execution contract and deterministic test provider.
 - `verification/`: independent Task verification contract and deterministic verifier.
 - `providers/`: capability/provider resolution, versioned Model and Research Provider contracts, and Ollama Model Provider adapter.
@@ -63,7 +63,7 @@ SQLite is G.R.A.C.I.'s notebook. The assistant does not rely on remembering what
 
 `SqliteArchitecture2Persistence` is the current authoritative store behind `Architecture2Persistence`. Callers supply the database path. The implementation uses built-in `node:sqlite`, foreign keys, strict tables, WAL mode, `synchronous = FULL`, a busy timeout, and `BEGIN IMMEDIATE` write transactions.
 
-Current schema version is 17. Phase 1T adds durable one-per-request research-provider execution history linked to exact provider resolution, Provider, offering, evidence or normalized failure, and audit Events.
+Current schema version is 18. Phase 1U adds immutable provenance-bearing Goal/reusable memory, deterministic scoped retrieval, trust/status metadata, and append-only supersession history.
 
 Important invariants include:
 
@@ -83,6 +83,13 @@ Important invariants include:
 - Reconciliation history is immutable, source-attributed, idempotent, and reconstructed with its lifecycle and consumption relationships.
 - Circuit transitions and evidence are immutable; probe claim and consumption are transactional and bound to exact routing and Attempt identities.
 - Input revisions preserve prior Attempt snapshots, change only canonical Task inputs and lifecycle metadata, and are consumed atomically by one exact next Attempt.
+- Memory remains information only; reusable scope requires explicit permission, retrieval requires explicit scope inclusion, and conflicting supersession serializes and fails closed.
+
+## Durable Working Memory
+
+Phase 1U stores bounded plain-JSON memory only through explicit caller invocation. Records retain source type/reference, creator/time, Goal or explicitly permitted reusable scope, trust status, optional validity, and immutable supersession lineage. Retrieval requires a Goal and canonical `asOf` time, optionally includes reusable records, excludes expired/superseded records, and orders creation time descending then ID ascending. Inspection returns immutable history. Corrupt relationships stop retrieval rather than being omitted or repaired.
+
+Memory has no Orchestrator integration and grants no Task, Attempt, retry, revision, replanning, research, reconciliation, approval, provider, resource, Node, lease, circuit, installation, or Verification authority.
 
 ## Dependency Handling
 
@@ -347,7 +354,7 @@ Major deferred capabilities include:
 - Dynamic load balancing, dynamic concurrency, speculative execution, and priority displacement.
 - Automatic discovery, polling, monitoring, and scheduler-triggered workstation policy.
 - Direct web/search integration, autonomous research, provider retry/switching, evidence consumption beyond the explicit Phase 1S input-revision/replanning citation, automatic recovery, and recovery dispositions beyond the separately governed existing paths.
-- Purpose-specific memory and retrieval.
+- Episodic, semantic, procedural, preference/policy, vector, and autonomous memory beyond the Phase 1U working-memory foundation.
 - Broad tool, agent, cloud, productivity, voice, media, notification, and UI integration.
 - Architecture 2 Electron authority cutover and production hardening.
 

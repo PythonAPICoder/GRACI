@@ -1,5 +1,10 @@
 # G.R.A.C.I. Phase 1 — Autonomous Recovery and Continuation
 
+## 2026-08-14 - Phase 1U Current-Schema Fixture Correction
+
+- The first full run passed 225/246 tests; 19 failures were stale schema-17 assertions and two synthetic downgrade fixtures retained the new schema-18 memory table. The first affected regression rerun exposed two more incomplete downgrade fixtures.
+- Updated current-schema assertions to 18 and removed schema-18 objects/metadata from all affected synthetic downgrade fixtures before migration replay. No production migration or runtime behavior defect was present.
+
 ## 2026-08-14 - Phase 1T Current-Schema Fixture Correction
 
 - The first related regression run passed provider resolution but Phase 1R retained a schema-16 assertion and its synthetic schema-14 rollback left the new schema-17 table in place.

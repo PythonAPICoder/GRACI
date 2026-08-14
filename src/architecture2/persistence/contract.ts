@@ -26,6 +26,7 @@ import type {
   InputRevision, InputRevisionId, ReplanningDecision, ReplanningDecisionId,
   ResearchRequest, ResearchRequestId, ResearchEvidence, ResearchEvidenceId, ResearchDecision, ResearchRequestInspection,
   ResearchRecoveryLink, ResearchProviderExecution,
+  MemoryRecord, MemoryId, MemoryInspection,
 } from '../domain/index.js';
 
 export interface LegacyImportOperation {
@@ -184,6 +185,11 @@ export interface Architecture2Persistence extends Disposable {
   completeResearchProviderExecution(value: ResearchProviderExecution, evidence: ResearchEvidence | undefined,
     events: readonly AuditEventInput[]): ResearchProviderExecution;
   getResearchProviderExecutions(requestId: ResearchRequestId): ResearchProviderExecution[];
+  storeMemory(value: MemoryRecord, event: AuditEventInput): MemoryRecord;
+  retrieveMemories(goalId: GoalId, includeReusable: boolean, asOf: string): MemoryRecord[];
+  inspectMemory(id: MemoryId): MemoryInspection | undefined;
+  supersedeMemory(expectedCurrentId: MemoryId, replacement: MemoryRecord,
+    events: readonly AuditEventInput[]): MemoryRecord;
   getResearchRecoveryLinkByInputRevision(id: InputRevisionId): ResearchRecoveryLink | undefined;
   getResearchRecoveryLinkByReplanningDecision(id: ReplanningDecisionId): ResearchRecoveryLink | undefined;
   recordCircuitEvidence(targetType: CircuitTargetType, targetId: string, diagnosis: FailureDiagnosis,

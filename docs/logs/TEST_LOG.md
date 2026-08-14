@@ -1,5 +1,13 @@
 # G.R.A.C.I. Test Log
 
+### 2026-08-14 - Architecture 2 Phase 1U Durable Working Memory Foundation
+
+- Focused Phase 1U suite: PASS, 7/7. TypeScript validation and initial diff hygiene: PASS.
+- First full run: 225/246 passed; 21 schema-baseline fixture/assertion failures were diagnosed as test-only and corrected as recorded in `FAILURE_LOG.md`.
+- Corrected research/input migration regression set: PASS, 29/29. Broader persistence/runtime/research/recovery/provider/orchestration set: PASS, 155/155.
+- Full `npm.cmd test`: PASS, 246/246 across 24 files. `npm.cmd run validate`: PASS. `npm.cmd run build`: PASS with all three expected artifacts.
+- Direct Electron smoke: PASS; alive at five seconds, `Electron app starting` present, empty stderr, then controlled process-tree shutdown. `git diff --check`: PASS.
+
 ### 2026-08-14 - Architecture 2 Phase 1T Governed Research Provider Execution
 
 - Focused Phase 1T plus Phase 1R/provider milestone: PASS, 15/15 across 3 files before the expanded open-circuit, stale-authority, and schema-16 migration cases were added.

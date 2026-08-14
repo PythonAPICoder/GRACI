@@ -1,5 +1,12 @@
 # G.R.A.C.I. Phase 1 — Development Log
 
+## Architecture 2 Phase 1U - Durable Working Memory Foundation - August 14, 2026
+
+- Added Addendum 026, schema 18, immutable memory domain/persistence records, caller-invoked workflow/runtime APIs, and focused tests.
+- Added exact Goal scope and explicitly permissioned reusable scope, bounded provenance-bearing content, explicit trust status and validity, deterministic current retrieval, immutable history inspection, and atomic supersession.
+- Memory is isolated from orchestration and all execution/recovery/provider/resource authority. No autonomous capture, research promotion, semantic/vector search, RAG, or Electron integration was introduced.
+- Final verification passed: 7/7 focused memory tests, 29/29 corrected research/input migration regressions, 155/155 Architecture 2 regressions, 246/246 full tests, TypeScript validation, production build, schema-18 migration/reopen, Electron startup, and diff hygiene.
+
 ## Architecture 2 Phase 1T - Governed Research Provider Execution - August 14, 2026
 
 - Added Addendum 025, a provider-neutral Research Provider contract, caller-invoked execution coordinator, schema 17 execution provenance/failure history, runtime execution/inspection APIs, and focused tests.

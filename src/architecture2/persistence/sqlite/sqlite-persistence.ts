@@ -32,6 +32,7 @@ import type {
   InputRevision, InputRevisionId, ReplanningDecision, ReplanningDecisionId,
   ResearchRequest, ResearchRequestId, ResearchEvidence, ResearchEvidenceId, ResearchDecision, ResearchRequestInspection,
   ResearchRecoveryLink, ResearchProviderExecution,
+  MemoryRecord, MemoryId, MemoryInspection,
 } from '../../domain/index.js';
 import { assertIdentifier } from '../../domain/index.js';
 import type {
@@ -1530,6 +1531,87 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
       .all(requestId) as Row[]).map((row) => this.mapResearchProviderExecution(row));
   }
 
+  storeMemory(value: MemoryRecord, event: AuditEventInput): MemoryRecord {
+    this.validateMemoryRecord(value);
+    if (value.supersedesMemoryId) throw new Error('New memory cannot claim supersession without the supersession operation');
+    return this.transaction(() => {
+      const existing = this.db().prepare('SELECT * FROM memory_records WHERE id=?').get(value.id) as Row | undefined;
+      if (existing) {
+        const mapped = this.mapMemoryRecord(existing);
+        if (canonicalize(mapped) !== canonicalize(value)) throw new Error(`Memory identity conflict: ${value.id}`);
+        return mapped;
+      }
+      this.validateMemoryScopeAuthority(value);
+      this.validateMemoryEvent(value, event, 'memory.stored');
+      this.insertEvent(event);
+      this.insertMemory(value);
+      return value;
+    });
+  }
+
+  retrieveMemories(goalId: GoalId, includeReusable: boolean, asOf: string): MemoryRecord[] {
+    assertIdentifier(goalId, 'memory retrieval goal id');
+    validateTimestamp(asOf, 'memory retrieval timestamp');
+    if (!this.getGoal(goalId)) throw new Error(`Goal not found for memory retrieval: ${goalId}`);
+    const rows = this.db().prepare(`SELECT * FROM memory_records WHERE goal_id=? OR (?=1 AND scope='reusable')
+      ORDER BY created_at DESC,id ASC`).all(goalId, includeReusable ? 1 : 0) as Row[];
+    const values = rows.map((row) => this.mapMemoryRecord(row));
+    this.validateMemoryRelationships(values);
+    const superseded = new Set(values.map((value) => value.supersedesMemoryId).filter((id): id is MemoryId => Boolean(id)));
+    return values.filter((value) => !superseded.has(value.id) && (!value.validUntil || value.validUntil > asOf));
+  }
+
+  inspectMemory(id: MemoryId): MemoryInspection | undefined {
+    assertIdentifier(id, 'memory inspection id');
+    const rows = this.db().prepare('SELECT * FROM memory_records ORDER BY created_at,id').all() as Row[];
+    const values = rows.map((row) => this.mapMemoryRecord(row));
+    this.validateMemoryRelationships(values);
+    const memory = values.find((value) => value.id === id);
+    if (!memory) return undefined;
+    const byId = new Map(values.map((value) => [value.id, value]));
+    let root = memory;
+    while (root.supersedesMemoryId) root = byId.get(root.supersedesMemoryId)!;
+    const history: MemoryRecord[] = [root];
+    while (true) {
+      const next = values.find((value) => value.supersedesMemoryId === history.at(-1)!.id);
+      if (!next) break;
+      history.push(next);
+    }
+    const successor = values.find((value) => value.supersedesMemoryId === memory.id);
+    return { memory, supersededByMemoryId: successor?.id, history };
+  }
+
+  supersedeMemory(expectedCurrentId: MemoryId, replacement: MemoryRecord,
+    events: readonly AuditEventInput[]): MemoryRecord {
+    this.validateMemoryRecord(replacement);
+    if (replacement.supersedesMemoryId !== expectedCurrentId) throw new Error('Memory supersession identity mismatch');
+    return this.transaction(() => {
+      const priorRow = this.db().prepare('SELECT * FROM memory_records WHERE id=?').get(expectedCurrentId) as Row | undefined;
+      if (!priorRow) throw new Error(`Memory not found: ${expectedCurrentId}`);
+      const prior = this.mapMemoryRecord(priorRow);
+      if (this.db().prepare('SELECT 1 AS found FROM memory_records WHERE supersedes_memory_id=?').get(expectedCurrentId)) {
+        throw new Error(`Memory is stale or already superseded: ${expectedCurrentId}`);
+      }
+      if (prior.scope !== replacement.scope || prior.goalId !== replacement.goalId) {
+        throw new Error('Memory supersession cannot change scope');
+      }
+      if (replacement.createdAt < prior.createdAt) throw new Error('Memory supersession cannot predate prior memory');
+      if (this.db().prepare('SELECT 1 AS found FROM memory_records WHERE id=?').get(replacement.id)) {
+        throw new Error(`Memory replacement identity conflict: ${replacement.id}`);
+      }
+      this.validateMemoryScopeAuthority(replacement);
+      if (events.length !== 2) throw new Error('Memory supersession requires exact Events');
+      const stored = events.find((event) => event.aggregateId === replacement.id && event.eventType === 'memory.stored');
+      const superseded = events.find((event) => event.aggregateId === expectedCurrentId && event.eventType === 'memory.superseded');
+      if (!stored || !superseded || superseded.actor !== replacement.createdBy ||
+          superseded.occurredAt !== replacement.createdAt) throw new Error('Memory supersession Event mismatch');
+      this.validateMemoryEvent(replacement, stored, 'memory.stored');
+      this.insertEvents(events);
+      this.insertMemory(replacement);
+      return replacement;
+    });
+  }
+
   recordCircuitEvidence(targetType: CircuitTargetType, targetId: string, diagnosis: FailureDiagnosis,
     policy: CircuitBreakerPolicy, evidence: CircuitEvidence, transition: CircuitTransition | undefined,
     event: AuditEventInput): CircuitRecord {
@@ -2477,6 +2559,81 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
     if (!value.question.trim() || value.question.length > 4000 || !value.purpose.trim() || value.purpose.length > 2000 ||
         !value.requestedBy.trim() || value.requestedBy.length > 256) throw new Error('Research request fields are missing or exceed bounds');
     if (new Date(value.requestedAt).toISOString() !== value.requestedAt) throw new Error('Research request time must be canonical UTC');
+  }
+
+  private validateMemoryRecord(value: MemoryRecord): void {
+    for (const [id, label] of [[value.id, 'memory id'], [value.eventId, 'memory Event id']] as const) {
+      assertIdentifier(id, label);
+    }
+    if (value.goalId) assertIdentifier(value.goalId, 'memory goal id');
+    if (value.supersedesMemoryId) assertIdentifier(value.supersedesMemoryId, 'superseded memory id');
+    assertPlainJsonObject(value.content, 'Memory content');
+    if (!['goal', 'reusable'].includes(value.scope) || !['untrusted', 'trusted', 'disputed'].includes(value.trustStatus) ||
+        !value.sourceType.trim() || value.sourceType.length > 128 || !value.sourceReference.trim() ||
+        value.sourceReference.length > 2000 || !value.createdBy.trim() || value.createdBy.length > 256 ||
+        Buffer.byteLength(json(value.content)) > 65536) throw new Error('Memory fields are invalid or exceed bounds');
+    validateTimestamp(value.createdAt, 'memory creation timestamp');
+    if (value.validUntil) {
+      validateTimestamp(value.validUntil, 'memory validity timestamp');
+      if (value.validUntil <= value.createdAt) throw new Error('Memory validity must end after creation');
+    }
+    if (value.scope === 'goal' && (!value.goalId || value.reusablePermission) ||
+        value.scope === 'reusable' && (value.goalId || !value.reusablePermission?.trim() || value.reusablePermission.length > 1000)) {
+      throw new Error('Memory scope is invalid or lacks explicit reusable permission');
+    }
+    if (value.supersedesMemoryId === value.id) throw new Error('Memory cannot supersede itself');
+  }
+
+  private validateMemoryScopeAuthority(value: MemoryRecord): void {
+    if (value.goalId && !this.getGoal(value.goalId)) throw new Error(`Memory Goal not found: ${value.goalId}`);
+  }
+
+  private validateMemoryEvent(value: MemoryRecord, event: AuditEventInput, eventType: string): void {
+    if (event.id !== value.eventId || event.aggregateType !== 'memory' || event.aggregateId !== value.id ||
+        event.eventType !== eventType || event.actor !== value.createdBy || event.occurredAt !== value.createdAt) {
+      throw new Error('Memory Event mismatch');
+    }
+  }
+
+  private insertMemory(value: MemoryRecord): void {
+    this.db().prepare(`INSERT INTO memory_records
+      (id,scope,goal_id,content_json,source_type,source_reference,created_by,created_at,trust_status,valid_until,
+       reusable_permission,supersedes_memory_id,event_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(value.id, value.scope,
+      value.goalId ?? null, json(value.content), value.sourceType, value.sourceReference, value.createdBy, value.createdAt,
+      value.trustStatus, value.validUntil ?? null, value.reusablePermission ?? null, value.supersedesMemoryId ?? null,
+      value.eventId);
+  }
+
+  private mapMemoryRecord(row: Row): MemoryRecord {
+    const value: MemoryRecord = { id: String(row.id) as MemoryId, scope: String(row.scope) as MemoryRecord['scope'],
+      goalId: row.goal_id === null ? undefined : String(row.goal_id) as GoalId, content: parseObject(row.content_json),
+      sourceType: String(row.source_type), sourceReference: String(row.source_reference), createdBy: String(row.created_by),
+      createdAt: String(row.created_at), trustStatus: String(row.trust_status) as MemoryRecord['trustStatus'],
+      validUntil: optionalString(row.valid_until), reusablePermission: optionalString(row.reusable_permission),
+      supersedesMemoryId: row.supersedes_memory_id === null ? undefined : String(row.supersedes_memory_id) as MemoryId,
+      eventId: String(row.event_id) as MemoryRecord['eventId'] };
+    try { this.validateMemoryRecord(value); } catch (error) {
+      throw new Error(`Corrupt persisted Memory: ${value.id}`, { cause: error });
+    }
+    return value;
+  }
+
+  private validateMemoryRelationships(values: readonly MemoryRecord[]): void {
+    const byId = new Map(values.map((value) => [value.id, value]));
+    for (const value of values) {
+      if (!value.supersedesMemoryId) continue;
+      const prior = byId.get(value.supersedesMemoryId);
+      if (!prior || prior.scope !== value.scope || prior.goalId !== value.goalId || value.createdAt < prior.createdAt) {
+        throw new Error(`Corrupt persisted Memory supersession: ${value.id}`);
+      }
+      const seen = new Set<MemoryId>([value.id]);
+      let cursor: MemoryRecord | undefined = prior;
+      while (cursor) {
+        if (seen.has(cursor.id)) throw new Error(`Corrupt persisted Memory supersession cycle: ${value.id}`);
+        seen.add(cursor.id);
+        cursor = cursor.supersedesMemoryId ? byId.get(cursor.supersedesMemoryId) : undefined;
+      }
+    }
   }
 
   private validateResearchProviderExecution(value: ResearchProviderExecution): void {

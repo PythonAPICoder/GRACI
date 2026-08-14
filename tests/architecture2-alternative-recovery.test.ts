@@ -231,7 +231,7 @@ describe('Architecture 2 Phase 1M bounded alternative recovery', () => {
     persistence.close();
     persistence = new SqliteArchitecture2Persistence({ databasePath: path });
     persistence.initialize();
-    expect(persistence.getSchemaVersion()).toBe(17);
+    expect(persistence.getSchemaVersion()).toBe(18);
     expect(persistence.getAlternativeRecoveryDecision(diagnosis.id)).toEqual(decision);
   });
 

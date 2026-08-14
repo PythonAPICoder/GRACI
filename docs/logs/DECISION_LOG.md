@@ -1,5 +1,13 @@
 # G.R.A.C.I. Engineering Decision Log
 
+### DEC-0022 - Phase 1U Immutable Scoped Working Memory
+
+- **Date:** 2026-08-14
+- Store bounded plain-JSON memory separately from canonical workflow and research records; creation is always explicit.
+- Use exact Goal scope or reusable scope with a durable permission rationale, explicit reusable retrieval inclusion, and deterministic `asOf` filtering/order.
+- Represent correction as an immutable same-scope successor under `BEGIN IMMEDIATE`; never rewrite or delete history.
+- Preserve provenance and explicit trust status while granting memory no execution, recovery, policy, acceptance, provider, resource, or Verification authority.
+
 ### DEC-0021 - Phase 1T Separate Research Execution Authority
 
 - **Date:** 2026-08-14

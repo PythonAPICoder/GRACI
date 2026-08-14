@@ -10,11 +10,13 @@ import { diagnosePersistedFailure, inspectQueue, MinimalOrchestrator, recoverWit
   acquireCircuitProbe, claimCircuitProbe, inspectCircuits, recordCircuitFailure, recordCircuitProbeOutcome,
   authorizeInputRevision, authorizeReplanning, createResearchRequest, recordResearchEvidence, decideResearchEvidence,
   executeResearchRequest,
+  storeMemory, retrieveMemories, supersedeMemory,
   type AcquireCircuitProbeCommand, type AlternativeRecoveryCommand, type OrchestratorOptions,
   type ClaimCircuitProbeCommand, type RecordCircuitFailureCommand, type RecordCircuitProbeOutcomeCommand,
   type AuthorizeInputRevisionCommand, type AuthorizeReplanningCommand, type CreateResearchRequestCommand,
   type RecordResearchEvidenceCommand, type DecideResearchEvidenceCommand, type ExecuteResearchRequestCommand,
-  type ExecuteResearchRequestOptions } from '../workflow/index.js';
+  type ExecuteResearchRequestOptions, type StoreMemoryCommand, type RetrieveMemoriesCommand,
+  type SupersedeMemoryCommand } from '../workflow/index.js';
 
 export interface Architecture2RuntimeConfiguration {
   databasePath: string;
@@ -125,6 +127,22 @@ export class Architecture2Runtime implements Disposable {
 
   inspectResearchProviderExecutions(requestId: CreateResearchRequestCommand['id']) {
     return this.persistence.getResearchProviderExecutions(requestId);
+  }
+
+  storeMemory(command: StoreMemoryCommand) {
+    return storeMemory(this.persistence, command);
+  }
+
+  retrieveMemories(command: RetrieveMemoriesCommand) {
+    return retrieveMemories(this.persistence, command);
+  }
+
+  inspectMemory(id: StoreMemoryCommand['id']) {
+    return this.persistence.inspectMemory(id);
+  }
+
+  supersedeMemory(command: SupersedeMemoryCommand) {
+    return supersedeMemory(this.persistence, command);
   }
 
   inspectCircuits() {
