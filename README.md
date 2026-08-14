@@ -20,6 +20,13 @@ Implementation agents should begin with:
 
 `AGENTS.md` directs agents to the immutable master specification and all numbered addendums.
 
+For a current, plain-language and technical snapshot, read:
+
+- `CURRENT_STATUS.md` — implemented capabilities, limitations, verification status, and recommended next phase
+- `CURRENT_ARCHITECTURE.md` — the architecture that exists today and its deferred boundaries
+
+These are living documents. They summarize the repository but do not supersede governance.
+
 ## Governance Structure
 
 - `docs/governance/MASTER_SYSTEM_SPEC.md` — immutable baseline

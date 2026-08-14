@@ -487,3 +487,13 @@ Implementation remains paused pending Product Owner and Architect review.
 - Kept runtime slot accounting process-local and added no queue table, lifecycle state, dependency, schema migration, cancellation, failover, migration, worker, or distributed-lock behavior.
 - Preserved existing per-Task retry, approval, verification, lease release, and conservative interrupted-work recovery semantics.
 - Architecture 1 remains the live Electron authority.
+
+---
+
+## Architecture 2 Living Status and Architecture Documentation — August 14, 2026
+
+- Added root-level `CURRENT_STATUS.md` and `CURRENT_ARCHITECTURE.md` as living reconstruction aids based on committed Phase 1K HEAD `522f50f725f2038943d548a3cb3e41e02effa062`.
+- Paired plain-language explanations with corresponding technical detail for product status, workflow, persistence, scheduling, concurrency, providers, resources, recovery, governance, and runtime authority.
+- Clearly separated implemented and tested Architecture 2 behavior from configured adapters, planned/deferred capabilities, and the still-authoritative Architecture 1 Electron startup path.
+- Updated `README.md` so both documents are discoverable without changing governance precedence or policy.
+- No production source, tests, dependencies, configuration, governance addenda, or runtime behavior changed.
