@@ -7,7 +7,9 @@ import type { TaskVerifier } from '../verification/index.js';
 import { reconcileExternalOutcome, type ReconciliationCommand,
   type ReconciliationProvider } from '../reconciliation/index.js';
 import { diagnosePersistedFailure, inspectQueue, MinimalOrchestrator, recoverWithAlternative,
-  type AlternativeRecoveryCommand, type OrchestratorOptions } from '../workflow/index.js';
+  acquireCircuitProbe, claimCircuitProbe, inspectCircuits, recordCircuitFailure, recordCircuitProbeOutcome,
+  type AcquireCircuitProbeCommand, type AlternativeRecoveryCommand, type OrchestratorOptions,
+  type ClaimCircuitProbeCommand, type RecordCircuitFailureCommand, type RecordCircuitProbeOutcomeCommand } from '../workflow/index.js';
 
 export interface Architecture2RuntimeConfiguration {
   databasePath: string;
@@ -57,6 +59,26 @@ export class Architecture2Runtime implements Disposable {
 
   reconcile(provider: ReconciliationProvider, command: ReconciliationCommand) {
     return reconcileExternalOutcome(this.persistence, this.verifier, provider, command);
+  }
+
+  inspectCircuits() {
+    return inspectCircuits(this.persistence);
+  }
+
+  recordCircuitFailure(command: RecordCircuitFailureCommand) {
+    return recordCircuitFailure(this.persistence, command);
+  }
+
+  acquireCircuitProbe(command: AcquireCircuitProbeCommand) {
+    return acquireCircuitProbe(this.persistence, command);
+  }
+
+  claimCircuitProbe(command: ClaimCircuitProbeCommand) {
+    return claimCircuitProbe(this.persistence, command);
+  }
+
+  recordCircuitProbeOutcome(command: RecordCircuitProbeOutcomeCommand) {
+    return recordCircuitProbeOutcome(this.persistence, command);
   }
 
   assessLegacy(sourceReference: string) {

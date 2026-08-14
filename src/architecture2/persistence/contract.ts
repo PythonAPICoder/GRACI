@@ -22,6 +22,7 @@ import type {
   FailureDiagnosis, FailureDiagnosisId, FailureId, ChangedConditionEvidence,
   AlternativeRecoveryDecision, AlternativeRecoveryDecisionId,
   ReconciliationDecision, ReconciliationDecisionId,
+  CircuitRecord, CircuitTransition, CircuitEvidence, CircuitProbe, CircuitBreakerPolicy, CircuitTargetType,
 } from '../domain/index.js';
 
 export interface LegacyImportOperation {
@@ -117,7 +118,8 @@ export interface Architecture2Persistence extends Disposable {
   createAttempt(attempt: Attempt, event: AuditEventInput): void;
   getAttempts(taskId: TaskId): Attempt[];
   startAttempt(task: Task, expectedVersion: number, attempt: Attempt, events: readonly AuditEventInput[],
-    recoveryDecisionId?: AlternativeRecoveryDecisionId, reconciliationDecisionId?: ReconciliationDecisionId): void;
+    recoveryDecisionId?: AlternativeRecoveryDecisionId, reconciliationDecisionId?: ReconciliationDecisionId,
+    circuitProbeId?: CircuitProbe['id']): void;
   recordAttemptOutcome(
     task: Task,
     expectedVersion: number,
@@ -157,6 +159,18 @@ export interface Architecture2Persistence extends Disposable {
   getReconciliationDecision(id: ReconciliationDecisionId): ReconciliationDecision | undefined;
   getReconciliationDecisions(diagnosisId: FailureDiagnosisId): ReconciliationDecision[];
   getPendingReconciliation(taskId: TaskId): ReconciliationDecision | undefined;
+  recordCircuitEvidence(targetType: CircuitTargetType, targetId: string, diagnosis: FailureDiagnosis,
+    policy: CircuitBreakerPolicy, evidence: CircuitEvidence, transition: CircuitTransition | undefined,
+    event: AuditEventInput): CircuitRecord;
+  acquireCircuitProbe(circuitId: CircuitRecord['id'], probe: CircuitProbe, transition: CircuitTransition,
+    events: readonly AuditEventInput[]): CircuitProbe;
+  claimCircuitProbe(probe: CircuitProbe, event: AuditEventInput): CircuitProbe;
+  recordCircuitProbeOutcome(probeId: CircuitProbe['id'], verification: Verification | undefined,
+    diagnosis: FailureDiagnosis | undefined, transition: CircuitTransition, events: readonly AuditEventInput[]): CircuitRecord;
+  getCircuits(): CircuitRecord[];
+  getCircuitTransitions(circuitId: CircuitRecord['id']): CircuitTransition[];
+  getCircuitEvidence(circuitId: CircuitRecord['id']): CircuitEvidence[];
+  getCircuitProbes(circuitId: CircuitRecord['id']): CircuitProbe[];
   createApproval(approval: Approval, event: AuditEventInput): void;
   getApprovals(taskId: TaskId): Approval[];
   recordApprovalPause(task: Task, expectedVersion: number, attempt: Attempt, failure: Failure,

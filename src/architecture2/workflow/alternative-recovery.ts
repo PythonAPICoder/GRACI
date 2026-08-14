@@ -106,7 +106,8 @@ export function recoverWithAlternative(persistence: Architecture2Persistence,
       const result = scheduler.schedule(request, { nodes: persistence.getNodes(),
         locations: persistence.getOfferingLocations(request.offeringId),
         healthObservations: persistence.getNodes().flatMap((node) => persistence.getNodeHealth(node.id)),
-        leases: persistence.getResourceLeases() });
+        leases: persistence.getResourceLeases(), circuits: persistence.getCircuits(),
+        circuitProbes: persistence.getCircuits().flatMap((circuit) => persistence.getCircuitProbes(circuit.id)) });
       resourceSchedulingDecisionId = result.request.id;
       selectedNodeId = result.selectedNodeId;
       selectedLocationId = result.selectedLocationId;

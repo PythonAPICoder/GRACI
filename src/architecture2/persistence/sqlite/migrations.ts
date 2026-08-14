@@ -709,8 +709,75 @@ const migration011: Migration = {
   },
 };
 
+const migration012: Migration = {
+  version: 12,
+  name: 'architecture_2_phase_1o_circuit_breakers',
+  up(database) {
+    database.exec(`
+      CREATE TABLE circuits (
+        id TEXT PRIMARY KEY,
+        target_type TEXT NOT NULL CHECK (target_type IN ('provider_offering','node','offering_location')),
+        target_id TEXT NOT NULL,
+        state TEXT NOT NULL CHECK (state IN ('closed','open','half_open')),
+        policy_id TEXT NOT NULL CHECK (length(trim(policy_id)) > 0),
+        policy_version INTEGER NOT NULL CHECK (policy_version >= 1),
+        observation_window_ms INTEGER NOT NULL CHECK (observation_window_ms > 0),
+        failure_threshold INTEGER NOT NULL CHECK (failure_threshold > 0),
+        cooldown_ms INTEGER NOT NULL CHECK (cooldown_ms > 0),
+        qualifying_categories_json TEXT NOT NULL CHECK (json_valid(qualifying_categories_json) AND json_type(qualifying_categories_json)='array'),
+        opened_at TEXT, cooldown_until TEXT,
+        version INTEGER NOT NULL CHECK (version >= 1), updated_at TEXT NOT NULL,
+        UNIQUE (target_type, target_id),
+        CHECK ((state = 'closed') = (opened_at IS NULL AND cooldown_until IS NULL))
+      ) STRICT;
+      CREATE TABLE circuit_evidence (
+        id TEXT PRIMARY KEY, circuit_id TEXT NOT NULL REFERENCES circuits(id) ON DELETE RESTRICT,
+        diagnosis_id TEXT NOT NULL REFERENCES failure_diagnoses(id) ON DELETE RESTRICT,
+        observed_at TEXT NOT NULL, event_id TEXT NOT NULL UNIQUE REFERENCES events(id) ON DELETE RESTRICT
+        , UNIQUE (circuit_id, diagnosis_id)
+      ) STRICT;
+      CREATE TABLE circuit_probes (
+        id TEXT PRIMARY KEY, circuit_id TEXT NOT NULL REFERENCES circuits(id) ON DELETE RESTRICT,
+        status TEXT NOT NULL CHECK (status IN ('active','claimed','consumed')), authorized_at TEXT NOT NULL,
+        claimed_at TEXT, consumed_at TEXT, task_id TEXT REFERENCES tasks(id) ON DELETE RESTRICT,
+        attempt_id TEXT, attempt_number INTEGER CHECK (attempt_number >= 1),
+        provider_offering_id TEXT, node_id TEXT, location_id TEXT,
+        provider_resolution_id TEXT REFERENCES provider_resolution_decisions(id) ON DELETE RESTRICT,
+        resource_scheduling_decision_id TEXT REFERENCES resource_scheduling_decisions(id) ON DELETE RESTRICT,
+        verification_id TEXT REFERENCES verifications(id) ON DELETE RESTRICT,
+        failure_diagnosis_id TEXT REFERENCES failure_diagnoses(id) ON DELETE RESTRICT,
+        event_id TEXT NOT NULL UNIQUE REFERENCES events(id) ON DELETE RESTRICT,
+        CHECK ((status = 'active') = (claimed_at IS NULL)),
+        CHECK ((status = 'consumed') = (consumed_at IS NOT NULL)),
+        CHECK ((status = 'active') = (task_id IS NULL AND attempt_id IS NULL AND attempt_number IS NULL)),
+        CHECK ((task_id IS NULL) = (attempt_id IS NULL)),
+        CHECK (verification_id IS NULL OR failure_diagnosis_id IS NULL)
+      ) STRICT;
+      CREATE UNIQUE INDEX idx_circuit_active_probe ON circuit_probes(circuit_id) WHERE status = 'active';
+      CREATE TABLE circuit_transitions (
+        id TEXT PRIMARY KEY, circuit_id TEXT NOT NULL REFERENCES circuits(id) ON DELETE RESTRICT,
+        from_state TEXT NOT NULL CHECK (from_state IN ('closed','open','half_open')),
+        to_state TEXT NOT NULL CHECK (to_state IN ('closed','open','half_open')),
+        reason TEXT NOT NULL CHECK (length(trim(reason)) > 0),
+        diagnosis_id TEXT REFERENCES failure_diagnoses(id) ON DELETE RESTRICT,
+        verification_id TEXT REFERENCES verifications(id) ON DELETE RESTRICT,
+        probe_id TEXT REFERENCES circuit_probes(id) ON DELETE RESTRICT,
+        occurred_at TEXT NOT NULL, event_id TEXT NOT NULL UNIQUE REFERENCES events(id) ON DELETE RESTRICT,
+        CHECK (from_state <> to_state)
+      ) STRICT;
+      CREATE INDEX idx_circuit_evidence_window ON circuit_evidence(circuit_id, observed_at, id);
+      CREATE INDEX idx_circuit_transitions_history ON circuit_transitions(circuit_id, occurred_at, id);
+      CREATE TRIGGER circuit_evidence_no_update BEFORE UPDATE ON circuit_evidence BEGIN SELECT RAISE(ABORT, 'circuit evidence is immutable'); END;
+      CREATE TRIGGER circuit_evidence_no_delete BEFORE DELETE ON circuit_evidence BEGIN SELECT RAISE(ABORT, 'circuit evidence is immutable'); END;
+      CREATE TRIGGER circuit_transitions_no_update BEFORE UPDATE ON circuit_transitions BEGIN SELECT RAISE(ABORT, 'circuit transitions are immutable'); END;
+      CREATE TRIGGER circuit_transitions_no_delete BEFORE DELETE ON circuit_transitions BEGIN SELECT RAISE(ABORT, 'circuit transitions are immutable'); END;
+      CREATE TRIGGER circuit_probes_no_delete BEFORE DELETE ON circuit_probes BEGIN SELECT RAISE(ABORT, 'circuit probes are immutable history'); END;
+    `);
+  },
+};
+
 export const migrations: readonly Migration[] = [migration001, migration002, migration003, migration004, migration005,
-  migration006, migration007, migration008, migration009, migration010, migration011];
+  migration006, migration007, migration008, migration009, migration010, migration011, migration012];
 
 export function migrate(database: DatabaseSync): number {
   database.exec(`

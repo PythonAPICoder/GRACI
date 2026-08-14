@@ -19,6 +19,7 @@ import type {
   ChangedConditionEvidenceId,
   AlternativeRecoveryDecisionId,
   ReconciliationDecisionId,
+  CircuitId, CircuitTransitionId, CircuitEvidenceId, CircuitProbeId,
 } from './ids.js';
 
 export type IsoTimestamp = string;
@@ -272,6 +273,76 @@ export interface ReconciliationDecision {
   eventId: EventId;
 }
 
+export type CircuitTargetType = 'provider_offering' | 'node' | 'offering_location';
+export type CircuitState = 'closed' | 'open' | 'half_open';
+
+export interface CircuitBreakerPolicy {
+  id: string;
+  version: number;
+  observationWindowMs: number;
+  failureThreshold: number;
+  cooldownMs: number;
+  qualifyingCategories: readonly Failure['category'][];
+}
+
+export interface CircuitRecord {
+  id: CircuitId;
+  targetType: CircuitTargetType;
+  targetId: string;
+  state: CircuitState;
+  policyId: string;
+  policyVersion: number;
+  observationWindowMs: number;
+  failureThreshold: number;
+  cooldownMs: number;
+  qualifyingCategories: readonly Failure['category'][];
+  openedAt?: IsoTimestamp;
+  cooldownUntil?: IsoTimestamp;
+  version: number;
+  updatedAt: IsoTimestamp;
+}
+
+export interface CircuitTransition {
+  id: CircuitTransitionId;
+  circuitId: CircuitId;
+  fromState: CircuitState;
+  toState: CircuitState;
+  reason: string;
+  diagnosisId?: FailureDiagnosisId;
+  verificationId?: VerificationId;
+  probeId?: CircuitProbeId;
+  occurredAt: IsoTimestamp;
+  eventId: EventId;
+}
+
+export interface CircuitEvidence {
+  id: CircuitEvidenceId;
+  circuitId: CircuitId;
+  diagnosisId: FailureDiagnosisId;
+  observedAt: IsoTimestamp;
+  eventId: EventId;
+}
+
+export interface CircuitProbe {
+  id: CircuitProbeId;
+  circuitId: CircuitId;
+  status: 'active' | 'claimed' | 'consumed';
+  authorizedAt: IsoTimestamp;
+  claimedAt?: IsoTimestamp;
+  consumedAt?: IsoTimestamp;
+  taskId?: TaskId;
+  attemptId?: AttemptId;
+  attemptNumber?: number;
+  providerOfferingId?: ProviderOfferingId;
+  nodeId?: NodeId;
+  locationId?: OfferingLocationId;
+  providerResolutionId?: ResolutionDecisionId;
+  resourceSchedulingDecisionId?: ResourceSchedulingDecisionId;
+  verificationId?: VerificationId;
+  failureDiagnosisId?: FailureDiagnosisId;
+  eventId: EventId;
+}
+
 export interface Approval {
   id: ApprovalId;
   goalId: GoalId;
@@ -394,7 +465,7 @@ export type ResolutionRejectionReason =
   | 'health_stale' | 'health_unacceptable' | 'qualification_fingerprint_mismatch'
   | 'input_schema_mismatch' | 'output_schema_mismatch' | 'format_unsupported'
   | 'side_effect_class_mismatch' | 'quality_insufficient' | 'latency_exceeded' | 'cost_exceeded'
-  | 'explicitly_excluded';
+  | 'explicitly_excluded' | 'circuit_open' | 'circuit_probe_required';
 
 export interface ProviderResolutionRequest {
   id: ResolutionDecisionId;
@@ -415,6 +486,7 @@ export interface ProviderResolutionRequest {
   maximumHealthAgeMs: number;
   requestedAt: IsoTimestamp;
   excludedOfferingIds?: readonly ProviderOfferingId[];
+  circuitProbeId?: CircuitProbeId;
 }
 
 export interface ProviderResolutionCandidate {
@@ -501,7 +573,9 @@ export type ResourceSchedulingRejectionReason =
   | 'privacy_incompatible'
   | 'capacity_insufficient'
   | 'node_explicitly_excluded'
-  | 'location_explicitly_excluded';
+  | 'location_explicitly_excluded'
+  | 'node_circuit_open' | 'node_circuit_probe_required'
+  | 'location_circuit_open' | 'location_circuit_probe_required';
 
 export interface ResourceSchedulingRequest {
   id: ResourceSchedulingDecisionId;
@@ -512,6 +586,7 @@ export interface ResourceSchedulingRequest {
   requestedAt: IsoTimestamp;
   excludedNodeIds?: readonly NodeId[];
   excludedLocationIds?: readonly OfferingLocationId[];
+  circuitProbeId?: CircuitProbeId;
 }
 
 export interface ResourceSchedulingCandidate {

@@ -419,6 +419,40 @@ Record meaningful verification results. Do not duplicate raw automated-test outp
 - The initial wrapper interruption was harness-only; application logs proved startup and the live application remained healthy. The process tree was cleaned after verification.
 - Architecture 1 remained the normal Electron startup authority.
 
+### 2026-08-14 - Architecture 2 Phase 1O Implementation-Agent Verification
+
+**Build / Revision**
+
+- Starting HEAD: accepted Phase 1N `8501c014ce54ac96898953f65dd37fcb5b3caf13`.
+- Current working tree implements schema 12 Phase 1O circuit breakers.
+
+**Automated Verification**
+
+- Dedicated Phase 1O circuit-breaker tests: PASS, 11 tests.
+- Relevant regression selection: PASS, 50 tests.
+- Full automated regression suite: PASS, 208/208 across 18 files.
+- TypeScript validation: PASS.
+- Production build: PASS.
+- Diff whitespace hygiene: PASS.
+
+**Behavior and Durability Verification**
+
+- Provider-offering, Node, and offering-location scope isolation; deterministic threshold windows/cooldown; explicit excluded categories; and stable routing rejection explanations: PASS.
+- Durable one-at-a-time probe acquisition, exact provider/resource route claim, single-use behavior, and exact Attempt-start binding: PASS.
+- Passing normal Verification for the bound successful Attempt as the only close authority; unrelated Verification rejection and qualifying bound-failure reopen: PASS.
+- Circuit metadata separation from health, qualification, Node administration, location enablement, workstation evidence, and leases: PASS.
+- Populated schema-11 to schema-12 migration without fabricated circuits and exact SQLite close/reopen reconstruction: PASS.
+- Existing Phase 1L diagnosis, Phase 1M alternatives, Phase 1N reconciliation, resource scheduling, and persistence regressions included in the reported runs: PASS.
+
+**G.R.A.C.I. Launch Verification**
+
+- Final Electron/runtime launch evidence for this Phase 1O working tree: PENDING implementation-agent final verification.
+- No Phase 1O Electron launch result is claimed by this entry.
+
+**Result**
+
+- PASS. The compiled Architecture 2 runtime exposed `bootstrapArchitecture2`, `inspectCircuits`, `acquireCircuitProbe`, and `claimCircuitProbe`. The Electron shell remained alive for the eight-second startup smoke, emitted `Electron app starting`, and produced empty stderr.
+
 ---
 
 ### 2026-08-12 — Architecture 2 Phase 1B Workflow Kernel

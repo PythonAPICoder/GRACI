@@ -39,6 +39,33 @@ Use this log for decisions that matter but do not yet justify a dedicated ADR sy
 
 ---
 
+### DEC-0016 - Phase 1O Scoped Circuit Breakers and Consumable Bound Probes
+
+**Date**
+
+- 2026-08-14
+
+**Decision**
+
+- Authorize independent circuits for provider offerings, Nodes, and offering locations with explicit `closed`, `open`, and `half_open` states.
+- Count only current trusted Phase 1L `proven_unsuccessful` diagnoses in a versioned deterministic observation window; exclude input, policy, Verification, indeterminate, cancellation, and unknown categories.
+- Keep cooldown deterministic and require one durable active probe to pass a half-open route.
+- Make probe authority consumable: claim it once against the exact provider/resource decision and exact Task/Attempt/offering/Node/location binding, then revalidate it atomically at Attempt start.
+- Permit only a persisted passing normal Verification for the bound successful Attempt to close; a current qualifying diagnosis for the bound failed Attempt reopens.
+- Keep circuit state separate from health, qualification, Node administration, location enablement, workstation evidence, and leases; grant no replay or replacement authority.
+
+**Rationale**
+
+- Repeated known failures should suppress unhealthy routes without converting health observations or provider self-report into lifecycle authority. Durable exact binding prevents a half-open authorization from becoming a reusable routing bypass.
+
+**Consequences**
+
+- Schema version 12 stores circuit state, immutable evidence/transitions, and durable probe claim/consumption history.
+- Provider and resource routing expose stable scope-specific circuit explanations.
+- Unknown means stop remains unchanged, and every prior deferral except circuit breakers/half-open probes remains in force.
+
+---
+
 ### DEC-0015 - Phase 1N Provider-Neutral External Outcome Reconciliation
 
 **Date**

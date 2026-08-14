@@ -7,13 +7,18 @@ import type {
   ResourceSchedulingDecision,
   ResourceSchedulingRejectionReason,
   ResourceSchedulingRequest,
+  CircuitRecord,
+  CircuitProbe,
 } from '../domain/index.js';
+import { circuitRoutingState } from '../workflow/circuit-breaker.js';
 
 export interface ResourceSchedulingRecords {
   nodes: readonly Node[];
   locations: readonly OfferingLocation[];
   healthObservations: readonly NodeHealthObservation[];
   leases: readonly ResourceLease[];
+  circuits?: readonly CircuitRecord[];
+  circuitProbes?: readonly CircuitProbe[];
 }
 
 function timestamp(value: string, label: string): number {
@@ -63,6 +68,17 @@ export class DeterministicResourceScheduler {
         const node = nodes.get(location.nodeId);
         const health = observations.get(location.nodeId);
         const reasons: ResourceSchedulingRejectionReason[] = [];
+        const nodeCircuit = records.circuits?.find((value) => value.targetType === 'node' && value.targetId === location.nodeId);
+        const locationCircuit = records.circuits?.find((value) => value.targetType === 'offering_location' && value.targetId === location.id);
+        const nodeCircuitState = circuitRoutingState(nodeCircuit, request.requestedAt);
+        const locationCircuitState = circuitRoutingState(locationCircuit, request.requestedAt);
+        const probeMatches = (circuit: CircuitRecord | undefined) => Boolean(circuit && request.circuitProbeId &&
+          records.circuitProbes?.some((probe) => probe.id === request.circuitProbeId &&
+            probe.circuitId === circuit.id && probe.status === 'active'));
+        if (nodeCircuitState === 'open') reasons.push('node_circuit_open');
+        if (nodeCircuitState === 'probe_required' && !probeMatches(nodeCircuit)) reasons.push('node_circuit_probe_required');
+        if (locationCircuitState === 'open') reasons.push('location_circuit_open');
+        if (locationCircuitState === 'probe_required' && !probeMatches(locationCircuit)) reasons.push('location_circuit_probe_required');
         if (request.excludedNodeIds?.includes(location.nodeId)) reasons.push('node_explicitly_excluded');
         if (request.excludedLocationIds?.includes(location.id)) reasons.push('location_explicitly_excluded');
         const availableCapacity = Math.max(0, location.capacity - (usedCapacity.get(location.id) ?? 0));

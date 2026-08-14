@@ -2,9 +2,9 @@
 
 > **Living document:** Update this file whenever Architecture 2 module boundaries, lifecycle behavior, persistence authority, runtime composition, or intentionally deferred capabilities change. This is an implementation map, not immutable governance. The master specification and numbered addenda under `docs/governance/` remain authoritative.
 
-**Architecture represented:** Implemented and verified through Architecture 2 Phase 1N
+**Architecture represented:** Current Phase 1O implementation and implementation-agent verification
 
-**Implementation working tree based on accepted Phase 1M repository HEAD:** `4db48d164b240451032f2167f654a8bccf18262e`
+**Implementation working tree starting basis:** accepted Phase 1N repository HEAD `8501c014ce54ac96898953f65dd37fcb5b3caf13`
 
 ## System Shape
 
@@ -18,7 +18,7 @@ Architecture 2 is a TypeScript modular monolith under `src/architecture2/` with 
 
 - `domain/`: canonical records and branded identifiers.
 - `persistence/`: provider-independent contract and SQLite implementation.
-- `workflow/`: state machine, dependency evaluation, graph validation, deterministic scheduling, orchestration, queue inspection, and trusted deterministic failure diagnosis.
+- `workflow/`: state machine, dependency evaluation, graph validation, deterministic scheduling, orchestration, queue inspection, trusted deterministic failure diagnosis, alternative recovery, and scoped circuit breakers.
 - `execution/`: provider-neutral Task execution contract and deterministic test provider.
 - `verification/`: independent Task verification contract and deterministic verifier.
 - `providers/`: capability/provider resolution and Ollama Model Provider adapter.
@@ -51,7 +51,7 @@ retry_pending -> blocked | ready | failed
 waiting_for_approval -> ready | failed
 ```
 
-Cancellation and supersession exist in the domain state vocabulary, but Phase 1K does not implement user cancellation or cancellation propagation. `TaskStateMachine` centrally validates transition legality and evidence guards. Persistence independently enforces optimistic Task versions and atomic writes.
+Cancellation and supersession exist in the domain state vocabulary, but Phase 1O does not implement user cancellation or cancellation propagation. `TaskStateMachine` centrally validates transition legality and evidence guards. Persistence independently enforces optimistic Task versions and atomic writes.
 
 ## Persistence and SQLite Authority
 
@@ -63,7 +63,7 @@ SQLite is G.R.A.C.I.'s notebook. The assistant does not rely on remembering what
 
 `SqliteArchitecture2Persistence` is the current authoritative store behind `Architecture2Persistence`. Callers supply the database path. The implementation uses built-in `node:sqlite`, foreign keys, strict tables, WAL mode, `synchronous = FULL`, a busy timeout, and `BEGIN IMMEDIATE` write transactions.
 
-Current schema version is 11. Phase 1N adds immutable reconciliation decisions and evidence plus single-use Attempt or Verification consumption relationships while retaining Phase 1M recovery history.
+Current schema version is 12. Phase 1O adds scoped circuit projections, immutable qualifying evidence and transitions, and durable active/claimed/consumed probe history while retaining Phase 1N reconciliation history.
 
 Important invariants include:
 
@@ -78,6 +78,7 @@ Important invariants include:
 - New Orchestrator Failures atomically write their diagnosis, disposition, Task transition, and Events.
 - Diagnosis and changed-condition records are append-only and survive close/reopen reconstruction.
 - Reconciliation history is immutable, source-attributed, idempotent, and reconstructed with its lifecycle and consumption relationships.
+- Circuit transitions and evidence are immutable; probe claim and consumption are transactional and bound to exact routing and Attempt identities.
 
 ## Dependency Handling
 
@@ -275,6 +276,14 @@ Phase 1N allows a caller to reconcile the exact latest indeterminate Attempt thr
 
 `proven_completed` creates no replacement Attempt and enters the normal Verification path; only a passing Verification succeeds the Task. `proven_not_completed` always persists the conclusion, but creates single-use next-Attempt authority only when the existing Attempt budget and approval gates permit it. `remains_indeterminate` keeps the Task stopped and may be followed only by explicitly ordered new reconciliation evidence; conclusive authority cannot be contradicted or replaced.
 
+### Scoped Circuit Breakers
+
+Phase 1O adds separate `closed`, `open`, and `half_open` circuits for provider offerings, Nodes, and offering locations. The default versioned policy uses a 300,000 ms observation window, threshold 3, and 60,000 ms cooldown. Only current trusted Phase 1L `proven_unsuccessful` diagnoses for transient infrastructure, resource unavailability, provider/capability mismatch, or execution defect qualify; input/precondition, policy/approval, Verification, indeterminate, cancellation/preemption, and unknown categories are excluded.
+
+Provider and resource routing record stable scope-specific open and probe-required explanations. After cooldown, one durable active probe may pass only its exact affected circuit. It must be claimed once against the exact provider resolution or resource scheduling decision and exact Task/Attempt/offering/Node/location binding; Attempt start revalidates the claim. Only a persisted passing normal Verification for that bound successful Attempt closes the circuit. A current qualifying diagnosis for that bound failed Attempt reopens it with a new cooldown.
+
+Circuit metadata remains separate from qualification, provider/Node health, Node administration, location enablement, workstation evidence, and leases. Circuit authority supplies no replay, replacement, reconciliation, retry-budget, approval, or Task-success authority. Unknown still means stop.
+
 ## Audit and Governance
 
 ### Simple Explanation
@@ -325,7 +334,7 @@ Major deferred capabilities include:
 - Distributed locks, multiple Orchestrators, remote workers, and high availability.
 - Dynamic load balancing, dynamic concurrency, speculative execution, and priority displacement.
 - Automatic discovery, polling, monitoring, and scheduler-triggered workstation policy.
-- Circuit breakers, governed research, and recovery dispositions other than the Phase 1M alternatives and Phase 1N reconciliation.
+- Governed research and recovery dispositions other than the Phase 1M alternatives, Phase 1N reconciliation, and Phase 1O route filtering/bound probes.
 - Purpose-specific memory and retrieval.
 - Broad tool, agent, cloud, productivity, voice, media, notification, and UI integration.
 - Architecture 2 Electron authority cutover and production hardening.

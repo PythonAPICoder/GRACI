@@ -28,6 +28,7 @@ import type {
   FailureDiagnosis, FailureDiagnosisId, FailureId, ChangedConditionEvidence,
   AlternativeRecoveryDecision, AlternativeRecoveryDecisionId,
   ReconciliationDecision, ReconciliationDecisionId,
+  CircuitRecord, CircuitTransition, CircuitEvidence, CircuitProbe, CircuitBreakerPolicy, CircuitTargetType,
 } from '../../domain/index.js';
 import { assertIdentifier } from '../../domain/index.js';
 import type {
@@ -781,13 +782,15 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
   }
 
   startAttempt(task: Task, expectedVersion: number, attempt: Attempt, events: readonly AuditEventInput[],
-    recoveryDecisionId?: AlternativeRecoveryDecisionId, reconciliationDecisionId?: ReconciliationDecisionId): void {
+    recoveryDecisionId?: AlternativeRecoveryDecisionId, reconciliationDecisionId?: ReconciliationDecisionId,
+    circuitProbeId?: CircuitProbe['id']): void {
     this.transaction(() => {
       this.updateTaskRow(task, expectedVersion);
       this.insertAttempt(attempt);
       if (recoveryDecisionId) this.insertAlternativeRecoveryConsumption(recoveryDecisionId, attempt, attempt.startedAt ?? attempt.createdAt);
       if (reconciliationDecisionId) this.insertReconciliationAttemptConsumption(reconciliationDecisionId, attempt,
         attempt.startedAt ?? attempt.createdAt);
+      if (circuitProbeId) this.validateClaimedCircuitProbe(circuitProbeId, attempt);
       this.insertEvents(events);
     });
   }
@@ -1043,6 +1046,261 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
         AND c.decision_id IS NULL
       ORDER BY d.observation_number DESC, d.id DESC LIMIT 1`).get(taskId) as Row | undefined;
     return row ? this.mapReconciliationDecision(row) : undefined;
+  }
+
+  recordCircuitEvidence(targetType: CircuitTargetType, targetId: string, diagnosis: FailureDiagnosis,
+    policy: CircuitBreakerPolicy, evidence: CircuitEvidence, transition: CircuitTransition | undefined,
+    event: AuditEventInput): CircuitRecord {
+    const existingEvidence = this.db().prepare('SELECT circuit_id FROM circuit_evidence WHERE diagnosis_id = ? AND circuit_id = ?')
+      .get(diagnosis.id, evidence.circuitId) as Row | undefined;
+    if (existingEvidence) return this.getCircuitById(String(existingEvidence.circuit_id) as CircuitRecord['id']);
+    return this.transaction(() => {
+      let circuit = this.getCircuitByTarget(targetType, targetId);
+      if (!circuit) {
+        const id = evidence.circuitId;
+        this.db().prepare(`INSERT INTO circuits
+          (id,target_type,target_id,state,policy_id,policy_version,observation_window_ms,failure_threshold,cooldown_ms,qualifying_categories_json,
+           opened_at,cooldown_until,version,updated_at)
+          VALUES (?, ?, ?, 'closed', ?, ?, ?, ?, ?, ?, NULL, NULL, 1, ?)`).run(id, targetType, targetId, policy.id,
+          policy.version, policy.observationWindowMs, policy.failureThreshold, policy.cooldownMs,
+          json(policy.qualifyingCategories), evidence.observedAt);
+        circuit = this.getCircuitById(id);
+      }
+      if (circuit.id !== evidence.circuitId || circuit.policyId !== policy.id || circuit.policyVersion !== policy.version ||
+          circuit.observationWindowMs !== policy.observationWindowMs || circuit.failureThreshold !== policy.failureThreshold ||
+          circuit.cooldownMs !== policy.cooldownMs || canonicalize(circuit.qualifyingCategories) !== canonicalize(policy.qualifyingCategories)) {
+        throw new Error('Circuit policy or identity mismatch');
+      }
+      this.insertEvent(event);
+      this.db().prepare(`INSERT INTO circuit_evidence(id,circuit_id,diagnosis_id,observed_at,event_id) VALUES (?, ?, ?, ?, ?)`)
+        .run(evidence.id, circuit.id, diagnosis.id, evidence.observedAt, evidence.eventId);
+      if (transition) {
+        if (circuit.state !== transition.fromState || transition.toState !== 'open') throw new Error('Circuit transition state mismatch');
+        const cooldownUntil = new Date(Date.parse(transition.occurredAt) + policy.cooldownMs).toISOString();
+        this.db().prepare(`UPDATE circuits SET state='open', opened_at=?, cooldown_until=?, version=version+1, updated_at=? WHERE id=?`)
+          .run(transition.occurredAt, cooldownUntil, transition.occurredAt, circuit.id);
+        this.insertCircuitTransition(transition);
+      }
+      return this.getCircuitById(circuit.id);
+    });
+  }
+
+  acquireCircuitProbe(circuitId: CircuitRecord['id'], probe: CircuitProbe, transition: CircuitTransition,
+    events: readonly AuditEventInput[]): CircuitProbe {
+    const existing = this.db().prepare('SELECT * FROM circuit_probes WHERE id = ?').get(probe.id) as Row | undefined;
+    if (existing) return this.mapCircuitProbe(existing);
+    return this.transaction(() => {
+      const circuit = this.getCircuitById(circuitId);
+      if (circuit.state !== 'open' || !circuit.cooldownUntil || Date.parse(probe.authorizedAt) < Date.parse(circuit.cooldownUntil)) {
+        throw new Error('Circuit cooldown has not elapsed');
+      }
+      if (transition.fromState !== 'open' || transition.toState !== 'half_open' || transition.probeId !== probe.id) {
+        throw new Error('Invalid half-open circuit transition');
+      }
+      this.insertEvents(events);
+      this.db().prepare(`INSERT INTO circuit_probes
+        (id,circuit_id,status,authorized_at,claimed_at,consumed_at,task_id,attempt_id,attempt_number,provider_offering_id,
+         node_id,location_id,provider_resolution_id,resource_scheduling_decision_id,verification_id,failure_diagnosis_id,event_id)
+        VALUES (?, ?, 'active', ?, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, ?)`)
+        .run(probe.id, circuitId, probe.authorizedAt, probe.eventId);
+      this.db().prepare(`UPDATE circuits SET state='half_open', version=version+1, updated_at=? WHERE id=?`)
+        .run(probe.authorizedAt, circuitId);
+      this.insertCircuitTransition(transition);
+      return probe;
+    });
+  }
+
+  claimCircuitProbe(probe: CircuitProbe, event: AuditEventInput): CircuitProbe {
+    return this.transaction(() => {
+      if (probe.status !== 'claimed' || !probe.claimedAt || !probe.taskId || !probe.attemptId || !probe.attemptNumber) {
+        throw new Error('Circuit probe claim requires exact Task and Attempt identity');
+      }
+      const circuit = this.getCircuitById(probe.circuitId);
+      if (circuit.state !== 'half_open') throw new Error('Circuit is not half-open');
+      this.validateProbeTargetBinding(circuit, probe);
+      this.insertEvent(event);
+      const result = this.db().prepare(`UPDATE circuit_probes SET status='claimed',claimed_at=?,task_id=?,attempt_id=?,
+        attempt_number=?,provider_offering_id=?,node_id=?,location_id=?,provider_resolution_id=?,resource_scheduling_decision_id=?
+        WHERE id=? AND circuit_id=? AND status='active'`).run(probe.claimedAt, probe.taskId, probe.attemptId,
+        probe.attemptNumber, probe.providerOfferingId ?? null, probe.nodeId ?? null, probe.locationId ?? null,
+        probe.providerResolutionId ?? null, probe.resourceSchedulingDecisionId ?? null, probe.id, probe.circuitId);
+      if (Number(result.changes) !== 1) throw new Error(`Circuit probe is already claimed: ${probe.id}`);
+      return probe;
+    });
+  }
+
+  recordCircuitProbeOutcome(probeId: CircuitProbe['id'], verification: Verification | undefined,
+    diagnosis: FailureDiagnosis | undefined, transition: CircuitTransition, events: readonly AuditEventInput[]): CircuitRecord {
+    return this.transaction(() => {
+      const row = this.db().prepare(`SELECT * FROM circuit_probes WHERE id=? AND status='claimed'`).get(probeId) as Row | undefined;
+      if (!row) throw new Error(`Circuit probe is not claimed: ${probeId}`);
+      const probe = this.mapCircuitProbe(row);
+      const circuit = this.getCircuitById(probe.circuitId);
+      if (circuit.state !== 'half_open' || transition.fromState !== 'half_open' || transition.probeId !== probeId) {
+        throw new Error('Circuit probe transition mismatch');
+      }
+      const closes = verification?.verdict === 'passed' && !diagnosis;
+      if (closes !== (transition.toState === 'closed') || (!closes && transition.toState !== 'open')) {
+        throw new Error('Circuit probe outcome does not match transition');
+      }
+      if (verification && !this.db().prepare('SELECT id FROM verifications WHERE id=?').get(verification.id)) {
+        throw new Error('Circuit close requires a persisted normal Verification');
+      }
+      if (diagnosis && !this.db().prepare('SELECT id FROM failure_diagnoses WHERE id=?').get(diagnosis.id)) {
+        throw new Error('Circuit reopen requires a persisted diagnosis');
+      }
+      if (verification && (verification.taskId !== probe.taskId || verification.attemptId !== probe.attemptId)) {
+        throw new Error('Verification does not belong to the bound circuit probe Attempt');
+      }
+      if (diagnosis && (diagnosis.taskId !== probe.taskId || diagnosis.attemptId !== probe.attemptId)) {
+        throw new Error('Failure diagnosis does not belong to the bound circuit probe Attempt');
+      }
+      this.validateBoundProbeAttempt(probe);
+      const boundAttempt = this.db().prepare('SELECT status FROM attempts WHERE id=?').get(probe.attemptId) as Row;
+      if (verification && String(boundAttempt.status) !== 'succeeded') {
+        throw new Error('Circuit close requires a successful bound Attempt and passing Verification');
+      }
+      if (diagnosis && String(boundAttempt.status) !== 'failed') {
+        throw new Error('Circuit reopen requires a failed bound Attempt');
+      }
+      this.insertEvents(events);
+      this.db().prepare(`UPDATE circuit_probes SET status='consumed', consumed_at=?, verification_id=?, failure_diagnosis_id=?
+        WHERE id=? AND status='claimed'`).run(transition.occurredAt, verification?.id ?? null, diagnosis?.id ?? null, probeId);
+      if (closes) this.db().prepare(`UPDATE circuits SET state='closed',opened_at=NULL,cooldown_until=NULL,
+        version=version+1,updated_at=? WHERE id=?`).run(transition.occurredAt, circuit.id);
+      else this.db().prepare(`UPDATE circuits SET state='open',opened_at=?,cooldown_until=?,version=version+1,updated_at=? WHERE id=?`)
+        .run(transition.occurredAt,
+          new Date(Date.parse(transition.occurredAt) + circuit.cooldownMs).toISOString(), transition.occurredAt, circuit.id);
+      this.insertCircuitTransition(transition);
+      return this.getCircuitById(circuit.id);
+    });
+  }
+
+  getCircuits(): CircuitRecord[] {
+    return (this.db().prepare('SELECT * FROM circuits ORDER BY target_type,target_id').all() as Row[]).map((row) => this.mapCircuit(row));
+  }
+
+  getCircuitTransitions(circuitId: CircuitRecord['id']): CircuitTransition[] {
+    return (this.db().prepare('SELECT * FROM circuit_transitions WHERE circuit_id=? ORDER BY occurred_at,id').all(circuitId) as Row[])
+      .map((row) => this.mapCircuitTransition(row));
+  }
+
+  getCircuitEvidence(circuitId: CircuitRecord['id']): CircuitEvidence[] {
+    return (this.db().prepare('SELECT * FROM circuit_evidence WHERE circuit_id=? ORDER BY observed_at,id').all(circuitId) as Row[])
+      .map((row) => ({ id: String(row.id) as CircuitEvidence['id'], circuitId: String(row.circuit_id) as CircuitRecord['id'],
+        diagnosisId: String(row.diagnosis_id) as FailureDiagnosisId, observedAt: String(row.observed_at),
+        eventId: String(row.event_id) as CircuitEvidence['eventId'] }));
+  }
+
+  getCircuitProbes(circuitId: CircuitRecord['id']): CircuitProbe[] {
+    return (this.db().prepare('SELECT * FROM circuit_probes WHERE circuit_id=? ORDER BY authorized_at,id').all(circuitId) as Row[])
+      .map((row) => this.mapCircuitProbe(row));
+  }
+
+  private getCircuitByTarget(targetType: CircuitTargetType, targetId: string): CircuitRecord | undefined {
+    const row = this.db().prepare('SELECT * FROM circuits WHERE target_type=? AND target_id=?').get(targetType, targetId) as Row | undefined;
+    return row ? this.mapCircuit(row) : undefined;
+  }
+
+  private getCircuitById(id: CircuitRecord['id']): CircuitRecord {
+    const row = this.db().prepare('SELECT * FROM circuits WHERE id=?').get(id) as Row | undefined;
+    if (!row) throw new Error(`Circuit not found: ${id}`);
+    return this.mapCircuit(row);
+  }
+
+  private insertCircuitTransition(value: CircuitTransition): void {
+    this.db().prepare(`INSERT INTO circuit_transitions
+      (id,circuit_id,from_state,to_state,reason,diagnosis_id,verification_id,probe_id,occurred_at,event_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(value.id, value.circuitId, value.fromState, value.toState,
+      value.reason, value.diagnosisId ?? null, value.verificationId ?? null, value.probeId ?? null,
+      value.occurredAt, value.eventId);
+  }
+
+  private mapCircuit(row: Row): CircuitRecord {
+    return { id: String(row.id) as CircuitRecord['id'], targetType: String(row.target_type) as CircuitTargetType,
+      targetId: String(row.target_id), state: String(row.state) as CircuitRecord['state'], policyId: String(row.policy_id),
+      policyVersion: Number(row.policy_version), observationWindowMs: Number(row.observation_window_ms),
+      failureThreshold: Number(row.failure_threshold), cooldownMs: Number(row.cooldown_ms),
+      qualifyingCategories: parseArray(row.qualifying_categories_json) as Failure['category'][], openedAt: optionalString(row.opened_at),
+      cooldownUntil: optionalString(row.cooldown_until), version: Number(row.version), updatedAt: String(row.updated_at) };
+  }
+
+  private mapCircuitTransition(row: Row): CircuitTransition {
+    return { id: String(row.id) as CircuitTransition['id'], circuitId: String(row.circuit_id) as CircuitRecord['id'],
+      fromState: String(row.from_state) as CircuitTransition['fromState'], toState: String(row.to_state) as CircuitTransition['toState'],
+      reason: String(row.reason), diagnosisId: optionalString(row.diagnosis_id) as CircuitTransition['diagnosisId'],
+      verificationId: optionalString(row.verification_id) as CircuitTransition['verificationId'],
+      probeId: optionalString(row.probe_id) as CircuitTransition['probeId'], occurredAt: String(row.occurred_at),
+      eventId: String(row.event_id) as CircuitTransition['eventId'] };
+  }
+
+  private mapCircuitProbe(row: Row): CircuitProbe {
+    return { id: String(row.id) as CircuitProbe['id'], circuitId: String(row.circuit_id) as CircuitRecord['id'],
+      status: String(row.status) as CircuitProbe['status'], authorizedAt: String(row.authorized_at),
+      claimedAt: optionalString(row.claimed_at), consumedAt: optionalString(row.consumed_at),
+      taskId: optionalString(row.task_id) as CircuitProbe['taskId'], attemptId: optionalString(row.attempt_id) as CircuitProbe['attemptId'],
+      attemptNumber: row.attempt_number === null ? undefined : Number(row.attempt_number),
+      providerOfferingId: optionalString(row.provider_offering_id) as CircuitProbe['providerOfferingId'],
+      nodeId: optionalString(row.node_id) as CircuitProbe['nodeId'], locationId: optionalString(row.location_id) as CircuitProbe['locationId'],
+      providerResolutionId: optionalString(row.provider_resolution_id) as CircuitProbe['providerResolutionId'],
+      resourceSchedulingDecisionId: optionalString(row.resource_scheduling_decision_id) as CircuitProbe['resourceSchedulingDecisionId'],
+      verificationId: optionalString(row.verification_id) as CircuitProbe['verificationId'],
+      failureDiagnosisId: optionalString(row.failure_diagnosis_id) as CircuitProbe['failureDiagnosisId'],
+      eventId: String(row.event_id) as CircuitProbe['eventId'] };
+  }
+
+  private validateProbeTargetBinding(circuit: CircuitRecord, probe: CircuitProbe): void {
+    if (circuit.targetType === 'provider_offering' && probe.providerOfferingId !== circuit.targetId) {
+      throw new Error('Circuit probe offering binding does not match its target');
+    }
+    if (circuit.targetType === 'provider_offering' && !probe.providerResolutionId) {
+      throw new Error('Provider circuit probe requires an exact provider resolution decision');
+    }
+    if (circuit.targetType === 'node' && probe.nodeId !== circuit.targetId) {
+      throw new Error('Circuit probe Node binding does not match its target');
+    }
+    if (circuit.targetType === 'offering_location' && probe.locationId !== circuit.targetId) {
+      throw new Error('Circuit probe location binding does not match its target');
+    }
+    if (probe.providerResolutionId) {
+      const resolution = this.getProviderResolution(probe.providerResolutionId);
+      if (!resolution || resolution.selectedOfferingId !== probe.providerOfferingId ||
+          resolution.request.circuitProbeId !== probe.id) throw new Error('Circuit probe provider resolution binding is invalid');
+    }
+    if (probe.resourceSchedulingDecisionId) {
+      const resource = this.getResourceSchedulingDecision(probe.resourceSchedulingDecisionId);
+      if (!resource || resource.selectedNodeId !== probe.nodeId || resource.selectedLocationId !== probe.locationId ||
+          resource.request.circuitProbeId !== probe.id) throw new Error('Circuit probe resource decision binding is invalid');
+    }
+    if ((circuit.targetType === 'node' || circuit.targetType === 'offering_location') && !probe.resourceSchedulingDecisionId) {
+      throw new Error('Resource circuit probe requires an exact scheduling decision');
+    }
+  }
+
+  private validateClaimedCircuitProbe(id: CircuitProbe['id'], attempt: Attempt): void {
+    const row = this.db().prepare(`SELECT * FROM circuit_probes WHERE id=? AND status='claimed'`).get(id) as Row | undefined;
+    if (!row) throw new Error(`Circuit probe is not claimed: ${id}`);
+    const probe = this.mapCircuitProbe(row);
+    if (probe.taskId !== attempt.taskId || probe.attemptId !== attempt.id || probe.attemptNumber !== attempt.attemptNumber ||
+        probe.providerOfferingId !== attempt.providerOfferingId || (probe.nodeId && probe.nodeId !== attempt.computeNodeId)) {
+      throw new Error('Attempt does not match claimed circuit probe authority');
+    }
+  }
+
+  private validateBoundProbeAttempt(probe: CircuitProbe): void {
+    const attempt = this.db().prepare(`SELECT task_id,attempt_number,provider_offering_id,compute_node_id
+      FROM attempts WHERE id=?`).get(probe.attemptId) as Row | undefined;
+    if (!attempt || String(attempt.task_id) !== probe.taskId || Number(attempt.attempt_number) !== probe.attemptNumber ||
+        optionalString(attempt.provider_offering_id) !== probe.providerOfferingId ||
+        (probe.nodeId !== undefined && optionalString(attempt.compute_node_id) !== probe.nodeId)) {
+      throw new Error('Persisted Attempt does not match circuit probe binding');
+    }
+    if (probe.locationId) {
+      const lease = this.db().prepare(`SELECT l.id FROM resource_leases l JOIN resource_scheduling_decisions d ON d.id=l.decision_id
+        WHERE d.id=? AND l.location_id=? AND l.node_id=? AND l.offering_id=?`).get(probe.resourceSchedulingDecisionId,
+        probe.locationId, probe.nodeId, probe.providerOfferingId) as Row | undefined;
+      if (!lease) throw new Error('Circuit probe location lacks matching durable resource decision and lease');
+    }
   }
 
   private insertAlternativeRecoveryConsumption(decisionId: AlternativeRecoveryDecisionId, attempt: Attempt, consumedAt: string): void {

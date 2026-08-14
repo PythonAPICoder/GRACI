@@ -550,3 +550,16 @@ Implementation remains paused pending Product Owner and Architect review.
 - `proven_completed` resumes only through normal Verification; `proven_not_completed` persists even when budget or approval withholds execution authority; `remains_indeterminate` preserves the stop invariant.
 - Preserved Phase 1M alternatives, total Attempt limits, approvals, provider/resource gates, leases, Task isolation, Architecture 1 Electron authority, and deferred boundaries.
 - No dependency, package, configuration, UI, background polling, Planner, research, cancellation, or distributed-worker change was introduced.
+
+---
+
+## Architecture 2 Phase 1O - Scoped Circuit Breakers and Bound Probes - August 14, 2026
+
+- Started from accepted Phase 1N HEAD `8501c014ce54ac96898953f65dd37fcb5b3caf13`; this corrects the stale Phase 1M basis previously shown in the living documents.
+- Added independent provider-offering, Node, and offering-location circuits with `closed`, `open`, and `half_open` states and versioned deterministic threshold/window/cooldown policy.
+- Restricted evidence to current trusted Phase 1L `proven_unsuccessful` diagnoses with explicitly qualifying categories and exact target attribution.
+- Added schema migration 12 for circuit projections, immutable evidence/transitions, and durable active/claimed/consumed probe history.
+- Added stable provider/resource rejection explanations for open circuits and probe-required routes without changing health, qualification, Node administration, location enablement, workstation, or lease metadata.
+- Added one-at-a-time probe acquisition, exact route decision and Task/Attempt binding, atomic Attempt-start validation, passing-Verification-only close, and qualifying bound-failure reopen.
+- Preserved all Phase 1N unknown-outcome, no-blind-replay, approval, Attempt-limit, Verification, persistence, concurrency, and Electron-authority invariants.
+- No dependency, package, configuration, Architecture 1, UI, background polling, automatic probe scheduling, replay, replacement, research, cancellation, or distributed-worker change was introduced.

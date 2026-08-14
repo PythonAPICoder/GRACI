@@ -1,5 +1,32 @@
 # G.R.A.C.I. Phase 1 — Autonomous Recovery and Continuation
 
+## 2026-08-14 - Phase 1O Probe Authority and Verification Attribution Correction
+
+**Failure**
+
+- Independent review found that the initial half-open probe authorization was not consumable or bound to the exact routed Attempt, allowing authority to be represented without proving which execution used it.
+- Initial close handling also accepted Verification attribution too weakly and did not sufficiently prove that the passing Verification belonged to the probe-authorized Attempt.
+
+**Root Cause**
+
+- Probe authorization was modeled primarily as circuit-state permission rather than one-time durable execution authority.
+- Outcome validation checked the Verification result without a complete persisted chain from probe to provider/resource decision, Task, Attempt identity/number, offering, Node/location, and the Verification's Attempt.
+
+**Correction**
+
+- Added durable `active -> claimed -> consumed` probe status and atomic one-claim enforcement.
+- Bound claims to exact provider-resolution or resource-scheduling decisions and exact Task, Attempt, offering, Node, and location identities.
+- Added Attempt-start validation against the claimed probe and rejected route/probe reuse.
+- Required a persisted passing normal Verification for the exact successful bound Attempt to close; required a current qualifying Phase 1L diagnosis for the exact failed bound Attempt to reopen.
+
+**Regression Result**
+
+- Dedicated Phase 1O suite passed 11 tests, including single-use claim, exact Attempt binding, unrelated Verification rejection, qualifying reopen, schema-12 migration, and close/reopen reconstruction.
+- Relevant regressions passed 50 tests; full suite passed 208/208 across 18 files.
+- TypeScript validation, production build, and diff hygiene passed. Final Electron/runtime launch evidence remains pending and is not claimed.
+
+---
+
 ## 2026-08-14 - Phase 1N Reconciliation Corrections
 
 - The initial `proven_not_completed` schema constraint incorrectly required retry authorization even when the existing Attempt budget or approval gate withheld it.

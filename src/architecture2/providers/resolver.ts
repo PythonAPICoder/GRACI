@@ -3,6 +3,7 @@ import type {
   ProviderResolutionDecision, ProviderResolutionRequest, Qualification, ResolutionRejectionReason,
 } from '../domain/index.js';
 import type { Architecture2Persistence } from '../persistence/index.js';
+import { circuitRoutingState } from '../workflow/circuit-breaker.js';
 
 export interface ProviderResolverOptions {
   nextEvent: (decision: ProviderResolutionDecision) => AuditEventInput;
@@ -39,6 +40,13 @@ export class DeterministicProviderResolver {
 
   private evaluate(offering: ProviderOffering, request: ProviderResolutionRequest): ProviderResolutionCandidate {
     const reasons: ResolutionRejectionReason[] = [];
+    const circuit = this.persistence.getCircuits().find((value) =>
+      value.targetType === 'provider_offering' && value.targetId === offering.id);
+    const circuitState = circuitRoutingState(circuit, request.requestedAt);
+    if (circuitState === 'open') reasons.push('circuit_open');
+    if (circuitState === 'probe_required' && (!circuit || !request.circuitProbeId ||
+        !this.persistence.getCircuitProbes(circuit.id).some((probe) =>
+          probe.id === request.circuitProbeId && probe.status === 'active'))) reasons.push('circuit_probe_required');
     if (request.excludedOfferingIds?.includes(offering.id)) reasons.push('explicitly_excluded');
     if (offering.contractVersion !== request.contractVersion) reasons.push('contract_version_mismatch');
     if (!offering.privacyDestinations.includes(request.privacyClass)) reasons.push('privacy_destination_disallowed');

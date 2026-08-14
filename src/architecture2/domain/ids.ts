@@ -32,6 +32,10 @@ export type FailureDiagnosisId = Identifier<'FailureDiagnosis'>;
 export type ChangedConditionEvidenceId = Identifier<'ChangedConditionEvidence'>;
 export type AlternativeRecoveryDecisionId = Identifier<'AlternativeRecoveryDecision'>;
 export type ReconciliationDecisionId = Identifier<'ReconciliationDecision'>;
+export type CircuitId = Identifier<'Circuit'>;
+export type CircuitTransitionId = Identifier<'CircuitTransition'>;
+export type CircuitEvidenceId = Identifier<'CircuitEvidence'>;
+export type CircuitProbeId = Identifier<'CircuitProbe'>;
 
 const IDENTIFIER_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 
