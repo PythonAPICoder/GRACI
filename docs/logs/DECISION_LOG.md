@@ -1,5 +1,13 @@
 # G.R.A.C.I. Engineering Decision Log
 
+### DEC-0020 - Phase 1S Exact Research Support Linkage
+
+- **Date:** 2026-08-14
+- Extend the existing Phase 1P and Phase 1Q commands with an optional exact Research Evidence citation rather than creating parallel recovery commands.
+- Admit `research_recommended` only when the cited evidence has an accepted decision and the complete request/evidence/source chain is current and exact inside the action transaction.
+- Store one generic immutable schema-16 link with a closed action kind and exactly one recovery foreign key; make evidence globally unique so concurrent or cross-action reuse fails closed.
+- Preserve every normal action gate and every existing authority record; evidence supports but never independently executes or authorizes an action.
+
 ### DEC-0019 - Phase 1R Failure-Scoped Governed Research Records
 
 - **Date:** 2026-08-14

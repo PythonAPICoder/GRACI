@@ -917,9 +917,39 @@ const migration015: Migration = {
   },
 };
 
+const migration016: Migration = {
+  version: 16,
+  name: 'architecture_2_phase_1s_research_assisted_recovery',
+  up(database) {
+    database.exec(`
+      CREATE TABLE research_recovery_links (
+        recovery_kind TEXT NOT NULL CHECK (recovery_kind IN ('input_revision','replanning')),
+        input_revision_id TEXT UNIQUE REFERENCES input_revisions(id) ON DELETE RESTRICT,
+        replanning_decision_id TEXT UNIQUE REFERENCES replanning_decisions(id) ON DELETE RESTRICT,
+        request_id TEXT NOT NULL REFERENCES research_requests(id) ON DELETE RESTRICT,
+        evidence_id TEXT NOT NULL UNIQUE REFERENCES research_evidence(id) ON DELETE RESTRICT,
+        decision_id TEXT NOT NULL UNIQUE REFERENCES research_decisions(id) ON DELETE RESTRICT,
+        goal_id TEXT NOT NULL REFERENCES goals(id) ON DELETE RESTRICT,
+        task_id TEXT NOT NULL REFERENCES tasks(id) ON DELETE RESTRICT,
+        attempt_id TEXT NOT NULL REFERENCES attempts(id) ON DELETE RESTRICT,
+        failure_id TEXT NOT NULL REFERENCES failures(id) ON DELETE RESTRICT,
+        diagnosis_id TEXT NOT NULL REFERENCES failure_diagnoses(id) ON DELETE RESTRICT,
+        linked_at TEXT NOT NULL,
+        PRIMARY KEY (recovery_kind, evidence_id),
+        CHECK ((recovery_kind='input_revision' AND input_revision_id IS NOT NULL AND replanning_decision_id IS NULL)
+          OR (recovery_kind='replanning' AND input_revision_id IS NULL AND replanning_decision_id IS NOT NULL))
+      ) STRICT, WITHOUT ROWID;
+      CREATE TRIGGER research_recovery_links_no_update BEFORE UPDATE ON research_recovery_links
+        BEGIN SELECT RAISE(ABORT, 'research recovery links are immutable'); END;
+      CREATE TRIGGER research_recovery_links_no_delete BEFORE DELETE ON research_recovery_links
+        BEGIN SELECT RAISE(ABORT, 'research recovery links are immutable'); END;
+    `);
+  },
+};
+
 export const migrations: readonly Migration[] = [migration001, migration002, migration003, migration004, migration005,
   migration006, migration007, migration008, migration009, migration010, migration011, migration012, migration013,
-  migration014, migration015];
+  migration014, migration015, migration016];
 
 export function migrate(database: DatabaseSync): number {
   database.exec(`

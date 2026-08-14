@@ -25,6 +25,7 @@ import type {
   CircuitRecord, CircuitTransition, CircuitEvidence, CircuitProbe, CircuitBreakerPolicy, CircuitTargetType,
   InputRevision, InputRevisionId, ReplanningDecision, ReplanningDecisionId,
   ResearchRequest, ResearchRequestId, ResearchEvidence, ResearchEvidenceId, ResearchDecision, ResearchRequestInspection,
+  ResearchRecoveryLink,
 } from '../domain/index.js';
 
 export interface LegacyImportOperation {
@@ -162,12 +163,13 @@ export interface Architecture2Persistence extends Disposable {
   getReconciliationDecisions(diagnosisId: FailureDiagnosisId): ReconciliationDecision[];
   getPendingReconciliation(taskId: TaskId): ReconciliationDecision | undefined;
   authorizeInputRevision(value: InputRevision, task: Task, expectedTaskVersion: number,
-    event: AuditEventInput): InputRevision;
+    event: AuditEventInput, researchEvidenceId?: ResearchEvidenceId): InputRevision;
   getInputRevision(id: InputRevisionId): InputRevision | undefined;
   getInputRevisionByDiagnosis(diagnosisId: FailureDiagnosisId): InputRevision | undefined;
   getPendingInputRevision(taskId: TaskId): InputRevision | undefined;
   authorizeReplanning(value: ReplanningDecision, revision: TaskGraphRevision, tasks: readonly Task[],
-    dependencies: readonly TaskDependency[], expectedGoalVersion: number, events: readonly AuditEventInput[]): ReplanningDecision;
+    dependencies: readonly TaskDependency[], expectedGoalVersion: number, events: readonly AuditEventInput[],
+    researchEvidenceId?: ResearchEvidenceId): ReplanningDecision;
   getReplanningDecision(id: ReplanningDecisionId): ReplanningDecision | undefined;
   getReplanningDecisionByDiagnosis(diagnosisId: FailureDiagnosisId): ReplanningDecision | undefined;
   getReplanningDecisions(goalId: GoalId): ReplanningDecision[];
@@ -178,6 +180,8 @@ export interface Architecture2Persistence extends Disposable {
   getResearchEvidence(id: ResearchEvidenceId): ResearchEvidence | undefined;
   decideResearchEvidence(value: ResearchDecision, event: AuditEventInput): ResearchDecision;
   getAcceptedResearchEvidence(requestId: ResearchRequestId): ResearchEvidence[];
+  getResearchRecoveryLinkByInputRevision(id: InputRevisionId): ResearchRecoveryLink | undefined;
+  getResearchRecoveryLinkByReplanningDecision(id: ReplanningDecisionId): ResearchRecoveryLink | undefined;
   recordCircuitEvidence(targetType: CircuitTargetType, targetId: string, diagnosis: FailureDiagnosis,
     policy: CircuitBreakerPolicy, evidence: CircuitEvidence, transition: CircuitTransition | undefined,
     event: AuditEventInput): CircuitRecord;

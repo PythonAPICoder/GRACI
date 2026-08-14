@@ -1,5 +1,16 @@
 # G.R.A.C.I. Test Log
 
+### 2026-08-14 - Architecture 2 Phase 1S Research-Assisted Recovery
+
+- `npx.cmd vitest run tests/architecture2-research-assisted-recovery.test.ts`: PASS, 7/7.
+- Focused coverage includes accepted-evidence input revision and replanning, recorded/rejected/unrelated evidence rejection, no research-only mutation, Attempt-limit and approval preservation, exact replay and cross-action conflict, schema-15 populated migration, restart reconstruction, and persisted-attribution corruption diagnostics.
+- Research, input-revision, replanning, diagnosis, alternative-recovery, reconciliation, and circuit regression command: PASS, 69/69 across 8 files.
+- Persistence, runtime/import, Orchestrator, provider-resolution, and resource-scheduling regression command: PASS, 89/89 across 5 files.
+- Full `npm.cmd test`: PASS, 232/232 across 22 files. Expected mocked Ollama error-path log output was observed; no test failed.
+- `npm.cmd run validate`: PASS. `npm.cmd run build`: PASS; `dist/main.js`, `dist/preload.js`, and `dist/ui/index.html` verified.
+- Direct Electron smoke: PASS; process remained alive for five seconds, emitted `Electron app starting`, and produced empty stderr before controlled process-tree shutdown.
+- `git diff --check`: PASS.
+
 ### 2026-08-14 - Architecture 2 Phase 1R Governed Research Foundation
 
 - `npx.cmd vitest run tests/architecture2-research.test.ts`: PASS, 6/6.

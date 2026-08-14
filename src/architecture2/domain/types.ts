@@ -188,6 +188,21 @@ export interface ResearchRequestInspection {
   evidence: ReadonlyArray<{ evidence: ResearchEvidence; decision?: ResearchDecision }>;
 }
 
+export interface ResearchRecoveryLink {
+  recoveryKind: 'input_revision' | 'replanning';
+  inputRevisionId?: InputRevisionId;
+  replanningDecisionId?: ReplanningDecisionId;
+  requestId: ResearchRequestId;
+  evidenceId: ResearchEvidenceId;
+  decisionId: ResearchDecisionId;
+  goalId: GoalId;
+  taskId: TaskId;
+  attemptId: AttemptId;
+  failureId: FailureId;
+  diagnosisId: FailureDiagnosisId;
+  linkedAt: IsoTimestamp;
+}
+
 export type AttemptStatus = 'created' | 'running' | 'succeeded' | 'failed' | 'cancelled' | 'indeterminate';
 
 export interface Attempt {

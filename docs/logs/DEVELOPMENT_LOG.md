@@ -1,5 +1,12 @@
 # G.R.A.C.I. Phase 1 — Development Log
 
+## Architecture 2 Phase 1S - Research-Assisted Recovery - August 14, 2026
+
+- Added Addendum 024, schema 16, immutable generic research-recovery links, optional exact evidence citations on existing input-revision/replanning commands, persistence inspection, and runtime inspection wrappers.
+- Action transactions now revalidate the accepted Research Decision and exact current request/evidence/Goal/Task/Attempt/Failure/diagnosis chain under `BEGIN IMMEDIATE`; one evidence may support at most one recovery action.
+- Non-research Phase 1P/1Q behavior and all normal Attempt, approval, current-state, graph, conflict, mutation, and Verification gates remain unchanged. Unknown remains stopped.
+- Final verification passed: 7/7 Phase 1S tests, 69/69 research/recovery regressions, 89/89 persistence/runtime/orchestration regressions, 232/232 full tests, TypeScript validation, production build, schema-16 migration/reopen, corruption diagnostics, Electron startup, and diff hygiene.
+
 ## Architecture 2 Phase 1R - Governed Research Foundation - August 14, 2026
 
 - Added Addendum 023, schema 15, branded research identifiers and records, immutable request/evidence/decision persistence, derived lifecycle inspection, and explicit runtime APIs.

@@ -1,5 +1,6 @@
 import { assertIdentifier, type AuditEventInput, type ReplanningDecision, type Task,
   type TaskDependency, type TaskGraphRevision } from '../domain/index.js';
+import type { ResearchEvidenceId } from '../domain/index.js';
 import type { Architecture2Persistence } from '../persistence/index.js';
 import { PHASE_1L_DIAGNOSIS_POLICY_ID, PHASE_1L_DIAGNOSIS_POLICY_VERSION } from './failure-diagnoser.js';
 import { validateTaskGraph } from './task-graph-validator.js';
@@ -15,12 +16,14 @@ export interface AuthorizeReplanningCommand {
   actor: string;
   authorizedAt: string;
   eventIds: readonly ReplanningDecision['eventId'][];
+  researchEvidenceId?: ResearchEvidenceId;
 }
 
 export function authorizeReplanning(persistence: Architecture2Persistence,
   command: AuthorizeReplanningCommand): ReplanningDecision {
   assertIdentifier(command.id, 'replanning decision id');
   assertIdentifier(command.diagnosisId, 'failure diagnosis id');
+  if (command.researchEvidenceId) assertIdentifier(command.researchEvidenceId, 'research evidence id');
   if (!command.reason.trim() || !command.actor.trim()) throw new Error('Replanning reason and actor are required');
   const time = new Date(command.authorizedAt);
   if (Number.isNaN(time.valueOf()) || time.toISOString() !== command.authorizedAt) {
@@ -28,7 +31,9 @@ export function authorizeReplanning(persistence: Architecture2Persistence,
   }
   const existing = persistence.getReplanningDecisionByDiagnosis(command.diagnosisId);
   if (existing) {
-    if (existing.id !== command.id || existing.replacementGraphRevisionId !== command.revision.id) {
+    const link = persistence.getResearchRecoveryLinkByReplanningDecision(existing.id);
+    if (existing.id !== command.id || existing.replacementGraphRevisionId !== command.revision.id ||
+        link?.evidenceId !== command.researchEvidenceId || (!link && command.researchEvidenceId)) {
       throw new Error(`Replanning authority conflict: ${command.diagnosisId}`);
     }
     return existing;
@@ -37,11 +42,15 @@ export function authorizeReplanning(persistence: Architecture2Persistence,
   const diagnosis = persistence.getFailureDiagnosisById(command.diagnosisId);
   if (!diagnosis || diagnosis.policyId !== PHASE_1L_DIAGNOSIS_POLICY_ID ||
       diagnosis.policyVersion !== PHASE_1L_DIAGNOSIS_POLICY_VERSION ||
-      diagnosis.disposition !== 'replanning_recommended' || diagnosis.outcomeCertainty !== 'proven_unsuccessful') {
+       diagnosis.disposition !== (command.researchEvidenceId ? 'research_recommended' : 'replanning_recommended') ||
+       diagnosis.outcomeCertainty !== 'proven_unsuccessful') {
     throw new Error('Replanning source authority is stale, contradictory, or ineligible');
   }
   const sourceTask = persistence.getTask(diagnosis.taskId);
   if (!sourceTask) throw new Error(`Replanning source Task not found: ${diagnosis.taskId}`);
+  if (persistence.getFailure(diagnosis.failureId)?.code !== 'TASK_GRAPH_STRUCTURE_INVALID') {
+    throw new Error('Replanning requires TASK_GRAPH_STRUCTURE_INVALID source authority');
+  }
   const goal = persistence.getGoal(sourceTask.goalId)?.goal;
   if (!goal || goal.activeGraphRevisionId !== sourceTask.graphRevisionId) {
     throw new Error('Replanning source graph is not authoritative');
@@ -57,5 +66,6 @@ export function authorizeReplanning(persistence: Architecture2Persistence,
     aggregateId: goal.id, eventType: index === 0 ? 'graph-revision.activated' : 'graph-revision.structure',
     eventVersion: 1, actor: command.actor, occurredAt: command.authorizedAt,
     payload: { replanningDecisionId: value.id, replacementGraphRevisionId: command.revision.id, index } }));
-  return persistence.authorizeReplanning(value, command.revision, command.tasks, command.dependencies, goal.version, events);
+  return persistence.authorizeReplanning(value, command.revision, command.tasks, command.dependencies, goal.version, events,
+    command.researchEvidenceId);
 }

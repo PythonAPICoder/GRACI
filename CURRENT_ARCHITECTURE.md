@@ -2,9 +2,9 @@
 
 > **Living document:** Update this file whenever Architecture 2 module boundaries, lifecycle behavior, persistence authority, runtime composition, or intentionally deferred capabilities change. This is an implementation map, not immutable governance. The master specification and numbered addenda under `docs/governance/` remain authoritative.
 
-**Architecture represented:** Current Phase 1R governed research foundation
+**Architecture represented:** Current Phase 1S research-assisted recovery
 
-**Implementation working tree starting basis:** clean main repository HEAD `eca3e04`
+**Implementation working tree starting basis:** clean main repository HEAD `8201eb8`
 
 ## System Shape
 
@@ -63,7 +63,7 @@ SQLite is G.R.A.C.I.'s notebook. The assistant does not rely on remembering what
 
 `SqliteArchitecture2Persistence` is the current authoritative store behind `Architecture2Persistence`. Callers supply the database path. The implementation uses built-in `node:sqlite`, foreign keys, strict tables, WAL mode, `synchronous = FULL`, a busy timeout, and `BEGIN IMMEDIATE` write transactions.
 
-Current schema version is 15. Phase 1R adds immutable Research Requests, Research Evidence, and final Research Decisions while retaining all earlier workflow and recovery history.
+Current schema version is 16. Phase 1S adds immutable one-use research recovery links from accepted evidence to an exact Input Revision or Replanning Decision while retaining all earlier authority records unchanged.
 
 Important invariants include:
 
@@ -77,7 +77,8 @@ Important invariants include:
 - Resource-aware workflow scheduling atomically writes the Task transition, scheduling decision, lease, and Events.
 - New Orchestrator Failures atomically write their diagnosis, disposition, Task transition, and Events.
 - Diagnosis and changed-condition records are append-only and survive close/reopen reconstruction.
-- Research lifecycle is derived from immutable request, evidence, and decision records; accepted evidence is information only and has no consumption or execution authority.
+- Research lifecycle is derived from immutable request, evidence, and decision records; accepted evidence remains information rather than independent authority, with Phase 1S permitting only an explicit one-use citation on the existing governed input-revision or replanning command.
+- Accepted research evidence becomes relevant only when explicitly cited by an existing input-revision or replanning command; exact chain validation and linkage insertion occur in that action's `BEGIN IMMEDIATE` transaction.
 - Reconciliation history is immutable, source-attributed, idempotent, and reconstructed with its lifecycle and consumption relationships.
 - Circuit transitions and evidence are immutable; probe claim and consumption are transactional and bound to exact routing and Attempt identities.
 - Input revisions preserve prior Attempt snapshots, change only canonical Task inputs and lifecycle metadata, and are consumed atomically by one exact next Attempt.
@@ -342,7 +343,7 @@ Major deferred capabilities include:
 - Distributed locks, multiple Orchestrators, remote workers, and high availability.
 - Dynamic load balancing, dynamic concurrency, speculative execution, and priority displacement.
 - Automatic discovery, polling, monitoring, and scheduler-triggered workstation policy.
-- Research-provider execution, web/model research, evidence consumption, automatic recovery, and recovery dispositions beyond the separately governed existing paths.
+- Research-provider execution, web/model research, evidence consumption beyond the explicit Phase 1S input-revision/replanning citation, automatic recovery, and recovery dispositions beyond the separately governed existing paths.
 - Purpose-specific memory and retrieval.
 - Broad tool, agent, cloud, productivity, voice, media, notification, and UI integration.
 - Architecture 2 Electron authority cutover and production hardening.

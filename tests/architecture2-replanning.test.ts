@@ -89,7 +89,7 @@ describe('Architecture 2 Phase 1Q governed replanning', () => {
     expect(persistence.getTaskGraphRevisions(source.goal.id)).toHaveLength(2);
     expect(() => replan(source)).not.toThrow();
     persistence.close(); persistence = new SqliteArchitecture2Persistence({ databasePath: path }); persistence.initialize();
-    expect(persistence.getSchemaVersion()).toBe(15);
+    expect(persistence.getSchemaVersion()).toBe(16);
     expect(persistence.getReplanningDecision(decision.id)).toEqual(decision);
     expect(persistence.getTaskGraphRevisions(source.goal.id)).toHaveLength(2);
   });

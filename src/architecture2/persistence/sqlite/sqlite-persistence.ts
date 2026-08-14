@@ -31,6 +31,7 @@ import type {
   CircuitRecord, CircuitTransition, CircuitEvidence, CircuitProbe, CircuitBreakerPolicy, CircuitTargetType,
   InputRevision, InputRevisionId, ReplanningDecision, ReplanningDecisionId,
   ResearchRequest, ResearchRequestId, ResearchEvidence, ResearchEvidenceId, ResearchDecision, ResearchRequestInspection,
+  ResearchRecoveryLink,
 } from '../../domain/index.js';
 import { assertIdentifier } from '../../domain/index.js';
 import type {
@@ -1082,7 +1083,7 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
   }
 
   authorizeInputRevision(value: InputRevision, task: Task, expectedTaskVersion: number,
-    event: AuditEventInput): InputRevision {
+    event: AuditEventInput, researchEvidenceId?: ResearchEvidenceId): InputRevision {
     return this.transaction(() => {
       assertIdentifier(value.id, 'input revision id');
       assertIdentifier(value.taskId, 'input revision task id');
@@ -1100,7 +1101,9 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
         .get(value.diagnosisId) as Row | undefined;
       if (existing) {
         const mapped = this.mapInputRevision(existing);
-        if (canonicalize(mapped) !== canonicalize(value)) {
+        const link = this.getResearchRecoveryLinkByInputRevision(mapped.id);
+        if (canonicalize(mapped) !== canonicalize(value) || link?.evidenceId !== researchEvidenceId ||
+            (!link && researchEvidenceId)) {
           throw new Error(`Input revision authority conflict: ${value.diagnosisId}`);
         }
         return mapped;
@@ -1117,6 +1120,9 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
         WHERE failure_id=? AND policy_id='architecture2.phase1l.deterministic' AND policy_version=1`)
         .get(latestFailure.id) as Row | undefined : undefined;
       const authority = authorityRow ? this.mapFailureDiagnosis(authorityRow) : undefined;
+      const researchLink = researchEvidenceId && authority && persistedTask && latestAttempt && latestFailure
+        ? this.validateResearchRecoveryEvidence(researchEvidenceId, persistedTask.goalId, value.taskId,
+          latestAttempt.id, latestFailure.id, authority.id) : undefined;
       const conflicting = this.db().prepare(`SELECT 1 AS found FROM alternative_recovery_decisions WHERE diagnosis_id=?
         UNION ALL SELECT 1 FROM reconciliation_decisions WHERE diagnosis_id=? LIMIT 1`)
         .get(value.diagnosisId, value.diagnosisId) as Row | undefined;
@@ -1134,7 +1140,8 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
       if (!persistedTask || !latestAttempt || !latestFailure || !authority || authority.id !== value.diagnosisId ||
           authority.taskId !== value.taskId || authority.failureId !== value.failureId || authority.attemptId !== value.failedAttemptId ||
           latestAttempt.id !== value.failedAttemptId || latestFailure.id !== value.failureId ||
-          authority.disposition !== 'input_revision_required' || authority.outcomeCertainty !== 'proven_unsuccessful' ||
+          authority.disposition !== (researchEvidenceId ? 'research_recommended' : 'input_revision_required') ||
+          authority.outcomeCertainty !== 'proven_unsuccessful' ||
           authority.policyId !== 'architecture2.phase1l.deterministic' || authority.policyVersion !== 1 ||
           persistedTask.status !== 'failed' || latestAttempt.status !== 'failed' || conflicting || requestedApproval ||
           attemptCount >= maximumAttempts || value.nextAttemptNumber !== latestAttempt.attemptNumber + 1 ||
@@ -1161,6 +1168,8 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
           json(value.revisedInputs), value.revisedInputsDigest, value.nextAttemptNumber, value.actor,
           value.authorizedAt, value.eventId);
       this.updateTaskInputsRow(task, expectedTaskVersion);
+      if (researchLink) this.insertResearchRecoveryLink('input_revision', value.id, undefined, researchLink,
+        value.authorizedAt);
       return value;
     });
   }
@@ -1186,7 +1195,7 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
 
   authorizeReplanning(value: ReplanningDecision, revision: TaskGraphRevision, tasks: readonly Task[],
     dependencies: readonly TaskDependency[], expectedGoalVersion: number,
-    events: readonly AuditEventInput[]): ReplanningDecision {
+    events: readonly AuditEventInput[], researchEvidenceId?: ResearchEvidenceId): ReplanningDecision {
     this.validateTaskGraphRevision(revision);
     for (const task of tasks) this.validateTask(task);
     for (const dependency of dependencies) validateTimestamp(dependency.createdAt, 'task dependency timestamp');
@@ -1196,7 +1205,9 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
         .get(value.diagnosisId) as Row | undefined;
       if (existing) {
         const mapped = this.mapReplanningDecision(existing);
-        if (mapped.id !== value.id || mapped.replacementGraphRevisionId !== value.replacementGraphRevisionId) {
+        const link = this.getResearchRecoveryLinkByReplanningDecision(mapped.id);
+        if (mapped.id !== value.id || mapped.replacementGraphRevisionId !== value.replacementGraphRevisionId ||
+            link?.evidenceId !== researchEvidenceId || (!link && researchEvidenceId)) {
           throw new Error(`Replanning authority conflict: ${value.diagnosisId}`);
         }
         return mapped;
@@ -1215,14 +1226,20 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
         UNION ALL SELECT 1 FROM reconciliation_decisions WHERE diagnosis_id=?
         UNION ALL SELECT 1 FROM input_revisions WHERE diagnosis_id=? LIMIT 1`)
         .get(value.diagnosisId, value.diagnosisId, value.diagnosisId) as Row | undefined;
+      const mappedLatestAttempt = latestAttempt ? this.mapAttempt(latestAttempt) : undefined;
+      const mappedLatestFailure = latestFailure ? this.mapFailure(latestFailure) : undefined;
+      const researchLink = researchEvidenceId && diagnosis && sourceTask && mappedLatestAttempt && mappedLatestFailure
+        ? this.validateResearchRecoveryEvidence(researchEvidenceId, value.goalId, sourceTask.id,
+          mappedLatestAttempt.id, mappedLatestFailure.id, diagnosis.id) : undefined;
       if (!goal || goal.version !== expectedGoalVersion || goal.activeGraphRevisionId !== value.sourceGraphRevisionId ||
           revision.goalId !== goal.id || revision.id !== value.replacementGraphRevisionId ||
           revision.revision !== Math.max(...this.getTaskGraphRevisions(goal.id).map((item) => item.revision)) + 1 ||
           !diagnosis || diagnosis.id !== value.diagnosisId || diagnosis.failureId !== value.failureId ||
-          diagnosis.taskId !== value.sourceTaskId || diagnosis.disposition !== 'replanning_recommended' ||
+          diagnosis.taskId !== value.sourceTaskId ||
+          diagnosis.disposition !== (researchEvidenceId ? 'research_recommended' : 'replanning_recommended') ||
           diagnosis.outcomeCertainty !== 'proven_unsuccessful' || diagnosis.policyId !== 'architecture2.phase1l.deterministic' ||
           diagnosis.policyVersion !== 1 || sourceTask?.graphRevisionId !== value.sourceGraphRevisionId ||
-          String(latestFailure?.id) !== value.failureId || conflicts) {
+          String(latestFailure?.id) !== value.failureId || String(latestFailure?.code) !== 'TASK_GRAPH_STRUCTURE_INVALID' || conflicts) {
         throw new Error('Replanning authority is no longer current');
       }
       const oldTasks = new Map(this.getTasks(value.sourceGraphRevisionId).map((task) => [task.id, task]));
@@ -1265,6 +1282,8 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
         WHERE id=? AND version=? AND active_graph_revision_id=?`).run(revision.id, value.authorizedAt, goal.id,
           expectedGoalVersion, value.sourceGraphRevisionId);
       if (Number(result.changes) !== 1) throw new Error(`Goal concurrency conflict: ${goal.id}`);
+      if (researchLink) this.insertResearchRecoveryLink('replanning', undefined, value.id, researchLink,
+        value.authorizedAt);
       return value;
     });
   }
@@ -1282,6 +1301,16 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
   getReplanningDecisions(goalId: GoalId): ReplanningDecision[] {
     return (this.db().prepare('SELECT * FROM replanning_decisions WHERE goal_id=? ORDER BY authorized_at,id')
       .all(goalId) as Row[]).map((row) => this.mapReplanningDecision(row));
+  }
+
+  getResearchRecoveryLinkByInputRevision(id: InputRevisionId): ResearchRecoveryLink | undefined {
+    const row = this.db().prepare('SELECT * FROM research_recovery_links WHERE input_revision_id=?').get(id) as Row | undefined;
+    return row ? this.mapResearchRecoveryLink(row, true) : undefined;
+  }
+
+  getResearchRecoveryLinkByReplanningDecision(id: ReplanningDecisionId): ResearchRecoveryLink | undefined {
+    const row = this.db().prepare('SELECT * FROM research_recovery_links WHERE replanning_decision_id=?').get(id) as Row | undefined;
+    return row ? this.mapResearchRecoveryLink(row, true) : undefined;
   }
 
   createResearchRequest(value: ResearchRequest, event: AuditEventInput): ResearchRequest {
@@ -2351,6 +2380,66 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
     if (!value.question.trim() || value.question.length > 4000 || !value.purpose.trim() || value.purpose.length > 2000 ||
         !value.requestedBy.trim() || value.requestedBy.length > 256) throw new Error('Research request fields are missing or exceed bounds');
     if (new Date(value.requestedAt).toISOString() !== value.requestedAt) throw new Error('Research request time must be canonical UTC');
+  }
+
+  private validateResearchRecoveryEvidence(evidenceId: ResearchEvidenceId, goalId: GoalId, taskId: TaskId,
+    attemptId: Attempt['id'], failureId: FailureId, diagnosisId: FailureDiagnosisId): Pick<ResearchRecoveryLink,
+      'requestId' | 'evidenceId' | 'decisionId' | 'goalId' | 'taskId' | 'attemptId' | 'failureId' | 'diagnosisId'> {
+    const used = this.db().prepare('SELECT 1 AS found FROM research_recovery_links WHERE evidence_id=? LIMIT 1')
+      .get(evidenceId) as Row | undefined;
+    if (used) throw new Error(`Research evidence already supports a recovery action: ${evidenceId}`);
+    const row = this.db().prepare(`SELECT r.id request_id,r.goal_id,r.task_id,r.attempt_id,r.failure_id,r.diagnosis_id,
+      e.id evidence_id,d.id decision_id,d.decision FROM research_evidence e
+      JOIN research_requests r ON r.id=e.request_id JOIN research_decisions d ON d.evidence_id=e.id WHERE e.id=?`)
+      .get(evidenceId) as Row | undefined;
+    if (!row || row.decision !== 'accepted' || row.goal_id !== goalId || row.task_id !== taskId ||
+        row.attempt_id !== attemptId || row.failure_id !== failureId || row.diagnosis_id !== diagnosisId) {
+      throw new Error('Research evidence is not an accepted exact source authority for this recovery action');
+    }
+    return { requestId: String(row.request_id) as ResearchRequestId, evidenceId,
+      decisionId: String(row.decision_id) as ResearchDecision['id'], goalId, taskId, attemptId, failureId, diagnosisId };
+  }
+
+  private insertResearchRecoveryLink(recoveryKind: ResearchRecoveryLink['recoveryKind'],
+    inputRevisionId: InputRevisionId | undefined, replanningDecisionId: ReplanningDecisionId | undefined,
+    source: Pick<ResearchRecoveryLink, 'requestId' | 'evidenceId' | 'decisionId' | 'goalId' | 'taskId' |
+      'attemptId' | 'failureId' | 'diagnosisId'>, linkedAt: string): void {
+    this.db().prepare(`INSERT INTO research_recovery_links
+      (recovery_kind,input_revision_id,replanning_decision_id,request_id,evidence_id,decision_id,goal_id,task_id,
+       attempt_id,failure_id,diagnosis_id,linked_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`).run(recoveryKind,
+      inputRevisionId ?? null, replanningDecisionId ?? null, source.requestId, source.evidenceId, source.decisionId,
+      source.goalId, source.taskId, source.attemptId, source.failureId, source.diagnosisId, linkedAt);
+  }
+
+  private mapResearchRecoveryLink(row: Row, validateRelationship = false): ResearchRecoveryLink {
+    const recoveryKind = String(row.recovery_kind) as ResearchRecoveryLink['recoveryKind'];
+    const value: ResearchRecoveryLink = { recoveryKind,
+      inputRevisionId: row.input_revision_id === null ? undefined : String(row.input_revision_id) as InputRevisionId,
+      replanningDecisionId: row.replanning_decision_id === null ? undefined : String(row.replanning_decision_id) as ReplanningDecisionId,
+      requestId: String(row.request_id) as ResearchRequestId, evidenceId: String(row.evidence_id) as ResearchEvidenceId,
+      decisionId: String(row.decision_id) as ResearchDecision['id'], goalId: String(row.goal_id) as GoalId,
+      taskId: String(row.task_id) as TaskId, attemptId: String(row.attempt_id) as Attempt['id'],
+      failureId: String(row.failure_id) as FailureId, diagnosisId: String(row.diagnosis_id) as FailureDiagnosisId,
+      linkedAt: String(row.linked_at) };
+    const corresponding = recoveryKind === 'input_revision' ? Boolean(value.inputRevisionId) && !value.replanningDecisionId
+      : recoveryKind === 'replanning' ? Boolean(value.replanningDecisionId) && !value.inputRevisionId : false;
+    if (!corresponding) throw new Error(`Corrupt persisted Research Recovery Link: ${value.evidenceId}`);
+    for (const [id, label] of [[value.requestId, 'request'], [value.evidenceId, 'evidence'], [value.decisionId, 'decision'],
+      [value.goalId, 'goal'], [value.taskId, 'task'], [value.attemptId, 'attempt'], [value.failureId, 'failure'],
+      [value.diagnosisId, 'diagnosis']] as const) assertIdentifier(id, `research recovery ${label} id`);
+    try { validateTimestamp(value.linkedAt, 'research recovery link timestamp'); } catch (error) {
+      throw new Error(`Corrupt persisted Research Recovery Link: ${value.evidenceId}`, { cause: error });
+    }
+    if (validateRelationship) {
+      const relationship = this.db().prepare(`SELECT 1 AS valid FROM research_requests r
+        JOIN research_evidence e ON e.request_id=r.id
+        JOIN research_decisions d ON d.evidence_id=e.id AND d.decision='accepted'
+        WHERE r.id=? AND e.id=? AND d.id=? AND r.goal_id=? AND r.task_id=? AND r.attempt_id=?
+          AND r.failure_id=? AND r.diagnosis_id=?`).get(value.requestId, value.evidenceId, value.decisionId,
+          value.goalId, value.taskId, value.attemptId, value.failureId, value.diagnosisId) as Row | undefined;
+      if (!relationship) throw new Error(`Corrupt persisted Research Recovery Link: ${value.evidenceId}`);
+    }
+    return value;
   }
 
   private validateResearchEvidence(value: ResearchEvidence): void {

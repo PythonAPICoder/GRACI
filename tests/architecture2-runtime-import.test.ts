@@ -129,7 +129,7 @@ describe('Architecture 2 Phase 1E runtime and legacy import', () => {
   it('bootstraps a real SQLite runtime, imports, closes, reopens, and reconstructs durable history', () => {
     write({ tasks: { one: { id: 'one', type: 'legacy-work', status: 'failed', createdAt: 1, errorMessage: 'legacy failure' } } });
     runtime = bootstrap();
-    expect(runtime.persistence.getSchemaVersion()).toBe(15);
+    expect(runtime.persistence.getSchemaVersion()).toBe(16);
     const imported = runtime.importLegacy(legacyPath, { operationId: 'legacy-import-reopen', importedAt: IMPORTED_AT });
     runtime.close();
     runtime = bootstrap();
