@@ -252,6 +252,20 @@ export interface MemoryInspection {
   history: readonly MemoryRecord[];
 }
 
+export const MAX_MEMORY_CITATIONS_PER_DECISION = 16;
+
+export type MemoryDecisionKind = 'input_revision' | 'replanning';
+
+export interface MemoryDecisionLink {
+  kind: MemoryDecisionKind;
+  inputRevisionId?: InputRevisionId;
+  replanningDecisionId?: ReplanningDecisionId;
+  memoryId: MemoryId;
+  goalId: GoalId;
+  taskId: TaskId;
+  citedAt: IsoTimestamp;
+}
+
 export type AttemptStatus = 'created' | 'running' | 'succeeded' | 'failed' | 'cancelled' | 'indeterminate';
 
 export interface Attempt {

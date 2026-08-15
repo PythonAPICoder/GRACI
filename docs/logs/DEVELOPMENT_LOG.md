@@ -1,5 +1,16 @@
 # G.R.A.C.I. Phase 1 — Development Log
 
+## Architecture 2 Phase 1V - Governed Memory-Assisted Decision Support - August 15, 2026
+
+- Started from accepted Phase 1U HEAD `230786a5`; added Addendum 027 and registered it in governance precedence.
+- Added schema migration 19 (`memory_decision_links`) with immutable mutation/deletion triggers, foreign keys to decisions/memory/Goals/Tasks, a per-decision uniqueness constraint, and CHECK kind/column consistency.
+- Added optional `memoryIds` to governed input-revision and replanning authorization commands, deterministic normalization (identifier checks, duplicate rejection, ascending sort, `MAX_MEMORY_CITATIONS_PER_DECISION = 16`), and citation validation (present, unsuperseded, unexpired, trusted, Goal-scoped or permission-bearing reusable).
+- Added durable immutable provenance recording, transactional atomicity, idempotent existing-branch replay, and close/reopen reconstruction; later supersession/expiry never alters completed history.
+- Memory stays information-only: it never authorizes a decision, changes disposition/retryability/outcome certainty, bypasses approval or Verification, or causes Task/Attempt state transitions; absence never blocks a valid decision.
+- Both `researchEvidenceId` (Phase 1S) and `memoryIds` (Phase 1V) may coexist and are independently validated and inspected; memory never substitutes for research.
+- Added runtime `inspectInputRevisionMemorySupport` and `inspectReplanningMemorySupport` inspection APIs; corrected 5 migration-rewind fixtures to drop the new table.
+- Final verification passed: 18/18 focused Phase 1V tests, 264/264 full tests, TypeScript validation, production build, schema-19 migration/reopen, Electron startup smoke, and diff hygiene.
+
 ## Architecture 2 Phase 1U - Durable Working Memory Foundation - August 14, 2026
 
 - Added Addendum 026, schema 18, immutable memory domain/persistence records, caller-invoked workflow/runtime APIs, and focused tests.

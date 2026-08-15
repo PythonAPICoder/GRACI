@@ -1018,9 +1018,38 @@ const migration018: Migration = {
   },
 };
 
+const migration019: Migration = {
+  version: 19,
+  name: 'architecture_2_phase_1v_governed_memory_assisted_decision_support',
+  up(database) {
+    database.exec(`
+      CREATE TABLE memory_decision_links (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        kind TEXT NOT NULL CHECK (kind IN ('input_revision','replanning')),
+        input_revision_id TEXT REFERENCES input_revisions(id) ON DELETE RESTRICT,
+        replanning_decision_id TEXT REFERENCES replanning_decisions(id) ON DELETE RESTRICT,
+        memory_id TEXT NOT NULL REFERENCES memory_records(id) ON DELETE RESTRICT,
+        goal_id TEXT NOT NULL REFERENCES goals(id) ON DELETE RESTRICT,
+        task_id TEXT NOT NULL REFERENCES tasks(id) ON DELETE RESTRICT,
+        cited_at TEXT NOT NULL,
+        CHECK ((kind='input_revision' AND input_revision_id IS NOT NULL AND replanning_decision_id IS NULL)
+          OR (kind='replanning' AND replanning_decision_id IS NOT NULL AND input_revision_id IS NULL))
+      ) STRICT;
+      CREATE UNIQUE INDEX idx_memory_decision_links_unique
+        ON memory_decision_links(kind, input_revision_id, replanning_decision_id, memory_id);
+      CREATE INDEX idx_memory_decision_links_input ON memory_decision_links(input_revision_id, memory_id);
+      CREATE INDEX idx_memory_decision_links_replanning ON memory_decision_links(replanning_decision_id, memory_id);
+      CREATE TRIGGER memory_decision_links_no_update BEFORE UPDATE ON memory_decision_links
+        BEGIN SELECT RAISE(ABORT, 'memory decision links are immutable'); END;
+      CREATE TRIGGER memory_decision_links_no_delete BEFORE DELETE ON memory_decision_links
+        BEGIN SELECT RAISE(ABORT, 'memory decision links are immutable'); END;
+    `);
+  },
+};
+
 export const migrations: readonly Migration[] = [migration001, migration002, migration003, migration004, migration005,
   migration006, migration007, migration008, migration009, migration010, migration011, migration012, migration013,
-  migration014, migration015, migration016, migration017, migration018];
+  migration014, migration015, migration016, migration017, migration018, migration019];
 
 export function migrate(database: DatabaseSync): number {
   database.exec(`

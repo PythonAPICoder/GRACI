@@ -1,5 +1,12 @@
 # G.R.A.C.I. Test Log
 
+### 2026-08-15 - Architecture 2 Phase 1V Governed Memory-Assisted Decision Support
+
+- Focused Phase 1V suite: PASS, 18/18. Coverage includes valid/no-citation input revision and replanning, durable provenance across close/reopen, deterministic ordering and deduplication, wrong-Goal and reusable-permission scope, supersession, expiry, trust, transactional atomicity, later-supersession history stability, no-authorization-change, Phase 1S coexistence/non-substitution, and schema-19 migration from populated schema 18 without fabricated citations.
+- All prior Architecture 2 regressions remain green after adding Phase 1V (including 7/7 Phase 1U memory, 29/29 research/input migration, and 155/155 broader recovery).
+- `npm.cmd test`: PASS, 264/264 across 25 files. `npm.cmd run validate`: PASS. `npm.cmd run build`: PASS with all three expected artifacts.
+- Direct Electron smoke: PASS; alive, `Electron app starting` present, empty stderr, then controlled process-tree shutdown. `git diff --check`: PASS.
+
 ### 2026-08-14 - Architecture 2 Phase 1U Durable Working Memory Foundation
 
 - Focused Phase 1U suite: PASS, 7/7. TypeScript validation and initial diff hygiene: PASS.

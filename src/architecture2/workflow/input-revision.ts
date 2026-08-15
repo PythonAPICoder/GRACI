@@ -1,8 +1,9 @@
 import { createHash } from 'node:crypto';
 import { assertIdentifier, type AuditEventInput, type InputRevision, type JsonObject,
-  type ResearchEvidenceId } from '../domain/index.js';
+  type MemoryId, type ResearchEvidenceId } from '../domain/index.js';
 import type { Architecture2Persistence } from '../persistence/index.js';
 import { PHASE_1L_DIAGNOSIS_POLICY_ID, PHASE_1L_DIAGNOSIS_POLICY_VERSION } from './failure-diagnoser.js';
+import { normalizeMemoryCitations } from './memory.js';
 
 export interface AuthorizeInputRevisionCommand {
   id: InputRevision['id'];
@@ -12,6 +13,7 @@ export interface AuthorizeInputRevisionCommand {
   authorizedAt: string;
   eventId: InputRevision['eventId'];
   researchEvidenceId?: ResearchEvidenceId;
+  memoryIds?: readonly MemoryId[];
 }
 
 function canonicalize(value: unknown): string {
@@ -49,6 +51,7 @@ export function authorizeInputRevision(persistence: Architecture2Persistence,
   assertIdentifier(command.diagnosisId, 'failure diagnosis id');
   assertIdentifier(command.eventId, 'input revision event id');
   if (command.researchEvidenceId) assertIdentifier(command.researchEvidenceId, 'research evidence id');
+  const memoryIds = normalizeMemoryCitations(command.memoryIds);
   if (!command.actor.trim()) throw new Error('Input revision actor is required');
   const parsedTime = new Date(command.authorizedAt);
   if (Number.isNaN(parsedTime.valueOf()) || parsedTime.toISOString() !== command.authorizedAt) {
@@ -62,8 +65,10 @@ export function authorizeInputRevision(persistence: Architecture2Persistence,
   const existing = persistence.getInputRevisionByDiagnosis(command.diagnosisId);
   if (existing) {
     const link = persistence.getResearchRecoveryLinkByInputRevision(existing.id);
+    const cited = persistence.getMemoryDecisionLinksByInputRevision(existing.id).map((item) => item.memoryId);
     if (existing.id !== command.id || existing.revisedInputsDigest !== digest(command.revisedInputs) ||
-        link?.evidenceId !== command.researchEvidenceId || (!link && command.researchEvidenceId)) {
+        link?.evidenceId !== command.researchEvidenceId || (!link && command.researchEvidenceId) ||
+        JSON.stringify([...cited].sort()) !== JSON.stringify(memoryIds)) {
       throw new Error(`Input revision authority conflict: ${command.diagnosisId}`);
     }
     return existing;
@@ -112,5 +117,5 @@ export function authorizeInputRevision(persistence: Architecture2Persistence,
     eventType: 'input-revision.authorized', eventVersion: 1, actor: command.actor, occurredAt: command.authorizedAt,
     payload: { inputRevisionId: value.id, diagnosisId: diagnosis.id, nextAttemptNumber: value.nextAttemptNumber,
       priorInputsDigest, revisedInputsDigest } };
-  return persistence.authorizeInputRevision(value, updated, task.version, event, command.researchEvidenceId);
+  return persistence.authorizeInputRevision(value, updated, task.version, event, command.researchEvidenceId, memoryIds);
 }

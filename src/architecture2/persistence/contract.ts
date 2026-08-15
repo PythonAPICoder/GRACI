@@ -26,7 +26,7 @@ import type {
   InputRevision, InputRevisionId, ReplanningDecision, ReplanningDecisionId,
   ResearchRequest, ResearchRequestId, ResearchEvidence, ResearchEvidenceId, ResearchDecision, ResearchRequestInspection,
   ResearchRecoveryLink, ResearchProviderExecution,
-  MemoryRecord, MemoryId, MemoryInspection,
+  MemoryRecord, MemoryId, MemoryInspection, MemoryDecisionLink,
 } from '../domain/index.js';
 
 export interface LegacyImportOperation {
@@ -164,16 +164,19 @@ export interface Architecture2Persistence extends Disposable {
   getReconciliationDecisions(diagnosisId: FailureDiagnosisId): ReconciliationDecision[];
   getPendingReconciliation(taskId: TaskId): ReconciliationDecision | undefined;
   authorizeInputRevision(value: InputRevision, task: Task, expectedTaskVersion: number,
-    event: AuditEventInput, researchEvidenceId?: ResearchEvidenceId): InputRevision;
+    event: AuditEventInput, researchEvidenceId?: ResearchEvidenceId,
+    memoryIds?: readonly MemoryId[]): InputRevision;
   getInputRevision(id: InputRevisionId): InputRevision | undefined;
   getInputRevisionByDiagnosis(diagnosisId: FailureDiagnosisId): InputRevision | undefined;
   getPendingInputRevision(taskId: TaskId): InputRevision | undefined;
+  getMemoryDecisionLinksByInputRevision(id: InputRevisionId): MemoryDecisionLink[];
   authorizeReplanning(value: ReplanningDecision, revision: TaskGraphRevision, tasks: readonly Task[],
     dependencies: readonly TaskDependency[], expectedGoalVersion: number, events: readonly AuditEventInput[],
-    researchEvidenceId?: ResearchEvidenceId): ReplanningDecision;
+    researchEvidenceId?: ResearchEvidenceId, memoryIds?: readonly MemoryId[]): ReplanningDecision;
   getReplanningDecision(id: ReplanningDecisionId): ReplanningDecision | undefined;
   getReplanningDecisionByDiagnosis(diagnosisId: FailureDiagnosisId): ReplanningDecision | undefined;
   getReplanningDecisions(goalId: GoalId): ReplanningDecision[];
+  getMemoryDecisionLinksByReplanningDecision(id: ReplanningDecisionId): MemoryDecisionLink[];
   createResearchRequest(value: ResearchRequest, event: AuditEventInput): ResearchRequest;
   getResearchRequest(id: ResearchRequestId): ResearchRequest | undefined;
   inspectResearchRequest(id: ResearchRequestId): ResearchRequestInspection | undefined;

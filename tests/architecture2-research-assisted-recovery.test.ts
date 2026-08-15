@@ -157,12 +157,13 @@ describe('Architecture 2 Phase 1S research-assisted recovery', () => {
     const source = seed(); persistence.close();
     const database = new DatabaseSync(path);
     database.exec(`DROP TRIGGER memory_records_no_update; DROP TRIGGER memory_records_no_delete; DROP TABLE memory_records;
+      DROP TABLE memory_decision_links;
       DROP TRIGGER research_provider_executions_no_delete; DROP TRIGGER research_provider_executions_terminal_no_update;
       DROP TABLE research_provider_executions;
       DROP TRIGGER research_recovery_links_no_update; DROP TRIGGER research_recovery_links_no_delete;
       DROP TABLE research_recovery_links; DELETE FROM schema_migrations WHERE version>=16; PRAGMA user_version=15;`);
     database.close(); persistence = new SqliteArchitecture2Persistence({ databasePath: path }); persistence.initialize();
-    expect(persistence.getSchemaVersion()).toBe(18);
+    expect(persistence.getSchemaVersion()).toBe(19);
     expect(persistence.getTask(source.task.id)).toBeDefined();
     expect(persistence.getResearchRecoveryLinkByInputRevision(asIdentifier<'InputRevision'>('absent'))).toBeUndefined();
   });

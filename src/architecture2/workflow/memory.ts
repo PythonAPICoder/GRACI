@@ -1,6 +1,21 @@
-import type { AuditEventInput, GoalId, JsonObject, MemoryId, MemoryRecord, MemoryScope,
-  MemoryTrustStatus } from '../domain/index.js';
+import { assertIdentifier, MAX_MEMORY_CITATIONS_PER_DECISION, type AuditEventInput, type GoalId,
+  type JsonObject, type MemoryId, type MemoryRecord, type MemoryScope,
+  type MemoryTrustStatus } from '../domain/index.js';
 import type { Architecture2Persistence } from '../persistence/index.js';
+
+export function normalizeMemoryCitations(memoryIds: readonly MemoryId[] | undefined): MemoryId[] {
+  const list = memoryIds ?? [];
+  const unique = new Set<string>();
+  for (const id of list) {
+    assertIdentifier(id, 'memory citation id');
+    if (unique.has(id)) throw new Error('Duplicate memory citation in one decision');
+    unique.add(id);
+  }
+  if (unique.size > MAX_MEMORY_CITATIONS_PER_DECISION) {
+    throw new Error(`Memory citations exceed the governed bound of ${MAX_MEMORY_CITATIONS_PER_DECISION}`);
+  }
+  return [...unique].sort() as MemoryId[];
+}
 
 export interface StoreMemoryCommand {
   id: MemoryId;

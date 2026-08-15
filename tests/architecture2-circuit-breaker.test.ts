@@ -322,7 +322,7 @@ describe('Architecture 2 Phase 1O circuit breakers', () => {
     const before = inspectCircuits(persistence);
     const path = join(directory, 'circuit.sqlite'); persistence.close();
     persistence = new SqliteArchitecture2Persistence({ databasePath: path }); persistence.initialize();
-    expect(persistence.getSchemaVersion()).toBe(18);
+    expect(persistence.getSchemaVersion()).toBe(19);
     expect(inspectCircuits(persistence)).toEqual(before);
   });
 
@@ -341,7 +341,7 @@ describe('Architecture 2 Phase 1O circuit breakers', () => {
       .run('schema11-event', 'test', 'schema11', 'schema11.populated', 1, 'test', T0, '{}', null, 'a'.repeat(64));
     prior.exec('PRAGMA user_version = 11'); prior.close();
     persistence = new SqliteArchitecture2Persistence({ databasePath: path }); persistence.initialize();
-    expect(persistence.getSchemaVersion()).toBe(18);
+    expect(persistence.getSchemaVersion()).toBe(19);
     expect(persistence.getEvents()).toHaveLength(1);
     expect(persistence.getCircuits()).toEqual([]);
   });

@@ -195,6 +195,7 @@ describe('Architecture 2 Phase 1T governed research provider execution', () => {
     database.exec(`DROP TRIGGER memory_records_no_update;
       DROP TRIGGER memory_records_no_delete;
       DROP TABLE memory_records;
+      DROP TABLE memory_decision_links;
       DROP TRIGGER research_provider_executions_no_delete;
       DROP TRIGGER research_provider_executions_terminal_no_update;
       DROP TABLE research_provider_executions;
@@ -202,7 +203,7 @@ describe('Architecture 2 Phase 1T governed research provider execution', () => {
       PRAGMA user_version=16;`);
     database.close();
     persistence = new SqliteArchitecture2Persistence({ databasePath: path }); persistence.initialize();
-    expect(persistence.getSchemaVersion()).toBe(18);
+    expect(persistence.getSchemaVersion()).toBe(19);
     expect(persistence.getResearchRequest(request.id)).toEqual(request);
     expect(persistence.getResearchProviderExecutions(request.id)).toEqual([]);
   });

@@ -35,7 +35,8 @@ Read governance documents in this order:
 25. `ADDENDUM_024_ARCHITECTURE_2_PHASE_1S.md`
 26. `ADDENDUM_025_ARCHITECTURE_2_PHASE_1T.md`
 27. `ADDENDUM_026_ARCHITECTURE_2_PHASE_1U.md`
-28. Future numbered addendums in ascending numerical order
+28. `ADDENDUM_027_ARCHITECTURE_2_PHASE_1V.md`
+29. Future numbered addendums in ascending numerical order
 
 The master specification is the immutable baseline.
 

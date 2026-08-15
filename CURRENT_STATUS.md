@@ -2,9 +2,9 @@
 
 > **Living document:** Update this file whenever an Architecture 2 phase changes implemented behavior, verification evidence, runtime authority, major limitations, or the recommended next phase. Governance under `docs/governance/` remains authoritative when this summary differs from an approved specification.
 
-**Implementation working tree starting basis:** clean main repository HEAD `afa956e`
+**Implementation working tree starting basis:** clean main repository HEAD `230786a5`
 
-**Current implementation:** Architecture 2 Phase 1U, Durable Working Memory Foundation (`ADDENDUM_026_ARCHITECTURE_2_PHASE_1U.md`)
+**Current implementation:** Architecture 2 Phase 1V, Governed Memory-Assisted Decision Support (`ADDENDUM_027_ARCHITECTURE_2_PHASE_1V.md`)
 
 ## Product Direction
 
@@ -26,7 +26,7 @@ The project has built G.R.A.C.I.'s notebook, work checklist, traffic controller,
 
 ### Technical Detail
 
-Implemented Architecture 2 work through Phase 1U includes:
+Implemented Architecture 2 work through Phase 1V includes:
 
 - **Foundation and Phase 1A:** canonical identifiers and records, SQLite persistence, migrations, transactional state-plus-event writes, optimistic versions, immutable history, and hash-chained events.
 - **Phase 1B:** guarded Task lifecycle, persisted DAG execution, deterministic verification, and conservative interrupted-work recovery.
@@ -49,8 +49,9 @@ Implemented Architecture 2 work through Phase 1U includes:
 - **Phase 1S:** optional exact accepted-research citations on existing input-revision and replanning commands, transactionally validated current-chain admission, one-use immutable support linkage, and inspection by recovery identity.
 - **Phase 1T:** caller-invoked execution of one current Research Request through an eligible qualified provider offering, with exact route provenance, durable failure/indeterminate outcomes, unaccepted evidence, and duplicate-safe restart reconstruction.
 - **Phase 1U:** explicit Goal-scoped and permission-bearing reusable memory, provenance/trust/status metadata, deterministic retrieval, immutable inspection/history, and concurrency-safe append-only supersession.
+- **Phase 1V:** explicit caller-supplied working-memory citations on governed Task input revision and replanning, with deterministic normalization, eligibility/trust/scope validation, and durable immutable provenance that coexists with Phase 1S research without altering authorization authority.
 
-The precise governed boundaries are in `docs/governance/ADDENDUM_006_ARCHITECTURE_2_PHASE_1A.md` through `ADDENDUM_026_ARCHITECTURE_2_PHASE_1U.md`.
+The precise governed boundaries are in `docs/governance/ADDENDUM_006_ARCHITECTURE_2_PHASE_1A.md` through `ADDENDUM_027_ARCHITECTURE_2_PHASE_1V.md`.
 
 ## What Works Today
 
@@ -137,16 +138,16 @@ The recorded automated checks are green, including schema migration, database cl
 
 ### Technical Detail
 
-Current Phase 1U agent evidence in `docs/logs/TEST_LOG.md`:
+Current Phase 1V agent evidence in `docs/logs/TEST_LOG.md`:
 
 - TypeScript validation: PASS.
-- Full automated regression suite: **246/246 passed** across 24 files.
-- Dedicated Phase 1U tests: **7/7 passed**; corrected research/input migration regressions: **29/29 passed**; broader Architecture 2 regressions: **155/155 passed**.
-- Schema-18 migration from populated schema 17, SQLite close/reopen reconstruction, exact provenance/scope, deterministic retrieval, immutable supersession, conflict rejection, and information-only behavior are covered by the Phase 1U focused run.
+- Full automated regression suite: **264/264 passed** across 25 files.
+- Dedicated Phase 1V tests: **18/18 passed**; all prior Architecture 2 regressions (including 7/7 Phase 1U memory, 29/29 research/input migration, and 155/155 broader recovery) remain green after adding Phase 1V.
+- Schema-19 migration from populated schema 18, SQLite close/reopen reconstruction, citation normalization/eligibility/trust/scope validation, deterministic ordering, immutable provenance, transactional atomicity, and coexistence with Phase 1S research are covered by the Phase 1V focused run.
 - Production build: PASS. TypeScript validation: PASS.
-- Electron startup regression: PASS; the application remained alive for five seconds, emitted `Electron app starting`, and produced empty stderr before controlled shutdown.
+- Electron startup regression: PASS; the application remained alive, emitted `Electron app starting`, and produced empty stderr before controlled shutdown.
 - Diff whitespace hygiene: PASS.
-- Architecture 1 remains the configured live Electron authority; Phase 1U did not alter startup composition.
+- Architecture 1 remains the configured live Electron authority; Phase 1V did not alter startup composition.
 
 This is recorded verification evidence, not a claim that deferred end-user capabilities exist.
 
@@ -190,11 +191,11 @@ Major roadmap areas from Addendum 005 and later deferred boundaries include:
 
 ### Simple Explanation
 
-Phase 1U is implemented. G.R.A.C.I. can explicitly retain bounded Goal or permission-bearing reusable information and retrieve it deterministically without granting it execution authority. Unknown still means stop.
+Phase 1V is implemented. G.R.A.C.I. can explicitly retain bounded Goal or permission-bearing reusable information and, at governed decision time, cite trusted in-scope memory on Task input revision and replanning as recorded, non-authoritative provenance. Unknown still means stop.
 
 ### Technical Detail
 
-Architecture 2 Phase 1U is the current implemented phase. Callers may explicitly store, retrieve, inspect, and supersede bounded Goal or permission-bearing reusable information with provenance and trust status. Memory remains information only. Autonomous capture, semantic/vector search, RAG, memory-driven execution, UI work, Electron authority cutover, and automatic/background behavior remain deferred.
+Architecture 2 Phase 1V is the current implemented phase. Callers may explicitly store, retrieve, inspect, and supersede bounded Goal or permission-bearing reusable information, and cite trusted in-scope memory on governed input revision and replanning decisions with durable, deterministic, non-authoritative provenance. Memory remains information only and never authorizes a decision. Autonomous capture, semantic/vector search, RAG, memory-driven execution, UI work, Electron authority cutover, and automatic/background behavior remain deferred.
 
 ## Reconstruction Pointers
 

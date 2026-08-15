@@ -2,9 +2,9 @@
 
 > **Living document:** Update this file whenever Architecture 2 module boundaries, lifecycle behavior, persistence authority, runtime composition, or intentionally deferred capabilities change. This is an implementation map, not immutable governance. The master specification and numbered addenda under `docs/governance/` remain authoritative.
 
-**Architecture represented:** Current Phase 1U durable working memory foundation
+**Architecture represented:** Current Phase 1V governed memory-assisted decision support
 
-**Implementation working tree starting basis:** clean main repository HEAD `afa956e`
+**Implementation working tree starting basis:** clean main repository HEAD `230786a5`
 
 ## System Shape
 
@@ -18,7 +18,7 @@ Architecture 2 is a TypeScript modular monolith under `src/architecture2/` with 
 
 - `domain/`: canonical records and branded identifiers.
 - `persistence/`: provider-independent contract and SQLite implementation.
-- `workflow/`: state machine, dependency evaluation, graph validation, deterministic scheduling, orchestration, queue inspection, trusted deterministic failure diagnosis, bounded recovery, governed Task/graph revision, governed research, and caller-invoked memory operations.
+- `workflow/`: state machine, dependency evaluation, graph validation, deterministic scheduling, orchestration, queue inspection, trusted deterministic failure diagnosis, bounded recovery, governed Task/graph revision, governed research, caller-invoked memory operations, and memory-cited input revision/replanning decisions.
 - `execution/`: provider-neutral Task execution contract and deterministic test provider.
 - `verification/`: independent Task verification contract and deterministic verifier.
 - `providers/`: capability/provider resolution, versioned Model and Research Provider contracts, and Ollama Model Provider adapter.
@@ -354,7 +354,7 @@ Major deferred capabilities include:
 - Dynamic load balancing, dynamic concurrency, speculative execution, and priority displacement.
 - Automatic discovery, polling, monitoring, and scheduler-triggered workstation policy.
 - Direct web/search integration, autonomous research, provider retry/switching, evidence consumption beyond the explicit Phase 1S input-revision/replanning citation, automatic recovery, and recovery dispositions beyond the separately governed existing paths.
-- Episodic, semantic, procedural, preference/policy, vector, and autonomous memory beyond the Phase 1U working-memory foundation.
+- Episodic, semantic, procedural, preference/policy, vector, and autonomous memory beyond the Phase 1U/1V working-memory foundation, including automatic or memory-driven citation on decisions.
 - Broad tool, agent, cloud, productivity, voice, media, notification, and UI integration.
 - Architecture 2 Electron authority cutover and production hardening.
 

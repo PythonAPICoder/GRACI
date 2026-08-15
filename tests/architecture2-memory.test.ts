@@ -117,11 +117,12 @@ describe('Architecture 2 Phase 1U durable working memory', () => {
       DROP INDEX idx_memory_reusable_retrieval;
       DROP INDEX idx_memory_goal_retrieval;
       DROP TABLE memory_records;
-      DELETE FROM schema_migrations WHERE version=18;
+      DROP TABLE memory_decision_links;
+      DELETE FROM schema_migrations WHERE version>=18;
       PRAGMA user_version=17;`);
     database.close();
     persistence = new SqliteArchitecture2Persistence({ databasePath: path }); persistence.initialize();
-    expect(persistence.getSchemaVersion()).toBe(18);
+    expect(persistence.getSchemaVersion()).toBe(19);
     expect(persistence.getGoal(goalId)?.goal.id).toBe(goalId);
     expect(retrieveMemories(persistence, { goalId, includeReusable: true, asOf: LATER })).toEqual([]);
   });

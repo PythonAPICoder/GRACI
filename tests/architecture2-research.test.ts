@@ -91,7 +91,7 @@ describe('Architecture 2 Phase 1R governed research', () => {
     expect(persistence.getAcceptedResearchEvidence(created.id)).toEqual([evidence]);
     expect(persistence.getTask(source.task.id)).toEqual(before);
     persistence.close(); persistence = new SqliteArchitecture2Persistence({ databasePath: path }); persistence.initialize();
-    expect(persistence.getSchemaVersion()).toBe(18);
+    expect(persistence.getSchemaVersion()).toBe(19);
     expect(persistence.inspectResearchRequest(created.id)).toMatchObject({ lifecycle: 'accepted',
       evidence: [{ evidence, decision }] });
   });
@@ -149,6 +149,7 @@ describe('Architecture 2 Phase 1R governed research', () => {
     persistence.close();
     const database = new DatabaseSync(path); database.exec(`
       DROP TRIGGER memory_records_no_update; DROP TRIGGER memory_records_no_delete; DROP TABLE memory_records;
+      DROP TABLE memory_decision_links;
       DROP TRIGGER research_recovery_links_no_update; DROP TRIGGER research_recovery_links_no_delete;
       DROP TABLE research_recovery_links;
       DROP TRIGGER research_provider_executions_no_delete; DROP TRIGGER research_provider_executions_terminal_no_update;
@@ -160,7 +161,7 @@ describe('Architecture 2 Phase 1R governed research', () => {
       DROP INDEX idx_failures_research_authority; DROP INDEX idx_diagnoses_research_authority;
       DELETE FROM schema_migrations WHERE version>=15; PRAGMA user_version=14;`); database.close();
     persistence = new SqliteArchitecture2Persistence({ databasePath: path }); persistence.initialize();
-    expect(persistence.getSchemaVersion()).toBe(18);
+    expect(persistence.getSchemaVersion()).toBe(19);
     expect(persistence.getTask(source.task.id)).toBeDefined();
     expect(persistence.getAcceptedResearchEvidence(asIdentifier<'ResearchRequest'>('absent-request'))).toEqual([]);
   });

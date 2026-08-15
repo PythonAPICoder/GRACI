@@ -1,5 +1,14 @@
 # G.R.A.C.I. Engineering Decision Log
 
+### DEC-0023 - Phase 1V Governed Memory Citations on Input Revision and Replanning
+
+- **Date:** 2026-08-15
+- Allow explicit caller-supplied working-memory citations only on governed Task input revision and replanning; never on autonomous or automatic decisions.
+- Normalize citations deterministically: validate identifiers, reject duplicates, sort ascending, and bound the count to `MAX_MEMORY_CITATIONS_PER_DECISION = 16`.
+- Require each citation to be present, unsuperseded, unexpired at decision time, `trusted`, and either exactly Goal-scoped or permission-bearing reusable.
+- Record citations as durable immutable provenance in schema 19 and keep them information-only; they never authorize, change disposition/retryability/outcome certainty, bypass approval or Verification, or drive Task/Attempt transitions.
+- Keep Phase 1S research and Phase 1V memory independent: both may coexist and are separately validated; memory never substitutes for research and cannot change the research-driven disposition requirement.
+
 ### DEC-0022 - Phase 1U Immutable Scoped Working Memory
 
 - **Date:** 2026-08-14

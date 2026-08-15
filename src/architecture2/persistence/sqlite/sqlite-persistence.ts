@@ -32,9 +32,9 @@ import type {
   InputRevision, InputRevisionId, ReplanningDecision, ReplanningDecisionId,
   ResearchRequest, ResearchRequestId, ResearchEvidence, ResearchEvidenceId, ResearchDecision, ResearchRequestInspection,
   ResearchRecoveryLink, ResearchProviderExecution,
-  MemoryRecord, MemoryId, MemoryInspection,
+  MemoryRecord, MemoryId, MemoryInspection, MemoryDecisionLink,
 } from '../../domain/index.js';
-import { assertIdentifier } from '../../domain/index.js';
+import { assertIdentifier, MAX_MEMORY_CITATIONS_PER_DECISION } from '../../domain/index.js';
 import type {
   Architecture2Persistence,
   LegacyHistoryRecord,
@@ -1084,7 +1084,8 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
   }
 
   authorizeInputRevision(value: InputRevision, task: Task, expectedTaskVersion: number,
-    event: AuditEventInput, researchEvidenceId?: ResearchEvidenceId): InputRevision {
+    event: AuditEventInput, researchEvidenceId?: ResearchEvidenceId,
+    memoryIds?: readonly MemoryId[]): InputRevision {
     return this.transaction(() => {
       assertIdentifier(value.id, 'input revision id');
       assertIdentifier(value.taskId, 'input revision task id');
@@ -1103,8 +1104,9 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
       if (existing) {
         const mapped = this.mapInputRevision(existing);
         const link = this.getResearchRecoveryLinkByInputRevision(mapped.id);
+        const cited = this.getMemoryDecisionLinksByInputRevision(mapped.id).map((item) => item.memoryId);
         if (canonicalize(mapped) !== canonicalize(value) || link?.evidenceId !== researchEvidenceId ||
-            (!link && researchEvidenceId)) {
+            (!link && researchEvidenceId) || this.memoryCitationKey(cited) !== this.memoryCitationKey(memoryIds ?? [])) {
           throw new Error(`Input revision authority conflict: ${value.diagnosisId}`);
         }
         return mapped;
@@ -1171,6 +1173,9 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
       this.updateTaskInputsRow(task, expectedTaskVersion);
       if (researchLink) this.insertResearchRecoveryLink('input_revision', value.id, undefined, researchLink,
         value.authorizedAt);
+      const citedMemory = this.validateMemoryCitations(memoryIds, persistedTask.goalId, value.authorizedAt);
+      if (citedMemory.length > 0) this.insertMemoryDecisionLinks('input_revision', value.id, undefined,
+        citedMemory, persistedTask.goalId, value.taskId, value.authorizedAt);
       return value;
     });
   }
@@ -1196,7 +1201,8 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
 
   authorizeReplanning(value: ReplanningDecision, revision: TaskGraphRevision, tasks: readonly Task[],
     dependencies: readonly TaskDependency[], expectedGoalVersion: number,
-    events: readonly AuditEventInput[], researchEvidenceId?: ResearchEvidenceId): ReplanningDecision {
+    events: readonly AuditEventInput[], researchEvidenceId?: ResearchEvidenceId,
+    memoryIds?: readonly MemoryId[]): ReplanningDecision {
     this.validateTaskGraphRevision(revision);
     for (const task of tasks) this.validateTask(task);
     for (const dependency of dependencies) validateTimestamp(dependency.createdAt, 'task dependency timestamp');
@@ -1207,8 +1213,10 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
       if (existing) {
         const mapped = this.mapReplanningDecision(existing);
         const link = this.getResearchRecoveryLinkByReplanningDecision(mapped.id);
+        const cited = this.getMemoryDecisionLinksByReplanningDecision(mapped.id).map((item) => item.memoryId);
         if (mapped.id !== value.id || mapped.replacementGraphRevisionId !== value.replacementGraphRevisionId ||
-            link?.evidenceId !== researchEvidenceId || (!link && researchEvidenceId)) {
+            link?.evidenceId !== researchEvidenceId || (!link && researchEvidenceId) ||
+            this.memoryCitationKey(cited) !== this.memoryCitationKey(memoryIds ?? [])) {
           throw new Error(`Replanning authority conflict: ${value.diagnosisId}`);
         }
         return mapped;
@@ -1285,6 +1293,9 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
       if (Number(result.changes) !== 1) throw new Error(`Goal concurrency conflict: ${goal.id}`);
       if (researchLink) this.insertResearchRecoveryLink('replanning', undefined, value.id, researchLink,
         value.authorizedAt);
+      const citedMemory = this.validateMemoryCitations(memoryIds, value.goalId, value.authorizedAt);
+      if (citedMemory.length > 0) this.insertMemoryDecisionLinks('replanning', undefined, value.id,
+        citedMemory, value.goalId, value.sourceTaskId, value.authorizedAt);
       return value;
     });
   }
@@ -1312,6 +1323,18 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
   getResearchRecoveryLinkByReplanningDecision(id: ReplanningDecisionId): ResearchRecoveryLink | undefined {
     const row = this.db().prepare('SELECT * FROM research_recovery_links WHERE replanning_decision_id=?').get(id) as Row | undefined;
     return row ? this.mapResearchRecoveryLink(row, true) : undefined;
+  }
+
+  getMemoryDecisionLinksByInputRevision(id: InputRevisionId): MemoryDecisionLink[] {
+    assertIdentifier(id, 'input revision id');
+    return (this.db().prepare('SELECT * FROM memory_decision_links WHERE input_revision_id=? ORDER BY memory_id,id')
+      .all(id) as Row[]).map((row) => this.mapMemoryDecisionLink(row, 'input_revision'));
+  }
+
+  getMemoryDecisionLinksByReplanningDecision(id: ReplanningDecisionId): MemoryDecisionLink[] {
+    assertIdentifier(id, 'replanning decision id');
+    return (this.db().prepare('SELECT * FROM memory_decision_links WHERE replanning_decision_id=? ORDER BY memory_id,id')
+      .all(id) as Row[]).map((row) => this.mapMemoryDecisionLink(row, 'replanning'));
   }
 
   createResearchRequest(value: ResearchRequest, event: AuditEventInput): ResearchRequest {
@@ -2634,6 +2657,74 @@ export class SqliteArchitecture2Persistence implements Architecture2Persistence 
         cursor = cursor.supersedesMemoryId ? byId.get(cursor.supersedesMemoryId) : undefined;
       }
     }
+  }
+
+  private memoryCitationKey(memoryIds: readonly MemoryId[]): string {
+    return canonicalize([...memoryIds].sort());
+  }
+
+  private validateMemoryCitations(memoryIds: readonly MemoryId[] | undefined, goalId: GoalId, asOf: string): MemoryId[] {
+    const input = memoryIds ?? [];
+    const unique = new Set<string>();
+    for (const id of input) {
+      assertIdentifier(id, 'cited memory id');
+      if (unique.has(id)) throw new Error('Duplicate memory citation in one decision');
+      unique.add(id);
+    }
+    if (unique.size > MAX_MEMORY_CITATIONS_PER_DECISION) {
+      throw new Error(`Memory citations exceed the governed bound of ${MAX_MEMORY_CITATIONS_PER_DECISION}`);
+    }
+    const sorted = [...unique].sort() as MemoryId[];
+    for (const id of sorted) {
+      const row = this.db().prepare('SELECT * FROM memory_records WHERE id=?').get(id) as Row | undefined;
+      if (!row) throw new Error(`Cited memory not found: ${id}`);
+      const memory = this.mapMemoryRecord(row);
+      if (this.db().prepare('SELECT 1 AS found FROM memory_records WHERE supersedes_memory_id=? LIMIT 1').get(id)) {
+        throw new Error(`Cited memory is superseded: ${id}`);
+      }
+      if (memory.trustStatus !== 'trusted') throw new Error(`Cited memory must be trusted: ${id}`);
+      if (memory.validUntil && memory.validUntil <= asOf) throw new Error(`Cited memory has expired: ${id}`);
+      if (memory.scope === 'goal') {
+        if (memory.goalId !== goalId) throw new Error(`Cited memory is not scoped to the decision Goal: ${id}`);
+      } else if (memory.scope !== 'reusable') {
+        throw new Error(`Cited memory has invalid scope: ${id}`);
+      }
+    }
+    return sorted;
+  }
+
+  private insertMemoryDecisionLinks(kind: MemoryDecisionLink['kind'], inputRevisionId: InputRevisionId | undefined,
+    replanningDecisionId: ReplanningDecisionId | undefined, memoryIds: readonly MemoryId[], goalId: GoalId,
+    taskId: TaskId, citedAt: string): void {
+    for (const memoryId of memoryIds) {
+      this.db().prepare(`INSERT INTO memory_decision_links
+        (kind,input_revision_id,replanning_decision_id,memory_id,goal_id,task_id,cited_at)
+        VALUES (?,?,?,?,?,?,?)`).run(kind, inputRevisionId ?? null, replanningDecisionId ?? null, memoryId,
+        goalId, taskId, citedAt);
+    }
+  }
+
+  private mapMemoryDecisionLink(row: Row, expectedKind: MemoryDecisionLink['kind']): MemoryDecisionLink {
+    const kind = String(row.kind) as MemoryDecisionLink['kind'];
+    const value: MemoryDecisionLink = { kind,
+      inputRevisionId: row.input_revision_id === null ? undefined : String(row.input_revision_id) as InputRevisionId,
+      replanningDecisionId: row.replanning_decision_id === null ? undefined : String(row.replanning_decision_id) as ReplanningDecisionId,
+      memoryId: String(row.memory_id) as MemoryId, goalId: String(row.goal_id) as GoalId,
+      taskId: String(row.task_id) as TaskId, citedAt: String(row.cited_at) };
+    if (kind !== expectedKind) throw new Error(`Corrupt persisted Memory Decision Link: ${value.memoryId}`);
+    const corresponding = kind === 'input_revision' ? Boolean(value.inputRevisionId) && !value.replanningDecisionId
+      : kind === 'replanning' ? Boolean(value.replanningDecisionId) && !value.inputRevisionId : false;
+    if (!corresponding) throw new Error(`Corrupt persisted Memory Decision Link: ${value.memoryId}`);
+    for (const [id, label] of [[value.memoryId, 'memory'], [value.goalId, 'goal'], [value.taskId, 'task']] as const) {
+      assertIdentifier(id, `memory decision ${label} id`);
+    }
+    try { validateTimestamp(value.citedAt, 'memory decision link timestamp'); } catch (error) {
+      throw new Error(`Corrupt persisted Memory Decision Link: ${value.memoryId}`, { cause: error });
+    }
+    if (!this.db().prepare('SELECT 1 AS found FROM memory_records WHERE id=?').get(value.memoryId)) {
+      throw new Error(`Corrupt persisted Memory Decision Link: ${value.memoryId}`);
+    }
+    return value;
   }
 
   private validateResearchProviderExecution(value: ResearchProviderExecution): void {

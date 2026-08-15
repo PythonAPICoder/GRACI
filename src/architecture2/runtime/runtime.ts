@@ -80,6 +80,10 @@ export class Architecture2Runtime implements Disposable {
     return this.persistence.getResearchRecoveryLinkByInputRevision(id);
   }
 
+  inspectInputRevisionMemorySupport(id: AuthorizeInputRevisionCommand['id']) {
+    return this.persistence.getMemoryDecisionLinksByInputRevision(id);
+  }
+
   authorizeReplanning(command: AuthorizeReplanningCommand) {
     return authorizeReplanning(this.persistence, command);
   }
@@ -90,6 +94,10 @@ export class Architecture2Runtime implements Disposable {
 
   inspectReplanningResearchSupport(id: AuthorizeReplanningCommand['id']) {
     return this.persistence.getResearchRecoveryLinkByReplanningDecision(id);
+  }
+
+  inspectReplanningMemorySupport(id: AuthorizeReplanningCommand['id']) {
+    return this.persistence.getMemoryDecisionLinksByReplanningDecision(id);
   }
 
   inspectGraphRevisions(goalId: Parameters<SqliteArchitecture2Persistence['getTaskGraphRevisions']>[0]) {

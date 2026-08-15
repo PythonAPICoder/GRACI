@@ -1,9 +1,10 @@
-import { assertIdentifier, type AuditEventInput, type ReplanningDecision, type Task,
+import { assertIdentifier, type AuditEventInput, type MemoryId, type ReplanningDecision, type Task,
   type TaskDependency, type TaskGraphRevision } from '../domain/index.js';
 import type { ResearchEvidenceId } from '../domain/index.js';
 import type { Architecture2Persistence } from '../persistence/index.js';
 import { PHASE_1L_DIAGNOSIS_POLICY_ID, PHASE_1L_DIAGNOSIS_POLICY_VERSION } from './failure-diagnoser.js';
 import { validateTaskGraph } from './task-graph-validator.js';
+import { normalizeMemoryCitations } from './memory.js';
 
 export interface AuthorizeReplanningCommand {
   id: ReplanningDecision['id'];
@@ -17,6 +18,7 @@ export interface AuthorizeReplanningCommand {
   authorizedAt: string;
   eventIds: readonly ReplanningDecision['eventId'][];
   researchEvidenceId?: ResearchEvidenceId;
+  memoryIds?: readonly MemoryId[];
 }
 
 export function authorizeReplanning(persistence: Architecture2Persistence,
@@ -24,6 +26,7 @@ export function authorizeReplanning(persistence: Architecture2Persistence,
   assertIdentifier(command.id, 'replanning decision id');
   assertIdentifier(command.diagnosisId, 'failure diagnosis id');
   if (command.researchEvidenceId) assertIdentifier(command.researchEvidenceId, 'research evidence id');
+  const memoryIds = normalizeMemoryCitations(command.memoryIds);
   if (!command.reason.trim() || !command.actor.trim()) throw new Error('Replanning reason and actor are required');
   const time = new Date(command.authorizedAt);
   if (Number.isNaN(time.valueOf()) || time.toISOString() !== command.authorizedAt) {
@@ -32,8 +35,10 @@ export function authorizeReplanning(persistence: Architecture2Persistence,
   const existing = persistence.getReplanningDecisionByDiagnosis(command.diagnosisId);
   if (existing) {
     const link = persistence.getResearchRecoveryLinkByReplanningDecision(existing.id);
+    const cited = persistence.getMemoryDecisionLinksByReplanningDecision(existing.id).map((item) => item.memoryId);
     if (existing.id !== command.id || existing.replacementGraphRevisionId !== command.revision.id ||
-        link?.evidenceId !== command.researchEvidenceId || (!link && command.researchEvidenceId)) {
+        link?.evidenceId !== command.researchEvidenceId || (!link && command.researchEvidenceId) ||
+        JSON.stringify([...cited].sort()) !== JSON.stringify(memoryIds)) {
       throw new Error(`Replanning authority conflict: ${command.diagnosisId}`);
     }
     return existing;
@@ -67,5 +72,5 @@ export function authorizeReplanning(persistence: Architecture2Persistence,
     eventVersion: 1, actor: command.actor, occurredAt: command.authorizedAt,
     payload: { replanningDecisionId: value.id, replacementGraphRevisionId: command.revision.id, index } }));
   return persistence.authorizeReplanning(value, command.revision, command.tasks, command.dependencies, goal.version, events,
-    command.researchEvidenceId);
+    command.researchEvidenceId, memoryIds);
 }
