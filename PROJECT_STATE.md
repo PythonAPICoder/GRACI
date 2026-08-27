@@ -6,7 +6,30 @@ This document and the durable files in this repository are the authoritative sou
 
 GRACI is a local-first AI workload orchestration project. It will coordinate inference resources while preserving safe availability rules and the ability to operate entirely on the primary host.
 
-Current phase: **Gate 0 qualified baseline**. No production implementation has started. The next authorized phase is **Phase 1A**; its implementation must begin in a new Work session.
+Current phase: **Phase 1A complete**. The minimal production local controller is implemented and verified. The next authorized phase is **Phase 1B**, but it has not begun.
+
+## Phase 1A implementation
+
+- `python -m graci "<task>"` submits one text task to the controller.
+- Phase 1A configuration permits only the primary 3090 endpoint at `http://127.0.0.1:8080/v1`.
+- The local llama.cpp provider uses the OpenAI-compatible chat-completions API and model `qwen3.8-27b-q4_k_m`.
+- Model output must be one JSON object containing exactly `schema_version`, `status`, and `summary`. Invalid envelopes, malformed output, field/type/value errors, model identity mismatches, HTTP failures, and model-reported failures all fail closed.
+- Every accepted task gets a UUID run ID and an atomically written JSON record under `runs/`, including task, UTC timestamps, provider/node/endpoint/model identity, HTTP status, validated result, final status, and errors.
+- Runtime run records are intentionally ignored by Git. The accepted live evidence is versioned under `phase1a/evidence/`.
+- Implementation uses only the Python standard library and stores no credentials.
+
+## Phase 1A verification
+
+- Offline suite: 8 tests pass with warnings treated as errors using `python -W error -m unittest discover -s tests -v`.
+- Live integration run `d7e604aa-318d-47de-a735-966132894d6b` returned HTTP 200 from the localhost 3090 endpoint, reported the configured Qwen model, passed strict contract validation, and produced durable evidence.
+- The Phase 1A configuration rejects the 4090 LAN endpoint and cloud endpoints. No 4090 or cloud workload was sent.
+- Detailed evidence and the accepted record are under `phase1a/`.
+
+## Current limitations
+
+- One task is executed synchronously per CLI invocation.
+- There are no retries, reviewers, resource scheduling, cloud escalation, authentication, service/API wrapper, or 4090 execution path.
+- The unresolved 4090 process-detection blocker remains fail-closed.
 
 ## Qualification status
 
@@ -39,4 +62,4 @@ The Work environment cannot currently authenticate a safe, read-only remote proc
 
 ## Next authorized work
 
-Begin Phase 1A in a new Work session, using this document and the Gate 0 evidence as the starting state. Do not treat optional 4090 capacity as available while the process-detection blocker remains unresolved.
+Phase 1B may begin only in a separate authorized work session. Do not treat optional 4090 capacity as available while the process-detection blocker remains unresolved.

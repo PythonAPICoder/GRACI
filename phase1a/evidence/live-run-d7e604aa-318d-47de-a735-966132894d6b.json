@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "run_id": "d7e604aa-318d-47de-a735-966132894d6b",
+  "submitted_task": "Return PASS with summary exactly: Phase 1A final local integration completed.",
+  "started_at": "2026-08-27T21:39:23.901648Z",
+  "ended_at": "2026-08-27T21:39:24.922500Z",
+  "execution": {
+    "provider": "local-llama-cpp",
+    "node": "3090-primary-localhost",
+    "endpoint": "http://127.0.0.1:8080/v1",
+    "model": "qwen3.8-27b-q4_k_m"
+  },
+  "status": "PASS",
+  "http_status": 200,
+  "provider_response_model": "qwen3.8-27b-q4_k_m",
+  "validated_model_result": {
+    "schema_version": 1,
+    "status": "PASS",
+    "summary": "Phase 1A final local integration completed."
+  },
+  "errors": []
+}
