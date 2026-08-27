@@ -6,7 +6,31 @@ This document and the durable files in this repository are the authoritative sou
 
 GRACI is a local-first AI workload orchestration project. It will coordinate inference resources while preserving safe availability rules and the ability to operate entirely on the primary host.
 
-Current phase: **Phase 1A complete**. The minimal production local controller is implemented and verified. The next authorized phase is **Phase 1B**, but it has not begun.
+## Build progress
+
+- Overall Build: Phase 1
+- Current Phase: Minimal GRACI Core
+- Completed Stage: Phase 1B — Controlled Tool Layer
+- Original Build Plan Coverage: Step 1.3
+- Next Stage: Phase 1C — First Vertical Slice
+
+Phase 1B is implemented and verified. Phase 1C has not begun.
+
+## Phase 1B implementation
+
+- `graci.tools.ToolLayer` exposes deterministic programmatic interfaces for UTF-8 directory listing, text reads, atomic text creation/replacement, approved local commands, repository test execution, and read-only Git status/diff/log/HEAD observation.
+- Every operation returns a structured result containing the tool and request, success, UTC start/end timestamps, error classification/message, and relevant resolved paths, process output, exit code, or timeout state.
+- Workspace paths are resolved before use and must remain under the configured workspace. Traversal, absolute outside paths, symlink escapes, credential/secret path names, binary reads, and outside-workspace writes fail closed.
+- Commands use executable/argument arrays with `shell=False`, a workspace-contained working directory, captured UTF-8 output, timeouts, and exit-code-based truth. The allow policy is limited to Python version checks, warning-strict unittest discovery within the workspace, and fixed read-only Git commands.
+- Git observation disables system/global Git configuration, prompts, optional locks, fsmonitor, external diff, and text conversion. There are no commit, staging, checkout, reset, clean, branch mutation, push, package-manager, network, elevation, or system-configuration tools.
+- The tool layer is exported beside the existing controller but is not available to a model-driven autonomous loop. That loop remains Phase 1C work.
+
+## Phase 1B verification
+
+- Offline suite: 18 tests pass with warnings treated as errors using `python -W error -m unittest discover -s tests -v`.
+- Tests cover file create/read/replace/list, missing and binary files, traversal and absolute outside-path rejection, sensitive-path rejection, allowed/disallowed commands, timeout and stdout/stderr capture, truthful passing/failing test results, outside test-discovery rejection, and successful Git status/diff/log/HEAD reads in a temporary repository.
+- Controlled local validation in a temporary repository-local sandbox created/read/replaced a file, ran `python --version`, passed a one-test unittest suite, read Git status, and rejected an attempted `../PROJECT_STATE.md` read. The sandbox was removed afterward.
+- No 4090 workload, cloud AI, external network operation, dependency installation, secret storage, or system configuration change occurred.
 
 ## Phase 1A implementation
 
@@ -29,6 +53,7 @@ Current phase: **Phase 1A complete**. The minimal production local controller is
 
 - One task is executed synchronously per CLI invocation.
 - There are no retries, reviewers, resource scheduling, cloud escalation, authentication, service/API wrapper, or 4090 execution path.
+- Tool execution is synchronous and intentionally narrow. It has no recursive deletion, arbitrary shell, package management, network command, Git mutation, file patch/diff primitive, streaming output, output-size limit, or autonomous model-to-tool loop.
 - The unresolved 4090 process-detection blocker remains fail-closed.
 
 ## Qualification status
@@ -60,6 +85,6 @@ Current phase: **Phase 1A complete**. The minimal production local controller is
 
 The Work environment cannot currently authenticate a safe, read-only remote process query on the 4090 PC. A least-privilege mechanism must later be selected, authorized, implemented, and verified before the 4090 becomes workload-eligible.
 
-## Next authorized work
+## Next work
 
-Phase 1B may begin only in a separate authorized work session. Do not treat optional 4090 capacity as available while the process-detection blocker remains unresolved.
+The next planned stage is Phase 1C — First Vertical Slice. It must not treat optional 4090 capacity as available while the process-detection blocker remains unresolved.
