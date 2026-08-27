@@ -11,11 +11,40 @@ GRACI is a local-first AI workload orchestration project. It will coordinate inf
 - Overall Build: Phase 2
 - Completed Phase: Phase 1 — Minimal GRACI Core
 - Current Phase: Phase 2 — Autonomous Loop
-- Completed Stage: Phase 2A — Single-Agent Autonomous Repair Loop
-- Next Stage: Phase 2B — Governed Multi-Step Autonomy
+- Completed Stage: Phase 2B — Governed Multi-Step Autonomy
+- Previous Stage: Phase 2A — Single-Agent Autonomous Repair Loop
+- Next Stage: Phase 2C — Autonomous Loop Acceptance & Closure
 
-Phase 1A through Phase 1D remain accepted. Phase 2A is implemented, verified, and
-accepted. Phase 2B is the next authorized stage and has not begun.
+Phase 1A through Phase 1D and Phase 2A remain accepted. Phase 2B is implemented,
+verified, accepted, and committed. Phase 2C is the next authorized stage and has
+not begun.
+
+## Phase 2B implementation and acceptance
+
+- The Phase 2A explicit state machine now supports governed `list_files`, multi-file
+  inspection, multiple independently validated file replacements, test feedback,
+  bounded repair, and retest. Every cycle separately records schema, action,
+  workspace, policy, and budget validation before tool execution.
+- Defaults are 12 iterations, 12 model calls, 6 inspections, 4 modifications, 2
+  post-failure repairs, a 30-second command timeout, 12,000 characters per
+  model-visible evidence field, 6 recent cycles, and a 2-action identical-repeat
+  allowance. Evidence shows both consumption and remainder.
+- Context contains only the configured file lists, test directory, budget state,
+  and bounded recent completed cycles. Truncation events are explicit. Deterministic
+  guards stop a third identical action, retesting a known failure without a change,
+  and premature finish attempts.
+- The warning-strict suite passes 50 tests. Phase 2B coverage proves multi-file
+  inspection and two writes, failure feedback and repair, invalid second-action
+  rejection, budget enforcement, progress guards, evidence ordering, and model
+  claims unable to override deterministic tests. All Phase 1/2A tests pass.
+- Live run `cf3c6de8-1bf7-404b-8ff2-c521d6d0776a` used only
+  `http://127.0.0.1:8080/v1` and server-reported `qwen3.8-27b-q4_k_m`. In 7 cycles
+  Qwen inspected three files, made two governed replacements, and passed both
+  deterministic tests. Evidence is under `phase2b/evidence/`; the fixture was
+  automatically removed.
+- Security review confirmed prior containment, sensitive-path, `.git`, fixed-command,
+  local provider/model, no-shell, no-Git-mutation, and no-package/network/system
+  boundaries remain intact. No 4090 or cloud workload occurred.
 
 ## Phase 2A implementation and acceptance
 
@@ -150,7 +179,7 @@ accepted. Phase 2B is the next authorized stage and has not begun.
   arbitrary shell, package management, network command, Git mutation, file patch/diff
   primitive, or streaming output. Phase 2A bounds model feedback, but durable tool
   records retain complete output.
-- Phase 2A supports bounded repair iteration but no independent reviewer, multi-model
+- Phase 2B supports bounded multi-step repair but no independent reviewer, multi-model
   adjudication, general planning, dynamic tool discovery, Git operations, routing,
   scheduling, memory, service/API wrapper, or automatic workspace/parent creation.
 - Repair uses complete-file atomic replacement, not a patch primitive. The caller
@@ -188,6 +217,6 @@ The Work environment cannot currently authenticate a safe, read-only remote proc
 
 ## Next work
 
-The next authorized stage is Phase 2B — Governed Multi-Step Autonomy. It must not
+The next authorized stage is Phase 2C — Autonomous Loop Acceptance & Closure. It must not
 treat optional 4090 capacity as available while the process-detection blocker
-remains unresolved. Phase 2B has not started.
+remains unresolved. Phase 2C has not started.

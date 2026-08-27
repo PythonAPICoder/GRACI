@@ -1,9 +1,9 @@
 # GRACI Phase 2 Autonomous Loop
 
-Phase 1 is complete, and Phase 2A adds a bounded single-agent repair loop over a
-disposable workspace. Local Qwen can inspect explicitly allowlisted files, replace
-explicitly editable files, and request the fixed deterministic unittest command.
-Schema and policy validation precede every action; only verified tests establish PASS.
+Phase 1 is complete, and Phase 2B provides a bounded governed multi-step repair loop
+over a disposable workspace. Local Qwen can list configured scope, inspect explicitly
+allowlisted files, make multiple independently governed replacements, and request the
+fixed deterministic unittest command. Only verified tests establish PASS.
 
 Submit a task with Python 3.14 or later:
 
@@ -54,6 +54,11 @@ localhost integration runner is `python -m phase2a.run_live_validation`. The def
 loop limits are 8 cycles, 2 repair writes, and a 30-second test timeout. See
 `phase2a/README.md` for the contract, safety boundary, tests, and live evidence.
 
-The implementation still has no reviewer model, general multi-step planning,
+Phase 2B extends that same explicit state machine with independent iteration, model
+call, inspection, modification, repair, timeout, and context budgets plus simple
+repeat guards. Its accepted multi-file live runner is
+`python -m phase2b.run_live_validation`; see `phase2b/README.md`.
+
+The implementation still has no reviewer model, unrestricted planning,
 scheduling, routing, memory, arbitrary shell, package/network operations, Git
-mutation, 4090 execution, or cloud escalation. Phase 2B is next and has not begun.
+mutation, 4090 execution, or cloud escalation. Phase 2C is next and has not begun.

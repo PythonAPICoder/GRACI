@@ -106,7 +106,7 @@ class LocalLlamaCppProvider:
         return self._request(body)
 
     def propose_repair_decision(self, task: str, context: dict[str, Any]) -> ProviderResponse:
-        """Ask the fixed local model for one Phase 2A governed-loop decision."""
+        """Ask the fixed local model for one governed-loop decision."""
         body = {
             "model": self.config.model,
             "messages": [
@@ -118,6 +118,7 @@ class LocalLlamaCppProvider:
                         "your last output character must be }. Never emit markdown or code fences. "
                         "Choose exactly one "
                         "of these contracts: "
+                        '{"schema_version":1,"action":"list_files","rationale":"non-empty"}; '
                         '{"schema_version":1,"action":"inspect_file","target_path":"allowed/path",'
                         '"rationale":"non-empty"}; '
                         '{"schema_version":1,"action":"write_text","target_path":"editable/path",'

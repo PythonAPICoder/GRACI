@@ -186,7 +186,7 @@ class AutonomousRepairTests(unittest.TestCase):
         ])
         self.assertEqual(record["limits"]["max_repairs"], 2)
         self.assertEqual(record["policy"]["allowed_actions"],
-                         ["inspect_file", "write_text", "run_tests", "finish"])
+                         ["list_files", "inspect_file", "write_text", "run_tests", "finish"])
         for cycle in record["cycles"]:
             self.assertEqual(cycle["schema_validation"]["status"], "PASS")
             self.assertEqual(cycle["policy_validation"]["status"], "PASS")

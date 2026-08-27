@@ -1,0 +1,808 @@
+{
+  "schema_version": 3,
+  "run_id": "cf3c6de8-1bf7-404b-8ff2-c521d6d0776a",
+  "submitted_task": "Inspect this project, determine why its tests fail, repair all defects necessary for the test suite to pass, and verify the result.",
+  "started_at": "2026-08-27T23:35:39.205013Z",
+  "ended_at": "2026-08-27T23:35:53.311858Z",
+  "execution": {
+    "provider": "local-llama-cpp",
+    "node": "3090-primary-localhost",
+    "endpoint": "http://127.0.0.1:8080/v1",
+    "model": "qwen3.8-27b-q4_k_m",
+    "workspace": "C:\\Users\\Steve\\AppData\\Local\\Temp\\graci-phase2b-fzvc9onu"
+  },
+  "limits": {
+    "max_iterations": 12,
+    "max_model_calls": 12,
+    "max_file_inspections": 6,
+    "max_file_modifications": 4,
+    "max_repairs": 2,
+    "command_timeout_seconds": 30,
+    "max_context_characters": 12000,
+    "max_recent_cycles": 6,
+    "max_identical_actions": 2
+  },
+  "policy": {
+    "allowed_actions": [
+      "list_files",
+      "inspect_file",
+      "write_text",
+      "run_tests",
+      "finish"
+    ],
+    "readable_files": [
+      "invoice.py",
+      "settings.py",
+      "tests/test_invoice.py"
+    ],
+    "editable_files": [
+      "invoice.py",
+      "settings.py"
+    ],
+    "test_directory": "tests"
+  },
+  "cycles": [
+    {
+      "iteration": 1,
+      "started_at": "2026-08-27T23:35:39.205460Z",
+      "ended_at": "2026-08-27T23:35:40.494645Z",
+      "http_status": 200,
+      "provider_response_model": "qwen3.8-27b-q4_k_m",
+      "raw_model_response": "{\"schema_version\":1,\"action\":\"list_files\",\"rationale\":\"Start by listing the project files to understand the structure before inspecting specific files.\"}",
+      "model_decision": {
+        "schema_version": 1,
+        "action": "list_files",
+        "rationale": "Start by listing the project files to understand the structure before inspecting specific files."
+      },
+      "schema_validation": {
+        "status": "PASS",
+        "error": null
+      },
+      "action_validation": {
+        "status": "PASS",
+        "error": null
+      },
+      "workspace_validation": {
+        "status": "PASS",
+        "error": null
+      },
+      "policy_validation": {
+        "status": "PASS",
+        "error": null
+      },
+      "budget_validation": {
+        "status": "PASS",
+        "error": null
+      },
+      "budget_before": {
+        "consumed": {
+          "iterations": 0,
+          "model_calls": 0,
+          "file_inspections": 0,
+          "file_modifications": 0,
+          "repairs": 0
+        },
+        "remaining": {
+          "iterations": 12,
+          "model_calls": 12,
+          "file_inspections": 6,
+          "file_modifications": 4,
+          "repairs": 2
+        }
+      },
+      "budget_after": {
+        "consumed": {
+          "iterations": 1,
+          "model_calls": 1,
+          "file_inspections": 0,
+          "file_modifications": 0,
+          "repairs": 0
+        },
+        "remaining": {
+          "iterations": 11,
+          "model_calls": 11,
+          "file_inspections": 6,
+          "file_modifications": 4,
+          "repairs": 2
+        }
+      },
+      "repair_attempt": 0,
+      "tool_result": {
+        "tool": "list_allowed_files",
+        "success": true,
+        "entries": [
+          {
+            "path": "invoice.py",
+            "editable": true
+          },
+          {
+            "path": "settings.py",
+            "editable": true
+          },
+          {
+            "path": "tests/test_invoice.py",
+            "editable": false
+          }
+        ],
+        "started_at": "2026-08-27T23:35:40.494621Z",
+        "ended_at": "2026-08-27T23:35:40.494636Z",
+        "error": null
+      }
+    },
+    {
+      "iteration": 2,
+      "started_at": "2026-08-27T23:35:40.495270Z",
+      "ended_at": "2026-08-27T23:35:41.763516Z",
+      "http_status": 200,
+      "provider_response_model": "qwen3.8-27b-q4_k_m",
+      "raw_model_response": "{\"schema_version\":1,\"action\":\"inspect_file\",\"target_path\":\"invoice.py\",\"rationale\":\"Inspect the main module to understand its logic and identify potential defects causing test failures.\"}",
+      "model_decision": {
+        "schema_version": 1,
+        "action": "inspect_file",
+        "target_path": "invoice.py",
+        "rationale": "Inspect the main module to understand its logic and identify potential defects causing test failures."
+      },
+      "schema_validation": {
+        "status": "PASS",
+        "error": null
+      },
+      "action_validation": {
+        "status": "PASS",
+        "error": null
+      },
+      "workspace_validation": {
+        "status": "PASS",
+        "error": null
+      },
+      "policy_validation": {
+        "status": "PASS",
+        "error": null
+      },
+      "budget_validation": {
+        "status": "PASS",
+        "error": null
+      },
+      "budget_before": {
+        "consumed": {
+          "iterations": 1,
+          "model_calls": 1,
+          "file_inspections": 0,
+          "file_modifications": 0,
+          "repairs": 0
+        },
+        "remaining": {
+          "iterations": 11,
+          "model_calls": 11,
+          "file_inspections": 6,
+          "file_modifications": 4,
+          "repairs": 2
+        }
+      },
+      "budget_after": {
+        "consumed": {
+          "iterations": 2,
+          "model_calls": 2,
+          "file_inspections": 1,
+          "file_modifications": 0,
+          "repairs": 0
+        },
+        "remaining": {
+          "iterations": 10,
+          "model_calls": 10,
+          "file_inspections": 5,
+          "file_modifications": 4,
+          "repairs": 2
+        }
+      },
+      "repair_attempt": 0,
+      "tool_result": {
+        "tool": "read_text",
+        "success": true,
+        "requested": {
+          "path": "invoice.py",
+          "encoding": "utf-8"
+        },
+        "started_at": "2026-08-27T23:35:41.763310Z",
+        "ended_at": "2026-08-27T23:35:41.763508Z",
+        "error_classification": null,
+        "error": null,
+        "resolved_path": "C:\\Users\\Steve\\AppData\\Local\\Temp\\graci-phase2b-fzvc9onu\\invoice.py",
+        "content": "from settings import DISCOUNT\r\n\r\ndef final_price(subtotal):\r\n    return subtotal + DISCOUNT\r\n"
+      }
+    },
+    {
+      "iteration": 3,
+      "started_at": "2026-08-27T23:35:41.764020Z",
+      "ended_at": "2026-08-27T23:35:43.434533Z",
+      "http_status": 200,
+      "provider_response_model": "qwen3.8-27b-q4_k_m",
+      "raw_model_response": "{\"schema_version\":1,\"action\":\"inspect_file\",\"target_path\":\"settings.py\",\"rationale\":\"Need to see the DISCOUNT value and any other settings to understand the expected behavior before checking the tests.\"}",
+      "model_decision": {
+        "schema_version": 1,
+        "action": "inspect_file",
+        "target_path": "settings.py",
+        "rationale": "Need to see the DISCOUNT value and any other settings to understand the expected behavior before checking the tests."
+      },
+      "schema_validation": {
+        "status": "PASS",
+        "error": null
+      },
+      "action_validation": {
+        "status": "PASS",
+        "error": null
+      },
+      "workspace_validation": {
+        "status": "PASS",
+        "error": null
+      },
+      "policy_validation": {
+        "status": "PASS",
+        "error": null
+      },
+      "budget_validation": {
+        "status": "PASS",
+        "error": null
+      },
+      "budget_before": {
+        "consumed": {
+          "iterations": 2,
+          "model_calls": 2,
+          "file_inspections": 1,
+          "file_modifications": 0,
+          "repairs": 0
+        },
+        "remaining": {
+          "iterations": 10,
+          "model_calls": 10,
+          "file_inspections": 5,
+          "file_modifications": 4,
+          "repairs": 2
+        }
+      },
+      "budget_after": {
+        "consumed": {
+          "iterations": 3,
+          "model_calls": 3,
+          "file_inspections": 2,
+          "file_modifications": 0,
+          "repairs": 0
+        },
+        "remaining": {
+          "iterations": 9,
+          "model_calls": 9,
+          "file_inspections": 4,
+          "file_modifications": 4,
+          "repairs": 2
+        }
+      },
+      "repair_attempt": 0,
+      "tool_result": {
+        "tool": "read_text",
+        "success": true,
+        "requested": {
+          "path": "settings.py",
+          "encoding": "utf-8"
+        },
+        "started_at": "2026-08-27T23:35:43.434204Z",
+        "ended_at": "2026-08-27T23:35:43.434523Z",
+        "error_classification": null,
+        "error": null,
+        "resolved_path": "C:\\Users\\Steve\\AppData\\Local\\Temp\\graci-phase2b-fzvc9onu\\settings.py",
+        "content": "DISCOUNT = 15\r\n"
+      }
+    },
+    {
+      "iteration": 4,
+      "started_at": "2026-08-27T23:35:43.435069Z",
+      "ended_at": "2026-08-27T23:35:45.189672Z",
+      "http_status": 200,
+      "provider_response_model": "qwen3.8-27b-q4_k_m",
+      "raw_model_response": "{\"schema_version\":1,\"action\":\"inspect_file\",\"target_path\":\"tests/test_invoice.py\",\"rationale\":\"Need to see the test expectations to determine the correct behavior of final_price and DISCOUNT.\"}",
+      "model_decision": {
+        "schema_version": 1,
+        "action": "inspect_file",
+        "target_path": "tests/test_invoice.py",
+        "rationale": "Need to see the test expectations to determine the correct behavior of final_price and DISCOUNT."
+      },
+      "schema_validation": {
+        "status": "PASS",
+        "error": null
+      },
+      "action_validation": {
+        "status": "PASS",
+        "error": null
+      },
+      "workspace_validation": {
+        "status": "PASS",
+        "error": null
+      },
+      "policy_validation": {
+        "status": "PASS",
+        "error": null
+      },
+      "budget_validation": {
+        "status": "PASS",
+        "error": null
+      },
+      "budget_before": {
+        "consumed": {
+          "iterations": 3,
+          "model_calls": 3,
+          "file_inspections": 2,
+          "file_modifications": 0,
+          "repairs": 0
+        },
+        "remaining": {
+          "iterations": 9,
+          "model_calls": 9,
+          "file_inspections": 4,
+          "file_modifications": 4,
+          "repairs": 2
+        }
+      },
+      "budget_after": {
+        "consumed": {
+          "iterations": 4,
+          "model_calls": 4,
+          "file_inspections": 3,
+          "file_modifications": 0,
+          "repairs": 0
+        },
+        "remaining": {
+          "iterations": 8,
+          "model_calls": 8,
+          "file_inspections": 3,
+          "file_modifications": 4,
+          "repairs": 2
+        }
+      },
+      "repair_attempt": 0,
+      "tool_result": {
+        "tool": "read_text",
+        "success": true,
+        "requested": {
+          "path": "tests/test_invoice.py",
+          "encoding": "utf-8"
+        },
+        "started_at": "2026-08-27T23:35:45.189459Z",
+        "ended_at": "2026-08-27T23:35:45.189664Z",
+        "error_classification": null,
+        "error": null,
+        "resolved_path": "C:\\Users\\Steve\\AppData\\Local\\Temp\\graci-phase2b-fzvc9onu\\tests\\test_invoice.py",
+        "content": "import unittest\r\nfrom invoice import final_price\r\nfrom settings import DISCOUNT\r\n\r\nclass InvoiceTests(unittest.TestCase):\r\n    def test_discount_configuration(self):\r\n        self.assertEqual(DISCOUNT, 10)\r\n\r\n    def test_discount(self):\r\n        self.assertEqual(final_price(100), 90)\r\n\r\nif __name__ == '__main__':\r\n    unittest.main()\r\n"
+      }
+    },
+    {
+      "iteration": 5,
+      "started_at": "2026-08-27T23:35:45.190161Z",
+      "ended_at": "2026-08-27T23:35:47.418114Z",
+      "http_status": 200,
+      "provider_response_model": "qwen3.8-27b-q4_k_m",
+      "raw_model_response": "{\"schema_version\":1,\"action\":\"write_text\",\"target_path\":\"settings.py\",\"content\":\"DISCOUNT = 10\\n\",\"rationale\":\"Tests expect DISCOUNT to be 10, but it is currently 15.\"}",
+      "model_decision": {
+        "schema_version": 1,
+        "action": "write_text",
+        "target_path": "settings.py",
+        "content": "DISCOUNT = 10\n",
+        "rationale": "Tests expect DISCOUNT to be 10, but it is currently 15."
+      },
+      "schema_validation": {
+        "status": "PASS",
+        "error": null
+      },
+      "action_validation": {
+        "status": "PASS",
+        "error": null
+      },
+      "workspace_validation": {
+        "status": "PASS",
+        "error": null
+      },
+      "policy_validation": {
+        "status": "PASS",
+        "error": null
+      },
+      "budget_validation": {
+        "status": "PASS",
+        "error": null
+      },
+      "budget_before": {
+        "consumed": {
+          "iterations": 4,
+          "model_calls": 4,
+          "file_inspections": 3,
+          "file_modifications": 0,
+          "repairs": 0
+        },
+        "remaining": {
+          "iterations": 8,
+          "model_calls": 8,
+          "file_inspections": 3,
+          "file_modifications": 4,
+          "repairs": 2
+        }
+      },
+      "budget_after": {
+        "consumed": {
+          "iterations": 5,
+          "model_calls": 5,
+          "file_inspections": 3,
+          "file_modifications": 1,
+          "repairs": 0
+        },
+        "remaining": {
+          "iterations": 7,
+          "model_calls": 7,
+          "file_inspections": 3,
+          "file_modifications": 3,
+          "repairs": 2
+        }
+      },
+      "repair_attempt": 1,
+      "tool_result": {
+        "tool": "write_text",
+        "success": true,
+        "requested": {
+          "path": "settings.py",
+          "operation": "replace",
+          "encoding": "utf-8"
+        },
+        "started_at": "2026-08-27T23:35:47.416588Z",
+        "ended_at": "2026-08-27T23:35:47.418007Z",
+        "error_classification": null,
+        "error": null,
+        "resolved_path": "C:\\Users\\Steve\\AppData\\Local\\Temp\\graci-phase2b-fzvc9onu\\settings.py",
+        "bytes_written": 14
+      }
+    },
+    {
+      "iteration": 6,
+      "started_at": "2026-08-27T23:35:47.418744Z",
+      "ended_at": "2026-08-27T23:35:50.514729Z",
+      "http_status": 200,
+      "provider_response_model": "qwen3.8-27b-q4_k_m",
+      "raw_model_response": "{\"schema_version\":1,\"action\":\"write_text\",\"target_path\":\"invoice.py\",\"content\":\"from settings import DISCOUNT\\n\\ndef final_price(subtotal):\\n    return subtotal - DISCOUNT\\n\",\"rationale\":\"Tests expect final_price(100) to equal 90 with DISCOUNT=10, so the function must subtract the discount rather than add it.\"}",
+      "model_decision": {
+        "schema_version": 1,
+        "action": "write_text",
+        "target_path": "invoice.py",
+        "content": "from settings import DISCOUNT\n\ndef final_price(subtotal):\n    return subtotal - DISCOUNT\n",
+        "rationale": "Tests expect final_price(100) to equal 90 with DISCOUNT=10, so the function must subtract the discount rather than add it."
+      },
+      "schema_validation": {
+        "status": "PASS",
+        "error": null
+      },
+      "action_validation": {
+        "status": "PASS",
+        "error": null
+      },
+      "workspace_validation": {
+        "status": "PASS",
+        "error": null
+      },
+      "policy_validation": {
+        "status": "PASS",
+        "error": null
+      },
+      "budget_validation": {
+        "status": "PASS",
+        "error": null
+      },
+      "budget_before": {
+        "consumed": {
+          "iterations": 5,
+          "model_calls": 5,
+          "file_inspections": 3,
+          "file_modifications": 1,
+          "repairs": 0
+        },
+        "remaining": {
+          "iterations": 7,
+          "model_calls": 7,
+          "file_inspections": 3,
+          "file_modifications": 3,
+          "repairs": 2
+        }
+      },
+      "budget_after": {
+        "consumed": {
+          "iterations": 6,
+          "model_calls": 6,
+          "file_inspections": 3,
+          "file_modifications": 2,
+          "repairs": 0
+        },
+        "remaining": {
+          "iterations": 6,
+          "model_calls": 6,
+          "file_inspections": 3,
+          "file_modifications": 2,
+          "repairs": 2
+        }
+      },
+      "repair_attempt": 2,
+      "tool_result": {
+        "tool": "write_text",
+        "success": true,
+        "requested": {
+          "path": "invoice.py",
+          "operation": "replace",
+          "encoding": "utf-8"
+        },
+        "started_at": "2026-08-27T23:35:50.513710Z",
+        "ended_at": "2026-08-27T23:35:50.514665Z",
+        "error_classification": null,
+        "error": null,
+        "resolved_path": "C:\\Users\\Steve\\AppData\\Local\\Temp\\graci-phase2b-fzvc9onu\\invoice.py",
+        "bytes_written": 89
+      }
+    },
+    {
+      "iteration": 7,
+      "started_at": "2026-08-27T23:35:50.515219Z",
+      "ended_at": "2026-08-27T23:35:53.311246Z",
+      "http_status": 200,
+      "provider_response_model": "qwen3.8-27b-q4_k_m",
+      "raw_model_response": "{\"schema_version\":1,\"action\":\"run_tests\",\"rationale\":\"Both defects have been repaired: DISCOUNT changed from 15 to 10, and final_price now subtracts DISCOUNT instead of adding it. Running the test suite to verify all tests pass.\"}",
+      "model_decision": {
+        "schema_version": 1,
+        "action": "run_tests",
+        "rationale": "Both defects have been repaired: DISCOUNT changed from 15 to 10, and final_price now subtracts DISCOUNT instead of adding it. Running the test suite to verify all tests pass."
+      },
+      "schema_validation": {
+        "status": "PASS",
+        "error": null
+      },
+      "action_validation": {
+        "status": "PASS",
+        "error": null
+      },
+      "workspace_validation": {
+        "status": "PASS",
+        "error": null
+      },
+      "policy_validation": {
+        "status": "PASS",
+        "error": null
+      },
+      "budget_validation": {
+        "status": "PASS",
+        "error": null
+      },
+      "budget_before": {
+        "consumed": {
+          "iterations": 6,
+          "model_calls": 6,
+          "file_inspections": 3,
+          "file_modifications": 2,
+          "repairs": 0
+        },
+        "remaining": {
+          "iterations": 6,
+          "model_calls": 6,
+          "file_inspections": 3,
+          "file_modifications": 2,
+          "repairs": 2
+        }
+      },
+      "budget_after": {
+        "consumed": {
+          "iterations": 7,
+          "model_calls": 7,
+          "file_inspections": 3,
+          "file_modifications": 2,
+          "repairs": 0
+        },
+        "remaining": {
+          "iterations": 5,
+          "model_calls": 5,
+          "file_inspections": 3,
+          "file_modifications": 2,
+          "repairs": 2
+        }
+      },
+      "repair_attempt": 2,
+      "tool_result": {
+        "tool": "run_tests",
+        "success": true,
+        "requested": {
+          "start_directory": "tests",
+          "timeout_seconds": 30
+        },
+        "command_result": {
+          "tool": "run_command",
+          "success": true,
+          "requested": {
+            "executable": "python.exe",
+            "arguments": [
+              "-W",
+              "error",
+              "-m",
+              "unittest",
+              "discover",
+              "-s",
+              "tests",
+              "-v"
+            ],
+            "cwd": ".",
+            "timeout_seconds": 30
+          },
+          "started_at": "2026-08-27T23:35:53.261458Z",
+          "ended_at": "2026-08-27T23:35:53.311227Z",
+          "error_classification": null,
+          "error": null,
+          "resolved_cwd": "C:\\Users\\Steve\\AppData\\Local\\Temp\\graci-phase2b-fzvc9onu",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "-W",
+            "error",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-v"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": "test_discount (test_invoice.InvoiceTests.test_discount) ... ok\ntest_discount_configuration (test_invoice.InvoiceTests.test_discount_configuration) ... ok\n\n----------------------------------------------------------------------\nRan 2 tests in 0.000s\n\nOK\n",
+          "timed_out": false
+        },
+        "status": "PASS",
+        "started_at": "2026-08-27T23:35:53.261458Z",
+        "ended_at": "2026-08-27T23:35:53.311227Z",
+        "error_classification": null,
+        "error": null
+      }
+    }
+  ],
+  "budget_usage": {
+    "iterations": 7,
+    "model_calls": 7,
+    "file_inspections": 3,
+    "file_modifications": 2,
+    "repairs": 0
+  },
+  "budget_state": {
+    "consumed": {
+      "iterations": 7,
+      "model_calls": 7,
+      "file_inspections": 3,
+      "file_modifications": 2,
+      "repairs": 0
+    },
+    "remaining": {
+      "iterations": 5,
+      "model_calls": 5,
+      "file_inspections": 3,
+      "file_modifications": 2,
+      "repairs": 2
+    }
+  },
+  "repair_attempts": 2,
+  "inspected_paths": [
+    "invoice.py",
+    "settings.py",
+    "tests/test_invoice.py"
+  ],
+  "modified_paths": [
+    "settings.py",
+    "invoice.py"
+  ],
+  "test_results": [
+    {
+      "tool": "run_tests",
+      "success": true,
+      "requested": {
+        "start_directory": "tests",
+        "timeout_seconds": 30
+      },
+      "command_result": {
+        "tool": "run_command",
+        "success": true,
+        "requested": {
+          "executable": "python.exe",
+          "arguments": [
+            "-W",
+            "error",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-v"
+          ],
+          "cwd": ".",
+          "timeout_seconds": 30
+        },
+        "started_at": "2026-08-27T23:35:53.261458Z",
+        "ended_at": "2026-08-27T23:35:53.311227Z",
+        "error_classification": null,
+        "error": null,
+        "resolved_cwd": "C:\\Users\\Steve\\AppData\\Local\\Temp\\graci-phase2b-fzvc9onu",
+        "command": [
+          "C:\\Python314\\python.exe",
+          "-W",
+          "error",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests",
+          "-v"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "test_discount (test_invoice.InvoiceTests.test_discount) ... ok\ntest_discount_configuration (test_invoice.InvoiceTests.test_discount_configuration) ... ok\n\n----------------------------------------------------------------------\nRan 2 tests in 0.000s\n\nOK\n",
+        "timed_out": false
+      },
+      "status": "PASS",
+      "started_at": "2026-08-27T23:35:53.261458Z",
+      "ended_at": "2026-08-27T23:35:53.311227Z",
+      "error_classification": null,
+      "error": null
+    }
+  ],
+  "context_events": [],
+  "progress_guard_events": [],
+  "last_test_result": {
+    "tool": "run_tests",
+    "success": true,
+    "requested": {
+      "start_directory": "tests",
+      "timeout_seconds": 30
+    },
+    "command_result": {
+      "tool": "run_command",
+      "success": true,
+      "requested": {
+        "executable": "python.exe",
+        "arguments": [
+          "-W",
+          "error",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests",
+          "-v"
+        ],
+        "cwd": ".",
+        "timeout_seconds": 30
+      },
+      "started_at": "2026-08-27T23:35:53.261458Z",
+      "ended_at": "2026-08-27T23:35:53.311227Z",
+      "error_classification": null,
+      "error": null,
+      "resolved_cwd": "C:\\Users\\Steve\\AppData\\Local\\Temp\\graci-phase2b-fzvc9onu",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "-W",
+        "error",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-v"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "test_discount (test_invoice.InvoiceTests.test_discount) ... ok\ntest_discount_configuration (test_invoice.InvoiceTests.test_discount_configuration) ... ok\n\n----------------------------------------------------------------------\nRan 2 tests in 0.000s\n\nOK\n",
+      "timed_out": false
+    },
+    "status": "PASS",
+    "started_at": "2026-08-27T23:35:53.261458Z",
+    "ended_at": "2026-08-27T23:35:53.311227Z",
+    "error_classification": null,
+    "error": null
+  },
+  "deterministic_verification": {
+    "status": "PASS",
+    "basis": "governed test command exited successfully"
+  },
+  "terminal_reason": "tests_passed",
+  "status": "PASS",
+  "errors": []
+}
