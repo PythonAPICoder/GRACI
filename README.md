@@ -1,6 +1,9 @@
-# GRACI Phase 2 Autonomous Loop — Complete
+# GRACI Phase 3 Resource / Model Router — Phase 3A Complete
 
-Phase 1 and Phase 2 are complete. Phase 2 provides a bounded governed multi-step repair loop
+Phase 1 and Phase 2 are complete. Phase 3A adds the deterministic typed resource,
+endpoint, model, health, and eligibility registry that later routing will use.
+Both the primary 3090 and optional 4090 are represented, but Phase 3A policy keeps
+the 4090 ineligible and no workload routing has been added. Phase 2 provides a bounded governed multi-step repair loop
 over a disposable workspace. Local Qwen can list configured scope, inspect explicitly
 allowlisted files, make multiple independently governed replacements, and request the
 fixed deterministic unittest command. Only verified tests establish PASS.
@@ -65,7 +68,10 @@ tool, false-success, and evidence paths. The complete warning-strict suite has 5
 tests. Its accepted localhost live runner is `python -m phase2c.run_live_acceptance`;
 see `phase2c/README.md` and `phase2c/evidence/`.
 
-The implementation still has no reviewer model, unrestricted planning,
+See `phase3a/README.md` and `phase3a/evidence/` for the registered topology,
+fail-closed health and eligibility semantics, and localhost-only validation.
+
+The implementation still has no reviewer execution, unrestricted planning,
 scheduling, routing, memory, arbitrary shell, package/network operations, Git
-mutation, 4090 execution, or cloud escalation. Phase 3 — Resource / Model Router is
-the next authorized phase and has not begun.
+mutation, 4090 execution, or cloud escalation. Phase 3B — Local Model Role Routing
+is the next authorized stage and has not begun.

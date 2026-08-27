@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "registry_schema_version": 1,
+  "run_id": "f2b15951-f9b7-45c9-9d5b-19cbc3a7e651",
+  "timestamp": "2026-08-27T23:52:28.684812Z",
+  "nodes_represented": [
+    "3090",
+    "4090"
+  ],
+  "live_requests": [
+    "http://127.0.0.1:8080/v1/models"
+  ],
+  "primary_health": {
+    "state": "healthy",
+    "reason": "models_endpoint_valid",
+    "http_status": 200,
+    "checked_at": "2026-08-27T23:52:28.659667Z"
+  },
+  "models_observed": [
+    "GLM-4.7-Flash-64x2.6B-Q4_K_M",
+    "qwen3.8-27b-q4_k_m"
+  ],
+  "expected_models": {
+    "qwen3.8-27b-q4_k_m": true,
+    "GLM-4.7-Flash-64x2.6B-Q4_K_M": true
+  },
+  "primary_eligibility": {
+    "eligible": true,
+    "reason_code": "eligible",
+    "explanation": "Enabled primary resource is healthy and reports the required model."
+  },
+  "optional_4090_eligibility": {
+    "eligible": false,
+    "reason_code": "policy_blocked_node",
+    "explanation": "Phase 3A does not authorize remote optional-node routing.",
+    "live_checked": false
+  },
+  "status": "PASS"
+}

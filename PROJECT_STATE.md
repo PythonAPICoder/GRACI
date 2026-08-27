@@ -8,15 +8,41 @@ GRACI is a local-first AI workload orchestration project. It will coordinate inf
 
 ## Build progress
 
-- Overall Build: Phase 2 complete
-- Completed Phase: Phase 2 — Autonomous Loop
-- Completed Stage: Phase 2C — Autonomous Loop Acceptance & Closure
-- Previous Accepted Phase: Phase 1 — Minimal GRACI Core
-- Next Authorized Phase: Phase 3 — Resource / Model Router
+- Overall Build: Phase 3
+- Completed Phases: Phase 1 — Minimal GRACI Core; Phase 2 — Autonomous Loop
+- Current Phase: Phase 3 — Resource / Model Router
+- Completed Stage: Phase 3A — Resource & Endpoint Registry
+- Next Stage: Phase 3B — Local Model Role Routing
 
 Phase 1A through Phase 1D and Phase 2A through Phase 2C are accepted. Phase 2 is
 implemented, verified, closed, and committed by the closure commit containing this
-state. Phase 3 is authorized but has not begun.
+state. Phase 3A is implemented, verified, and accepted. Phase 3B is authorized but
+has not begun.
+
+## Phase 3A resource and endpoint registry
+
+- `graci.registry` is the schema-version-1 typed, immutable authority for known
+  nodes, endpoints, models, role metadata, health, and eligibility. It centralizes
+  both endpoint URLs and model IDs while the existing execution configuration still
+  resolves to exactly the accepted localhost 3090 and Qwen path.
+- Required primary node `3090` owns `3090-llama-cpp` at
+  `http://127.0.0.1:8080/v1`. Optional node `4090` owns `4090-llama-cpp` at
+  `http://192.168.0.101:8080/v1` but is always policy-ineligible in Phase 3A.
+- Qwen is tagged implementer/general reasoning. GLM is tagged reviewer/verifier.
+  These are metadata only; autonomous routing and reviewer execution are unchanged.
+- Endpoint health is unknown, healthy, or unhealthy. A bounded OpenAI-compatible
+  `/models` check truthfully records HTTP, timeout/network, JSON/envelope, and model
+  failures. Eligibility is separate and fails closed for disabled resources,
+  missing/inconsistent references, unknown/unhealthy health, unavailable models,
+  unknown roles/policy, and policy-blocked nodes.
+- The warning-strict suite passes 65 tests, including all 58 Phase 1/2 regressions.
+  Live validation `f2b15951-f9b7-45c9-9d5b-19cbc3a7e651` contacted only the local
+  3090 `/models` endpoint, received HTTP 200, observed Qwen and GLM, made 3090/Qwen
+  eligible, and confirmed 4090 `policy_blocked_node` without contacting it. Evidence
+  and details are under `phase3a/`.
+- Security review confirmed no workload routing, 4090 request, cloud provider,
+  dependency installation, system modification, or weakening of workspace/tool
+  safeguards. Health requests are bounded and unknown states fail closed.
 
 ## Phase 2C acceptance and closure
 
@@ -237,6 +263,6 @@ The Work environment cannot currently authenticate a safe, read-only remote proc
 
 ## Next work
 
-The next authorized phase is Phase 3 — Resource / Model Router. It must not treat
-optional 4090 capacity as available while the process-detection blocker remains
-unresolved. Phase 3 has not started.
+The next authorized stage is Phase 3B — Local Model Role Routing. It must preserve
+the 3090 as independently sufficient and must not make the 4090 eligible while the
+remote process-detection blocker remains unresolved.
