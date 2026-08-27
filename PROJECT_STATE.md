@@ -10,11 +10,45 @@ GRACI is a local-first AI workload orchestration project. It will coordinate inf
 
 - Overall Build: Phase 1
 - Current Phase: Minimal GRACI Core
-- Completed Stage: Phase 1B — Controlled Tool Layer
-- Original Build Plan Coverage: Step 1.3
-- Next Stage: Phase 1C — First Vertical Slice
+- Completed Stage: Phase 1C — First Vertical Slice
+- Original Build Plan Coverage: Step 1.4
+- Next Stage: Phase 1D — Phase 1 Acceptance Test
 
-Phase 1B is implemented and verified. Phase 1C has not begun.
+Phase 1C is implemented and verified. Phase 1D has not begun.
+
+## Phase 1C implementation
+
+- `graci.vertical_slice.VerticalSliceController` integrates the Phase 1A local
+  provider with the Phase 1B controlled tool layer for one synchronous bounded text
+  file create/update in an existing explicitly configured sandbox.
+- The caller fixes one allowed relative target. The model returns exactly
+  `schema_version`, `action`, `target_path`, `content`, and `rationale`, and only
+  `write_text` is supported. Strict schema validation and exact-target/workspace/
+  sensitive-path policy validation occur before tool execution and fail closed. A
+  Git repository root cannot be selected as the Phase 1C workspace, and `.git`
+  paths are prohibited.
+- The controlled tool writes atomically and GRACI independently reads the target.
+  Exact expected/observed content equality, never a model assertion, determines
+  PASS. Evidence records the task, fixed provider/model/endpoint, proposed action,
+  validation, tool result, verification, final status, errors, and UTC timestamps.
+- CLI callers select Phase 1C with both `--workspace` and `--target`; omitting both
+  preserves the Phase 1A task interface.
+
+## Phase 1C verification
+
+- Warning-strict offline suite: 26 tests pass. Phase 1C coverage includes valid,
+  malformed, unsupported, traversal/outside, and sensitive actions; successful
+  controlled modification; verification success/failure; tool failure; truthful
+  PASS/FAIL; durable evidence; and model success text unable to override failed
+  deterministic verification.
+- Live run `626af57f-f32a-4563-8af1-7f2a7b02b019` used only
+  `http://127.0.0.1:8080/v1` and server-reported model
+  `qwen3.8-27b-q4_k_m`. Schema and policy checks passed, the controlled tool wrote
+  43 bytes to the isolated `phase1c/live-sandbox/result.txt`, and exact read-back
+  verification passed. Durable evidence is under `phase1c/evidence/`.
+- No 4090 workload, cloud AI, external network action, package installation,
+  model-generated shell, Git mutation by the model, secret storage, or system
+  configuration change occurred.
 
 ## Phase 1B implementation
 
@@ -54,6 +88,7 @@ Phase 1B is implemented and verified. Phase 1C has not begun.
 - One task is executed synchronously per CLI invocation.
 - There are no retries, reviewers, resource scheduling, cloud escalation, authentication, service/API wrapper, or 4090 execution path.
 - Tool execution is synchronous and intentionally narrow. It has no recursive deletion, arbitrary shell, package management, network command, Git mutation, file patch/diff primitive, streaming output, output-size limit, or autonomous model-to-tool loop.
+- The Phase 1C model-to-tool path supports only one text file and has no multi-step planning, retry/repair, reviewer, routing, scheduling, memory, service/API wrapper, or automatic workspace/parent-directory creation.
 - The unresolved 4090 process-detection blocker remains fail-closed.
 
 ## Qualification status
@@ -87,4 +122,4 @@ The Work environment cannot currently authenticate a safe, read-only remote proc
 
 ## Next work
 
-The next planned stage is Phase 1C — First Vertical Slice. It must not treat optional 4090 capacity as available while the process-detection blocker remains unresolved.
+The next planned stage is Phase 1D — Phase 1 Acceptance Test. It must not treat optional 4090 capacity as available while the process-detection blocker remains unresolved.

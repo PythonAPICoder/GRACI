@@ -13,7 +13,7 @@ from typing import Any, Callable, Sequence
 
 ProcessRunner = Callable[..., subprocess.CompletedProcess[str]]
 _SENSITIVE_NAMES = {
-    ".env", ".ssh", ".gnupg", "credentials", "credential", "secrets",
+    ".env", ".git", ".ssh", ".gnupg", "credentials", "credential", "secrets",
     "secret", "id_rsa", "id_ed25519",
 }
 _SENSITIVE_SUFFIXES = {".pem", ".key", ".pfx", ".p12"}
