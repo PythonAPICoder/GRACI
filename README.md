@@ -1,6 +1,6 @@
-# GRACI Phase 2 Autonomous Loop
+# GRACI Phase 2 Autonomous Loop — Complete
 
-Phase 1 is complete, and Phase 2B provides a bounded governed multi-step repair loop
+Phase 1 and Phase 2 are complete. Phase 2 provides a bounded governed multi-step repair loop
 over a disposable workspace. Local Qwen can list configured scope, inspect explicitly
 allowlisted files, make multiple independently governed replacements, and request the
 fixed deterministic unittest command. Only verified tests establish PASS.
@@ -23,8 +23,8 @@ python -W error -m unittest discover -s tests -v
 
 All inference is fixed to local provider `local-llama-cpp`, endpoint
 `http://127.0.0.1:8080/v1`, and model `qwen3.8-27b-q4_k_m`. The unresolved safe
-process-detection requirement keeps the 4090 unavailable, and Phase 1 has no cloud
-AI path.
+process-detection requirement keeps the 4090 unavailable, and the accepted system
+has no cloud AI path.
 
 Phase 1B adds a deterministic, workspace-contained `graci.ToolLayer` for safe text
 file operations, a narrow approved command policy, unittest execution, and read-only
@@ -59,6 +59,13 @@ call, inspection, modification, repair, timeout, and context budgets plus simple
 repeat guards. Its accepted multi-file live runner is
 `python -m phase2b.run_live_validation`; see `phase2b/README.md`.
 
+Phase 2C closes Phase 2 with integrated deterministic acceptance of success,
+repair/retest, hard-budget, malformed-response, policy, progress-guard, provider,
+tool, false-success, and evidence paths. The complete warning-strict suite has 58
+tests. Its accepted localhost live runner is `python -m phase2c.run_live_acceptance`;
+see `phase2c/README.md` and `phase2c/evidence/`.
+
 The implementation still has no reviewer model, unrestricted planning,
 scheduling, routing, memory, arbitrary shell, package/network operations, Git
-mutation, 4090 execution, or cloud escalation. Phase 2C is next and has not begun.
+mutation, 4090 execution, or cloud escalation. Phase 3 — Resource / Model Router is
+the next authorized phase and has not begun.

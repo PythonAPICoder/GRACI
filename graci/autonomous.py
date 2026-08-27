@@ -170,9 +170,6 @@ class AutonomousRepairController:
                         elif cycle["tool_result"].get("success") is True: record["terminal_reason"] = "deterministic_verification_failure"; raise RuntimeError("test result did not contain consistent deterministic PASS evidence")
                         else:
                             failed, changes = True, 0
-                            if record["repair_attempts"] >= self.limits.max_repairs:
-                                record["terminal_reason"] = "repair_budget_exhausted"
-                                raise RuntimeError("tests failed and repair budget is exhausted")
                     if cycle["tool_result"] is not None and not cycle["tool_result"]["success"] and action != "run_tests": record["terminal_reason"] = "tool_failure"; raise RuntimeError(f"controlled tool failed: {cycle['tool_result']['error']}")
                 except ProviderError as exc: cycle["http_status"], record["terminal_reason"] = exc.http_status, "provider_failure"; raise
                 except ValidationError as exc: cycle["schema_validation"] = {"status": "FAIL", "error": str(exc)}; record["terminal_reason"] = "schema_validation_failure"; raise
@@ -181,6 +178,8 @@ class AutonomousRepairController:
                 if record["status"] == "PASS": break
             if record["status"] != "PASS" and record["terminal_reason"] is None: record["terminal_reason"] = "iteration_budget_exhausted"; raise RuntimeError("iteration budget exhausted")
         except Exception as exc:
+            if record["terminal_reason"] is None:
+                record["terminal_reason"] = "execution_failure"
             record["status"] = "FAIL"; record["deterministic_verification"] = {"status": "FAIL", "basis": record["terminal_reason"] or "execution failure"}; record["errors"].append(f"{type(exc).__name__}: {exc}")
         finally: record["budget_state"], record["ended_at"] = self._budgets(record), _timestamp(); self._persist(record)
         return record

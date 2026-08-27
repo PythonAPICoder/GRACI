@@ -111,11 +111,15 @@ class AutonomousRepairTests(unittest.TestCase):
     def test_repair_exhaustion_is_not_pass(self):
         bad = "def add(a, b):\n    return 0\n"
         record, _ = self.run_loop([
+            decision("run_tests"),
             decision("write_text", target_path="calculator.py", content=bad), decision("run_tests"),
-            decision("write_text", target_path="calculator.py", content=bad), decision("run_tests"),
+            decision("write_text", target_path="calculator.py", content="def add(a, b):\n    return 1\n"),
+            decision("run_tests"),
+            decision("write_text", target_path="calculator.py", content="def add(a, b):\n    return 2\n"),
         ])
         self.assertEqual(record["status"], "FAIL")
         self.assertEqual(record["terminal_reason"], "repair_budget_exhausted")
+        self.assertEqual(record["budget_usage"]["repairs"], 2)
         self.assertEqual(record["deterministic_verification"]["status"], "FAIL")
 
     def test_malformed_and_unsupported_decisions_fail_without_mutation(self):

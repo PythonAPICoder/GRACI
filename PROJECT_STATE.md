@@ -8,16 +8,36 @@ GRACI is a local-first AI workload orchestration project. It will coordinate inf
 
 ## Build progress
 
-- Overall Build: Phase 2
-- Completed Phase: Phase 1 — Minimal GRACI Core
-- Current Phase: Phase 2 — Autonomous Loop
-- Completed Stage: Phase 2B — Governed Multi-Step Autonomy
-- Previous Stage: Phase 2A — Single-Agent Autonomous Repair Loop
-- Next Stage: Phase 2C — Autonomous Loop Acceptance & Closure
+- Overall Build: Phase 2 complete
+- Completed Phase: Phase 2 — Autonomous Loop
+- Completed Stage: Phase 2C — Autonomous Loop Acceptance & Closure
+- Previous Accepted Phase: Phase 1 — Minimal GRACI Core
+- Next Authorized Phase: Phase 3 — Resource / Model Router
 
-Phase 1A through Phase 1D and Phase 2A remain accepted. Phase 2B is implemented,
-verified, accepted, and committed. Phase 2C is the next authorized stage and has
-not begun.
+Phase 1A through Phase 1D and Phase 2A through Phase 2C are accepted. Phase 2 is
+implemented, verified, closed, and committed by the closure commit containing this
+state. Phase 3 is authorized but has not begun.
+
+## Phase 2C acceptance and closure
+
+- The integrated deterministic suite covers direct and multi-file success,
+  ineffective repair followed by feedback and successful repair, repair/iteration/
+  model-call/inspection/modification exhaustion, malformed responses, independently
+  evaluated policy violations, progress guards, provider/tool failures, false model
+  success, and complete ordered evidence. The warning-strict suite passes 58 tests,
+  including every Phase 1, Phase 2A, and Phase 2B regression.
+- The acceptance audit repaired two in-scope defects: post-failure repair budget
+  enforcement had incorrectly depended on total pre-test writes, and unexpected
+  governed execution exceptions could leave the terminal reason unset. Regression
+  tests cover both repairs.
+- Live run `218d2969-cd66-44b2-bab0-073abecdf975` used only
+  `http://127.0.0.1:8080/v1` and server-reported `qwen3.8-27b-q4_k_m`. In seven
+  cycles Qwen listed scope, inspected three related files, made two governed
+  replacements, and passed two deterministic tests. Evidence is under
+  `phase2c/evidence/`; the fixture was automatically removed.
+- Compilation, JSON validation for all six accepted evidence records, diff checks,
+  safety review, evidence review, documentation review, and secret-pattern review
+  passed. No 4090 or cloud workload occurred.
 
 ## Phase 2B implementation and acceptance
 
@@ -217,6 +237,6 @@ The Work environment cannot currently authenticate a safe, read-only remote proc
 
 ## Next work
 
-The next authorized stage is Phase 2C — Autonomous Loop Acceptance & Closure. It must not
-treat optional 4090 capacity as available while the process-detection blocker
-remains unresolved. Phase 2C has not started.
+The next authorized phase is Phase 3 — Resource / Model Router. It must not treat
+optional 4090 capacity as available while the process-detection blocker remains
+unresolved. Phase 3 has not started.
