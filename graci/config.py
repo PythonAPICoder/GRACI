@@ -18,5 +18,5 @@ class Config:
             raise ValueError("Phase 1A endpoint must be local 3090 http://127.0.0.1:8080/v1")
         if self.provider != "local-llama-cpp" or self.node != "3090-primary-localhost":
             raise ValueError("Phase 1A provider and node identity are fixed to the local 3090")
-        if not self.model.strip():
-            raise ValueError("model must not be empty")
+        if self.model != "qwen3.8-27b-q4_k_m":
+            raise ValueError("Phase 1 model must be qwen3.8-27b-q4_k_m")

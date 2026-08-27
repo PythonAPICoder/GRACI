@@ -8,13 +8,32 @@ GRACI is a local-first AI workload orchestration project. It will coordinate inf
 
 ## Build progress
 
-- Overall Build: Phase 1
-- Current Phase: Minimal GRACI Core
-- Completed Stage: Phase 1C — First Vertical Slice
-- Original Build Plan Coverage: Step 1.4
-- Next Stage: Phase 1D — Phase 1 Acceptance Test
+- Overall Build: Phase 1 complete
+- Completed Phase: Minimal GRACI Core
+- Completed Stage: Phase 1D — Phase 1 Acceptance Test
+- Original Build Plan Coverage: Step 1.5
+- Next Authorized Phase: Phase 2 — Autonomous Loop
 
-Phase 1C is implemented and verified. Phase 1D has not begun.
+Phase 1A through Phase 1D are implemented, integrated, and accepted. Phase 2 has
+not begun.
+
+## Phase 1D acceptance and closure
+
+- The deterministic integrated acceptance suite covers a valid end-to-end action,
+  malformed/schema-invalid output, outside-workspace policy rejection,
+  deterministic verification mismatch despite model success wording, injected
+  controlled-tool failure, and durable evidence integrity for PASS and FAIL.
+- The complete warning-strict suite passes 32 tests. Python compilation and Git
+  whitespace/diff checks pass.
+- Live run `315228d2-3413-4a8b-b059-2c3efc727ac7` used only the fixed localhost
+  endpoint and `qwen3.8-27b-q4_k_m`. It validated and executed one controlled write
+  in the isolated Phase 1D sandbox, then established PASS by exact read-back.
+- The safety audit found and repaired one configuration defect: Phase 1 previously
+  accepted any non-empty model name. Configuration now rejects every model except
+  `qwen3.8-27b-q4_k_m`, with regression coverage.
+- Durable closure details, live evidence, and the verified output are under
+  `phase1d/`. No 4090 workload, cloud AI, external network access, dependency
+  installation, secret storage, or system modification occurred.
 
 ## Phase 1C implementation
 
@@ -88,7 +107,7 @@ Phase 1C is implemented and verified. Phase 1D has not begun.
 - One task is executed synchronously per CLI invocation.
 - There are no retries, reviewers, resource scheduling, cloud escalation, authentication, service/API wrapper, or 4090 execution path.
 - Tool execution is synchronous and intentionally narrow. It has no recursive deletion, arbitrary shell, package management, network command, Git mutation, file patch/diff primitive, streaming output, output-size limit, or autonomous model-to-tool loop.
-- The Phase 1C model-to-tool path supports only one text file and has no multi-step planning, retry/repair, reviewer, routing, scheduling, memory, service/API wrapper, or automatic workspace/parent-directory creation.
+- The accepted Phase 1 model-to-tool path supports only one text file and has no multi-step planning, retry/repair, reviewer, routing, scheduling, memory, service/API wrapper, or automatic workspace/parent-directory creation.
 - The unresolved 4090 process-detection blocker remains fail-closed.
 
 ## Qualification status
@@ -122,4 +141,6 @@ The Work environment cannot currently authenticate a safe, read-only remote proc
 
 ## Next work
 
-The next planned stage is Phase 1D — Phase 1 Acceptance Test. It must not treat optional 4090 capacity as available while the process-detection blocker remains unresolved.
+The next authorized phase is Phase 2 — Autonomous Loop. It must not treat optional
+4090 capacity as available while the process-detection blocker remains unresolved.
+Phase 2 is not started by this closure.
