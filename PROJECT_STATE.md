@@ -8,14 +8,53 @@ GRACI is a local-first AI workload orchestration project. It will coordinate inf
 
 ## Build progress
 
-- Overall Build: Phase 1 complete
-- Completed Phase: Minimal GRACI Core
-- Completed Stage: Phase 1D — Phase 1 Acceptance Test
-- Original Build Plan Coverage: Step 1.5
-- Next Authorized Phase: Phase 2 — Autonomous Loop
+- Overall Build: Phase 2
+- Completed Phase: Phase 1 — Minimal GRACI Core
+- Current Phase: Phase 2 — Autonomous Loop
+- Completed Stage: Phase 2A — Single-Agent Autonomous Repair Loop
+- Next Stage: Phase 2B — Governed Multi-Step Autonomy
 
-Phase 1A through Phase 1D are implemented, integrated, and accepted. Phase 2 has
-not begun.
+Phase 1A through Phase 1D remain accepted. Phase 2A is implemented, verified, and
+accepted. Phase 2B is the next authorized stage and has not begun.
+
+## Phase 2A implementation and acceptance
+
+- `graci.autonomous.AutonomousRepairController` runs one synchronous state machine
+  in an existing disposable non-Git workspace. Each cycle obtains one local-model
+  decision, validates its exact schema, validates policy independently, invokes a
+  controlled tool, persists evidence atomically, and either continues or terminates.
+- The only model actions are `inspect_file`, `write_text`, `run_tests`, and `finish`.
+  Reads and writes require caller-supplied exact file allowlists; editable files must
+  be a subset of readable files. Tests use the existing fixed unittest command.
+- Default limits are 8 reasoning/action iterations, 2 repair writes, and a 30-second
+  test timeout. Limits are host configuration, never model input. Exhaustion and all
+  malformed, unsupported, policy-violating, provider, tool, and verification cases
+  terminate as FAIL.
+- Only a consistent governed test result with command success, exit code 0, no
+  timeout, and PASS fields can establish final PASS. Model assertions and `finish`
+  cannot override deterministic evidence. The last three completed cycles are fed
+  back, with file and test streams truncated to 12,000 characters for model context;
+  complete evidence remains in the durable record.
+- The warning-strict suite passes 43 tests, including direct repair, a failed first
+  repair followed by a successful second repair with test feedback, repair and
+  iteration exhaustion, malformed/unsupported decisions, policy violations, tool
+  and provider failures, false success resistance, deterministic evidence
+  inconsistency, and multi-cycle persistence. All 32 Phase 1 tests still pass.
+- Live run `2dede672-a6cf-4285-9b9f-505cb296fce6` used only
+  `http://127.0.0.1:8080/v1` and server-reported model
+  `qwen3.8-27b-q4_k_m`. Qwen inspected both allowlisted files, replaced only
+  `calculator.py`, requested tests, and received deterministic exit code 0. The
+  temporary fixture was automatically removed; durable evidence is under
+  `phase2a/evidence/`.
+- The first live attempt correctly failed closed before tool execution because Qwen
+  emitted Markdown fences. The prompt was clarified while strict parsing remained
+  unchanged; the failed preliminary record was removed as a debug artifact.
+- Security regression review confirmed workspace containment, traversal/absolute
+  outside-path rejection, sensitive and `.git` blocking, command allowlisting,
+  absence of Git mutation, package/network/system operations, fixed endpoint/model,
+  and enforced iteration/repair limits. Governed Python commands now disable bytecode
+  writes and fix the hash seed to avoid stale disposable-fixture bytecode and improve
+  determinism.
 
 ## Phase 1D acceptance and closure
 
@@ -105,9 +144,17 @@ not begun.
 ## Current limitations
 
 - One task is executed synchronously per CLI invocation.
-- There are no retries, reviewers, resource scheduling, cloud escalation, authentication, service/API wrapper, or 4090 execution path.
-- Tool execution is synchronous and intentionally narrow. It has no recursive deletion, arbitrary shell, package management, network command, Git mutation, file patch/diff primitive, streaming output, output-size limit, or autonomous model-to-tool loop.
-- The accepted Phase 1 model-to-tool path supports only one text file and has no multi-step planning, retry/repair, reviewer, routing, scheduling, memory, service/API wrapper, or automatic workspace/parent-directory creation.
+- There are no provider retries, reviewers, resource scheduling, cloud escalation,
+  authentication, service/API wrapper, or 4090 execution path.
+- Tool execution is synchronous and intentionally narrow. It has no recursive deletion,
+  arbitrary shell, package management, network command, Git mutation, file patch/diff
+  primitive, or streaming output. Phase 2A bounds model feedback, but durable tool
+  records retain complete output.
+- Phase 2A supports bounded repair iteration but no independent reviewer, multi-model
+  adjudication, general planning, dynamic tool discovery, Git operations, routing,
+  scheduling, memory, service/API wrapper, or automatic workspace/parent creation.
+- Repair uses complete-file atomic replacement, not a patch primitive. The caller
+  must enumerate readable/editable files and provide the deterministic test directory.
 - The unresolved 4090 process-detection blocker remains fail-closed.
 
 ## Qualification status
@@ -141,6 +188,6 @@ The Work environment cannot currently authenticate a safe, read-only remote proc
 
 ## Next work
 
-The next authorized phase is Phase 2 — Autonomous Loop. It must not treat optional
-4090 capacity as available while the process-detection blocker remains unresolved.
-Phase 2 is not started by this closure.
+The next authorized stage is Phase 2B — Governed Multi-Step Autonomy. It must not
+treat optional 4090 capacity as available while the process-detection blocker
+remains unresolved. Phase 2B has not started.

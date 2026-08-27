@@ -159,6 +159,8 @@ class ToolLayer:
             command = self._allowed_command(executable, args, workdir)
             result["command"] = command
             environment = os.environ.copy()
+            if Path(executable).name.lower() in {Path(sys.executable).name.lower(), "python", "python.exe"}:
+                environment.update({"PYTHONDONTWRITEBYTECODE": "1", "PYTHONHASHSEED": "0"})
             if Path(executable).name.lower() in {"git", "git.exe"}:
                 environment.update({
                     "GIT_CONFIG_NOSYSTEM": "1",

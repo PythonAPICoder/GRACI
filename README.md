@@ -1,9 +1,9 @@
-# GRACI Phase 1 Minimal Core
+# GRACI Phase 2 Autonomous Loop
 
-Phase 1 is complete. GRACI provides a synchronous local controller/provider, a
-workspace-contained controlled tool layer, and one bounded model-to-tool text-file
-path whose success is determined by exact read-back verification. Phase 2 is
-authorized next but has not started.
+Phase 1 is complete, and Phase 2A adds a bounded single-agent repair loop over a
+disposable workspace. Local Qwen can inspect explicitly allowlisted files, replace
+explicitly editable files, and request the fixed deterministic unittest command.
+Schema and policy validation precede every action; only verified tests establish PASS.
 
 Submit a task with Python 3.14 or later:
 
@@ -49,7 +49,11 @@ Phase 1D adds deterministic integrated acceptance cases for valid execution,
 malformed output, policy rejection, verification mismatch, tool failure, and
 evidence integrity. Its closure record and live evidence are under `phase1d/`.
 
-Phase 1 remains intentionally limited to one synchronous single-file action. It has
-no autonomous loop, multi-step planning, retries, reviewers, scheduling, routing,
-memory, service/API wrapper, arbitrary shell, package/network operations, Git
-mutation, 4090 execution, or cloud escalation.
+Phase 2A is available programmatically as `AutonomousRepairController`; its accepted
+localhost integration runner is `python -m phase2a.run_live_validation`. The default
+loop limits are 8 cycles, 2 repair writes, and a 30-second test timeout. See
+`phase2a/README.md` for the contract, safety boundary, tests, and live evidence.
+
+The implementation still has no reviewer model, general multi-step planning,
+scheduling, routing, memory, arbitrary shell, package/network operations, Git
+mutation, 4090 execution, or cloud escalation. Phase 2B is next and has not begun.

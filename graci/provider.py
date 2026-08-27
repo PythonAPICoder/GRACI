@@ -105,6 +105,42 @@ class LocalLlamaCppProvider:
         }
         return self._request(body)
 
+    def propose_repair_decision(self, task: str, context: dict[str, Any]) -> ProviderResponse:
+        """Ask the fixed local model for one Phase 2A governed-loop decision."""
+        body = {
+            "model": self.config.model,
+            "messages": [
+                {
+                    "role": "system",
+                    "content": (
+                        "/no_think\nYou are operating a tiny disposable repair workspace through "
+                        "GRACI. Return raw JSON only. Your first output character must be { and "
+                        "your last output character must be }. Never emit markdown or code fences. "
+                        "Choose exactly one "
+                        "of these contracts: "
+                        '{"schema_version":1,"action":"inspect_file","target_path":"allowed/path",'
+                        '"rationale":"non-empty"}; '
+                        '{"schema_version":1,"action":"write_text","target_path":"editable/path",'
+                        '"content":"complete replacement text","rationale":"non-empty"}; '
+                        '{"schema_version":1,"action":"run_tests","rationale":"non-empty"}; or '
+                        '{"schema_version":1,"action":"finish","rationale":"non-empty"}. '
+                        "Do not invent commands or permissions. A finish decision cannot establish "
+                        "success; only GRACI's deterministic tests can do that."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": "Task:\n" + task + "\n\nBounded GRACI context:\n" +
+                               json.dumps(context, ensure_ascii=False),
+                },
+            ],
+            "temperature": 0,
+            "max_tokens": 4096,
+            "response_format": {"type": "json_object"},
+            "chat_template_kwargs": {"enable_thinking": False},
+        }
+        return self._request(body)
+
     def _request(self, body: dict[str, Any]) -> ProviderResponse:
         request = urllib.request.Request(
             self.config.endpoint.rstrip("/") + "/chat/completions",
