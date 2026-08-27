@@ -1,0 +1,17 @@
+{
+  "gate": "GRACI Gate 0",
+  "run_date": "2026-08-27",
+  "timezone": "America/Chicago",
+  "workspace": "E:\\GRACI",
+  "overall": "PARTIAL",
+  "tests": {
+    "G0.1": { "status": "PASS", "summary": "Workspace inspected; temporary file created, read, modified, reread, deleted, and absence verified." },
+    "G0.2": { "status": "PASS", "shell": "PowerShell Core 7.6.4", "cwd": "E:\\GRACI" },
+    "G0.3": { "status": "PASS", "python_version": "3.14.7", "executable": "C:\\Python314\\python.exe" },
+    "G0.4": { "status": "PASS", "git_version": "2.55.0.windows.3", "repository_initialized": true, "initial_branch": "main", "commit_created": false, "note": "Per-command safe.directory override required under sandbox identity; global Git config unchanged." },
+    "G0.5": { "status": "PASS", "endpoint": "http://127.0.0.1:8080/v1/models", "http_status": 200, "model_ids": ["GLM-4.7-Flash-64x2.6B-Q4_K_M", "qwen3.8-27b-q4_k_m"] },
+    "G0.6": { "status": "PASS", "endpoint": "http://192.168.0.101:8080/v1/models", "http_status": 200, "model_ids": ["GLM-4.7-Flash-64x2.6B-Q4_K_M", "qwen3.8-27b-q4_k_m"] },
+    "G0.7": { "status": "BLOCKED", "open_ports": [5985, 445, 135], "unreachable_ports": [5986], "remote_process_query": "authentication failed", "minimum_next_action": "Authorize a least-privilege authenticated remote process-status mechanism and retest." },
+    "G0.8": { "status": "PASS", "evidence_files": ["gate0/README.md", "gate0/results.json"] }
+  }
+}
