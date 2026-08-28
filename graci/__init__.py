@@ -48,6 +48,8 @@ from .playback import (PlaybackConfig, PlaybackResult, PlaybackStatus,
                        SubprocessWavePlayback)
 from .speech_presentation import (PresentationStatus, SpeechPresentationResult,
                                   SpeechPresentationService)
+from .voice_lifecycle import (VoiceLifecycle, VoiceLifecycleEvent,
+                              VoiceLifecycleLease, VoiceLifecycleObserver)
 
 __all__ = [
     "AutonomousRepairController", "Config", "Controller", "LoopLimits",
@@ -76,4 +78,6 @@ __all__ = [
     "SynthesizedAudio", "TTSRequest", "TTSResult", "TTSStatus",
     "PlaybackConfig", "PlaybackResult", "PlaybackStatus", "SubprocessWavePlayback",
     "PresentationStatus", "SpeechPresentationResult", "SpeechPresentationService",
+    "VoiceLifecycle", "VoiceLifecycleEvent", "VoiceLifecycleLease",
+    "VoiceLifecycleObserver",
 ]

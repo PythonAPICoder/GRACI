@@ -8,6 +8,8 @@ from typing import Protocol
 
 from .playback import PlaybackResult, PlaybackStatus
 from .tts import AuthoritativeFinalResponse, TTSRequest, TTSResult, TTSStatus
+from .visualizer import SystemState
+from .voice_lifecycle import VoiceLifecycle
 
 
 class Synthesizer(Protocol):
@@ -39,9 +41,11 @@ class SpeechPresentationResult:
 class SpeechPresentationService:
     """Presentation-only coordinator; it has no governed runtime dependency."""
 
-    def __init__(self, synthesizer: Synthesizer, player: Player):
+    def __init__(self, synthesizer: Synthesizer, player: Player,
+                 lifecycle: VoiceLifecycle | None = None):
         self._synthesizer = synthesizer
         self._player = player
+        self._lifecycle = lifecycle
 
     def speak(self, response: AuthoritativeFinalResponse) -> SpeechPresentationResult:
         if not isinstance(response, AuthoritativeFinalResponse):
@@ -59,7 +63,13 @@ class SpeechPresentationService:
                                             error_code=tts.error_code,
                                             error_message=tts.error_message)
         try:
-            playback = self._player.play(tts.audio)
+            lease = (self._lifecycle.enter(SystemState.SPEAKING)
+                     if self._lifecycle is not None else None)
+            try:
+                playback = self._player.play(tts.audio)
+            finally:
+                if lease is not None:
+                    lease.close()
         except Exception as exc:
             return SpeechPresentationResult(PresentationStatus.FAILED, response, tts=tts,
                                             error_code="playback_exception",

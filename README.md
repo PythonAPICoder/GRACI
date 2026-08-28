@@ -1,3 +1,11 @@
+# GRACI Phase 6E Voice Lifecycle Publication — Complete
+
+Phase 6E reuses the canonical observer state model to publish `LISTENING` only during
+bounded Phase 6B capture/recognition and `SPEAKING` only during actual Phase 6D
+playback. Guarded leases deterministically restore `IDLE`; publisher failures are
+recorded and isolated from transcription, presentation, and governed runtime results.
+Architecture, deterministic tests, and closure evidence are under `phase6e/`.
+
 # GRACI Phase 6D Local TTS and Bounded Audio Playback — Complete
 
 Phase 6D adds an optional presentation-only path from an explicitly constructed
@@ -5,8 +13,8 @@ authoritative final user-facing response through local Kokoro-82M ONNX CPU synth
 with `af_bella` and bounded subprocess-isolated Windows playback. Speech failure does
 not alter the governed task result. Phase 6A pronunciation overrides are applied only
 to the speech copy. Architecture, reconstruction, tests, and evidence are under
-`phase6d/`. The complete warning-strict suite passes 307 tests. Phase 6E visualizer
-lifecycle publication has not begun.
+`phase6d/`. Phase 6E later added observer-only lifecycle publication without changing
+this accepted presentation boundary.
 
 # GRACI Phase 5C Command-Center UI
 

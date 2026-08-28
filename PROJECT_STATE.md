@@ -8,6 +8,7 @@
 - Phase 6B — COMPLETE
 - Phase 6C — COMPLETE
 - Phase 6D — COMPLETE
+- Phase 6E — COMPLETE
 - Phase 6B authoritative starting commit: `291240f623bd73957f4afc84a6adb61c9ce3fdae`.
 - Phase 6 interaction model: push-to-talk. Always-listening and wake word are deferred.
 - Phase 6B adds explicit push-to-talk, dependency-free Windows PCM capture, typed
@@ -25,6 +26,12 @@
   bounded stoppable subprocess. Presentation failures never alter governed results.
 - Phase 6D focused tests pass 21/21; the complete warning-strict suite passes 307/307.
   Live cached Kokoro synthesis passed; physical speaker playback was not performed.
+- Phase 6E reuses canonical `idle`, `listening`, and `speaking` system states through
+  a replaceable observer-only publisher. Guarded leases wrap the actual bounded Phase
+  6B capture/recognition span and Phase 6D playback call, restore idle on every exit,
+  reject overlap/late restoration, and isolate recorded publisher failures from all
+  authoritative and presentation results. Phase 6E focused tests pass 8/8; the full
+  warning-strict suite passes 315/315. No physical microphone/speaker test was run.
 - Phase 6A voice decision: Kokoro-82M ONNX `af_bella` is the preferred production candidate. A bounded speech-only lexicon pronounces the unchanged written tokens `GRACI`, `3090`, and `4090` as `GRAY-see`, `thirty ninety`, and `forty ninety`; unrelated numbers are not rewritten.
 - Evidence: `phase6a/evidence/phase6a-qualification.json`; architecture and reconstruction: `phase6a/ARCHITECTURE.md` and `phase6a/README.md`.
 

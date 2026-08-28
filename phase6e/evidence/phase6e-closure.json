@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "phase": "6E",
+  "status": "PASS",
+  "starting_commit": "42f2e6987b6282681fa1183fa501d9ee2ce78cec",
+  "canonical_states": ["idle", "listening", "speaking"],
+  "transitions": {
+    "listening": "immediately before bounded capture start through capture stop and transcription, then idle",
+    "speaking": "immediately before bounded playback after successful synthesis, then idle",
+    "allowed": ["idle->listening", "listening->idle", "idle->speaking", "speaking->idle"]
+  },
+  "publication": {
+    "boundary": "replaceable synchronous in-process observer",
+    "authoritative": false,
+    "failure_recorded": true,
+    "failure_isolated": true,
+    "overlap_rejected": true,
+    "generation_guarded_restoration": true
+  },
+  "verification": {
+    "focused_tests_passed": 8,
+    "full_tests_passed": 315,
+    "warning_strict": true,
+    "compileall_passed": true,
+    "physical_microphone_performed": false,
+    "physical_speaker_performed": false
+  },
+  "deferred": [
+    "wake_word", "vad", "continuous_listening", "automatic_microphone_reopening",
+    "automatic_speech_loop", "duplex", "barge_in", "visualizer_ui",
+    "network_lifecycle_broadcasting", "cloud_speech", "4090_scheduling_changes"
+  ]
+}

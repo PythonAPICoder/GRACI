@@ -20,3 +20,11 @@ It has no runtime extraction or execution capability. Synthesis, playback, timeo
 cancellation, device, worker, and cleanup failures remain presentation results and
 cannot replace the authoritative response or governed result. See `phase6c/README.md`
 and `phase6d/README.md`.
+
+Phase 6E adds an observer-only publication boundary shared by the two voice paths.
+It reuses canonical `SystemState.IDLE`, `LISTENING`, and `SPEAKING`. A guarded
+generation lease publishes `LISTENING` from immediately before bounded capture start
+through transcription, and `SPEAKING` only around actual playback after synthesis.
+Every bounded exit restores `IDLE`. Observer failures are logged/recorded and cannot
+alter capture, transcription, playback, presentation, or governed runtime results.
+See `phase6e/README.md`.
