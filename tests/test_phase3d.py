@@ -71,6 +71,8 @@ class DistributedRoutingTests(unittest.TestCase):
         self.assertEqual(result.node_id, "4090")
         self.assertEqual(self.calls, ["http://192.168.0.101:8080/v1/chat/completions"])
         self.assertTrue(result.evidence["contacted_4090_chat_completions"])
+        self.assertEqual(result.evidence["contact_counts"], {
+            "4090_chat_completions": 1, "3090_chat_completions": 0})
         self.assertFalse(result.evidence["fallback_occurred"])
 
     def test_default_is_primary_without_optional_gate_contact(self):
@@ -91,6 +93,8 @@ class DistributedRoutingTests(unittest.TestCase):
         self.assertEqual(result.node_id, "3090")
         self.assertNotIn("192.168.0.101", "".join(self.calls))
         self.assertEqual(result.evidence["fallback_reason"], "mo2_running")
+        self.assertEqual(result.evidence["contact_counts"], {
+            "4090_chat_completions": 0, "3090_chat_completions": 1})
 
     def test_unknown_and_error_fail_closed_without_remote_inference(self):
         for state in (Mo2State.UNKNOWN, Mo2State.ERROR):
@@ -123,6 +127,8 @@ class DistributedRoutingTests(unittest.TestCase):
                                                         prefer_optional=True)
         self.assertEqual(result.node_id, "3090")
         self.assertEqual(len(result.evidence["attempts"]), 2)
+        self.assertEqual(result.evidence["contact_counts"], {
+            "4090_chat_completions": 1, "3090_chat_completions": 1})
         self.assertEqual(result.evidence["attempts"][0]["status"], "ERROR")
         self.assertEqual(result.evidence["attempts"][1]["status"], "SUCCESS")
         self.assertEqual(result.evidence["fallback_reason"], "4090_inference_failure")

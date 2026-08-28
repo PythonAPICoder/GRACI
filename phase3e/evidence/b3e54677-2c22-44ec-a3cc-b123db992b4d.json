@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "phase": "3D",
+  "run_id": "b3e54677-2c22-44ec-a3cc-b123db992b4d",
+  "started_at": "2026-08-28T02:09:03.833546Z",
+  "ended_at": "2026-08-28T02:09:04.282987Z",
+  "routing_policy": "explicit_optional_else_primary",
+  "optional_requested": false,
+  "logical_role": "general_reasoning",
+  "selected_model": "qwen3.8-27b-q4_k_m",
+  "provider": "local-llama-cpp",
+  "cloud_ai_used": false,
+  "eligibility": null,
+  "attempts": [
+    {
+      "attempt": 1,
+      "node_id": "3090",
+      "endpoint_id": "3090-llama-cpp",
+      "endpoint": "http://127.0.0.1:8080/v1",
+      "model": "qwen3.8-27b-q4_k_m",
+      "status": "SUCCESS",
+      "http_status": 200,
+      "response_model": "qwen3.8-27b-q4_k_m",
+      "error": null
+    }
+  ],
+  "contacted_4090_chat_completions": false,
+  "contacted_3090_chat_completions": true,
+  "contact_counts": {
+    "4090_chat_completions": 0,
+    "3090_chat_completions": 1
+  },
+  "fallback_occurred": false,
+  "fallback_reason": null,
+  "final_node": "3090",
+  "final_endpoint": "http://127.0.0.1:8080/v1",
+  "actual_server_model": "qwen3.8-27b-q4_k_m",
+  "final_outcome": "SUCCESS"
+}

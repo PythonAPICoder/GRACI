@@ -109,6 +109,8 @@ class Phase3DDistributedRouter:
             "eligibility": None, "attempts": [],
             "contacted_4090_chat_completions": False,
             "contacted_3090_chat_completions": False,
+            "contact_counts": {"4090_chat_completions": 0,
+                               "3090_chat_completions": 0},
             "fallback_occurred": False, "fallback_reason": None,
             "final_node": None, "final_endpoint": None,
             "actual_server_model": None, "final_outcome": "FAIL",
@@ -129,6 +131,10 @@ class Phase3DDistributedRouter:
                              binding.node_id == OPTIONAL_NODE_ID else
                              "contacted_3090_chat_completions")
             record[contacted_key] = True
+            count_key = ("4090_chat_completions" if
+                         binding.node_id == OPTIONAL_NODE_ID else
+                         "3090_chat_completions")
+            record["contact_counts"][count_key] += 1
             attempt = {"attempt": index + 1, "node_id": binding.node_id,
                        "endpoint_id": binding.endpoint_id, "endpoint": binding.endpoint,
                        "model": binding.model, "status": "ERROR", "http_status": None,

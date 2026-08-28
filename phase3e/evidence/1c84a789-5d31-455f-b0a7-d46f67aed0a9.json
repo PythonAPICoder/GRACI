@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "phase": "3D",
+  "run_id": "1c84a789-5d31-455f-b0a7-d46f67aed0a9",
+  "started_at": "2026-08-28T02:09:21.064644Z",
+  "ended_at": "2026-08-28T02:09:30.967639Z",
+  "routing_policy": "explicit_optional_else_primary",
+  "optional_requested": true,
+  "logical_role": "implementer",
+  "selected_model": "qwen3.8-27b-q4_k_m",
+  "provider": "local-llama-cpp",
+  "cloud_ai_used": false,
+  "eligibility": {
+    "eligible": true,
+    "reason_code": "eligible",
+    "policy_reason_code": "eligible",
+    "evaluated_at": "2026-08-28T02:09:21.117165Z",
+    "max_age_seconds": 10.0,
+    "mo2": {
+      "state": "NOT_RUNNING",
+      "reason_code": "exact_process_absent",
+      "checked_at": "2026-08-28T02:09:21.064700Z",
+      "http_status": 200,
+      "mechanism": "graci-mo2-status-http-v1",
+      "age_seconds": 0.052465
+    },
+    "endpoint_health": {
+      "state": "healthy",
+      "reason": "models_endpoint_valid",
+      "checked_at": "2026-08-28T02:09:21.113874Z",
+      "observed_models": [
+        "GLM-4.7-Flash-64x2.6B-Q4_K_M",
+        "qwen3.8-27b-q4_k_m"
+      ],
+      "http_status": 200,
+      "age_seconds": 0.003291
+    }
+  },
+  "attempts": [
+    {
+      "attempt": 1,
+      "node_id": "4090",
+      "endpoint_id": "4090-llama-cpp",
+      "endpoint": "http://192.168.0.101:8080/v1",
+      "model": "qwen3.8-27b-q4_k_m",
+      "status": "SUCCESS",
+      "http_status": 200,
+      "response_model": "qwen3.8-27b-q4_k_m",
+      "error": null
+    }
+  ],
+  "contacted_4090_chat_completions": true,
+  "contacted_3090_chat_completions": false,
+  "contact_counts": {
+    "4090_chat_completions": 1,
+    "3090_chat_completions": 0
+  },
+  "fallback_occurred": false,
+  "fallback_reason": null,
+  "final_node": "4090",
+  "final_endpoint": "http://192.168.0.101:8080/v1",
+  "actual_server_model": "qwen3.8-27b-q4_k_m",
+  "final_outcome": "SUCCESS"
+}

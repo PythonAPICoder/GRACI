@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "phase": "3E-live",
+  "run_id": "2bb8e95e-bdca-4e7a-b279-49c2a0369610",
+  "started_at": "2026-08-28T02:09:03.822911Z",
+  "ended_at": "2026-08-28T02:09:04.778533Z",
+  "expected_state": {
+    "mo2": "NOT_RUNNING",
+    "primary_healthy": true,
+    "optional_healthy": true,
+    "models": [
+      "qwen3.8-27b-q4_k_m",
+      "GLM-4.7-Flash-64x2.6B-Q4_K_M"
+    ]
+  },
+  "primary_health": {
+    "state": "healthy",
+    "reason": "models_endpoint_valid",
+    "checked_at": "2026-08-28T02:09:03.822933Z",
+    "observed_models": [
+      "GLM-4.7-Flash-64x2.6B-Q4_K_M",
+      "qwen3.8-27b-q4_k_m"
+    ],
+    "http_status": 200
+  },
+  "local": {
+    "routing_evidence_run_id": "b3e54677-2c22-44ec-a3cc-b123db992b4d",
+    "node": "3090",
+    "model": "qwen3.8-27b-q4_k_m",
+    "content": "GRACI_PHASE3E_LOCAL_OK",
+    "evidence": {
+      "schema_version": 1,
+      "phase": "3D",
+      "run_id": "b3e54677-2c22-44ec-a3cc-b123db992b4d",
+      "started_at": "2026-08-28T02:09:03.833546Z",
+      "ended_at": "2026-08-28T02:09:04.282987Z",
+      "routing_policy": "explicit_optional_else_primary",
+      "optional_requested": false,
+      "logical_role": "general_reasoning",
+      "selected_model": "qwen3.8-27b-q4_k_m",
+      "provider": "local-llama-cpp",
+      "cloud_ai_used": false,
+      "eligibility": null,
+      "attempts": [
+        {
+          "attempt": 1,
+          "node_id": "3090",
+          "endpoint_id": "3090-llama-cpp",
+          "endpoint": "http://127.0.0.1:8080/v1",
+          "model": "qwen3.8-27b-q4_k_m",
+          "status": "SUCCESS",
+          "http_status": 200,
+          "response_model": "qwen3.8-27b-q4_k_m",
+          "error": null
+        }
+      ],
+      "contacted_4090_chat_completions": false,
+      "contacted_3090_chat_completions": true,
+      "contact_counts": {
+        "4090_chat_completions": 0,
+        "3090_chat_completions": 1
+      },
+      "fallback_occurred": false,
+      "fallback_reason": null,
+      "final_node": "3090",
+      "final_endpoint": "http://127.0.0.1:8080/v1",
+      "actual_server_model": "qwen3.8-27b-q4_k_m",
+      "final_outcome": "SUCCESS"
+    }
+  },
+  "optional": {
+    "routing_evidence_run_id": "4c5c0fc1-e9c6-4a04-b872-5c0548f0bca8",
+    "node": "3090",
+    "model": "qwen3.8-27b-q4_k_m",
+    "content": "GRACI_PHASE3E_4090_OK",
+    "evidence": {
+      "schema_version": 1,
+      "phase": "3D",
+      "run_id": "4c5c0fc1-e9c6-4a04-b872-5c0548f0bca8",
+      "started_at": "2026-08-28T02:09:04.283712Z",
+      "ended_at": "2026-08-28T02:09:04.777863Z",
+      "routing_policy": "explicit_optional_else_primary",
+      "optional_requested": true,
+      "logical_role": "implementer",
+      "selected_model": "qwen3.8-27b-q4_k_m",
+      "provider": "local-llama-cpp",
+      "cloud_ai_used": false,
+      "eligibility": {
+        "eligible": false,
+        "reason_code": "mo2_query_error",
+        "policy_reason_code": "mo2_query_error",
+        "evaluated_at": "2026-08-28T02:09:04.287336Z",
+        "max_age_seconds": 10.0,
+        "mo2": {
+          "state": "ERROR",
+          "reason_code": "query_failure:URLError",
+          "checked_at": "2026-08-28T02:09:04.283768Z",
+          "http_status": null,
+          "mechanism": "graci-mo2-status-http-v1",
+          "age_seconds": 0.003568
+        },
+        "endpoint_health": {
+          "state": "unhealthy",
+          "reason": "request_failure:URLError",
+          "checked_at": "2026-08-28T02:09:04.284088Z",
+          "observed_models": [],
+          "http_status": null,
+          "age_seconds": 0.003248
+        }
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "node_id": "3090",
+          "endpoint_id": "3090-llama-cpp",
+          "endpoint": "http://127.0.0.1:8080/v1",
+          "model": "qwen3.8-27b-q4_k_m",
+          "status": "SUCCESS",
+          "http_status": 200,
+          "response_model": "qwen3.8-27b-q4_k_m",
+          "error": null
+        }
+      ],
+      "contacted_4090_chat_completions": false,
+      "contacted_3090_chat_completions": true,
+      "contact_counts": {
+        "4090_chat_completions": 0,
+        "3090_chat_completions": 1
+      },
+      "fallback_occurred": true,
+      "fallback_reason": "mo2_query_error",
+      "final_node": "3090",
+      "final_endpoint": "http://127.0.0.1:8080/v1",
+      "actual_server_model": "qwen3.8-27b-q4_k_m",
+      "final_outcome": "SUCCESS"
+    }
+  },
+  "cloud_ai_used": false,
+  "authoritative_repository_mutated_by_4090": false,
+  "shared_storage_used": false,
+  "status": "FAIL",
+  "errors": [
+    "live_expectation_mismatch"
+  ]
+}

@@ -1,4 +1,4 @@
-# GRACI Phase 3 Resource / Model Router — Phase 3D Complete
+# GRACI Phase 3 Resource / Model Router — Phase 3 Complete
 
 Phase 1 and Phase 2 are complete. Phase 3A added the deterministic typed resource,
 endpoint, model, health, and eligibility registry. Phase 3B uses it to route the
@@ -6,6 +6,8 @@ implementer role to Qwen and reviewer/verifier roles to GLM on the primary 3090.
 Phase 3C evaluates whether the optional 4090 is eligible using exact MO2 process
 state plus independent endpoint/model health. Phase 3D may place an explicitly
 optional workload there only after a fresh eligible result, with bounded 3090 fallback.
+Phase 3E integrated acceptance is complete. The next authorized phase is Phase 4 —
+Persistent Memory; it has not begun.
 Phase 2 provides a bounded governed multi-step repair loop
 over a disposable workspace. Local Qwen can list configured scope, inspect explicitly
 allowlisted files, make multiple independently governed replacements, and request the
@@ -32,6 +34,12 @@ All inference uses local provider `local-llama-cpp`. The authoritative default i
 4090 at `http://192.168.0.101:8080/v1`. Governed implementation uses
 `qwen3.8-27b-q4_k_m`; required read-only review uses
 `GLM-4.7-Flash-64x2.6B-Q4_K_M`. The accepted system has no cloud AI path.
+
+Phase 3 closure details and durable evidence are under `phase3e/`. The complete
+warning-strict suite passes 107 tests. The 3090 remains independently sufficient;
+the 4090 is optional, requires `prefer_optional=True`, and is freshly fail-closed
+against exact `ModOrganizer.exe` state, endpoint health, model presence, and
+non-future evidence no older than 10 seconds.
 
 Phase 1B adds a deterministic, workspace-contained `graci.ToolLayer` for safe text
 file operations, a narrow approved command policy, unittest execution, and read-only

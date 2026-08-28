@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "phase": "3E",
+  "evidence_type": "phase_closure",
+  "accepted_starting_commit": "fe2ea4980a206d176dd41208cb6ed67507f56fd5",
+  "authoritative_repository": "E:\\GRACI",
+  "starting_state": {
+    "head_exact": true,
+    "working_tree_clean": true,
+    "authority_host": "3090"
+  },
+  "acceptance_outcome": "PASS",
+  "phase_3_formally_complete": true,
+  "next_authorized_phase": "Phase 4 — Persistent Memory",
+  "phase_4_started": false,
+  "repairs": [
+    "Route the registry-advertised general_reasoning role to Qwen.",
+    "Record explicit per-node inference contact counts in atomic routing evidence."
+  ],
+  "automated_verification": {
+    "command": "python -W error -m unittest discover -s tests -v",
+    "tests_run": 107,
+    "result": "PASS",
+    "warnings_strict": true,
+    "phase_1_regressions": "PASS",
+    "phase_2_regressions": "PASS",
+    "phase_3_regressions": "PASS",
+    "compilation": "PASS",
+    "json_evidence_files_validated": 23,
+    "secret_pattern_scan": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "topology": {
+    "primary": {
+      "node": "3090",
+      "authority": true,
+      "required": true,
+      "endpoint": "http://127.0.0.1:8080/v1"
+    },
+    "optional": {
+      "node": "4090",
+      "authority": false,
+      "required": false,
+      "endpoint": "http://192.168.0.101:8080/v1",
+      "mo2_status_endpoint": "http://192.168.0.101:8765/graci/v1/mo2"
+    }
+  },
+  "model_roles": {
+    "implementer": "qwen3.8-27b-q4_k_m",
+    "general_reasoning": "qwen3.8-27b-q4_k_m",
+    "reviewer": "GLM-4.7-Flash-64x2.6B-Q4_K_M",
+    "verifier": "GLM-4.7-Flash-64x2.6B-Q4_K_M"
+  },
+  "routing_policy": {
+    "default_node": "3090",
+    "optional_requires_explicit_request": true,
+    "fresh_mo2_check_per_optional_dispatch": true,
+    "fresh_models_check_per_optional_dispatch": true,
+    "maximum_4090_inference_attempts": 1,
+    "maximum_3090_fallback_attempts": 1,
+    "server_model_identity_enforced": true,
+    "deterministic_tests_authoritative": true,
+    "reviewer_failure_can_create_pass": false
+  },
+  "eligibility_policy": {
+    "required_mo2_state": "NOT_RUNNING",
+    "exact_process": "ModOrganizer.exe",
+    "required_endpoint_health": "healthy",
+    "required_model_presence": true,
+    "fail_closed_states": [
+      "RUNNING",
+      "UNKNOWN",
+      "ERROR",
+      "malformed",
+      "endpoint_unreachable",
+      "endpoint_unhealthy",
+      "required_model_absent",
+      "resource_disabled",
+      "policy_blocked",
+      "stale_timestamp",
+      "future_timestamp"
+    ],
+    "maximum_age_seconds": 10.0,
+    "future_timestamps_trusted": false
+  },
+  "live_acceptance": {
+    "result": "PASS",
+    "record": "phase3e/evidence/0b9d527a-e985-4897-8ce4-aaf77639a7e4.json",
+    "local_3090_inference": "PASS",
+    "real_optional_4090_inference": "PASS",
+    "mo2_state": "NOT_RUNNING",
+    "both_models_present": true,
+    "identity": "PASS",
+    "evidence": "PASS",
+    "sandbox_fail_closed_record": "phase3e/evidence/2bb8e95e-bdca-4e7a-b279-49c2a0369610.json"
+  },
+  "prior_phase_evidence": [
+    "phase3a/evidence/f2b15951-f9b7-45c9-9d5b-19cbc3a7e651.json",
+    "phase3b/evidence/bc5e85b9-8d5e-431c-877d-193f7f447036.json",
+    "phase3c/evidence/c60baa4e-db7c-441c-b57d-877ee5e5e1e8.json",
+    "phase3c/evidence/ffa32f4c-7077-4075-bf62-9e8f4e95ced8.json",
+    "phase3d/evidence/1a975f47-55df-4cc5-ad8f-695c6559a78b.json",
+    "phase3d/evidence/5f98916a-700f-4c2f-a7c9-3caa288e5abb.json"
+  ],
+  "security_review": {
+    "result": "PASS",
+    "arbitrary_remote_shell": false,
+    "broad_process_enumeration": false,
+    "process_termination": false,
+    "arbitrary_remote_command_execution": false,
+    "model_controlled_eligibility": false,
+    "firewall_broadening": false,
+    "secret_or_key_persistence": false,
+    "cloud_routing": false,
+    "cloud_ai_used_by_graci": false
+  },
+  "shared_drive": {
+    "used_for_phase_3_routing": false,
+    "shared_mutable_coordination_introduced": false,
+    "authoritative_repository_remains_3090_only": true,
+    "future_use_requires_material_benefit": true
+  },
+  "known_limitations": [
+    "MO2 may start immediately after a valid eligibility check.",
+    "An already dispatched inference is not remotely terminated.",
+    "Subsequent optional dispatches recheck and fail closed.",
+    "The Codex offline sandbox cannot access private-LAN endpoints; normal 3090 host context can."
+  ],
+  "support_service": {
+    "read_only": true,
+    "reboot_persistent_scheduled_task": true,
+    "narrow_firewall": true
+  },
+  "closure_commit": {
+    "message": "Complete GRACI Phase 3 resource router acceptance",
+    "identity": "the Git commit containing this immutable closure record",
+    "pushed": false
+  }
+}

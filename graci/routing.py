@@ -29,6 +29,7 @@ class RoleBinding:
 
 _ROLE_MODELS = {
     ModelRole.IMPLEMENTER: QWEN_MODEL_ID,
+    ModelRole.GENERAL_REASONING: QWEN_MODEL_ID,
     ModelRole.REVIEWER: GLM_MODEL_ID,
     ModelRole.VERIFIER: GLM_MODEL_ID,
 }

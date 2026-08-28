@@ -56,17 +56,20 @@ class RoleRoutingTests(unittest.TestCase):
     def test_roles_resolve_exact_primary_models(self):
         router = Phase3BRoleRouter(healthy_registry())
         implementer = router.resolve("implementer")
+        general = router.resolve("general_reasoning")
         reviewer = router.resolve("reviewer")
         verifier = router.resolve("verifier")
         self.assertEqual((implementer.node_id, implementer.endpoint, implementer.model),
                          (PRIMARY_NODE_ID, PRIMARY_BASE_URL, QWEN_MODEL_ID))
         self.assertEqual((reviewer.node_id, reviewer.endpoint, reviewer.model),
                          (PRIMARY_NODE_ID, PRIMARY_BASE_URL, GLM_MODEL_ID))
+        self.assertEqual((general.node_id, general.endpoint, general.model),
+                         (PRIMARY_NODE_ID, PRIMARY_BASE_URL, QWEN_MODEL_ID))
         self.assertEqual(verifier.model, GLM_MODEL_ID)
 
     def test_unsupported_missing_unhealthy_and_disabled_fail_closed(self):
         with self.assertRaises(RoleResolutionError):
-            Phase3BRoleRouter(healthy_registry()).resolve("general_reasoning")
+            Phase3BRoleRouter(healthy_registry()).resolve("unsupported")
         registry = healthy_registry()
         cases = [
             replace(registry, models={QWEN_MODEL_ID: registry.models[QWEN_MODEL_ID]}),

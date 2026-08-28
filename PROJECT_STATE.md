@@ -8,15 +8,53 @@ GRACI is a local-first AI workload orchestration project. It will coordinate inf
 
 ## Build progress
 
-- Overall Build: Phase 3
-- Completed Phases: Phase 1 — Minimal GRACI Core; Phase 2 — Autonomous Loop
-- Current Phase: Phase 3 — Resource / Model Router
-- Completed Stages: Phase 3A — Resource & Endpoint Registry; Phase 3B — Local Model Role Routing; Phase 3C — 4090 Availability & MO2 Policy; Phase 3D — Distributed Routing / Failover
-- Next Stage: Phase 3E — Resource / Model Router Acceptance & Closure
+- Overall Build: Phase 3 complete
+- Completed Phases: Phase 1 — Minimal GRACI Core; Phase 2 — Autonomous Loop; Phase 3 — Resource / Model Router
+- Current Phase: Phase 3E — Resource / Model Router Acceptance & Closure, complete
+- Completed Stages: Phase 3A — Resource & Endpoint Registry; Phase 3B — Local Model Role Routing; Phase 3C — 4090 Availability & MO2 Policy; Phase 3D — Distributed Routing / Failover; Phase 3E — Acceptance & Closure
+- Next Authorized Phase: Phase 4 — Persistent Memory
 
 Phase 1A through Phase 1D and Phase 2A through Phase 2C are accepted. Phase 2 is
 implemented, verified, closed, and committed by the closure commit containing this
-state. Phase 3A through Phase 3D are implemented, verified, and accepted.
+state. Phase 3A through Phase 3E are implemented, verified, accepted, and closed.
+
+## Phase 3E acceptance and closure
+
+- Starting commit `fe2ea4980a206d176dd41208cb6ed67507f56fd5` was verified
+  exactly with a clean authoritative `E:\GRACI` working tree before any change.
+- Integrated acceptance found and repaired two narrow Phase 3 gaps: the registry's
+  advertised Qwen `general_reasoning` role is now routable, and routing evidence now
+  includes explicit per-node inference contact counts in addition to attempts and
+  contact booleans. No architecture was redesigned.
+- The warning-strict suite passes 107 tests, including all Phase 1, Phase 2, and
+  Phase 3 regressions plus eight focused Phase 3E integration tests. Coverage
+  includes topology, 3090-only use, all role mappings, explicit optional placement,
+  fresh checks, every fail-closed gate, bounded fallback, identity mismatch,
+  reviewer/adjudication authority, atomic evidence, security boundaries, prior live
+  evidence validation, and zero cloud routing.
+- Final live acceptance `0b9d527a-e985-4897-8ce4-aaf77639a7e4` passed from the
+  expected state. It proved one 3090 general-reasoning Qwen inference and one real
+  explicitly optional 4090 Qwen inference; MO2 was exactly NOT_RUNNING, both models
+  were present, evidence was fresh, identities matched, and contact counts were
+  exactly one local and one remote across the two bounded operations. The initial
+  Codex sandbox run `2bb8e95e-bdca-4e7a-b279-49c2a0369610` truthfully failed closed
+  on private-LAN access and fell back to the healthy 3090; the unchanged runner then
+  passed in the normal authoritative-host network context.
+- Prior Phase 3D records `1a975f47-55df-4cc5-ad8f-695c6559a78b` (NOT_RUNNING,
+  eligible real 4090 inference) and `5f98916a-700f-4c2f-a7c9-3caa288e5abb`
+  (RUNNING, zero remote inference, successful 3090 fallback) remain incorporated.
+- Security review found no arbitrary remote shell or command execution, broad
+  process enumeration, process termination, model-controlled policy, firewall
+  broadening, secret persistence, cloud routing, or shared mutable coordination.
+  The 4090 support service remains read-only, narrowly firewalled, and reboot
+  persistent. The authoritative repository and evidence remain 3090-only.
+- Shared storage remains unnecessary for bounded Phase 3 prompts, responses, health
+  observations, and JSON evidence. A future phase may use it only where materially
+  useful and never as an eligibility authority.
+- The accepted race remains: MO2 can start after a valid check and an already
+  dispatched inference is not remotely terminated. Every subsequent optional
+  dispatch performs fresh checks and fails closed. The Codex private-LAN sandbox
+  boundary is not a GRACI defect and did not cause any firewall or policy change.
 
 ## Phase 3D distributed routing and failover
 
@@ -34,7 +72,7 @@ state. Phase 3A through Phase 3D are implemented, verified, and accepted.
   subsequent dispatches recheck the gate.
 - Structured JSON evidence is uniquely named and atomically persisted on the 3090.
   It records role/model, eligibility observations and ages, attempts, endpoints,
-  fallback, server model, contact booleans, outcome, and no-cloud status.
+  fallback, server model, contact booleans and counts, outcome, and no-cloud status.
 - Shared storage is deliberately not used: Phase 3D payloads and evidence are small,
   and a shared path would add mutable state, races, authority ambiguity, and another
   availability/security dependency without meaningful transfer benefit. Future
@@ -308,15 +346,15 @@ state. Phase 3A through Phase 3D are implemented, verified, and accepted.
 ## Current limitations
 
 - One task is executed synchronously per CLI invocation.
-- There are no provider retries, resource scheduling, cloud escalation,
-  authentication, service/API wrapper, or 4090 execution path.
+- There is no cloud escalation, authentication, general service/API wrapper, or
+  unbounded resource scheduling/retry path.
 - Tool execution is synchronous and intentionally narrow. It has no recursive deletion,
   arbitrary shell, package management, network command, Git mutation, file patch/diff
   primitive, or streaming output. Phase 2A bounds model feedback, but durable tool
   records retain complete output.
 - Phase 3B review is a single read-only post-test opinion. There is no reviewer-driven
   repair loop, reviewer tool execution, third-model adjudication, general planning,
-  dynamic tool discovery, Git operations, load balancing, failover, scheduling,
+  dynamic tool discovery, Git operations, load balancing, general scheduling,
   memory, service/API wrapper, or automatic workspace/parent creation.
 - Repair uses complete-file atomic replacement, not a patch primitive. The caller
   must enumerate readable/editable files and provide the deterministic test directory.
@@ -344,9 +382,8 @@ state. Phase 3A through Phase 3D are implemented, verified, and accepted.
 - If `ModOrganizer.exe` is running, GRACI must send no tasks to the 4090.
 - Remote detection of exact `ModOrganizer.exe` is implemented through the narrow
   read-only Phase 3C status endpoint. Unknown and error results remain fail-closed.
-- Local AI is the default.
-- Cloud AI is an exception and escalation path, not the normal execution path.
-- No cloud-AI integration is authorized for Phase 1A.
+- Local AI is the only implemented Phase 3 path and the 3090 is the default.
+- No cloud-AI integration or routing exists in the accepted Phase 3 system.
 - The repository and durable on-disk state are authoritative. Do not rely on conversation history as project state.
 
 ## Resolved Phase 3C blocker
@@ -357,6 +394,5 @@ process data or command interface.
 
 ## Next work
 
-The next authorized stage is Phase 3D — Distributed Routing / Failover. Phase 3C
-must not be extended into that stage without new authorization. The 4090 remains
-an optional eligibility signal only and receives no workloads.
+Phase 3 is formally complete. The next authorized phase is Phase 4 — Persistent
+Memory. Phase 4 has not begun.
