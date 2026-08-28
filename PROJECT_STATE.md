@@ -1,5 +1,39 @@
 # GRACI Project State
 
+## Phase 4C relevance, scope, and supersession — COMPLETE
+
+- Starting commit `0747e14f4bfcf3d0eb8ac3a487df80e64ad7a476` and a clean
+  authoritative `E:\GRACI` tree were verified before modification.
+- New governed records use schema v2 with exact `relevance_key`, nullable
+  timezone-aware `expires_at`, and nullable canonical `supersedes_memory_id`.
+  Schema-v1 records remain readable without rewriting or reinterpretation and are
+  excluded from governed selection with `NO_RELEVANCE_METADATA`.
+- Relevance is exact only: 1–128 character canonical lowercase dotted keys, at most
+  50 unique requested keys, no semantics, fuzzy matching, embeddings, path meaning,
+  or model inference. Project and session scopes retain exact bounded identity.
+- Callers provide explicit global/project/session context and composition flags.
+  Matching specificity is session > project > global; parent project and global
+  inclusion are explicit. Unrelated projects and sessions never apply.
+- Explicit governed replacement requires equal scope/key/type, preserves the old
+  record as `superseded`, records the relationship, rejects cycles/self-reference,
+  rolls back on retirement failure, and preserves UUIDv5 retry idempotency.
+- Expiration is computed at selection from the host clock without read-time writes.
+  Retired and expired candidates are excluded. Same-key/type active ambiguity at
+  the winning scope is diagnosed and all ambiguous records are excluded; provenance,
+  timestamps, and model judgment do not choose truth.
+- `MemoryGovernance.select` returns selected records, applicability explanations,
+  exclusion/conflict/corruption diagnostics, deterministic ordering, bounds, and
+  truncation. Ordering is specificity descending, updated/created time descending,
+  then UUID ascending. Limits are 25 default, 100 hard, 1,000 scanned.
+- The complete warning-strict suite passes 174 tests, including all Phase 1–4B
+  regressions. Disposable local acceptance and fresh-object reconstruction pass.
+  Evidence and full architecture/development/test/failure notes are under
+  `phase4c/`. No GRACI cloud AI or 4090 dependency was used or introduced.
+- Memory remains inert context, not authority. GRACI still has no semantic memory
+  search, embeddings, free-text relevance, model conflict resolution, prompt
+  injection, or autonomous memory consumption.
+- Next authorized stage: Phase 4D — Memory-Guided Agent Execution. It has not begun.
+
 ## Phase 4B memory write / retrieval pipeline — COMPLETE
 
 - Starting commit `e472fe948637f18422aa75b49df235b55d9fa741` was verified

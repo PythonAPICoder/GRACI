@@ -1,0 +1,141 @@
+{
+  "evidence_schema_version": 1,
+  "memory_schema_version": 2,
+  "phase": "4C",
+  "status": "PASS",
+  "starting_commit": "0747e14f4bfcf3d0eb8ac3a487df80e64ad7a476",
+  "schema_migration": "schema-v1 remains exact/readable but has no relevance metadata and is excluded from governed selection; new governed records use schema-v2",
+  "relevance_key": {
+    "format": "canonical lowercase dotted segments",
+    "max_length": 128,
+    "semantic_or_fuzzy_matching": false
+  },
+  "scope_identity": "global id null; project/session require exact bounded identifiers",
+  "scope_composition": {
+    "precedence": [
+      "session",
+      "project",
+      "global"
+    ],
+    "global_and_parent_inclusion": "explicit boolean policy flags",
+    "project_b_excluded_from_project_a": true,
+    "session_selected_ids": [
+      "1d8d6284-cf5f-5853-b55f-5f98b5dbf9df",
+      "8d333ceb-00e1-595e-8a31-e7327ea0a1f7",
+      "fb56ee2a-b189-5b2b-8fbf-381a0559473a"
+    ]
+  },
+  "supersession": {
+    "replacement_id": "ee43d628-64c6-5ccb-a8f9-ec9cafeac783",
+    "historical_id": "e84d5d10-f90f-58ba-90dc-65eb6ca8556a",
+    "historical_status": "superseded",
+    "selected_ids": [
+      "ee43d628-64c6-5ccb-a8f9-ec9cafeac783"
+    ]
+  },
+  "expiration": {
+    "record_id": "642e591d-908a-561a-af2a-e207e41de07e",
+    "selected": false,
+    "diagnostics": [
+      {
+        "memory_id": "1d8d6284-cf5f-5853-b55f-5f98b5dbf9df",
+        "reason": "RELEVANCE_KEY_NOT_REQUESTED",
+        "relevance_key": "scope.session_a"
+      },
+      {
+        "memory_id": "642e591d-908a-561a-af2a-e207e41de07e",
+        "reason": "EXPIRED_AT_READ",
+        "relevance_key": "context.expired"
+      },
+      {
+        "memory_id": "8d333ceb-00e1-595e-8a31-e7327ea0a1f7",
+        "reason": "RELEVANCE_KEY_NOT_REQUESTED",
+        "relevance_key": "scope.project_a"
+      },
+      {
+        "memory_id": "9d2a0f25-8b87-50fc-960d-52de074e0ad3",
+        "reason": "RELEVANCE_KEY_NOT_REQUESTED",
+        "relevance_key": "scope.project_b"
+      },
+      {
+        "memory_id": "e84d5d10-f90f-58ba-90dc-65eb6ca8556a",
+        "reason": "RELEVANCE_KEY_NOT_REQUESTED",
+        "relevance_key": "user.synthetic_preference"
+      },
+      {
+        "memory_id": "ee43d628-64c6-5ccb-a8f9-ec9cafeac783",
+        "reason": "RELEVANCE_KEY_NOT_REQUESTED",
+        "relevance_key": "user.synthetic_preference"
+      },
+      {
+        "memory_id": "fb56ee2a-b189-5b2b-8fbf-381a0559473a",
+        "reason": "RELEVANCE_KEY_NOT_REQUESTED",
+        "relevance_key": "scope.global"
+      }
+    ]
+  },
+  "conflict": {
+    "candidate_ids": [
+      "d1bddc28-826e-5dd5-b9b9-b312db3f6ade",
+      "e51b47d7-b67a-55da-a0cf-80fecccba97c"
+    ],
+    "selected_count": 0,
+    "diagnostics": [
+      {
+        "relevance_key": "context.conflict",
+        "memory_type": "context",
+        "scope_specificity": "project",
+        "memory_ids": [
+          "d1bddc28-826e-5dd5-b9b9-b312db3f6ade",
+          "e51b47d7-b67a-55da-a0cf-80fecccba97c"
+        ],
+        "reason": "AMBIGUOUS_ACTIVE_CANDIDATES"
+      }
+    ]
+  },
+  "selection": {
+    "order": [
+      "scope_specificity_desc",
+      "updated_at_desc",
+      "created_at_desc",
+      "memory_id_asc"
+    ],
+    "default_limit": 25,
+    "hard_limit": 100,
+    "scan_limit": 1000,
+    "reason_codes": [
+      "AMBIGUOUS_CONFLICT",
+      "EXPIRED_AT_READ",
+      "LIFECYCLE_SUPERSEDED",
+      "RELEVANCE_KEY_NOT_REQUESTED"
+    ],
+    "corruption_diagnostics": 0
+  },
+  "synthetic_record_ids": [
+    "1d8d6284-cf5f-5853-b55f-5f98b5dbf9df",
+    "357be96c-4676-5c7e-9d66-aae6a7925052",
+    "642e591d-908a-561a-af2a-e207e41de07e",
+    "8d333ceb-00e1-595e-8a31-e7327ea0a1f7",
+    "9d2a0f25-8b87-50fc-960d-52de074e0ad3",
+    "d1bddc28-826e-5dd5-b9b9-b312db3f6ade",
+    "e51b47d7-b67a-55da-a0cf-80fecccba97c",
+    "e84d5d10-f90f-58ba-90dc-65eb6ca8556a",
+    "ee43d628-64c6-5ccb-a8f9-ec9cafeac783",
+    "fb56ee2a-b189-5b2b-8fbf-381a0559473a"
+  ],
+  "instruction_like_content_inert": true,
+  "reconstruction": {
+    "status": "PASS",
+    "identical_records_and_diagnostics": true
+  },
+  "automated_tests": {
+    "command": "python -W error -m unittest discover -s tests -v",
+    "count": 174,
+    "status": "PASS"
+  },
+  "secret_scan": "bounded_no_findings",
+  "cloud_usage": "none",
+  "dependency_on_4090": false,
+  "shared_storage_used": false,
+  "final_acceptance": "PASS"
+}

@@ -1,3 +1,14 @@
+# GRACI Phase 4C Governed Memory Selection
+
+Phases 0–3 and Phase 4A/4B remain complete. Phase 4C adds exact relevance keys,
+explicit project/session identity and scope composition, historical supersession,
+trusted-clock expiration, ambiguity exclusion, and bounded deterministic selection.
+Memory remains inert context and grants no authority. There is no semantic search,
+embedding, model conflict resolution, prompt injection, autonomous memory use,
+cloud memory, or 4090 dependency. Architecture and evidence are under `phase4c/`.
+The next authorized stage is Phase 4D — Memory-Guided Agent Execution; it has not
+begun.
+
 # GRACI Phase 4B Governed Memory Pipeline
 
 Phases 0–3 and Phase 4A remain complete. Phase 4B adds explicit provenance-forcing

@@ -25,6 +25,9 @@ from .memory import (EnumerationResult, MemoryCollisionError, MemoryNotFoundErro
                      MemoryValidationError, ProvenanceOrigin, ScopeKind)
 from .memory_pipeline import (DEFAULT_RETRIEVAL_LIMIT, MAX_RETRIEVAL_LIMIT,
                               MemoryPipeline, RetrievalResult, WriteResult)
+from .memory_governance import (DEFAULT_SELECTION_LIMIT, MAX_SELECTION_LIMIT,
+                                ConflictDiagnostic, MemoryGovernance,
+                                SelectionResult, validate_relevance_key)
 
 __all__ = [
     "AutonomousRepairController", "Config", "Controller", "LoopLimits",
@@ -37,6 +40,8 @@ __all__ = [
     "MemoryValidationError", "ProvenanceOrigin", "ScopeKind",
     "DEFAULT_RETRIEVAL_LIMIT", "MAX_RETRIEVAL_LIMIT", "MemoryPipeline",
     "RetrievalResult", "WriteResult",
+    "DEFAULT_SELECTION_LIMIT", "MAX_SELECTION_LIMIT", "ConflictDiagnostic",
+    "MemoryGovernance", "SelectionResult", "validate_relevance_key",
     "build_phase3a_registry", "check_4090_mo2_status", "evaluate_4090_eligibility",
     "evaluate_eligibility",
 ]

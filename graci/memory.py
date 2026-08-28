@@ -18,11 +18,14 @@ from typing import Any, Callable, Mapping
 
 
 SCHEMA_VERSION = 1
+GOVERNANCE_SCHEMA_VERSION = 2
 MAX_CONTENT_BYTES = 16_384
 MAX_ENUMERATION_LIMIT = 1000
 DEFAULT_ENUMERATION_LIMIT = 100
 _FIELDS = {"schema_version", "memory_id", "created_at", "updated_at", "scope",
            "memory_type", "content", "provenance", "status", "version"}
+_GOVERNANCE_FIELDS = _FIELDS | {"relevance_key", "expires_at",
+                                "supersedes_memory_id"}
 _UUID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
 _SCOPE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
 _SECRET_PATTERNS = (
@@ -167,11 +170,16 @@ def _reject_obvious_secrets(content: str) -> None:
 
 def validate_record(record: Mapping[str, Any]) -> dict[str, Any]:
     """Validate and return a detached canonical record; never silently repair."""
-    if not isinstance(record, Mapping) or set(record) != _FIELDS:
-        missing = sorted(_FIELDS - set(record)) if isinstance(record, Mapping) else sorted(_FIELDS)
-        extra = sorted(set(record) - _FIELDS) if isinstance(record, Mapping) else []
+    schema_version = record.get("schema_version") if isinstance(record, Mapping) else None
+    expected_fields = (_FIELDS if schema_version == SCHEMA_VERSION else
+                       _GOVERNANCE_FIELDS if schema_version == GOVERNANCE_SCHEMA_VERSION else
+                       _FIELDS)
+    if not isinstance(record, Mapping) or set(record) != expected_fields:
+        missing = sorted(expected_fields - set(record)) if isinstance(record, Mapping) else sorted(expected_fields)
+        extra = sorted(set(record) - expected_fields) if isinstance(record, Mapping) else []
         raise MemoryValidationError(f"record fields mismatch; missing={missing}, extra={extra}")
-    if type(record["schema_version"]) is not int or record["schema_version"] != SCHEMA_VERSION:
+    if (type(record["schema_version"]) is not int or
+            record["schema_version"] not in (SCHEMA_VERSION, GOVERNANCE_SCHEMA_VERSION)):
         raise MemoryValidationError(f"unsupported schema_version: {record['schema_version']!r}")
     memory_id = validate_memory_id(record["memory_id"])
     created = _parse_timestamp(record["created_at"], "created_at")
@@ -190,8 +198,8 @@ def validate_record(record: Mapping[str, Any]) -> dict[str, Any]:
     if len(content_bytes) > MAX_CONTENT_BYTES:
         raise MemoryValidationError(f"content exceeds {MAX_CONTENT_BYTES} UTF-8 bytes")
     _reject_obvious_secrets(content)
-    return {
-        "schema_version": SCHEMA_VERSION, "memory_id": memory_id,
+    canonical = {
+        "schema_version": record["schema_version"], "memory_id": memory_id,
         "created_at": record["created_at"], "updated_at": record["updated_at"],
         "scope": _validate_scope(record["scope"]),
         "memory_type": _enum(record["memory_type"], MemoryType, "memory_type"),
@@ -199,6 +207,20 @@ def validate_record(record: Mapping[str, Any]) -> dict[str, Any]:
         "status": _enum(record["status"], MemoryStatus, "status"),
         "version": record["version"],
     }
+    if record["schema_version"] == GOVERNANCE_SCHEMA_VERSION:
+        # Imported lazily to keep the Phase 4A substrate independent of governance.
+        from .memory_governance import validate_relevance_key
+        canonical["relevance_key"] = validate_relevance_key(record["relevance_key"])
+        expires_at = record["expires_at"]
+        if expires_at is not None:
+            _parse_timestamp(expires_at, "expires_at")
+        canonical["expires_at"] = expires_at
+        supersedes = record["supersedes_memory_id"]
+        canonical["supersedes_memory_id"] = (validate_memory_id(supersedes)
+                                                if supersedes is not None else None)
+        if canonical["supersedes_memory_id"] == memory_id:
+            raise MemoryValidationError("a memory cannot supersede itself")
+    return canonical
 
 
 class MemoryStore:
@@ -212,16 +234,23 @@ class MemoryStore:
         self.clock = clock
 
     def new_record(self, *, scope: Mapping[str, Any], memory_type: str, content: str,
-                   provenance: Mapping[str, Any], memory_id: str | None = None) -> dict[str, Any]:
+                   provenance: Mapping[str, Any], memory_id: str | None = None,
+                   relevance_key: str | None = None, expires_at: str | None = None,
+                   supersedes_memory_id: str | None = None) -> dict[str, Any]:
         stamp = _stamp(self.clock())
-        return validate_record({
-            "schema_version": SCHEMA_VERSION,
+        record = {
+            "schema_version": (GOVERNANCE_SCHEMA_VERSION if relevance_key is not None
+                               else SCHEMA_VERSION),
             "memory_id": memory_id or str(uuid.uuid4()),
             "created_at": stamp, "updated_at": stamp, "scope": dict(scope),
             "memory_type": memory_type, "content": content,
             "provenance": dict(provenance), "status": MemoryStatus.ACTIVE.value,
             "version": 1,
-        })
+        }
+        if relevance_key is not None:
+            record.update({"relevance_key": relevance_key, "expires_at": expires_at,
+                           "supersedes_memory_id": supersedes_memory_id})
+        return validate_record(record)
 
     def create(self, record: Mapping[str, Any]) -> dict[str, Any]:
         canonical = validate_record(record)
