@@ -8,6 +8,7 @@ from typing import Any, Sequence
 
 from .autonomous import AutonomousRepairController, LoopLimits, _timestamp
 from .provider import LocalLlamaCppProvider
+from .observation import ObservationKind, observe
 from .registry import ModelRole, Registry
 from .review import adjudicate, validate_review
 from .routing import Phase3BRoleRouter, RoleBinding
@@ -22,19 +23,21 @@ class Phase3BController:
                  test_directory: str = "tests", limits: LoopLimits | None = None,
                  run_directory: Path = Path("runs"), implementer_provider: Any = None,
                  reviewer_provider: Any = None, memory_governance: Any = None,
-                 memory_request: Any = None):
+                 memory_request: Any = None, observer: Any = None):
         router = Phase3BRoleRouter(registry)
         self.implementer_binding = router.resolve(ModelRole.IMPLEMENTER)
         self.reviewer_binding = router.resolve(ModelRole.REVIEWER)
         self.verifier_binding = router.resolve(ModelRole.VERIFIER)
         self.run_directory = run_directory
+        self.observer = observer
         implementer_config = self._config(self.implementer_binding, run_directory)
         reviewer_config = self._config(self.reviewer_binding, run_directory)
         self.controller = AutonomousRepairController(
             workspace, readable_files=readable_files, editable_files=editable_files,
             test_directory=test_directory, limits=limits, config=implementer_config,
             provider=implementer_provider or LocalLlamaCppProvider(implementer_config),
-            memory_governance=memory_governance, memory_request=memory_request)
+            memory_governance=memory_governance, memory_request=memory_request,
+            observer=observer, publish_terminal=False)
         self.reviewer_provider = reviewer_provider or LocalLlamaCppProvider(reviewer_config)
         self._initial_files = self._file_snapshot()
 
@@ -112,6 +115,9 @@ class Phase3BController:
                                           "bounded_per_field_characters": self.controller.limits.max_context_characters}
             review["started_at"] = _timestamp()
             review["invocation_status"] = "IN_PROGRESS"
+            observe(self.observer, ObservationKind.REVIEW_STARTED, record["run_id"],
+                    role="reviewer", model=self.reviewer_binding.model,
+                    node=self.reviewer_binding.node_id)
             self._persist(record)
             try:
                 response = self.reviewer_provider.review(context)
@@ -132,6 +138,12 @@ class Phase3BController:
                 record["errors"].append("review_error: " + review["error"])
             finally:
                 review["ended_at"] = _timestamp()
+                observe(self.observer, ObservationKind.REVIEW_COMPLETED, record["run_id"],
+                        role="reviewer", model=self.reviewer_binding.model,
+                        node=self.reviewer_binding.node_id,
+                        status=review["invocation_status"], verdict=review["verdict"],
+                        finding_count=len(review["findings"]))
+        observe(self.observer, ObservationKind.ADJUDICATION_STARTED, record["run_id"])
         status, reason = adjudicate(deterministic_pass, review["invocation_status"],
                                     review["verdict"])
         record["adjudication"] = {
@@ -140,6 +152,11 @@ class Phase3BController:
                                             "reviewer_verdict": review["verdict"]},
             "result": status, "reason": reason}
         record["status"], record["terminal_reason"] = status, reason
+        observe(self.observer, ObservationKind.ADJUDICATION_COMPLETED, record["run_id"],
+                result=status, reason=reason)
+        observe(self.observer, (ObservationKind.TASK_COMPLETED if status == "PASS"
+                                else ObservationKind.TASK_FAILED), record["run_id"],
+                category=None if status == "PASS" else "adjudication", reason=reason)
         record["ended_at"] = _timestamp()
         self._persist(record)
         return record

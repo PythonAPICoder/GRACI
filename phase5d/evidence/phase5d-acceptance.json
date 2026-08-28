@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "phase": "5D",
+  "status": "PASS",
+  "starting_commit": "d7f73c0b352f5ed059766a0fe9579df4126ce116",
+  "authoritative_remote_branch": "origin/local-first",
+  "observer_optional": true,
+  "observer_fail_open": true,
+  "runtime_network_dependency": false,
+  "shared_drive_used": false,
+  "ui_control_path_added": false,
+  "prompts_or_chain_of_thought_exposed": false,
+  "memory_content_exposed": false,
+  "routing_authority_changed": false,
+  "focused_tests": 9,
+  "full_warning_strict_tests": 248,
+  "live_qwen_result": "PASS on 3090 qwen3.8-27b-q4_k_m with planning/retrieving_memory/reasoning/testing/completed states",
+  "live_glm_limitation": "GLM was present but unloaded; deterministic Phase 3B runtime fixtures exercised REVIEWING and ADJUDICATING without forcing a model load.",
+  "phase5e_started": false
+}

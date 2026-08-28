@@ -10,6 +10,7 @@ from typing import Any, Sequence
 from .config import Config
 from .provider import LocalLlamaCppProvider, ProviderError
 from .memory_execution import prepare_execution_memory
+from .observation import ObservationKind, observe
 from .tools import ToolLayer
 from .validation import ValidationError
 
@@ -58,13 +59,15 @@ class AutonomousRepairController:
     """One explicitly validated model decision per bounded cycle."""
     def __init__(self, workspace: Path | str, *, readable_files: Sequence[str], editable_files: Sequence[str],
                  test_directory="tests", limits=None, config=None, provider=None, tools=None,
-                 memory_governance=None, memory_request=None):
+                 memory_governance=None, memory_request=None, observer=None,
+                 publish_terminal=True):
         self.config, self.limits = config or Config(), limits or LoopLimits()
         self.workspace = Path(workspace).resolve(strict=True)
         if not self.workspace.is_dir(): raise ValueError("workspace must be an existing directory")
         if (self.workspace / ".git").exists(): raise ValueError("autonomous workspace must not be a Git repository root")
         self.tools, self.provider = tools or ToolLayer(self.workspace), provider or LocalLlamaCppProvider(self.config)
         self.memory_governance, self.memory_request = memory_governance, memory_request
+        self.observer, self.publish_terminal = observer, publish_terminal
         self.test_directory = test_directory
         if not self.tools._resolve(test_directory).is_dir(): raise ValueError("test_directory must be an existing workspace directory")
         self.readable_files = self._normalize(readable_files, "readable_files")
@@ -125,12 +128,33 @@ class AutonomousRepairController:
             "cycles": [], "budget_usage": {"iterations": 0, "model_calls": 0, "file_inspections": 0, "file_modifications": 0, "repairs": 0},
             "budget_state": None, "repair_attempts": 0, "inspected_paths": [], "modified_paths": [], "test_results": [], "context_events": [], "progress_guard_events": [], "last_test_result": None,
             "deterministic_verification": {"status": "NOT_RUN", "basis": None}, "terminal_reason": None, "status": "RUNNING", "errors": []}
+        observe(self.observer, ObservationKind.TASK_STARTED, record["run_id"],
+                summary="GRACI runtime task")
+        observe(self.observer, ObservationKind.PLANNING_STARTED, record["run_id"])
+        observe(self.observer, ObservationKind.MEMORY_STARTED, record["run_id"])
         memory = prepare_execution_memory(self.memory_governance, self.memory_request)
         record["memory"] = memory.evidence
+        observe(self.observer, ObservationKind.MEMORY_COMPLETED, record["run_id"],
+                requested=memory.evidence["requested"], mode=memory.evidence["mode"],
+                relevance_keys=tuple(memory.evidence["requested_relevance_keys"]),
+                status=memory.evidence["status"],
+                selected_ids=tuple(memory.evidence["selected_memory_ids"]),
+                supplied_ids=tuple(memory.evidence["supplied_memory_ids"]),
+                supplied_count=len(memory.evidence["supplied_memory_ids"]),
+                context_characters=memory.evidence["context_character_count"],
+                conflict_count=len(memory.evidence["conflicts"]),
+                corruption_count=len(memory.evidence["corruptions"]))
+        if memory.accepted and memory.evidence["status"] in {
+                "MEMORY_UNAVAILABLE", "MEMORY_CONTEXT_REJECTED"}:
+            observe(self.observer, ObservationKind.TASK_WARNING, record["run_id"],
+                    reason=memory.evidence["status"])
         if not memory.accepted:
             record["terminal_reason"], record["status"] = "required_memory_unavailable", "FAIL"
             record["deterministic_verification"] = {"status": "FAIL", "basis": "required memory failed closed before inference"}
-            record["ended_at"] = _timestamp(); self._persist(record); return record
+            record["ended_at"] = _timestamp(); self._persist(record)
+            observe(self.observer, ObservationKind.TASK_FAILED, record["run_id"],
+                    category="required_memory", reason=record["terminal_reason"])
+            return record
         fingerprints, failed, changes = [], False, 0
         self._persist(record)
         try:
@@ -144,10 +168,15 @@ class AutonomousRepairController:
                     if record["budget_usage"]["model_calls"] >= self.limits.max_model_calls:
                         record["terminal_reason"] = "model_call_budget_exhausted"; cycle["budget_validation"] = {"status": "FAIL", "error": "model call budget exhausted"}; raise RuntimeError("model call budget exhausted")
                     record["budget_usage"]["model_calls"] += 1
+                    observe(self.observer, ObservationKind.MODEL_STARTED, record["run_id"],
+                            role="implementer", model=self.config.model, node=self.config.node)
                     response = self.provider.propose_repair_decision(task, self._context(record, memory.envelope))
                     cycle["http_status"], cycle["provider_response_model"], cycle["raw_model_response"] = response.http_status, response.response_model, response.content
                     if response.response_model != self.config.model: raise ValidationError(f"provider response model must be {self.config.model!r}, got {response.response_model!r}")
                     decision = validate_repair_decision(response.content); cycle["model_decision"] = decision; cycle["schema_validation"]["status"] = "PASS"
+                    observe(self.observer, ObservationKind.MODEL_COMPLETED, record["run_id"],
+                            role="implementer", model=self.config.model, node=self.config.node,
+                            success=True)
                     action = decision["action"]; cycle["action_validation"]["status"] = "PASS"; target = None
                     if action == "inspect_file": target = self._allowed(decision["target_path"], self.readable_files)
                     elif action == "write_text": target = self._allowed(decision["target_path"], self.editable_files)
@@ -166,6 +195,10 @@ class AutonomousRepairController:
                     if action == "finish":
                         record["progress_guard_events"].append({"at": _timestamp(), "kind": "premature_finish"}); record["terminal_reason"] = "model_finished_without_passing_tests"; raise RuntimeError("finish cannot establish PASS without successful tests")
                     fingerprints.append(fingerprint)
+                    category = {"list_files": "inspect", "inspect_file": "read", "write_text": "edit", "run_tests": "test"}.get(action)
+                    if category:
+                        if action == "run_tests": observe(self.observer, ObservationKind.TESTS_STARTED, record["run_id"])
+                        else: observe(self.observer, ObservationKind.TOOL_STARTED, record["run_id"], category=category, action=action, target=target)
                     if action == "list_files": cycle["tool_result"] = {"tool": "list_allowed_files", "success": True, "entries": [{"path": p, "editable": p in self.editable_files} for p in sorted(self.readable_files)], "started_at": _timestamp(), "ended_at": _timestamp(), "error": None}
                     elif action == "inspect_file":
                         record["budget_usage"]["file_inspections"] += 1; record["inspected_paths"].append(target); cycle["tool_result"] = self.tools.read_text(target)
@@ -180,6 +213,15 @@ class AutonomousRepairController:
                         elif cycle["tool_result"].get("success") is True: record["terminal_reason"] = "deterministic_verification_failure"; raise RuntimeError("test result did not contain consistent deterministic PASS evidence")
                         else:
                             failed, changes = True, 0
+                    if action == "run_tests":
+                        observe(self.observer, ObservationKind.TESTS_COMPLETED, record["run_id"],
+                                passed=self._passed(cycle["tool_result"]),
+                                reason=cycle["tool_result"].get("error"))
+                    elif category:
+                        observe(self.observer, ObservationKind.TOOL_COMPLETED, record["run_id"],
+                                action=action, success=cycle["tool_result"]["success"],
+                                error_code=cycle["tool_result"].get("error_classification"),
+                                reason=cycle["tool_result"].get("error"))
                     if cycle["tool_result"] is not None and not cycle["tool_result"]["success"] and action != "run_tests": record["terminal_reason"] = "tool_failure"; raise RuntimeError(f"controlled tool failed: {cycle['tool_result']['error']}")
                 except ProviderError as exc: cycle["http_status"], record["terminal_reason"] = exc.http_status, "provider_failure"; raise
                 except ValidationError as exc: cycle["schema_validation"] = {"status": "FAIL", "error": str(exc)}; record["terminal_reason"] = "schema_validation_failure"; raise
@@ -192,6 +234,11 @@ class AutonomousRepairController:
                 record["terminal_reason"] = "execution_failure"
             record["status"] = "FAIL"; record["deterministic_verification"] = {"status": "FAIL", "basis": record["terminal_reason"] or "execution failure"}; record["errors"].append(f"{type(exc).__name__}: {exc}")
         finally: record["budget_state"], record["ended_at"] = self._budgets(record), _timestamp(); self._persist(record)
+        if self.publish_terminal:
+            observe(self.observer, (ObservationKind.TASK_COMPLETED if record["status"] == "PASS"
+                                    else ObservationKind.TASK_FAILED), record["run_id"],
+                    category=None if record["status"] == "PASS" else "execution",
+                    reason=record["terminal_reason"])
         return record
 
     def _persist(self, record):

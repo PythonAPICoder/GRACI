@@ -18,6 +18,7 @@ from .registry import (LOCAL_PROVIDER_ID, OPTIONAL_ENDPOINT_ID, OPTIONAL_NODE_ID
                        HealthResult, ModelRole, Registry, apply_health_result,
                        check_openai_models_endpoint)
 from .routing import Phase3BRoleRouter, RoleBinding
+from .observation import ObservationKind, observe
 
 
 ELIGIBILITY_MAX_AGE_SECONDS = 10.0
@@ -79,7 +80,7 @@ class Phase3DDistributedRouter:
                  mo2_check: Mo2Check | None = None,
                  health_check: HealthCheck | None = None,
                  inference_transport: InferenceTransport = _default_inference_transport,
-                 clock: Clock = _utc_now):
+                 clock: Clock = _utc_now, observer: Any = None):
         if max_eligibility_age_seconds <= 0 or timeout_seconds <= 0:
             raise ValueError("freshness and inference timeouts must be positive")
         self.registry = registry
@@ -92,6 +93,7 @@ class Phase3DDistributedRouter:
                 endpoint, timeout_seconds=3.0))
         self.inference_transport = inference_transport
         self.clock = clock
+        self.observer = observer
 
     def route(self, role: ModelRole | str, prompt: str, *,
               prefer_optional: bool = False) -> RoutedResponse:
@@ -148,6 +150,11 @@ class Phase3DDistributedRouter:
                               actual_server_model=response[2], final_outcome="SUCCESS",
                               ended_at=_stamp(self.clock()))
                 self._persist(record)
+                observe(self.observer, ObservationKind.ROUTE_COMPLETED, record["run_id"],
+                        role=record["logical_role"], model=record["selected_model"],
+                        node=record["final_node"], optional_requested=record["optional_requested"],
+                        fallback=record["fallback_occurred"], eligibility=record["eligibility"],
+                        success=True)
                 return RoutedResponse(response[1], response[2], binding.node_id, record)
             except RuntimeError as exc:  # converted to bounded truthful routing evidence
                 last_error = f"{type(exc).__name__}: {exc}"
@@ -159,6 +166,10 @@ class Phase3DDistributedRouter:
                 break
         record["ended_at"] = _stamp(self.clock())
         self._persist(record)
+        observe(self.observer, ObservationKind.ROUTE_COMPLETED, record["run_id"],
+                role=record["logical_role"], model=record["selected_model"], node=None,
+                optional_requested=record["optional_requested"], fallback=record["fallback_occurred"],
+                eligibility=record["eligibility"], success=False)
         raise DistributedRoutingError(last_error, record)
 
     def _fresh_optional_binding(self, primary: RoleBinding,
