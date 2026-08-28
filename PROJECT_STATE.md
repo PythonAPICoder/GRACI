@@ -665,3 +665,38 @@ Memory. Phase 4 has not begun.
   and operational contract is `phase4e/README.md`.
 - **PHASE 4 — PERSISTENT MEMORY COMPLETE.** The next authorized phase is Phase 5 —
   Visualizer. Phase 5 has not begun.
+
+# Phase 5E integrated visualizer acceptance and closure
+
+- Accepted starting commit `27c3b5a5cef06afa55320de04c0bef591ae9ddd4` with a
+  clean tree. `origin/main` remained the untouched legacy commit
+  `90b94499e4edadd5843953079a72a2fa55eecbf4`; `origin/local-first` was the
+  authoritative build branch.
+- Phase 5A–5D compose as a frozen deterministic snapshot/event contract, bounded
+  loopback GET/HEAD and SSE backend, offline responsive browser command center, and
+  fail-open optional runtime observer. No visualizer component gains execution,
+  tool, test, memory, routing, MO2, review, adjudication, repository, or cloud
+  authority.
+- Real local Qwen acceptance used `http://127.0.0.1:8080/v1`, server-reported
+  `qwen3.8-27b-q4_k_m`, and `3090-primary-localhost`. It truthfully projected
+  planning, governed memory preparation, reasoning, deterministic testing, and
+  completion; tests passed and the terminal reason was `tests_passed`.
+- Memory remains metadata-only. Tool/test facts are real and bounded. Exact GLM
+  identity and distinct review/adjudication remain covered by deterministic Phase
+  3B/5D integration; the unloaded reviewer was not unnecessarily loaded.
+- Browser acceptance passed at 3440x1440, 2560x1440, and 1920x1080 with no
+  horizontal overflow or console errors. Continuous orbital motion was visible,
+  center labels remained stationary, and the reduced-motion contract disables
+  animation. Backend termination produced DISCONNECTED/STALE without fabricating
+  FAILED.
+- Observer absence and injected observer exceptions do not alter authoritative
+  results. Reconstruction needs no prior conversation, shared drive, 4090,
+  Obsidian, or cloud service.
+- Focused Phase 5 acceptance passes 66 tests; the complete warning-strict suite
+  passes 254 tests. Python compilation, JavaScript syntax, 29 evidence JSON files,
+  bounded secret/external-reference scans, static path/UI security, and
+  `git diff --check` pass. No Phase 5 defect was found.
+- Closure evidence is `phase5e/evidence/phase5e-closure.json`; the consolidated
+  architecture and limitations are `phase5e/README.md`.
+- **PHASE 5 — VISUALIZER COMPLETE.** The next authorized phase is Phase 6 — Voice.
+  Phase 6 has not begun.

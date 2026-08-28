@@ -1,3 +1,12 @@
+# GRACI Phase 5 Visualizer — Complete
+
+Phase 5E integrated acceptance and closure are complete. The immutable state/event
+contract, localhost read-only backend, offline command-center UI, and optional live
+runtime observer compose without giving the visualizer authority over GRACI. Final
+architecture, reconstruction instructions, limitations, and evidence are under
+`phase5e/`. The complete warning-strict suite passes 254 tests. The next authorized
+phase is Phase 6 — Voice; it has not begun.
+
 # GRACI Phase 5C Command-Center UI
 
 Phase 5C adds the packaged observer-only browser command center at `http://127.0.0.1:8766/`. It is an offline HTML/CSS/vanilla-JavaScript/SVG interface over the accepted Phase 5A contract and Phase 5B read-only backend. Design, operation, security, and acceptance details are under `phase5c/`.

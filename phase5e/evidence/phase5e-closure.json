@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "phase": "5E",
+  "status": "PASS",
+  "starting_commit": "27c3b5a5cef06afa55320de04c0bef591ae9ddd4",
+  "authoritative_remote_branch": "origin/local-first",
+  "origin_main_expected": "90b94499e4edadd5843953079a72a2fa55eecbf4",
+  "accepted_states": ["idle", "listening", "planning", "retrieving_memory", "reasoning", "executing_tool", "testing", "reviewing", "adjudicating", "completed", "warning", "failed", "speaking"],
+  "contract_immutable": true,
+  "event_limit": 100,
+  "backend": {
+    "binding": "127.0.0.1:8766",
+    "read_methods": ["GET", "HEAD"],
+    "api_paths": ["/graci/visualizer/v1/health", "/graci/visualizer/v1/snapshot", "/graci/visualizer/v1/events", "/graci/visualizer/v1/events/stream"],
+    "cors": false,
+    "control_endpoints": false,
+    "max_sse_clients": 8
+  },
+  "ui": {
+    "accepted_resolutions": ["3440x1440", "2560x1440", "1920x1080"],
+    "horizontal_overflow": false,
+    "animation_enabled_verified": true,
+    "stationary_center_labels_verified": true,
+    "reduced_motion_static_contract_verified": true,
+    "console_errors": 0,
+    "remote_assets": false,
+    "disconnect_result": "DISCONNECTED and STALE without fabricated FAILED"
+  },
+  "real_qwen": {
+    "status": "PASS",
+    "generated_at": "2026-08-28T18:26:30.695655Z",
+    "endpoint": "http://127.0.0.1:8080/v1",
+    "server_reported_model": "qwen3.8-27b-q4_k_m",
+    "node": "3090-primary-localhost",
+    "states": ["planning", "retrieving_memory", "reasoning", "testing", "completed"],
+    "terminal_reason": "tests_passed",
+    "test_status": "passed",
+    "prompt_exposed": false,
+    "hidden_reasoning_exposed": false
+  },
+  "glm": {
+    "model": "GLM-4.7-Flash-64x2.6B-Q4_K_M",
+    "live_load_performed": false,
+    "limitation": "Reviewer remained unloaded; accepted deterministic Phase 3B and Phase 5D integration exercised REVIEWING and ADJUDICATING."
+  },
+  "privacy": {
+    "memory_metadata_only": true,
+    "memory_content_exposed": false,
+    "raw_output_exposed": false,
+    "prompts_exposed": false,
+    "chain_of_thought_exposed": false,
+    "secrets_exposed": false
+  },
+  "routing": {
+    "primary_3090_authority": true,
+    "optional_4090_only": true,
+    "mo2_policy_changed": false,
+    "visualizer_controls_routing": false
+  },
+  "failure_isolation": {
+    "observer_optional": true,
+    "observer_exceptions_contained": true,
+    "backend_required_by_runtime": false,
+    "browser_required_by_runtime": false,
+    "disconnect_fabricates_failure": false
+  },
+  "reconstruction": {
+    "fresh_process_verified": true,
+    "shared_drive_required": false,
+    "optional_4090_required": false,
+    "obsidian_required": false,
+    "cloud_required": false,
+    "conversation_state_required": false
+  },
+  "defects_found": 0,
+  "focused_phase5_tests": 66,
+  "full_warning_strict_tests": 254,
+  "python_compilation": "PASS",
+  "javascript_syntax": "PASS",
+  "evidence_json_parse": "PASS",
+  "bounded_secret_scan": "PASS",
+  "external_reference_scan": "PASS",
+  "git_diff_check": "PASS",
+  "phase5_complete": true,
+  "next_phase": "Phase 6 — Voice",
+  "phase6_started": false
+}
