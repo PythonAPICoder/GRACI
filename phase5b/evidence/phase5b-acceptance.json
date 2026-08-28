@@ -1,0 +1,82 @@
+{
+  "allowed_methods": [
+    "GET",
+    "HEAD"
+  ],
+  "api_version": 1,
+  "bind_address": "127.0.0.1",
+  "checks": {
+    "active_snapshot_exact": true,
+    "health_before_state": true,
+    "http_rejections_no_side_effect": true,
+    "http_security_rejections": true,
+    "idle_snapshot_exact": true,
+    "mo2_eligible_display": true,
+    "mo2_running_display": true,
+    "recent_events_exact": true,
+    "safe_headers_no_cors": true,
+    "shutdown_port_released": true,
+    "sse_ordered_lifecycle": true,
+    "versions": true
+  },
+  "default_port": 8766,
+  "endpoints": [
+    "/graci/visualizer/v1/health",
+    "/graci/visualizer/v1/snapshot",
+    "/graci/visualizer/v1/events",
+    "/graci/visualizer/v1/events/stream"
+  ],
+  "event_buffer_limit": 100,
+  "event_schema_version": 1,
+  "http_rejection_statuses": {
+    "bogus": 404,
+    "delete": 405,
+    "post": 405
+  },
+  "live_client_limit": 8,
+  "phase": "5B",
+  "security": {
+    "4090_inference": "none",
+    "cloud_ai": "none",
+    "control_endpoints": "none",
+    "cors": "none",
+    "headers": [
+      "Cache-Control: no-store",
+      "X-Content-Type-Options: nosniff",
+      "Referrer-Policy: no-referrer"
+    ],
+    "host_policy": "configured loopback host/port or localhost/port",
+    "memory_mutation": "none",
+    "state_publication": "trusted in-process immutable Phase 5A objects only",
+    "tool_invocation": "none"
+  },
+  "snapshot_schema_version": 1,
+  "sse": {
+    "backpressure": "condition notification plus shared 100-event buffer; no per-client queue",
+    "heartbeat": "comment only",
+    "replay": "known ID replays later retained events; unknown ID replays retained buffer",
+    "transport": "one-way server-sent events"
+  },
+  "starting_commit": "213e88972041916bd38c413f91a9babfc1663fe6",
+  "startup_state": "health available; snapshot 503 until trusted publication",
+  "status": "PASS",
+  "synthetic_event_ids": [
+    "phase5b-event-000",
+    "phase5b-event-001",
+    "phase5b-event-002",
+    "phase5b-event-003",
+    "phase5b-event-004",
+    "phase5b-event-005",
+    "phase5b-event-006",
+    "phase5b-event-007"
+  ],
+  "verification": {
+    "compilation": "PASS",
+    "git_diff_check": "PASS",
+    "phase1_to_4_regression": "PASS",
+    "phase5a_regression": "PASS",
+    "secret_scan": "PASS (bounded scan; no candidate secret material)",
+    "warning_strict_result": "PASS",
+    "warning_strict_tests": 231
+  }
+}

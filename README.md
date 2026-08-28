@@ -1,3 +1,12 @@
+# GRACI Phase 5B Local Visualizer Backend
+
+Phase 5B adds an optional standard-library, observer-only HTTP/SSE transport for the
+accepted Phase 5A immutable projection. It binds only `127.0.0.1:8766`, exposes four
+versioned read endpoints, retains 100 recent events, and permits at most eight live
+SSE clients. It has no control, provider, tool, memory-write, routing, MO2 mutation,
+remote, filesystem, cloud, or inference path. Architecture and acceptance details
+are under `phase5b/`. No Phase 5C browser UI is implemented.
+
 # GRACI Phase 5A Visualizer State Contract — Complete
 
 Phase 5A defines versioned immutable snapshot and event contracts plus a pure,

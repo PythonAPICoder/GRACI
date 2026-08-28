@@ -1,5 +1,33 @@
 # GRACI Project State
 
+## Phase 5B local visualizer backend — COMPLETE
+
+- Starting commit `213e88972041916bd38c413f91a9babfc1663fe6` and clean
+  authoritative `E:\GRACI` state were verified before modification.
+- `graci.visualizer_backend` is an optional standard-library HTTP/SSE transport over
+  trusted immutable Phase 5A objects. It binds only `127.0.0.1`, defaults to port
+  `8766`, exposes API v1 health/snapshot/events/event-stream GET/HEAD endpoints, and
+  never becomes a GRACI core dependency.
+- The provider synchronizes atomic snapshot reads/publication and Phase 5A's ordered
+  100-event immutable buffer. SSE supports eight clients, bounded retained replay,
+  strict `Last-Event-ID`, comment heartbeats, and no per-client accumulation or
+  publisher writes to clients.
+- Startup health is truthful while snapshot returns 503 until trusted publication.
+  CORS is absent; local Host validation, no-store/nosniff/no-referrer headers,
+  request-target/body/path checks, deterministic bounded errors, and GET/HEAD-only
+  policy preserve the loopback observer boundary.
+- There is no task/tool/memory/repository/routing/MO2/reviewer/inference/configuration/
+  shutdown/cloud control endpoint. Phase 5B implements no UI, voice, remote access,
+  WebSocket, static filesystem serving, or cloud service. Phase 5C remains unstarted.
+- Real local acceptance on `127.0.0.1:8766` passed idle/active exact snapshots,
+  eligible and MO2-blocked display state, eight ordered synthetic lifecycle events,
+  write/mutation rejection without side effects, internal shutdown, and port release.
+  The complete warning-strict suite passes 231 tests including Phase 5A and Phase 1–4
+  regressions. Compilation, JSON evidence validation, bounded secret scan, and Git
+  whitespace validation pass. Durable evidence is
+  `phase5b/evidence/phase5b-acceptance.json`.
+- Next authorized stage: Phase 5C — Command-Center UI. It has not begun.
+
 ## Phase 5A visualizer state contract — COMPLETE
 
 - Starting commit `7ddf51c7fd55fd9e2f4c5fee74a8c18445f40bb3` and a clean
