@@ -9,6 +9,7 @@ from typing import Any, Sequence
 
 from .config import Config
 from .provider import LocalLlamaCppProvider, ProviderError
+from .memory_execution import prepare_execution_memory
 from .tools import ToolLayer
 from .validation import ValidationError
 
@@ -56,12 +57,14 @@ def validate_repair_decision(content: str) -> dict[str, Any]:
 class AutonomousRepairController:
     """One explicitly validated model decision per bounded cycle."""
     def __init__(self, workspace: Path | str, *, readable_files: Sequence[str], editable_files: Sequence[str],
-                 test_directory="tests", limits=None, config=None, provider=None, tools=None):
+                 test_directory="tests", limits=None, config=None, provider=None, tools=None,
+                 memory_governance=None, memory_request=None):
         self.config, self.limits = config or Config(), limits or LoopLimits()
         self.workspace = Path(workspace).resolve(strict=True)
         if not self.workspace.is_dir(): raise ValueError("workspace must be an existing directory")
         if (self.workspace / ".git").exists(): raise ValueError("autonomous workspace must not be a Git repository root")
         self.tools, self.provider = tools or ToolLayer(self.workspace), provider or LocalLlamaCppProvider(self.config)
+        self.memory_governance, self.memory_request = memory_governance, memory_request
         self.test_directory = test_directory
         if not self.tools._resolve(test_directory).is_dir(): raise ValueError("test_directory must be an existing workspace directory")
         self.readable_files = self._normalize(readable_files, "readable_files")
@@ -97,12 +100,13 @@ class AutonomousRepairController:
                 record["context_events"].append({"at": _timestamp(), "kind": "truncated", "field": field, "limit": limit})
         return result
 
-    def _context(self, record):
+    def _context(self, record, memory_envelope=None):
         completed = [c for c in record["cycles"] if c["ended_at"]]
         recent = [{"iteration": c["iteration"], "decision": c["model_decision"], "tool_result": self._bounded(c["tool_result"], record)}
                   for c in completed[-self.limits.max_recent_cycles:]]
         return {"readable_files": sorted(self.readable_files), "editable_files": sorted(self.editable_files),
-                "test_directory": self.test_directory, "budget_state": self._budgets(record), "recent_cycles": recent}
+                "test_directory": self.test_directory, "budget_state": self._budgets(record), "recent_cycles": recent,
+                "memory_context": memory_envelope}
 
     @staticmethod
     def _passed(result):
@@ -121,6 +125,12 @@ class AutonomousRepairController:
             "cycles": [], "budget_usage": {"iterations": 0, "model_calls": 0, "file_inspections": 0, "file_modifications": 0, "repairs": 0},
             "budget_state": None, "repair_attempts": 0, "inspected_paths": [], "modified_paths": [], "test_results": [], "context_events": [], "progress_guard_events": [], "last_test_result": None,
             "deterministic_verification": {"status": "NOT_RUN", "basis": None}, "terminal_reason": None, "status": "RUNNING", "errors": []}
+        memory = prepare_execution_memory(self.memory_governance, self.memory_request)
+        record["memory"] = memory.evidence
+        if not memory.accepted:
+            record["terminal_reason"], record["status"] = "required_memory_unavailable", "FAIL"
+            record["deterministic_verification"] = {"status": "FAIL", "basis": "required memory failed closed before inference"}
+            record["ended_at"] = _timestamp(); self._persist(record); return record
         fingerprints, failed, changes = [], False, 0
         self._persist(record)
         try:
@@ -134,7 +144,7 @@ class AutonomousRepairController:
                     if record["budget_usage"]["model_calls"] >= self.limits.max_model_calls:
                         record["terminal_reason"] = "model_call_budget_exhausted"; cycle["budget_validation"] = {"status": "FAIL", "error": "model call budget exhausted"}; raise RuntimeError("model call budget exhausted")
                     record["budget_usage"]["model_calls"] += 1
-                    response = self.provider.propose_repair_decision(task, self._context(record))
+                    response = self.provider.propose_repair_decision(task, self._context(record, memory.envelope))
                     cycle["http_status"], cycle["provider_response_model"], cycle["raw_model_response"] = response.http_status, response.response_model, response.content
                     if response.response_model != self.config.model: raise ValidationError(f"provider response model must be {self.config.model!r}, got {response.response_model!r}")
                     decision = validate_repair_decision(response.content); cycle["model_decision"] = decision; cycle["schema_validation"]["status"] = "PASS"

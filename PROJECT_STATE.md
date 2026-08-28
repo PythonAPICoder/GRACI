@@ -497,3 +497,48 @@ process data or command interface.
 
 Phase 3 is formally complete. The next authorized phase is Phase 4 — Persistent
 Memory. Phase 4 has not begun.
+# Phase 4D implementation and acceptance
+
+- Accepted starting commit `66300454a38043363eddc6c76d1d3d8d0aa04287` and a
+  clean authoritative `E:\GRACI` worktree were verified before implementation.
+- `graci.memory_execution` defines the strict caller-owned execution request and
+  deterministic selection/serialization boundary. Requests contain explicit scope
+  context, 1–50 exact keys, optional allowed types, bounded selection limit, and
+  trusted `optional` or `required` mode. Models cannot derive keys, search the vault,
+  choose the mode, or request arbitrary roots.
+- Model-visible memory is canonical JSON classified `UNTRUSTED_CONTEXT_DATA` with
+  metadata and content separated. It states that memory is not instruction or
+  authority and may be stale or incorrect. Injection is independently limited to
+  10 records, 2,000 content characters per record, and 12,000 aggregate serialized
+  characters. Exclusion is deterministic; there is no truncation or semantic/LLM
+  summarization to fit memory.
+- Optional failures continue with explicit state. Required no-match, conflict,
+  corrupt/truncated selection, governance/storage failure, or context-budget
+  exclusion fails before model inference. Evidence records request context and keys,
+  selected and supplied IDs, exclusions, conflicts, corruptions, size, mode, and
+  receiving role without duplicating full content.
+- The Qwen autonomous context receives the envelope. Existing task, action schema,
+  file/tool allowlists, test command, loop/repair budgets, model identity, routing,
+  MO2, and deterministic test authority are unchanged. Execution does not write
+  memory; Phase 4B governed ingress remains the only durable boundary.
+- GLM's independence policy is metadata-only memory visibility: reviewer evidence
+  includes memory status and IDs, never memory content. Failed tests still suppress
+  review, malformed review remains error, and deterministic Phase 3B adjudication is
+  unchanged. The existing deterministic GLM integration coverage was used instead
+  of a redundant live reviewer opinion.
+- Synthetic 3090 Qwen acceptance used a disposable local memory root and proved
+  optional no-match continuity, exact COBALT memory use and traceability, hostile
+  imperative containment, required-conflict pre-inference failure, and stable
+  reconstruction. Durable evidence is under `phase4d/evidence/`.
+- Final warning-strict regression passed 185 tests. Compilation passed, 24 accepted
+  JSON evidence files parsed, the bounded secret scan found only intentional
+  rejection-test fixtures, and `git diff --check` passed.
+- Canonical memory remains 3090-authoritative. No 4090 vault access, shared mutable
+  memory, cloud AI, telemetry, or cloud-memory dependency was added. A future optional
+  4090 inference may receive only a bounded selected envelope after existing fresh
+  MO2 eligibility; this phase does not add or require that route.
+- GRACI still has no semantic/vector search, embeddings, automatic conversation
+  memory, automatic post-run extraction, model conflict resolution, memory authority,
+  4090-owned vault, cloud memory, or Obsidian integration.
+- Phase 4D stops here. The next authorized stage is Phase 4E — Persistent Memory
+  Acceptance & Closure. Phase 4E has not begun.

@@ -21,7 +21,8 @@ class Phase3BController:
                  readable_files: Sequence[str], editable_files: Sequence[str],
                  test_directory: str = "tests", limits: LoopLimits | None = None,
                  run_directory: Path = Path("runs"), implementer_provider: Any = None,
-                 reviewer_provider: Any = None):
+                 reviewer_provider: Any = None, memory_governance: Any = None,
+                 memory_request: Any = None):
         router = Phase3BRoleRouter(registry)
         self.implementer_binding = router.resolve(ModelRole.IMPLEMENTER)
         self.reviewer_binding = router.resolve(ModelRole.REVIEWER)
@@ -32,7 +33,8 @@ class Phase3BController:
         self.controller = AutonomousRepairController(
             workspace, readable_files=readable_files, editable_files=editable_files,
             test_directory=test_directory, limits=limits, config=implementer_config,
-            provider=implementer_provider or LocalLlamaCppProvider(implementer_config))
+            provider=implementer_provider or LocalLlamaCppProvider(implementer_config),
+            memory_governance=memory_governance, memory_request=memory_request)
         self.reviewer_provider = reviewer_provider or LocalLlamaCppProvider(reviewer_config)
         self._initial_files = self._file_snapshot()
 
@@ -81,6 +83,10 @@ class Phase3BController:
                                      "action": (c.get("model_decision") or {}).get("action")}
                                     for c in record["cycles"]],
             "budget_state": record["budget_state"], "terminal_reason": record["terminal_reason"],
+            "memory_usage": {"status": record["memory"]["status"],
+                             "selected_memory_ids": record["memory"]["selected_memory_ids"],
+                             "supplied_memory_ids": record["memory"]["supplied_memory_ids"],
+                             "content_supplied_to_reviewer": False},
         }
 
     def run(self, task: str) -> dict[str, Any]:

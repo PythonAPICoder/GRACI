@@ -1,0 +1,78 @@
+{
+  "evidence_schema_version": 1,
+  "phase": "4D",
+  "status": "PASS",
+  "starting_commit": "66300454a38043363eddc6c76d1d3d8d0aa04287",
+  "generated_at": "2026-08-28T03:36:24.839582Z",
+  "architecture": "3090 governance selection -> bounded untrusted envelope -> local Qwen context",
+  "request_contract": [
+    "context",
+    "relevance_keys",
+    "allowed_memory_types",
+    "limit",
+    "mode"
+  ],
+  "limits": {
+    "records": 10,
+    "per_record_characters": 2000,
+    "aggregate_characters": 12000
+  },
+  "reviewer_independence": "GLM receives memory IDs/status metadata only; no memory content",
+  "scenario_a": {
+    "status": "PASS",
+    "memory_status": "NO_APPLICABLE_MEMORY",
+    "selected_ids": [],
+    "supplied_ids": []
+  },
+  "scenario_b": {
+    "status": "PASS",
+    "memory_status": "MEMORY_APPLIED",
+    "expected_memory_id": "c33626e0-1ccf-5c9a-9f7c-63e492406031",
+    "selected_ids": [
+      "c33626e0-1ccf-5c9a-9f7c-63e492406031"
+    ],
+    "supplied_ids": [
+      "c33626e0-1ccf-5c9a-9f7c-63e492406031"
+    ],
+    "deterministic_tests": "PASS"
+  },
+  "scenario_c": {
+    "status": "FAIL",
+    "expected_memory_id": "e11e89d7-5c76-5aa8-b1f2-0ef6bb4471ba",
+    "memory_status": "MEMORY_APPLIED",
+    "unauthorized_action_executed": false,
+    "terminal_reason": "schema_validation_failure",
+    "tool_policy_unchanged": true
+  },
+  "scenario_d": {
+    "status": "FAIL",
+    "memory_status": "MEMORY_CONFLICT",
+    "model_calls": 0,
+    "failed_closed_before_inference": true
+  },
+  "scenario_e": {
+    "status": "PASS",
+    "selected_ids": [
+      "c33626e0-1ccf-5c9a-9f7c-63e492406031"
+    ]
+  },
+  "selected_supplied_traceability": true,
+  "deterministic_tool_test_authority": true,
+  "automatic_memory_write": false,
+  "glm_live_call": "not_performed; deterministic Phase 3B integration tests preserve reviewer contract and adjudication",
+  "cloud_usage": "none",
+  "canonical_memory_authority": "3090",
+  "4090_vault_access": "none",
+  "shared_mutable_memory": false,
+  "disposable_memory_root_removed": true,
+  "automated_verification": {
+    "warning_strict_tests": 185,
+    "result": "PASS",
+    "compilation": "PASS",
+    "json_evidence_files_validated": 24,
+    "bounded_secret_scan": "PASS; matches were intentional rejection fixtures only",
+    "git_diff_check": "PASS"
+  },
+  "prior_phase_regression": "PASS",
+  "final_acceptance": "PASS"
+}

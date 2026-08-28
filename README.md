@@ -1,3 +1,15 @@
+# GRACI Phase 4D Memory-Guided Agent Execution
+
+Phases 0–3 and Phase 4A–4C remain complete. Phase 4D supplies exact governed
+memory selection to local Qwen through a bounded structured untrusted-data envelope.
+Optional and required modes are caller-controlled; selected/supplied IDs and safe
+exclusions are auditable. Existing tools, tests, budgets, routing, MO2, reviewer,
+and adjudication remain authoritative. GLM receives usage metadata, not memory
+content. There is no automatic memory write, semantic search, cloud memory, shared
+mutable 4090 vault, or 4090 dependency. Architecture and evidence are under
+`phase4d/`. The next authorized stage is Phase 4E — Persistent Memory Acceptance &
+Closure; it has not begun.
+
 # GRACI Phase 4C Governed Memory Selection
 
 Phases 0–3 and Phase 4A/4B remain complete. Phase 4C adds exact relevance keys,

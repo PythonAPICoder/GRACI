@@ -28,6 +28,11 @@ from .memory_pipeline import (DEFAULT_RETRIEVAL_LIMIT, MAX_RETRIEVAL_LIMIT,
 from .memory_governance import (DEFAULT_SELECTION_LIMIT, MAX_SELECTION_LIMIT,
                                 ConflictDiagnostic, MemoryGovernance,
                                 SelectionResult, validate_relevance_key)
+from .memory_execution import (MAX_EXECUTION_MEMORY_CONTEXT_CHARACTERS,
+                               MAX_EXECUTION_MEMORY_CONTENT_CHARACTERS,
+                               MAX_EXECUTION_MEMORY_RECORDS, MemoryPreparation,
+                               MemoryRequirement, prepare_execution_memory,
+                               serialize_memory_envelope)
 
 __all__ = [
     "AutonomousRepairController", "Config", "Controller", "LoopLimits",
@@ -42,6 +47,9 @@ __all__ = [
     "RetrievalResult", "WriteResult",
     "DEFAULT_SELECTION_LIMIT", "MAX_SELECTION_LIMIT", "ConflictDiagnostic",
     "MemoryGovernance", "SelectionResult", "validate_relevance_key",
+    "MAX_EXECUTION_MEMORY_CONTEXT_CHARACTERS", "MAX_EXECUTION_MEMORY_CONTENT_CHARACTERS",
+    "MAX_EXECUTION_MEMORY_RECORDS", "MemoryPreparation", "MemoryRequirement",
+    "prepare_execution_memory", "serialize_memory_envelope",
     "build_phase3a_registry", "check_4090_mo2_status", "evaluate_4090_eligibility",
     "evaluate_eligibility",
 ]
