@@ -1,0 +1,294 @@
+{
+  "schema_version": 1,
+  "synthetic_non_private": true,
+  "results": [
+    {
+      "kind": "corpus",
+      "voice": "en_US-lessac-medium",
+      "line": 1,
+      "text": "GRACI, inspect the repository and tell me what failed.",
+      "file": "phase6a/artifacts/corpus/phrase-01.wav",
+      "seconds": 3.46,
+      "generation_seconds": 2.088
+    },
+    {
+      "kind": "corpus",
+      "voice": "en_US-lessac-medium",
+      "line": 2,
+      "text": "Run the tests and explain the result.",
+      "file": "phase6a/artifacts/corpus/phrase-02.wav",
+      "seconds": 2.159,
+      "generation_seconds": 1.288
+    },
+    {
+      "kind": "corpus",
+      "voice": "en_US-lessac-medium",
+      "line": 3,
+      "text": "Use the 3090 unless optional capacity is available.",
+      "file": "phase6a/artifacts/corpus/phrase-03.wav",
+      "seconds": 3.866,
+      "generation_seconds": 1.329
+    },
+    {
+      "kind": "corpus",
+      "voice": "en_US-lessac-medium",
+      "line": 4,
+      "text": "Do not use the 4090 while ModOrganizer is running.",
+      "file": "phase6a/artifacts/corpus/phrase-04.wav",
+      "seconds": 3.762,
+      "generation_seconds": 1.311
+    },
+    {
+      "kind": "corpus",
+      "voice": "en_US-lessac-medium",
+      "line": 5,
+      "text": "What do you remember about this project?",
+      "file": "phase6a/artifacts/corpus/phrase-05.wav",
+      "seconds": 1.95,
+      "generation_seconds": 1.291
+    },
+    {
+      "kind": "corpus",
+      "voice": "en_US-lessac-medium",
+      "line": 6,
+      "text": "Review the latest implementation.",
+      "file": "phase6a/artifacts/corpus/phrase-06.wav",
+      "seconds": 1.927,
+      "generation_seconds": 1.282
+    },
+    {
+      "kind": "corpus",
+      "voice": "en_US-lessac-medium",
+      "line": 7,
+      "text": "Qwen",
+      "file": "phase6a/artifacts/corpus/phrase-07.wav",
+      "seconds": 0.604,
+      "generation_seconds": 1.271
+    },
+    {
+      "kind": "corpus",
+      "voice": "en_US-lessac-medium",
+      "line": 8,
+      "text": "GLM",
+      "file": "phase6a/artifacts/corpus/phrase-08.wav",
+      "seconds": 0.708,
+      "generation_seconds": 1.256
+    },
+    {
+      "kind": "corpus",
+      "voice": "en_US-lessac-medium",
+      "line": 9,
+      "text": "llama.cpp",
+      "file": "phase6a/artifacts/corpus/phrase-09.wav",
+      "seconds": 1.474,
+      "generation_seconds": 1.27
+    },
+    {
+      "kind": "corpus",
+      "voice": "en_US-lessac-medium",
+      "line": 10,
+      "text": "GitHub",
+      "file": "phase6a/artifacts/corpus/phrase-10.wav",
+      "seconds": 0.731,
+      "generation_seconds": 1.27
+    },
+    {
+      "kind": "corpus",
+      "voice": "en_US-lessac-medium",
+      "line": 11,
+      "text": "PowerShell",
+      "file": "phase6a/artifacts/corpus/phrase-11.wav",
+      "seconds": 0.778,
+      "generation_seconds": 1.262
+    },
+    {
+      "kind": "corpus",
+      "voice": "en_US-lessac-medium",
+      "line": 12,
+      "text": "Phase six",
+      "file": "phase6a/artifacts/corpus/phrase-12.wav",
+      "seconds": 0.731,
+      "generation_seconds": 1.251
+    },
+    {
+      "kind": "corpus",
+      "voice": "en_US-lessac-medium",
+      "line": 13,
+      "text": "visualizer",
+      "file": "phase6a/artifacts/corpus/phrase-13.wav",
+      "seconds": 1.022,
+      "generation_seconds": 1.256
+    },
+    {
+      "kind": "corpus",
+      "voice": "en_US-lessac-medium",
+      "line": 14,
+      "text": "adjudication",
+      "file": "phase6a/artifacts/corpus/phrase-14.wav",
+      "seconds": 0.975,
+      "generation_seconds": 1.273
+    },
+    {
+      "kind": "audition",
+      "voice": "en_US-amy-medium",
+      "line": 1,
+      "text": "Good morning. GRACI is online and ready.",
+      "file": "phase6a/artifacts/audition/en_US-amy-medium/line-01.wav",
+      "seconds": 3.239,
+      "generation_seconds": 1.299
+    },
+    {
+      "kind": "audition",
+      "voice": "en_US-amy-medium",
+      "line": 2,
+      "text": "I found the failure. The test is expecting a different routing decision than the current implementation provides.",
+      "file": "phase6a/artifacts/audition/en_US-amy-medium/line-02.wav",
+      "seconds": 7.117,
+      "generation_seconds": 1.365
+    },
+    {
+      "kind": "audition",
+      "voice": "en_US-amy-medium",
+      "line": 3,
+      "text": "The 4090 is unavailable because ModOrganizer is running. I will continue using the 3090.",
+      "file": "phase6a/artifacts/audition/en_US-amy-medium/line-03.wav",
+      "seconds": 7.848,
+      "generation_seconds": 1.369
+    },
+    {
+      "kind": "audition",
+      "voice": "en_US-amy-medium",
+      "line": 4,
+      "text": "All tests passed. The implementation is ready for review.",
+      "file": "phase6a/artifacts/audition/en_US-amy-medium/line-04.wav",
+      "seconds": 4.423,
+      "generation_seconds": 1.326
+    },
+    {
+      "kind": "audition",
+      "voice": "en_US-amy-medium",
+      "line": 5,
+      "text": "I found two relevant memories from this project. Neither conflicts with the current task.",
+      "file": "phase6a/artifacts/audition/en_US-amy-medium/line-05.wav",
+      "seconds": 6.037,
+      "generation_seconds": 1.349
+    },
+    {
+      "kind": "audition",
+      "voice": "en_US-amy-medium",
+      "line": 6,
+      "text": "I would not make that change yet. The evidence does not support it.",
+      "file": "phase6a/artifacts/audition/en_US-amy-medium/line-06.wav",
+      "seconds": 4.365,
+      "generation_seconds": 1.323
+    },
+    {
+      "kind": "audition",
+      "voice": "en_US-hfc_female-medium",
+      "line": 1,
+      "text": "Good morning. GRACI is online and ready.",
+      "file": "phase6a/artifacts/audition/en_US-hfc_female-medium/line-01.wav",
+      "seconds": 2.694,
+      "generation_seconds": 1.293
+    },
+    {
+      "kind": "audition",
+      "voice": "en_US-hfc_female-medium",
+      "line": 2,
+      "text": "I found the failure. The test is expecting a different routing decision than the current implementation provides.",
+      "file": "phase6a/artifacts/audition/en_US-hfc_female-medium/line-02.wav",
+      "seconds": 5.793,
+      "generation_seconds": 1.346
+    },
+    {
+      "kind": "audition",
+      "voice": "en_US-hfc_female-medium",
+      "line": 3,
+      "text": "The 4090 is unavailable because ModOrganizer is running. I will continue using the 3090.",
+      "file": "phase6a/artifacts/audition/en_US-hfc_female-medium/line-03.wav",
+      "seconds": 6.583,
+      "generation_seconds": 1.359
+    },
+    {
+      "kind": "audition",
+      "voice": "en_US-hfc_female-medium",
+      "line": 4,
+      "text": "All tests passed. The implementation is ready for review.",
+      "file": "phase6a/artifacts/audition/en_US-hfc_female-medium/line-04.wav",
+      "seconds": 3.332,
+      "generation_seconds": 1.305
+    },
+    {
+      "kind": "audition",
+      "voice": "en_US-hfc_female-medium",
+      "line": 5,
+      "text": "I found two relevant memories from this project. Neither conflicts with the current task.",
+      "file": "phase6a/artifacts/audition/en_US-hfc_female-medium/line-05.wav",
+      "seconds": 4.621,
+      "generation_seconds": 1.325
+    },
+    {
+      "kind": "audition",
+      "voice": "en_US-hfc_female-medium",
+      "line": 6,
+      "text": "I would not make that change yet. The evidence does not support it.",
+      "file": "phase6a/artifacts/audition/en_US-hfc_female-medium/line-06.wav",
+      "seconds": 3.553,
+      "generation_seconds": 1.304
+    },
+    {
+      "kind": "audition",
+      "voice": "en_US-lessac-medium",
+      "line": 1,
+      "text": "Good morning. GRACI is online and ready.",
+      "file": "phase6a/artifacts/audition/en_US-lessac-medium/line-01.wav",
+      "seconds": 2.647,
+      "generation_seconds": 1.301
+    },
+    {
+      "kind": "audition",
+      "voice": "en_US-lessac-medium",
+      "line": 2,
+      "text": "I found the failure. The test is expecting a different routing decision than the current implementation provides.",
+      "file": "phase6a/artifacts/audition/en_US-lessac-medium/line-02.wav",
+      "seconds": 5.956,
+      "generation_seconds": 1.339
+    },
+    {
+      "kind": "audition",
+      "voice": "en_US-lessac-medium",
+      "line": 3,
+      "text": "The 4090 is unavailable because ModOrganizer is running. I will continue using the 3090.",
+      "file": "phase6a/artifacts/audition/en_US-lessac-medium/line-03.wav",
+      "seconds": 6.223,
+      "generation_seconds": 1.356
+    },
+    {
+      "kind": "audition",
+      "voice": "en_US-lessac-medium",
+      "line": 4,
+      "text": "All tests passed. The implementation is ready for review.",
+      "file": "phase6a/artifacts/audition/en_US-lessac-medium/line-04.wav",
+      "seconds": 3.541,
+      "generation_seconds": 1.314
+    },
+    {
+      "kind": "audition",
+      "voice": "en_US-lessac-medium",
+      "line": 5,
+      "text": "I found two relevant memories from this project. Neither conflicts with the current task.",
+      "file": "phase6a/artifacts/audition/en_US-lessac-medium/line-05.wav",
+      "seconds": 4.911,
+      "generation_seconds": 1.34
+    },
+    {
+      "kind": "audition",
+      "voice": "en_US-lessac-medium",
+      "line": 6,
+      "text": "I would not make that change yet. The evidence does not support it.",
+      "file": "phase6a/artifacts/audition/en_US-lessac-medium/line-06.wav",
+      "seconds": 3.657,
+      "generation_seconds": 1.311
+    }
+  ]
+}

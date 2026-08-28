@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "local_only": true,
+  "network_runtime_allowed": false,
+  "max_audio_seconds": 120,
+  "max_result_bytes": 1048576,
+  "stt": [
+    {"engine": "faster-whisper", "model": "large-v3-turbo", "device": "cpu", "compute_type": "int8"},
+    {"engine": "faster-whisper", "model": "small.en", "device": "cpu", "compute_type": "int8"},
+    {"engine": "whisper.cpp", "model": "ggml-small.en", "device": "cpu", "compute_type": "f16"}
+  ],
+  "tts": [
+    {"engine": "Kokoro-82M", "mode": "cpu", "status": "qualified"},
+    {"engine": "Chatterbox", "mode": "cpu/gpu", "status": "documented-not-run"},
+    {"engine": "Piper", "mode": "cpu", "status": "qualified"}
+  ]
+}

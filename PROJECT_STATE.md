@@ -1,5 +1,15 @@
 # GRACI Project State
 
+## Current build status
+
+- Phase 5 — COMPLETE
+- Phase 6 — IN PROGRESS
+- Phase 6A — CURRENT
+- Authoritative starting commit: `17c35e0a44463a53a0204221a37eda4e745cbd8f`.
+- Phase 6 interaction model: push-to-talk. Always-listening and wake word are deferred.
+- Phase 6A qualifies local STT/TTS and defines the architecture only; Phase 6B production capture has not started.
+- Evidence: `phase6a/evidence/phase6a-qualification.json`; architecture and reconstruction: `phase6a/ARCHITECTURE.md` and `phase6a/README.md`.
+
 ## Phase 5C command-center UI — COMPLETE
 
 - Starting commit: `7a12d4c42a9ac1951c47653ce11048c2da346df8`.

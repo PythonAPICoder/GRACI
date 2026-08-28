@@ -1,0 +1,6 @@
+# Requires Python 3.10-3.12; qualification used 3.12.11.
+kokoro==0.9.4
+kokoro-onnx==0.4.9
+onnxruntime==1.29.0
+psutil==7.0.0
+soundfile==0.13.1

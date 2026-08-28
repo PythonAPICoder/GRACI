@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "phase": "6A",
+  "status": "PASS",
+  "starting_commit": "17c35e0a44463a53a0204221a37eda4e745cbd8f",
+  "interaction_model": "push-to-talk",
+  "runtime_integration_added": false,
+  "environment": {"os": "Windows 11 10.0.26200", "host_python": "3.14.7", "kokoro_python": "3.12.11", "gpu": "NVIDIA GeForce RTX 3090", "vram_total_mib": 24576, "vram_used_inventory_mib": 23228, "audio_device_inventory": "Windows device APIs denied access in qualification session"},
+  "corpus": {"synthetic_non_private": true, "files": 14, "seconds": 24.147, "raw_microphone_audio_committed": false},
+  "stt_results": [
+    {"engine": "faster-whisper", "version": "1.2.1", "model": "large-v3-turbo", "mode": "cpu-int8", "cold_start_seconds": 31.418, "transcription_seconds": 39.979, "rtf": 1.656, "wer": 0.1296, "model_cache_bytes": 1621667203, "rss_delta_lower_bound_bytes": 929656832},
+    {"engine": "faster-whisper", "version": "1.2.1", "model": "small.en", "mode": "cpu-int8", "cold_start_seconds": 10.420, "transcription_seconds": 9.539, "rtf": 0.395, "wer": 0.1296, "rss_delta_lower_bound_bytes": 346542080},
+    {"engine": "whisper.cpp", "version": "b4938", "model": "ggml-small.en", "mode": "cpu-f16", "transcription_seconds": 34.301, "rtf_including_process_start": 1.421, "wer": 0.1111, "model_bytes": 487614201}
+  ],
+  "recommendation": {"stt": "faster-whisper small.en CPU int8", "tts": "Kokoro-82M ONNX CPU subject to user voice selection", "fallback_tts": "Piper CPU", "gpu_default": false, "requires_4090": false},
+  "tts_audition": {"kokoro_voices": ["af_heart", "af_bella", "af_nicole"], "piper_voices": ["en_US-amy-medium", "en_US-hfc_female-medium", "en_US-lessac-medium"], "lines_each": 6, "user_selection_required": true, "chatterbox_executed": false},
+  "privacy": {"audio_local_only": true, "audio_transient_by_default": true, "transcript_untrusted": true, "transcript_equivalent_to_typed_input": true, "tts_final_response_only": true, "cloud_runtime_allowed": false, "voice_has_authority": false},
+  "licenses": [
+    {"component": "faster-whisper", "license": "MIT"}, {"component": "Whisper code and weights", "license": "MIT"}, {"component": "whisper.cpp", "license": "MIT"}, {"component": "Kokoro-82M model and voices", "license": "Apache-2.0"}, {"component": "Chatterbox code and weights", "license": "MIT"}, {"component": "Piper 1.4.1 engine", "license": "GPL-3.0"}, {"component": "Piper voices", "license": "per-voice metadata; verify before redistribution"}
+  ],
+  "boundaries": {"phase6b_started": false, "microphone_connected": false, "speech_submitted": false, "production_tts_playback": false, "listening_speaking_published": false, "routing_changed": false, "memory_governance_changed": false, "mo2_policy_changed": false}
+}

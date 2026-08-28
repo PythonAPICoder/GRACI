@@ -2,3 +2,7 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 runs/
+phase6a/.venv/
+phase6a/.venv312/
+phase6a/cache/
+phase6a/work/

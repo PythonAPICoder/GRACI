@@ -1,0 +1,172 @@
+{
+  "schema_version": 1,
+  "engine": "Kokoro-82M ONNX",
+  "package_version": "kokoro-onnx 0.4.9",
+  "mode": "cpu",
+  "cold_pipeline_seconds": 0.503,
+  "rss_delta_bytes_lower_bound": 621412352,
+  "results": [
+    {
+      "voice": "af_heart",
+      "line": 1,
+      "text": "Good morning. GRACI is online and ready.",
+      "file": "phase6a/artifacts/audition/kokoro/af_heart/line-01.wav",
+      "audio_seconds": 2.624,
+      "generation_seconds": 1.688,
+      "real_time_factor": 0.643
+    },
+    {
+      "voice": "af_heart",
+      "line": 2,
+      "text": "I found the failure. The test is expecting a different routing decision than the current implementation provides.",
+      "file": "phase6a/artifacts/audition/kokoro/af_heart/line-02.wav",
+      "audio_seconds": 6.741,
+      "generation_seconds": 3.313,
+      "real_time_factor": 0.491
+    },
+    {
+      "voice": "af_heart",
+      "line": 3,
+      "text": "The 4090 is unavailable because ModOrganizer is running. I will continue using the 3090.",
+      "file": "phase6a/artifacts/audition/kokoro/af_heart/line-03.wav",
+      "audio_seconds": 7.445,
+      "generation_seconds": 3.662,
+      "real_time_factor": 0.492
+    },
+    {
+      "voice": "af_heart",
+      "line": 4,
+      "text": "All tests passed. The implementation is ready for review.",
+      "file": "phase6a/artifacts/audition/kokoro/af_heart/line-04.wav",
+      "audio_seconds": 3.499,
+      "generation_seconds": 1.941,
+      "real_time_factor": 0.555
+    },
+    {
+      "voice": "af_heart",
+      "line": 5,
+      "text": "I found two relevant memories from this project. Neither conflicts with the current task.",
+      "file": "phase6a/artifacts/audition/kokoro/af_heart/line-05.wav",
+      "audio_seconds": 5.056,
+      "generation_seconds": 2.609,
+      "real_time_factor": 0.516
+    },
+    {
+      "voice": "af_heart",
+      "line": 6,
+      "text": "I would not make that change yet. The evidence does not support it.",
+      "file": "phase6a/artifacts/audition/kokoro/af_heart/line-06.wav",
+      "audio_seconds": 3.584,
+      "generation_seconds": 1.939,
+      "real_time_factor": 0.541
+    },
+    {
+      "voice": "af_bella",
+      "line": 1,
+      "text": "Good morning. GRACI is online and ready.",
+      "file": "phase6a/artifacts/audition/kokoro/af_bella/line-01.wav",
+      "audio_seconds": 2.688,
+      "generation_seconds": 1.666,
+      "real_time_factor": 0.62
+    },
+    {
+      "voice": "af_bella",
+      "line": 2,
+      "text": "I found the failure. The test is expecting a different routing decision than the current implementation provides.",
+      "file": "phase6a/artifacts/audition/kokoro/af_bella/line-02.wav",
+      "audio_seconds": 6.72,
+      "generation_seconds": 3.425,
+      "real_time_factor": 0.51
+    },
+    {
+      "voice": "af_bella",
+      "line": 3,
+      "text": "The 4090 is unavailable because ModOrganizer is running. I will continue using the 3090.",
+      "file": "phase6a/artifacts/audition/kokoro/af_bella/line-03.wav",
+      "audio_seconds": 7.723,
+      "generation_seconds": 3.835,
+      "real_time_factor": 0.497
+    },
+    {
+      "voice": "af_bella",
+      "line": 4,
+      "text": "All tests passed. The implementation is ready for review.",
+      "file": "phase6a/artifacts/audition/kokoro/af_bella/line-04.wav",
+      "audio_seconds": 3.563,
+      "generation_seconds": 2.08,
+      "real_time_factor": 0.584
+    },
+    {
+      "voice": "af_bella",
+      "line": 5,
+      "text": "I found two relevant memories from this project. Neither conflicts with the current task.",
+      "file": "phase6a/artifacts/audition/kokoro/af_bella/line-05.wav",
+      "audio_seconds": 5.141,
+      "generation_seconds": 2.741,
+      "real_time_factor": 0.533
+    },
+    {
+      "voice": "af_bella",
+      "line": 6,
+      "text": "I would not make that change yet. The evidence does not support it.",
+      "file": "phase6a/artifacts/audition/kokoro/af_bella/line-06.wav",
+      "audio_seconds": 3.733,
+      "generation_seconds": 2.111,
+      "real_time_factor": 0.565
+    },
+    {
+      "voice": "af_nicole",
+      "line": 1,
+      "text": "Good morning. GRACI is online and ready.",
+      "file": "phase6a/artifacts/audition/kokoro/af_nicole/line-01.wav",
+      "audio_seconds": 3.861,
+      "generation_seconds": 2.118,
+      "real_time_factor": 0.549
+    },
+    {
+      "voice": "af_nicole",
+      "line": 2,
+      "text": "I found the failure. The test is expecting a different routing decision than the current implementation provides.",
+      "file": "phase6a/artifacts/audition/kokoro/af_nicole/line-02.wav",
+      "audio_seconds": 9.579,
+      "generation_seconds": 4.634,
+      "real_time_factor": 0.484
+    },
+    {
+      "voice": "af_nicole",
+      "line": 3,
+      "text": "The 4090 is unavailable because ModOrganizer is running. I will continue using the 3090.",
+      "file": "phase6a/artifacts/audition/kokoro/af_nicole/line-03.wav",
+      "audio_seconds": 12.117,
+      "generation_seconds": 5.748,
+      "real_time_factor": 0.474
+    },
+    {
+      "voice": "af_nicole",
+      "line": 4,
+      "text": "All tests passed. The implementation is ready for review.",
+      "file": "phase6a/artifacts/audition/kokoro/af_nicole/line-04.wav",
+      "audio_seconds": 5.419,
+      "generation_seconds": 2.869,
+      "real_time_factor": 0.53
+    },
+    {
+      "voice": "af_nicole",
+      "line": 5,
+      "text": "I found two relevant memories from this project. Neither conflicts with the current task.",
+      "file": "phase6a/artifacts/audition/kokoro/af_nicole/line-05.wav",
+      "audio_seconds": 7.936,
+      "generation_seconds": 3.922,
+      "real_time_factor": 0.494
+    },
+    {
+      "voice": "af_nicole",
+      "line": 6,
+      "text": "I would not make that change yet. The evidence does not support it.",
+      "file": "phase6a/artifacts/audition/kokoro/af_nicole/line-06.wav",
+      "audio_seconds": 5.696,
+      "generation_seconds": 2.946,
+      "real_time_factor": 0.517
+    }
+  ]
+}
