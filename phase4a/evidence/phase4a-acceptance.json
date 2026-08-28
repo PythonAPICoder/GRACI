@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "phase": "4A",
+  "started_at": "2026-08-28T02:37:12.155448Z",
+  "ended_at": "2026-08-28T02:37:12.159567Z",
+  "storage_type": "canonical_utf8_json_per_uuid",
+  "memory_root_semantics": "host-selected authoritative 3090 local directory",
+  "created_record_ids": [
+    "44444444-4444-4444-8444-444444444441",
+    "44444444-4444-4444-8444-444444444442"
+  ],
+  "persistence_reconstruction": "PASS",
+  "enumeration": {
+    "ids": [
+      "44444444-4444-4444-8444-444444444441",
+      "44444444-4444-4444-8444-444444444442"
+    ],
+    "deterministic": true,
+    "bounded_limit": 10
+  },
+  "controlled_update": "PASS",
+  "corruption_test": "PASS",
+  "filesystem_boundary": "PASS",
+  "atomicity": "same-directory fsync temporary; no-overwrite hard-link create; os.replace update",
+  "automated_tests": "128 passed; python -W error -m unittest discover -s tests -v",
+  "cloud_network_usage": "none",
+  "shared_storage_used": false,
+  "dependency_on_4090": false,
+  "status": "PASS",
+  "errors": []
+}

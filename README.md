@@ -1,3 +1,13 @@
+# GRACI Phase 4A Persistent Memory Storage
+
+Phases 0–3 remain complete. Phase 4A adds a local-only, versioned, strict JSON
+memory-record schema and atomic filesystem store. Memory is untrusted contextual
+data and cannot override user instructions, policy, evidence, or verified state.
+Storage is authoritative on the 3090, has no cloud/4090/Obsidian dependency, and
+does not implement automatic writes, semantic retrieval, or prompt injection.
+Architecture and acceptance details are in `phase4a/README.md`. The next authorized
+stage is Phase 4B — Memory Write / Retrieval Pipeline; it has not begun.
+
 # GRACI Phase 3 Resource / Model Router — Phase 3 Complete
 
 Phase 1 and Phase 2 are complete. Phase 3A added the deterministic typed resource,

@@ -1,5 +1,34 @@
 # GRACI Project State
 
+## Phase 4A persistent memory storage — COMPLETE
+
+- Canonical schema-v1 UTF-8 JSON records live one per canonical UUID filename under
+  an absolute host-configured root. Strict validation covers exact fields, stable
+  identity, timezone-aware/logically ordered timestamps, explicit scope/type/status/
+  provenance, non-empty content, and positive versions.
+- Scope kinds are global/project/session; types are fact/preference/decision/context/
+  workflow; statuses are active/superseded/expired/tombstoned; provenance origins
+  distinguish explicit user, runtime observation, model generation, and external
+  import without conferring truth or authority.
+- Create publication and updates use fsynced same-directory temporaries with atomic
+  filesystem operations. Duplicate IDs fail closed; updates preserve identity and
+  creation time while incrementing version. Retrieval always revalidates canonical
+  content. Bounded deterministic enumeration returns valid records plus explicit
+  corruption diagnostics, never corruption as usable context.
+- Paths derive only from validated UUIDs beneath the host-selected root. No arbitrary
+  extension/path access exists. Bounded obvious-secret patterns are rejected, while
+  documentation explicitly disclaims comprehensive secret detection. Malicious or
+  instruction-like content remains inert data.
+- The 3090 local filesystem remains authoritative. There is no shared-drive mutable
+  state, 4090 mutation/replication, cloud/network/provider dependency, Obsidian
+  runtime/plugin, Markdown authority, automatic extraction/write, embeddings,
+  semantic search, ranking, conflict engine, or model prompt injection.
+- Phase 4A architecture, security decisions, limitations, acceptance, development
+  record, test record, and failure behavior are documented in `phase4a/README.md`.
+  Durable acceptance is `phase4a/evidence/phase4a-acceptance.json`.
+- The next authorized stage is Phase 4B — Memory Write / Retrieval Pipeline. It has
+  not begun.
+
 This document and the durable files in this repository are the authoritative source of GRACI project state. Conversation history is not project state.
 
 ## Project and phase

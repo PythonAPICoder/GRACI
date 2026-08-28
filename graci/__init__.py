@@ -20,6 +20,9 @@ from .availability import (
 )
 from .distributed import (DistributedRoutingError, Phase3DDistributedRouter,
                           RoutedResponse)
+from .memory import (EnumerationResult, MemoryCollisionError, MemoryNotFoundError,
+                     MemoryStatus, MemoryStorageError, MemoryStore, MemoryType,
+                     MemoryValidationError, ProvenanceOrigin, ScopeKind)
 
 __all__ = [
     "AutonomousRepairController", "Config", "Controller", "LoopLimits",
@@ -27,6 +30,9 @@ __all__ = [
     "Phase3BController", "Phase3BRoleRouter", "Phase3CEligibilityReason",
     "Phase3CEligibilityResult", "ToolLayer", "VerticalSliceController",
     "DistributedRoutingError", "Phase3DDistributedRouter", "RoutedResponse",
+    "EnumerationResult", "MemoryCollisionError", "MemoryNotFoundError",
+    "MemoryStatus", "MemoryStorageError", "MemoryStore", "MemoryType",
+    "MemoryValidationError", "ProvenanceOrigin", "ScopeKind",
     "build_phase3a_registry", "check_4090_mo2_status", "evaluate_4090_eligibility",
     "evaluate_eligibility",
 ]
