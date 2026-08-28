@@ -9,6 +9,14 @@
     "reduced_motion": "Continuous core-orbit, dash, node, ripple, and pulse animation is disabled; static paths, nodes, labels, and semantic color remain.",
     "visual_approval": "Pending follow-up user inspection; permanent visual-design approval is not declared."
   },
+  "visual_refinement_r2": {
+    "starting_commit": "7f57ab2682e875203f07c9e979b1f457197016ff",
+    "request": "Make the inner orbital motion immediately perceptible while preserving the accepted center identity and Phase 5C scope.",
+    "implementation": "Higher-contrast irregular primary dashes travel 304 SVG units while the primary group completes an 8-second REASONING cycle; the tilted secondary orbit counter-rotates in 13 seconds with reverse dash travel and a depth highlight; five larger glowing nodes move with the orbit groups.",
+    "stationary_center": "GRACI CORE, state text, center labels, and center hexagonal identity remain outside the animated core-orbits group and have no animation.",
+    "reduced_motion": "The reduced-motion media query disables all animation and resets orbit transforms and dash offsets while retaining static semantic geometry, color, and nodes.",
+    "phase5d_started": false
+  },
   "architecture": {
     "technology": "packaged HTML, CSS, vanilla JavaScript, and SVG; zero external runtime dependencies",
     "local_url": "http://127.0.0.1:8766/",
@@ -72,7 +80,8 @@
   "screenshots": [
     "phase5c/evidence/screenshots/phase5c-reasoning-3440x1440.png",
     "phase5c/evidence/screenshots/phase5c-completed-3440x1440.png",
-    "phase5c/evidence/screenshots/phase5c-reasoning-orbital-refinement-3440x1440.png"
+    "phase5c/evidence/screenshots/phase5c-reasoning-orbital-refinement-3440x1440.png",
+    "phase5c/evidence/screenshots/phase5c-reasoning-orbital-visibility-r2-3440x1440.png"
   ],
   "known_limitations": [
     "Version 1 visual styling remains subject to user review.",
@@ -80,7 +89,8 @@
     "Phase 5D real runtime publication wiring is intentionally absent."
   ],
   "verification": {
-    "focused_phase5a_to_5c_tests": "51 passed",
+    "focused_phase5c_tests": "8 passed",
+    "focused_phase5a_to_5c_tests": "51 passed (prior acceptance; unchanged)",
     "warning_strict_repository_tests": "239 passed",
     "phase5a_phase5b_regression": "PASS (included in focused 50)",
     "phase1_to_4_regression": "PASS (included in 239)",
