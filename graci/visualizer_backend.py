@@ -10,8 +10,9 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 from typing import Final
-from urllib.parse import urlsplit
+from urllib.parse import unquote, urlsplit
 
 from .visualizer import (
     EVENT_SCHEMA_VERSION, RECENT_EVENT_LIMIT, SNAPSHOT_SCHEMA_VERSION,
@@ -25,6 +26,18 @@ MAX_LIVE_CLIENTS: Final[int] = 8
 MAX_REQUEST_TARGET: Final[int] = 2048
 SSE_HEARTBEAT_SECONDS: Final[float] = 15.0
 BASE_PATH: Final[str] = "/graci/visualizer/v1"
+STATIC_ROOT: Final[Path] = Path(__file__).with_name("visualizer_ui")
+STATIC_ASSETS: Final[dict[str, tuple[str, str]]] = {
+    "/": ("index.html", "text/html; charset=utf-8"),
+    "/visualizer.css": ("visualizer.css", "text/css; charset=utf-8"),
+    "/visualizer.js": ("visualizer.js", "text/javascript; charset=utf-8"),
+}
+MAX_STATIC_FILE_BYTES: Final[int] = 512_000
+CONTENT_SECURITY_POLICY: Final[str] = (
+    "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; "
+    "connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; "
+    "form-action 'none'"
+)
 
 _LOG = logging.getLogger(__name__)
 
@@ -116,6 +129,7 @@ class _Handler(BaseHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store")
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Referrer-Policy", "no-referrer")
+        self.send_header("Content-Security-Policy", CONTENT_SECURITY_POLICY)
         if length is not None:
             self.send_header("Content-Length", str(length))
 
@@ -149,10 +163,15 @@ class _Handler(BaseHTTPRequestHandler):
             self._error(HTTPStatus.BAD_REQUEST, "request_body_rejected", "request bodies are not accepted")
             return None
         target = urlsplit(self.path)
-        if target.query or target.fragment or "\\" in target.path or "//" in target.path or ".." in target.path:
+        try:
+            decoded_path = unquote(target.path, errors="strict")
+        except (UnicodeDecodeError, ValueError):
+            decoded_path = ".."
+        if (target.query or target.fragment or "\\" in decoded_path or
+                "//" in decoded_path or ".." in decoded_path or "\x00" in decoded_path):
             self._error(HTTPStatus.BAD_REQUEST, "invalid_request_target", "query and malformed paths are not accepted")
             return None
-        return target.path
+        return decoded_path
 
     def do_HEAD(self) -> None:
         self._read(head_only=True)
@@ -191,8 +210,27 @@ class _Handler(BaseHTTPRequestHandler):
             self.send_response(HTTPStatus.OK)
             self._safe_headers("text/event-stream; charset=utf-8", 0)
             self.end_headers()
+        elif path in STATIC_ASSETS:
+            self._static(path, head_only)
         else:
             self._error(HTTPStatus.NOT_FOUND, "not_found", "visualizer endpoint not found")
+
+    def _static(self, path: str, head_only: bool) -> None:
+        filename, content_type = STATIC_ASSETS[path]
+        asset = STATIC_ROOT / filename
+        try:
+            body = asset.read_bytes()
+        except OSError:
+            self._error(HTTPStatus.NOT_FOUND, "asset_unavailable", "visualizer asset unavailable")
+            return
+        if len(body) > MAX_STATIC_FILE_BYTES:
+            self._error(HTTPStatus.INTERNAL_SERVER_ERROR, "asset_too_large", "visualizer asset exceeds bound")
+            return
+        self.send_response(HTTPStatus.OK)
+        self._safe_headers(content_type, len(body))
+        self.end_headers()
+        if not head_only:
+            self.wfile.write(body)
 
     def _json(self, value: dict[str, object], head_only: bool) -> None:
         self._serialized(json.dumps(value, sort_keys=True, separators=(",", ":")), head_only)

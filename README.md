@@ -1,3 +1,7 @@
+# GRACI Phase 5C Command-Center UI
+
+Phase 5C adds the packaged observer-only browser command center at `http://127.0.0.1:8766/`. It is an offline HTML/CSS/vanilla-JavaScript/SVG interface over the accepted Phase 5A contract and Phase 5B read-only backend. Design, operation, security, and acceptance details are under `phase5c/`.
+
 # GRACI Phase 5B Local Visualizer Backend
 
 Phase 5B adds an optional standard-library, observer-only HTTP/SSE transport for the
@@ -5,7 +9,7 @@ accepted Phase 5A immutable projection. It binds only `127.0.0.1:8766`, exposes 
 versioned read endpoints, retains 100 recent events, and permits at most eight live
 SSE clients. It has no control, provider, tool, memory-write, routing, MO2 mutation,
 remote, filesystem, cloud, or inference path. Architecture and acceptance details
-are under `phase5b/`. No Phase 5C browser UI is implemented.
+are under `phase5b/`.
 
 # GRACI Phase 5A Visualizer State Contract — Complete
 

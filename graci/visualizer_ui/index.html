@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>G.R.A.C.I. Visualizer</title>
+  <link rel="stylesheet" href="/visualizer.css">
+</head>
+<body data-system-state="idle" data-connection="connecting">
+  <div class="ambient" aria-hidden="true"></div>
+  <main class="command-center">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">G.R.A.C.I.</span><span class="subtitle">LOCAL AUTONOMOUS SYSTEM</span></div>
+      <div class="state-readout"><span class="eyebrow">CURRENT STATE</span><strong id="overall-state">AWAITING DATA</strong></div>
+      <div class="header-right">
+        <span class="local-first">LOCAL-FIRST</span>
+        <span id="connection" class="connection" role="status"><i></i> CONNECTING</span>
+        <time id="clock">--:--:--</time>
+      </div>
+    </header>
+
+    <section class="workspace">
+      <aside class="left-rail" aria-label="Compute and agents">
+        <div class="section-heading"><span>01</span> COMPUTE / AGENTS</div>
+        <article id="node-3090" class="node-card primary">
+          <div class="card-top"><span>RTX 3090</span><em>PRIMARY / AUTHORITY</em></div>
+          <strong class="availability">UNKNOWN</strong>
+          <dl><div><dt>ENDPOINT</dt><dd data-field="health">UNKNOWN</dd></div><div><dt>MODEL</dt><dd data-field="model">UNASSIGNED</dd></div><div><dt>ROLE</dt><dd data-field="role">AUTHORITY</dd></div></dl>
+        </article>
+        <article id="agent-qwen" class="agent-card qwen">
+          <div class="agent-sigil" aria-hidden="true">Q</div><div><span>QWEN</span><strong data-field="model">—</strong><small data-field="activity">INACTIVE</small></div>
+        </article>
+        <article id="node-4090" class="node-card optional">
+          <div class="card-top"><span>RTX 4090</span><em>OPTIONAL CAPACITY</em></div>
+          <strong class="availability">UNKNOWN</strong>
+          <dl><div><dt>ENDPOINT</dt><dd data-field="health">UNKNOWN</dd></div><div><dt>MO2</dt><dd data-field="mo2">UNKNOWN</dd></div><div><dt>ELIGIBILITY</dt><dd data-field="eligibility">UNKNOWN</dd></div></dl>
+          <p data-field="reason">AWAITING OBSERVED STATE</p>
+        </article>
+        <article id="agent-glm" class="agent-card glm">
+          <div class="agent-sigil" aria-hidden="true">G</div><div><span>GLM</span><strong data-field="model">—</strong><small data-field="activity">INACTIVE</small></div>
+        </article>
+      </aside>
+
+      <section class="core-stage" aria-label="GRACI computational core">
+        <div class="core-grid" aria-hidden="true"></div>
+        <svg class="core" viewBox="0 0 640 640" role="img" aria-labelledby="core-title core-desc">
+          <title id="core-title">G.R.A.C.I. system core</title><desc id="core-desc">Abstract network visualization reflecting the current observed system state.</desc>
+          <defs><radialGradient id="coreGlow"><stop offset="0" stop-color="currentColor" stop-opacity=".4"/><stop offset=".55" stop-color="currentColor" stop-opacity=".09"/><stop offset="1" stop-color="currentColor" stop-opacity="0"/></radialGradient></defs>
+          <circle class="core-haze" cx="320" cy="320" r="260" fill="url(#coreGlow)"/>
+          <g class="orbit orbit-a"><circle cx="320" cy="320" r="210"/><circle class="node" cx="530" cy="320" r="7"/></g>
+          <g class="orbit orbit-b"><ellipse cx="320" cy="320" rx="245" ry="130"/><circle class="node memory-node" cx="75" cy="320" r="8"/></g>
+          <g class="orbit orbit-c"><ellipse cx="320" cy="320" rx="105" ry="245"/><circle class="node review-node" cx="320" cy="75" r="7"/></g>
+          <g class="network"><path d="M180 240L320 130 465 230 490 390 320 500 160 390Z"/><path d="M180 240L490 390M465 230L160 390M320 130V500"/></g>
+          <g class="inner"><polygon points="320,190 430,255 430,385 320,450 210,385 210,255"/><circle cx="320" cy="320" r="88"/><circle cx="320" cy="320" r="48"/></g>
+          <g class="pulse-paths"><path class="memory-path" d="M75 320H210"/><path class="tool-path" d="M430 320H568"/><path class="review-path" d="M320 190V76"/></g>
+        </svg>
+        <div class="core-label"><span>GRACI CORE</span><strong id="core-state">IDLE</strong><small id="freshness">NO SNAPSHOT</small></div>
+        <div class="state-index" aria-label="System telemetry"><span>SCHEMA <b id="schema">—</b></span><span>SNAPSHOT <b id="snapshot-id">—</b></span><span>UPDATED <b id="updated">—</b></span></div>
+      </section>
+
+      <aside class="right-rail" aria-label="Current activity">
+        <div class="section-heading"><span>02</span> CURRENT ACTIVITY</div>
+        <article class="task-panel">
+          <span class="eyebrow">ACTIVE TASK</span><h2 id="task-summary">SYSTEM AT REST</h2>
+          <div class="task-meta"><span>ID <b id="task-id">—</b></span><span>PHASE <b id="task-phase">IDLE</b></span><span>STARTED <b id="task-started">—</b></span></div>
+          <div class="progress"><i id="task-progress"></i></div><p id="task-status">No current task. Monitoring local runtime.</p>
+        </article>
+        <article class="memory-panel">
+          <div class="panel-title"><span>MEMORY SIGNAL</span><b id="memory-status">N/A</b></div>
+          <div class="memory-map" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <dl class="metrics"><div><dt>MODE</dt><dd id="memory-mode">N/A</dd></div><div><dt>KEYS</dt><dd id="memory-keys">0</dd></div><div><dt>SELECTED</dt><dd id="memory-selected">0</dd></div><div><dt>SUPPLIED</dt><dd id="memory-supplied">0</dd></div><div><dt>CONTEXT</dt><dd id="memory-context">0</dd></div><div><dt>DIAGNOSTICS</dt><dd id="memory-diag">0 / 0</dd></div></dl>
+        </article>
+        <div class="decision-grid">
+          <article id="review-panel"><span>MODEL REVIEW</span><strong>NOT REQUESTED</strong><small>GLM verifier verdict</small></article>
+          <article id="adjudication-panel"><span>DETERMINISTIC ACCEPTANCE</span><strong>NOT APPLICABLE</strong><small>GRACI policy outcome</small></article>
+        </div>
+      </aside>
+    </section>
+
+    <section class="pipeline-section" aria-label="Execution pipeline">
+      <div class="section-heading"><span>03</span> EXECUTION PIPELINE</div>
+      <div id="pipeline" class="pipeline">
+        <div data-stage="memory"><i>01</i><span>MEMORY</span><b>N/A</b></div><em></em><div data-stage="qwen"><i>02</i><span>QWEN</span><b>INACTIVE</b></div><em></em><div data-stage="tools"><i>03</i><span>TOOLS</span><b>N/A</b></div><em></em><div data-stage="tests"><i>04</i><span>TESTS</span><b>N/A</b></div><em></em><div data-stage="review"><i>05</i><span>GLM REVIEW</span><b>N/A</b></div><em></em><div data-stage="adjudication"><i>06</i><span>ADJUDICATION</span><b>N/A</b></div>
+      </div>
+    </section>
+
+    <section class="lower-grid">
+      <div class="operations-panel"><div class="section-heading"><span>04</span> RECENT OPERATIONS</div><div id="operations" class="operations"><p class="empty">No execution operations observed.</p></div></div>
+      <div class="events-panel"><div class="events-head"><div class="section-heading"><span>05</span> LIVE EVENT STREAM</div><span id="event-count">0 / 100</span></div><div id="events" class="events" aria-live="polite"><p class="empty">Waiting for trusted local events…</p></div></div>
+    </section>
+  </main>
+  <script src="/visualizer.js" defer></script>
+</body>
+</html>

@@ -1,5 +1,18 @@
 # GRACI Project State
 
+## Phase 5C command-center UI — COMPLETE
+
+- Starting commit: `7a12d4c42a9ac1951c47653ce11048c2da346df8`.
+- `http://127.0.0.1:8766/` now serves packaged HTML/CSS/vanilla JavaScript/SVG with no build step or external runtime.
+- The 3440x1440-first layout separates compute/agents, a state-reactive abstract core, current task/memory/review/adjudication, a six-stage pipeline, operations, and bounded SSE events. Geometry checks at 2560x1440 and 1920x1080 found no horizontal overflow.
+- Same-origin serving is a three-path allowlist under `graci/visualizer_ui`, not a repository web root. Decoded traversal is rejected, assets are bounded, directory listing is unavailable, MIME types are fixed, and CSP is self-only.
+- Snapshots refresh every 3000 ms; EventSource events are deduplicated and DOM-bounded at 100. Disconnect preserves last-known data and truthfully marks transport DISCONNECTED / STALE.
+- `phase5c.synthetic` exercises the lifecycle, warning/failure, and both 4090 available and MO2-blocked truth without an HTTP mutator or core-runtime dependency.
+- Semantic regions, labels, non-color state text, and reduced-motion behavior provide accessibility basics.
+- Evidence: `phase5c/evidence/phase5c-acceptance.json`; details: `phase5c/README.md`.
+- No controls, runtime publication wiring, voice, remote access, cloud, memory/routing mutation, or inference were added.
+- Next authorized stage: Phase 5D — Live Runtime Integration. Phase 5D has not begun.
+
 ## Phase 5B local visualizer backend — COMPLETE
 
 - Starting commit `213e88972041916bd38c413f91a9babfc1663fe6` and clean

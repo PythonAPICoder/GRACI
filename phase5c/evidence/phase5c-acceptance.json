@@ -1,0 +1,82 @@
+{
+  "phase": "5C",
+  "status": "PASS",
+  "starting_commit": "7a12d4c42a9ac1951c47653ce11048c2da346df8",
+  "architecture": {
+    "technology": "packaged HTML, CSS, vanilla JavaScript, and SVG; zero external runtime dependencies",
+    "local_url": "http://127.0.0.1:8766/",
+    "asset_root": "graci/visualizer_ui",
+    "assets": ["index.html", "visualizer.css", "visualizer.js"],
+    "target_resolution": "3440x1440",
+    "responsive_resolutions": ["2560x1440", "1920x1080"],
+    "polling_interval_ms": 3000,
+    "event_dom_limit": 100
+  },
+  "visual_state_mapping": {
+    "idle": "calm breathing core",
+    "planning_reasoning": "accelerated internal orbit and pulse",
+    "retrieving_memory": "violet memory pathway",
+    "executing_tool": "directional tool pathway",
+    "testing": "structured network scan",
+    "reviewing": "violet GLM pathway",
+    "adjudicating": "faster convergence",
+    "completed_warning_failed": "green amber red semantic response",
+    "listening_speaking": "reserved wave geometry",
+    "reduced_motion": "continuous animation disabled; labels, color, and geometry retained"
+  },
+  "security": {
+    "observer_only": true,
+    "fixed_static_allowlist": true,
+    "repository_is_not_web_root": true,
+    "path_traversal_rejected_after_decode": true,
+    "directory_listing": false,
+    "uploads": false,
+    "write_methods": false,
+    "controls": false,
+    "csp": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'",
+    "cors_wildcard": false,
+    "cloud": false,
+    "remote_dependencies": false
+  },
+  "live_acceptance": {
+    "root_200": true,
+    "assets_loaded": true,
+    "health_connected": true,
+    "snapshot_rendered": true,
+    "sse_events_rendered": true,
+    "reasoning_state_rendered": true,
+    "completed_state_rendered": true,
+    "4090_available_rendered": true,
+    "4090_mo2_blocked_rendered": true,
+    "disconnect_preserved_state_and_marked_stale": true,
+    "horizontal_overflow_3440": false,
+    "horizontal_overflow_2560": false,
+    "horizontal_overflow_1920": false
+  },
+  "synthetic_fixture": {
+    "states": ["idle", "planning", "retrieving_memory", "reasoning", "executing_tool", "testing", "reviewing", "adjudicating", "completed", "warning", "failed"],
+    "http_mutator": false,
+    "core_runtime_dependency": false,
+    "result": "PASS"
+  },
+  "screenshots": [
+    "phase5c/evidence/screenshots/phase5c-reasoning-3440x1440.png",
+    "phase5c/evidence/screenshots/phase5c-completed-3440x1440.png"
+  ],
+  "known_limitations": [
+    "Version 1 visual styling remains subject to user review.",
+    "The in-app browser compositor tiles its physical 1366px capture surface under a 3440px override; DOM geometry separately proves the exact 3440px layout.",
+    "Phase 5D real runtime publication wiring is intentionally absent."
+  ],
+  "verification": {
+    "focused_phase5a_to_5c_tests": "50 passed",
+    "warning_strict_repository_tests": "239 passed",
+    "phase5a_phase5b_regression": "PASS (included in focused 50)",
+    "phase1_to_4_regression": "PASS (included in 239)",
+    "compilation": "PASS (Python warning-strict compileall; Node JavaScript syntax check)",
+    "evidence_json": "valid",
+    "secret_scan": "PASS (bounded changed-file scan)",
+    "external_reference_scan": "PASS (no remote/CDN/font/analytics reference in UI assets)",
+    "git_diff_check": "PASS"
+  }
+}
