@@ -11,12 +11,46 @@ GRACI is a local-first AI workload orchestration project. It will coordinate inf
 - Overall Build: Phase 3
 - Completed Phases: Phase 1 — Minimal GRACI Core; Phase 2 — Autonomous Loop
 - Current Phase: Phase 3 — Resource / Model Router
-- Completed Stages: Phase 3A — Resource & Endpoint Registry; Phase 3B — Local Model Role Routing; Phase 3C — 4090 Availability & MO2 Policy
-- Next Stage: Phase 3D — Distributed Routing / Failover
+- Completed Stages: Phase 3A — Resource & Endpoint Registry; Phase 3B — Local Model Role Routing; Phase 3C — 4090 Availability & MO2 Policy; Phase 3D — Distributed Routing / Failover
+- Next Stage: Phase 3E — Resource / Model Router Acceptance & Closure
 
 Phase 1A through Phase 1D and Phase 2A through Phase 2C are accepted. Phase 2 is
 implemented, verified, closed, and committed by the closure commit containing this
-state. Phase 3A, Phase 3B, and Phase 3C are implemented, verified, and accepted.
+state. Phase 3A through Phase 3D are implemented, verified, and accepted.
+
+## Phase 3D distributed routing and failover
+
+- `graci.distributed.Phase3DDistributedRouter` preserves Phase 3B role selection:
+  Qwen is implementer/general reasoning and GLM is reviewer/verifier. Endpoint
+  placement happens afterward and cannot substitute a model.
+- The deterministic default is the authoritative 3090. Only explicit
+  `prefer_optional=True` requests consider the 4090. Each new optional dispatch
+  performs fresh fixed MO2 and `/models` checks; both timestamps must be valid UTC,
+  non-future, and at most 10 seconds old. There is no eligibility cache.
+- A failed gate makes zero 4090 inference requests and attempts the 3090 once. An
+  eligible request makes at most one 4090 attempt; a transport, HTTP, envelope, or
+  server-model-identity failure is recorded before at most one 3090 attempt. There
+  are no uncontrolled retries. In-flight inference is not terminated if MO2 starts;
+  subsequent dispatches recheck the gate.
+- Structured JSON evidence is uniquely named and atomically persisted on the 3090.
+  It records role/model, eligibility observations and ages, attempts, endpoints,
+  fallback, server model, contact booleans, outcome, and no-cloud status.
+- Shared storage is deliberately not used: Phase 3D payloads and evidence are small,
+  and a shared path would add mutable state, races, authority ambiguity, and another
+  availability/security dependency without meaningful transfer benefit. Future
+  immutable large read-only artifacts may use it but can never authorize inference.
+- The warning-strict suite passes 99 tests: all 86 accepted regressions and 13 Phase
+  3D tests. Live Test A `1a975f47-55df-4cc5-ad8f-695c6559a78b` observed MO2
+  NOT_RUNNING, fresh eligibility, and one successful real Qwen inference at the
+  4090 with no fallback. Live Test B `5f98916a-700f-4c2f-a7c9-3caa288e5abb`
+  observed MO2 RUNNING, made zero 4090 inference requests, and succeeded once on the
+  3090. Final state independently returned to NOT_RUNNING and eligible.
+- Codex's `codexsandboxoffline` execution token cannot access the private LAN. The
+  unchanged acceptance module therefore ran in the normal authoritative 3090 host
+  network context. This is a Codex test-harness boundary, not a GRACI runtime or
+  topology change. No firewall, service, or policy was weakened.
+- No cloud AI, credential, remote shell, remote process control, arbitrary network
+  service, repository mutation from the 4090, or policy override was introduced.
 
 ## Phase 3C 4090 availability and MO2 policy
 

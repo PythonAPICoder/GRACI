@@ -18,12 +18,15 @@ from .availability import (
     check_4090_mo2_status,
     evaluate_4090_eligibility,
 )
+from .distributed import (DistributedRoutingError, Phase3DDistributedRouter,
+                          RoutedResponse)
 
 __all__ = [
     "AutonomousRepairController", "Config", "Controller", "LoopLimits",
     "MO2_PROCESS_NAME", "MO2_STATUS_URL", "Mo2State", "Mo2StatusResult",
     "Phase3BController", "Phase3BRoleRouter", "Phase3CEligibilityReason",
     "Phase3CEligibilityResult", "ToolLayer", "VerticalSliceController",
+    "DistributedRoutingError", "Phase3DDistributedRouter", "RoutedResponse",
     "build_phase3a_registry", "check_4090_mo2_status", "evaluate_4090_eligibility",
     "evaluate_eligibility",
 ]

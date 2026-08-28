@@ -1,10 +1,11 @@
-# GRACI Phase 3 Resource / Model Router — Phase 3C Complete
+# GRACI Phase 3 Resource / Model Router — Phase 3D Complete
 
 Phase 1 and Phase 2 are complete. Phase 3A added the deterministic typed resource,
 endpoint, model, health, and eligibility registry. Phase 3B uses it to route the
 implementer role to Qwen and reviewer/verifier roles to GLM on the primary 3090.
-Phase 3C can evaluate whether the optional 4090 is eligible using exact MO2 process
-state plus independent endpoint/model health. It still cannot route work there.
+Phase 3C evaluates whether the optional 4090 is eligible using exact MO2 process
+state plus independent endpoint/model health. Phase 3D may place an explicitly
+optional workload there only after a fresh eligible result, with bounded 3090 fallback.
 Phase 2 provides a bounded governed multi-step repair loop
 over a disposable workspace. Local Qwen can list configured scope, inspect explicitly
 allowlisted files, make multiple independently governed replacements, and request the
@@ -26,11 +27,11 @@ Run the complete warning-strict offline and acceptance suite with:
 python -W error -m unittest discover -s tests -v
 ```
 
-All inference is fixed to local provider `local-llama-cpp` and endpoint
-`http://127.0.0.1:8080/v1`. Governed implementation uses
+All inference uses local provider `local-llama-cpp`. The authoritative default is
+`http://127.0.0.1:8080/v1`; explicit optional-capacity requests may use the eligible
+4090 at `http://192.168.0.101:8080/v1`. Governed implementation uses
 `qwen3.8-27b-q4_k_m`; required read-only review uses
-`GLM-4.7-Flash-64x2.6B-Q4_K_M`. The accepted system has no 4090 inference or
-cloud AI path.
+`GLM-4.7-Flash-64x2.6B-Q4_K_M`. The accepted system has no cloud AI path.
 
 Phase 1B adds a deterministic, workspace-contained `graci.ToolLayer` for safe text
 file operations, a narrow approved command policy, unittest execution, and read-only
@@ -85,7 +86,14 @@ eligibility policy. Both real MO2 states were observed: NOT_RUNNING plus healthy
 models was eligible, while RUNNING plus the same healthy endpoint was ineligible
 with `mo2_running`. See `phase3c/README.md` and `phase3c/evidence/`.
 
+Phase 3D adds explicit deterministic optional placement. Every new remote dispatch
+uses fresh Phase 3C observations no more than 10 seconds old. An ineligible gate
+causes zero 4090 inference; a failed remote attempt is recorded and followed by at
+most one 3090 attempt. Live acceptance proved eligible 4090 inference and MO2-running
+3090 fallback. See `phase3d/README.md` and `phase3d/evidence/`.
+
 The implementation still has no reviewer-driven repair, reviewer tools,
 unrestricted planning, scheduling, load balancing, memory, arbitrary shell,
-package/network operations, Git mutation, 4090 execution, or cloud escalation.
-Phase 3D — Distributed Routing / Failover is the next authorized stage.
+package installation, Git mutation by models, remote administration, opaque load
+balancing, shared mutable coordination, or cloud escalation. Phase 3E — Resource /
+Model Router Acceptance & Closure is the next authorized stage.

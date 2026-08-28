@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "phase": "3D",
+  "run_id": "5f98916a-700f-4c2f-a7c9-3caa288e5abb",
+  "started_at": "2026-08-28T01:36:33.585162Z",
+  "ended_at": "2026-08-28T01:36:33.977563Z",
+  "routing_policy": "explicit_optional_else_primary",
+  "optional_requested": true,
+  "logical_role": "implementer",
+  "selected_model": "qwen3.8-27b-q4_k_m",
+  "provider": "local-llama-cpp",
+  "cloud_ai_used": false,
+  "eligibility": {
+    "eligible": false,
+    "reason_code": "mo2_running",
+    "policy_reason_code": "mo2_running",
+    "evaluated_at": "2026-08-28T01:36:33.632109Z",
+    "max_age_seconds": 10.0,
+    "mo2": {
+      "state": "RUNNING",
+      "reason_code": "exact_process_found",
+      "checked_at": "2026-08-28T01:36:33.585189Z",
+      "http_status": 200,
+      "mechanism": "graci-mo2-status-http-v1",
+      "age_seconds": 0.04692
+    },
+    "endpoint_health": {
+      "state": "healthy",
+      "reason": "models_endpoint_valid",
+      "checked_at": "2026-08-28T01:36:33.628022Z",
+      "observed_models": [
+        "GLM-4.7-Flash-64x2.6B-Q4_K_M",
+        "qwen3.8-27b-q4_k_m"
+      ],
+      "http_status": 200,
+      "age_seconds": 0.004087
+    }
+  },
+  "attempts": [
+    {
+      "attempt": 1,
+      "node_id": "3090",
+      "endpoint_id": "3090-llama-cpp",
+      "endpoint": "http://127.0.0.1:8080/v1",
+      "model": "qwen3.8-27b-q4_k_m",
+      "status": "SUCCESS",
+      "http_status": 200,
+      "response_model": "qwen3.8-27b-q4_k_m",
+      "error": null
+    }
+  ],
+  "contacted_4090_chat_completions": false,
+  "contacted_3090_chat_completions": true,
+  "fallback_occurred": true,
+  "fallback_reason": "mo2_running",
+  "final_node": "3090",
+  "final_endpoint": "http://127.0.0.1:8080/v1",
+  "actual_server_model": "qwen3.8-27b-q4_k_m",
+  "final_outcome": "SUCCESS",
+  "live_acceptance": {
+    "expected_node": "3090",
+    "expected_mo2_state": "RUNNING",
+    "actual_mo2_state": "RUNNING",
+    "primary_health": {
+      "state": "healthy",
+      "reason": "models_endpoint_valid",
+      "checked_at": "2026-08-28T01:36:33.567570Z",
+      "observed_models": [
+        "GLM-4.7-Flash-64x2.6B-Q4_K_M",
+        "qwen3.8-27b-q4_k_m"
+      ],
+      "http_status": 200
+    },
+    "response_content": "GRACI_PHASE3D_LIVE_OK",
+    "authoritative_repository_mutated_by_4090": false,
+    "shared_storage_used": false,
+    "status": "PASS"
+  }
+}
