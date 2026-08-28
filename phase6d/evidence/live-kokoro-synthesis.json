@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "phase": "6D",
+  "observed_at": "2026-08-28T22:52:38.983888+00:00",
+  "status": "PASS",
+  "engine": "Kokoro-82M-ONNX:cpu",
+  "voice": "af_bella",
+  "device": "cpu",
+  "local_assets_only": true,
+  "python_executable": "phase6a\\.venv312\\Scripts\\python.exe",
+  "authoritative_text": "GRACI is ready. The 3090 remains authoritative.",
+  "speech_presentation_text": "GRAY-see is ready. The thirty ninety remains authoritative.",
+  "authoritative_text_mutated": false,
+  "audio_retained": false,
+  "physical_playback_performed": false,
+  "error_code": null,
+  "error_message": null,
+  "audio": {
+    "bytes": 171052,
+    "seconds": 3.563,
+    "sample_rate": 24000,
+    "channels": 1,
+    "sample_width": 2,
+    "sha256": "8e2b71c9dc6f56f73ff9f257cc6032fe9f69e2ad8f3bddf49f6e607d1db88856"
+  }
+}

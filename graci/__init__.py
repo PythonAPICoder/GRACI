@@ -42,6 +42,12 @@ from .speech import (CapturedAudio, FasterWhisperConfig,
                      TranscriptionStatus)
 from .speech_runtime import (GovernedRuntime, SpeechRuntimeAdapter,
                              TranscriptSubmissionError)
+from .tts import (AuthoritativeFinalResponse, KokoroConfig, KokoroSubprocessTTS,
+                  SynthesizedAudio, TTSRequest, TTSResult, TTSStatus)
+from .playback import (PlaybackConfig, PlaybackResult, PlaybackStatus,
+                       SubprocessWavePlayback)
+from .speech_presentation import (PresentationStatus, SpeechPresentationResult,
+                                  SpeechPresentationService)
 
 __all__ = [
     "AutonomousRepairController", "Config", "Controller", "LoopLimits",
@@ -66,4 +72,8 @@ __all__ = [
     "CapturedAudio", "FasterWhisperConfig", "FasterWhisperSubprocessSTT",
     "TranscriptionResult", "TranscriptionStatus",
     "GovernedRuntime", "SpeechRuntimeAdapter", "TranscriptSubmissionError",
+    "AuthoritativeFinalResponse", "KokoroConfig", "KokoroSubprocessTTS",
+    "SynthesizedAudio", "TTSRequest", "TTSResult", "TTSStatus",
+    "PlaybackConfig", "PlaybackResult", "PlaybackStatus", "SubprocessWavePlayback",
+    "PresentationStatus", "SpeechPresentationResult", "SpeechPresentationService",
 ]

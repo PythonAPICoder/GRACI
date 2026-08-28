@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "phase": "6D",
+  "status": "PASS",
+  "starting_commit": "0e7914ebf6716bca71d30c42899d72fec0cb73ea",
+  "architecture": {
+    "authoritative_input_type": "AuthoritativeFinalResponse",
+    "runtime_extraction": false,
+    "authoritative_text_mutated": false,
+    "engine": "Kokoro-82M ONNX",
+    "voice": "af_bella",
+    "device": "cpu",
+    "local_assets_only": true,
+    "requires_4090": false,
+    "cloud_tts": false,
+    "playback": "one-shot Windows subprocess",
+    "outstanding_synthesis_limit": 1,
+    "outstanding_playback_limit": 1
+  },
+  "bounds": {
+    "max_input_characters": 20000,
+    "max_audio_bytes": 8388608,
+    "max_audio_seconds": 120,
+    "synthesis_timeout_seconds": 60,
+    "playback_timeout_seconds": 125
+  },
+  "verification": {
+    "focused_tests_passed": 21,
+    "full_tests_passed": 307,
+    "warning_strict": true,
+    "compileall_passed": true,
+    "git_diff_check_passed": true,
+    "live_kokoro_synthesis_passed": true,
+    "physical_playback_performed": false
+  },
+  "deferred": [
+    "phase6e_lifecycle_publication", "wake_word", "automatic_listening", "vad",
+    "duplex", "barge_in", "automatic_speech_loop", "piper_fallback_implementation",
+    "cloud_speech", "4090_speech_scheduling"
+  ]
+}

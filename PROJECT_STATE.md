@@ -6,6 +6,8 @@
 - Phase 6 — IN PROGRESS
 - Phase 6A — COMPLETE
 - Phase 6B — COMPLETE
+- Phase 6C — COMPLETE
+- Phase 6D — COMPLETE
 - Phase 6B authoritative starting commit: `291240f623bd73957f4afc84a6adb61c9ce3fdae`.
 - Phase 6 interaction model: push-to-talk. Always-listening and wake word are deferred.
 - Phase 6B adds explicit push-to-talk, dependency-free Windows PCM capture, typed
@@ -15,6 +17,14 @@
 - Phase 6B focused tests pass 16/16; the full warning-strict suite passes 278/278.
   The concrete local worker transcribed a tracked synthetic WAV from the existing
   cache. A real microphone smoke test remains optional and was not run.
+- Phase 6C passes successful nonblank transcripts unchanged to the existing governed
+  `run(task)` boundary and adds no separate speech authority.
+- Phase 6D accepts only an explicit immutable authoritative final-response value,
+  derives the Phase 6A speech-only pronunciation copy, synthesizes through local
+  Kokoro-82M ONNX CPU `af_bella`, validates bounded WAV output, and plays through a
+  bounded stoppable subprocess. Presentation failures never alter governed results.
+- Phase 6D focused tests pass 21/21; the complete warning-strict suite passes 307/307.
+  Live cached Kokoro synthesis passed; physical speaker playback was not performed.
 - Phase 6A voice decision: Kokoro-82M ONNX `af_bella` is the preferred production candidate. A bounded speech-only lexicon pronounces the unchanged written tokens `GRACI`, `3090`, and `4090` as `GRAY-see`, `thirty ninety`, and `forty ninety`; unrelated numbers are not rewritten.
 - Evidence: `phase6a/evidence/phase6a-qualification.json`; architecture and reconstruction: `phase6a/ARCHITECTURE.md` and `phase6a/README.md`.
 
@@ -736,3 +746,27 @@ Memory. Phase 4 has not begun.
   therefore does not rewrite semantic text or redesign persistence to encode speech
   provenance.
 - Verification and reconstruction details are recorded under `phase6c/`.
+
+# Phase 6D local TTS and bounded audio playback
+
+- Accepted starting commit `0e7914ebf6716bca71d30c42899d72fec0cb73ea` with a clean
+  `main` worktree and 286 passing warning-strict tests.
+- `AuthoritativeFinalResponse` is the sole speech-input boundary. Callers explicitly
+  supply final user-facing text; Phase 6D does not inspect runtime records, prompts,
+  reasoning, evidence, logs, tools, metadata, diagnostics, or exceptions.
+- The unchanged authoritative text is retained in every TTS/presentation result. The
+  existing Phase 6A whole-token lexicon creates a separate speech copy immediately
+  before synthesis, including `GRACI` -> `GRAY-see`.
+- Kokoro-82M ONNX runs in the isolated qualified Python 3.12 environment with local
+  model/voice assets, CPU, and fixed `af_bella`. The one-shot worker has no network
+  path and no 4090 dependency.
+- Mono 16-bit WAV output is limited to 8 MiB and 120 seconds. Input is limited to
+  20,000 characters; synthesis is limited to 60 seconds; playback to 125 seconds;
+  synthesis and playback each permit one outstanding operation.
+- Parent-owned subprocesses provide timeout termination, stop/cancel, and cleanup of
+  transient text/WAV files. Failures and cleanup failures are typed and cannot alter
+  an already-completed governed result.
+- Focused Phase 6D tests pass 21/21 and the complete warning-strict suite passes
+  307/307. A 3.563-second local Kokoro fixture synthesized successfully; its WAV was
+  validated and hashed but not retained. Physical speaker playback was not performed.
+- Evidence and reconstruction details are under `phase6d/`. Phase 6E has not begun.

@@ -1,11 +1,12 @@
-# GRACI Phase 5 Visualizer — Complete
+# GRACI Phase 6D Local TTS and Bounded Audio Playback — Complete
 
-Phase 5E integrated acceptance and closure are complete. The immutable state/event
-contract, localhost read-only backend, offline command-center UI, and optional live
-runtime observer compose without giving the visualizer authority over GRACI. Final
-architecture, reconstruction instructions, limitations, and evidence are under
-`phase5e/`. The complete warning-strict suite passes 254 tests. The next authorized
-phase is Phase 6 — Voice; it has not begun.
+Phase 6D adds an optional presentation-only path from an explicitly constructed
+authoritative final user-facing response through local Kokoro-82M ONNX CPU synthesis
+with `af_bella` and bounded subprocess-isolated Windows playback. Speech failure does
+not alter the governed task result. Phase 6A pronunciation overrides are applied only
+to the speech copy. Architecture, reconstruction, tests, and evidence are under
+`phase6d/`. The complete warning-strict suite passes 307 tests. Phase 6E visualizer
+lifecycle publication has not begun.
 
 # GRACI Phase 5C Command-Center UI
 

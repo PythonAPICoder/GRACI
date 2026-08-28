@@ -58,6 +58,7 @@ python -m phase6b.manual_push_to_talk
 
 The worker cold-loads the model for each utterance; a warm bounded worker may be
 introduced later without changing the STT interface. Audio-device enumeration and a
-polished hotkey/UI are deferred. Phase 6C transcript/runtime integration, TTS,
-playback, LISTENING/SPEAKING publication, wake word, turn-taking, VAD-driven listening,
-barge-in, duplex speech, and 4090 scheduling are explicitly absent.
+polished hotkey/UI are deferred. Phase 6C transcript/runtime integration and Phase 6D
+TTS/playback were added later without changing this accepted Phase 6B boundary.
+LISTENING/SPEAKING publication, wake word, turn-taking, VAD-driven listening,
+barge-in, duplex speech, and 4090 scheduling remain explicitly absent.
