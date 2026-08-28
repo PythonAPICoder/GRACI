@@ -1,0 +1,2259 @@
+{
+  "evidence_schema_version": 1,
+  "phase": "5A",
+  "status": "PASS",
+  "starting_commit": "7ddf51c7fd55fd9e2f4c5fee74a8c18445f40bb3",
+  "generated_at": "2026-08-28T04:07:30.518485Z",
+  "snapshot_schema_version": 1,
+  "event_schema_version": 1,
+  "system_states": [
+    "idle",
+    "listening",
+    "planning",
+    "retrieving_memory",
+    "reasoning",
+    "executing_tool",
+    "testing",
+    "reviewing",
+    "adjudicating",
+    "completed",
+    "warning",
+    "failed",
+    "speaking"
+  ],
+  "event_types": [
+    "system_ready",
+    "system_idle",
+    "task_started",
+    "task_completed",
+    "task_failed",
+    "route_selected",
+    "route_fallback",
+    "node_ineligible",
+    "mo2_running",
+    "endpoint_unhealthy",
+    "qwen_started",
+    "qwen_completed",
+    "glm_started",
+    "glm_completed",
+    "memory_requested",
+    "memory_selected",
+    "no_applicable_memory",
+    "memory_conflict",
+    "memory_unavailable",
+    "tool_started",
+    "tool_completed",
+    "tool_failed",
+    "tests_started",
+    "tests_passed",
+    "tests_failed",
+    "review_started",
+    "review_completed",
+    "adjudication_completed"
+  ],
+  "event_severities": [
+    "info",
+    "activity",
+    "success",
+    "warning",
+    "error"
+  ],
+  "bounds": {
+    "recent_events": 100,
+    "task_summary": 240,
+    "event_message": 320,
+    "error_summary": 240,
+    "display_label": 160
+  },
+  "checks": {
+    "lifecycle_serializes": true,
+    "truthful_transition_sequence": true,
+    "4090_eligible_when_mo2_absent": true,
+    "4090_ineligible_when_mo2_running": true,
+    "optional_memory_unavailable": true,
+    "required_memory_conflict": true,
+    "deterministic_test_failure": true,
+    "task_failure": true,
+    "sensitive_content_absent": true,
+    "event_buffer_bounded": true,
+    "source_not_mutated": true,
+    "observer_has_no_authority_methods": true,
+    "no_cloud_ai": true
+  },
+  "representative_lifecycle": [
+    {
+      "snapshot_id": "phase5a-snapshot-000",
+      "generated_at": "2026-08-27T18:01:00Z",
+      "system_state": "idle",
+      "task": {
+        "task_id": null,
+        "goal_id": null,
+        "summary": null,
+        "started_at": null,
+        "phase": null,
+        "progress_current": null,
+        "progress_total": null,
+        "final_status": "not_applicable",
+        "failure_category": null,
+        "failure_reason": null
+      },
+      "compute": {
+        "primary_3090": {
+          "node_id": "3090",
+          "role": "primary",
+          "availability": "active",
+          "endpoint_health": "healthy",
+          "eligible": true,
+          "mo2_state": null,
+          "policy_reason": null,
+          "assigned_model": null,
+          "assigned_role": null
+        },
+        "optional_4090": {
+          "node_id": "4090",
+          "role": "optional",
+          "availability": "active",
+          "endpoint_health": "healthy",
+          "eligible": true,
+          "mo2_state": "NOT_RUNNING",
+          "policy_reason": "eligible",
+          "assigned_model": null,
+          "assigned_role": null
+        }
+      },
+      "agents": {
+        "qwen": {
+          "model_id": "qwen3.8-27b-q4_k_m",
+          "role": "implementer",
+          "state": "inactive",
+          "assigned_node": null,
+          "activity": null,
+          "review_status": "not_applicable",
+          "started_at": null,
+          "completed_at": null
+        },
+        "glm": {
+          "model_id": "GLM-4.7-Flash-64x2.6B-Q4_K_M",
+          "role": "reviewer",
+          "state": "inactive",
+          "assigned_node": null,
+          "activity": null,
+          "review_status": "not_applicable",
+          "started_at": null,
+          "completed_at": null
+        }
+      },
+      "memory": {
+        "requested": false,
+        "mode": "not_applicable",
+        "relevance_keys": [],
+        "selection_status": null,
+        "selected_memory_ids": [],
+        "supplied_memory_ids": [],
+        "record_count": 0,
+        "context_characters": 0,
+        "conflict_count": 0,
+        "corruption_count": 0
+      },
+      "execution": {
+        "operations": [],
+        "tests": {
+          "status": "not_applicable",
+          "command_label": null,
+          "passed_count": null,
+          "failed_count": null,
+          "total_count": null,
+          "duration_ms": null,
+          "failure_reason": null
+        }
+      },
+      "review": {
+        "requested": false,
+        "reviewer_model_id": null,
+        "reviewer_status": "not_applicable",
+        "structured_verdict": null,
+        "finding_count": 0,
+        "adjudication_status": "not_applicable",
+        "final_outcome": null,
+        "reason_code": null
+      },
+      "recent_events": [
+        {
+          "event_id": "phase5a-event-000",
+          "timestamp": "2026-08-27T18:00:00Z",
+          "event_type": "system_idle",
+          "severity": "info",
+          "source": "synthetic-controller",
+          "message": "GRACI is idle.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {},
+          "schema_version": 1
+        }
+      ],
+      "schema_version": 1
+    },
+    {
+      "snapshot_id": "phase5a-snapshot-001",
+      "generated_at": "2026-08-27T18:01:00Z",
+      "system_state": "planning",
+      "task": {
+        "task_id": "phase5a-synthetic-task",
+        "goal_id": "phase5a-goal",
+        "summary": "Implement a bounded observer-only state contract.",
+        "started_at": "2026-08-27T18:00:01Z",
+        "phase": "phase5a",
+        "progress_current": 0,
+        "progress_total": 7,
+        "final_status": "active",
+        "failure_category": null,
+        "failure_reason": null
+      },
+      "compute": {
+        "primary_3090": {
+          "node_id": "3090",
+          "role": "primary",
+          "availability": "active",
+          "endpoint_health": "healthy",
+          "eligible": true,
+          "mo2_state": null,
+          "policy_reason": null,
+          "assigned_model": null,
+          "assigned_role": null
+        },
+        "optional_4090": {
+          "node_id": "4090",
+          "role": "optional",
+          "availability": "active",
+          "endpoint_health": "healthy",
+          "eligible": true,
+          "mo2_state": "NOT_RUNNING",
+          "policy_reason": "eligible",
+          "assigned_model": null,
+          "assigned_role": null
+        }
+      },
+      "agents": {
+        "qwen": {
+          "model_id": "qwen3.8-27b-q4_k_m",
+          "role": "implementer",
+          "state": "inactive",
+          "assigned_node": null,
+          "activity": null,
+          "review_status": "not_applicable",
+          "started_at": null,
+          "completed_at": null
+        },
+        "glm": {
+          "model_id": "GLM-4.7-Flash-64x2.6B-Q4_K_M",
+          "role": "reviewer",
+          "state": "inactive",
+          "assigned_node": null,
+          "activity": null,
+          "review_status": "not_applicable",
+          "started_at": null,
+          "completed_at": null
+        }
+      },
+      "memory": {
+        "requested": false,
+        "mode": "not_applicable",
+        "relevance_keys": [],
+        "selection_status": null,
+        "selected_memory_ids": [],
+        "supplied_memory_ids": [],
+        "record_count": 0,
+        "context_characters": 0,
+        "conflict_count": 0,
+        "corruption_count": 0
+      },
+      "execution": {
+        "operations": [],
+        "tests": {
+          "status": "not_applicable",
+          "command_label": null,
+          "passed_count": null,
+          "failed_count": null,
+          "total_count": null,
+          "duration_ms": null,
+          "failure_reason": null
+        }
+      },
+      "review": {
+        "requested": false,
+        "reviewer_model_id": null,
+        "reviewer_status": "not_applicable",
+        "structured_verdict": null,
+        "finding_count": 0,
+        "adjudication_status": "not_applicable",
+        "final_outcome": null,
+        "reason_code": null
+      },
+      "recent_events": [
+        {
+          "event_id": "phase5a-event-000",
+          "timestamp": "2026-08-27T18:00:00Z",
+          "event_type": "system_idle",
+          "severity": "info",
+          "source": "synthetic-controller",
+          "message": "GRACI is idle.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {},
+          "schema_version": 1
+        },
+        {
+          "event_id": "phase5a-event-001",
+          "timestamp": "2026-08-27T18:00:01Z",
+          "event_type": "task_started",
+          "severity": "activity",
+          "source": "synthetic-controller",
+          "message": "Task started.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {},
+          "schema_version": 1
+        }
+      ],
+      "schema_version": 1
+    },
+    {
+      "snapshot_id": "phase5a-snapshot-002",
+      "generated_at": "2026-08-27T18:01:00Z",
+      "system_state": "retrieving_memory",
+      "task": {
+        "task_id": "phase5a-synthetic-task",
+        "goal_id": "phase5a-goal",
+        "summary": "Implement a bounded observer-only state contract.",
+        "started_at": "2026-08-27T18:00:01Z",
+        "phase": "phase5a",
+        "progress_current": 1,
+        "progress_total": 7,
+        "final_status": "active",
+        "failure_category": null,
+        "failure_reason": null
+      },
+      "compute": {
+        "primary_3090": {
+          "node_id": "3090",
+          "role": "primary",
+          "availability": "active",
+          "endpoint_health": "healthy",
+          "eligible": true,
+          "mo2_state": null,
+          "policy_reason": null,
+          "assigned_model": null,
+          "assigned_role": null
+        },
+        "optional_4090": {
+          "node_id": "4090",
+          "role": "optional",
+          "availability": "active",
+          "endpoint_health": "healthy",
+          "eligible": true,
+          "mo2_state": "NOT_RUNNING",
+          "policy_reason": "eligible",
+          "assigned_model": null,
+          "assigned_role": null
+        }
+      },
+      "agents": {
+        "qwen": {
+          "model_id": "qwen3.8-27b-q4_k_m",
+          "role": "implementer",
+          "state": "inactive",
+          "assigned_node": null,
+          "activity": null,
+          "review_status": "not_applicable",
+          "started_at": null,
+          "completed_at": null
+        },
+        "glm": {
+          "model_id": "GLM-4.7-Flash-64x2.6B-Q4_K_M",
+          "role": "reviewer",
+          "state": "inactive",
+          "assigned_node": null,
+          "activity": null,
+          "review_status": "not_applicable",
+          "started_at": null,
+          "completed_at": null
+        }
+      },
+      "memory": {
+        "requested": true,
+        "mode": "optional",
+        "relevance_keys": [
+          "project.graci.visualizer"
+        ],
+        "selection_status": "MEMORY_APPLIED",
+        "selected_memory_ids": [
+          "memory-synthetic-1"
+        ],
+        "supplied_memory_ids": [
+          "memory-synthetic-1"
+        ],
+        "record_count": 1,
+        "context_characters": 384,
+        "conflict_count": 0,
+        "corruption_count": 0
+      },
+      "execution": {
+        "operations": [],
+        "tests": {
+          "status": "not_applicable",
+          "command_label": null,
+          "passed_count": null,
+          "failed_count": null,
+          "total_count": null,
+          "duration_ms": null,
+          "failure_reason": null
+        }
+      },
+      "review": {
+        "requested": false,
+        "reviewer_model_id": null,
+        "reviewer_status": "not_applicable",
+        "structured_verdict": null,
+        "finding_count": 0,
+        "adjudication_status": "not_applicable",
+        "final_outcome": null,
+        "reason_code": null
+      },
+      "recent_events": [
+        {
+          "event_id": "phase5a-event-000",
+          "timestamp": "2026-08-27T18:00:00Z",
+          "event_type": "system_idle",
+          "severity": "info",
+          "source": "synthetic-controller",
+          "message": "GRACI is idle.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {},
+          "schema_version": 1
+        },
+        {
+          "event_id": "phase5a-event-001",
+          "timestamp": "2026-08-27T18:00:01Z",
+          "event_type": "task_started",
+          "severity": "activity",
+          "source": "synthetic-controller",
+          "message": "Task started.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {},
+          "schema_version": 1
+        },
+        {
+          "event_id": "phase5a-event-002",
+          "timestamp": "2026-08-27T18:00:02Z",
+          "event_type": "memory_requested",
+          "severity": "activity",
+          "source": "synthetic-controller",
+          "message": "Optional memory requested.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {},
+          "schema_version": 1
+        }
+      ],
+      "schema_version": 1
+    },
+    {
+      "snapshot_id": "phase5a-snapshot-003",
+      "generated_at": "2026-08-27T18:01:00Z",
+      "system_state": "reasoning",
+      "task": {
+        "task_id": "phase5a-synthetic-task",
+        "goal_id": "phase5a-goal",
+        "summary": "Implement a bounded observer-only state contract.",
+        "started_at": "2026-08-27T18:00:01Z",
+        "phase": "phase5a",
+        "progress_current": 2,
+        "progress_total": 7,
+        "final_status": "active",
+        "failure_category": null,
+        "failure_reason": null
+      },
+      "compute": {
+        "primary_3090": {
+          "node_id": "3090",
+          "role": "primary",
+          "availability": "active",
+          "endpoint_health": "healthy",
+          "eligible": true,
+          "mo2_state": null,
+          "policy_reason": null,
+          "assigned_model": null,
+          "assigned_role": null
+        },
+        "optional_4090": {
+          "node_id": "4090",
+          "role": "optional",
+          "availability": "active",
+          "endpoint_health": "healthy",
+          "eligible": true,
+          "mo2_state": "NOT_RUNNING",
+          "policy_reason": "eligible",
+          "assigned_model": null,
+          "assigned_role": null
+        }
+      },
+      "agents": {
+        "qwen": {
+          "model_id": "qwen3.8-27b-q4_k_m",
+          "role": "implementer",
+          "state": "active",
+          "assigned_node": "3090",
+          "activity": "reasoning",
+          "review_status": "not_applicable",
+          "started_at": "2026-08-27T18:00:03Z",
+          "completed_at": null
+        },
+        "glm": {
+          "model_id": "GLM-4.7-Flash-64x2.6B-Q4_K_M",
+          "role": "reviewer",
+          "state": "inactive",
+          "assigned_node": null,
+          "activity": null,
+          "review_status": "not_applicable",
+          "started_at": null,
+          "completed_at": null
+        }
+      },
+      "memory": {
+        "requested": true,
+        "mode": "optional",
+        "relevance_keys": [
+          "project.graci.visualizer"
+        ],
+        "selection_status": "MEMORY_APPLIED",
+        "selected_memory_ids": [
+          "memory-synthetic-1"
+        ],
+        "supplied_memory_ids": [
+          "memory-synthetic-1"
+        ],
+        "record_count": 1,
+        "context_characters": 384,
+        "conflict_count": 0,
+        "corruption_count": 0
+      },
+      "execution": {
+        "operations": [],
+        "tests": {
+          "status": "not_applicable",
+          "command_label": null,
+          "passed_count": null,
+          "failed_count": null,
+          "total_count": null,
+          "duration_ms": null,
+          "failure_reason": null
+        }
+      },
+      "review": {
+        "requested": false,
+        "reviewer_model_id": null,
+        "reviewer_status": "not_applicable",
+        "structured_verdict": null,
+        "finding_count": 0,
+        "adjudication_status": "not_applicable",
+        "final_outcome": null,
+        "reason_code": null
+      },
+      "recent_events": [
+        {
+          "event_id": "phase5a-event-000",
+          "timestamp": "2026-08-27T18:00:00Z",
+          "event_type": "system_idle",
+          "severity": "info",
+          "source": "synthetic-controller",
+          "message": "GRACI is idle.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {},
+          "schema_version": 1
+        },
+        {
+          "event_id": "phase5a-event-001",
+          "timestamp": "2026-08-27T18:00:01Z",
+          "event_type": "task_started",
+          "severity": "activity",
+          "source": "synthetic-controller",
+          "message": "Task started.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {},
+          "schema_version": 1
+        },
+        {
+          "event_id": "phase5a-event-002",
+          "timestamp": "2026-08-27T18:00:02Z",
+          "event_type": "memory_requested",
+          "severity": "activity",
+          "source": "synthetic-controller",
+          "message": "Optional memory requested.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {},
+          "schema_version": 1
+        },
+        {
+          "event_id": "phase5a-event-003",
+          "timestamp": "2026-08-27T18:00:03Z",
+          "event_type": "memory_selected",
+          "severity": "success",
+          "source": "synthetic-controller",
+          "message": "One memory record selected.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {
+            "record_count": 1
+          },
+          "schema_version": 1
+        }
+      ],
+      "schema_version": 1
+    },
+    {
+      "snapshot_id": "phase5a-snapshot-004",
+      "generated_at": "2026-08-27T18:01:00Z",
+      "system_state": "executing_tool",
+      "task": {
+        "task_id": "phase5a-synthetic-task",
+        "goal_id": "phase5a-goal",
+        "summary": "Implement a bounded observer-only state contract.",
+        "started_at": "2026-08-27T18:00:01Z",
+        "phase": "phase5a",
+        "progress_current": 3,
+        "progress_total": 7,
+        "final_status": "active",
+        "failure_category": null,
+        "failure_reason": null
+      },
+      "compute": {
+        "primary_3090": {
+          "node_id": "3090",
+          "role": "primary",
+          "availability": "active",
+          "endpoint_health": "healthy",
+          "eligible": true,
+          "mo2_state": null,
+          "policy_reason": null,
+          "assigned_model": null,
+          "assigned_role": null
+        },
+        "optional_4090": {
+          "node_id": "4090",
+          "role": "optional",
+          "availability": "active",
+          "endpoint_health": "healthy",
+          "eligible": true,
+          "mo2_state": "NOT_RUNNING",
+          "policy_reason": "eligible",
+          "assigned_model": null,
+          "assigned_role": null
+        }
+      },
+      "agents": {
+        "qwen": {
+          "model_id": "qwen3.8-27b-q4_k_m",
+          "role": "implementer",
+          "state": "active",
+          "assigned_node": "3090",
+          "activity": "reasoning",
+          "review_status": "not_applicable",
+          "started_at": "2026-08-27T18:00:03Z",
+          "completed_at": null
+        },
+        "glm": {
+          "model_id": "GLM-4.7-Flash-64x2.6B-Q4_K_M",
+          "role": "reviewer",
+          "state": "inactive",
+          "assigned_node": null,
+          "activity": null,
+          "review_status": "not_applicable",
+          "started_at": null,
+          "completed_at": null
+        }
+      },
+      "memory": {
+        "requested": true,
+        "mode": "optional",
+        "relevance_keys": [
+          "project.graci.visualizer"
+        ],
+        "selection_status": "MEMORY_APPLIED",
+        "selected_memory_ids": [
+          "memory-synthetic-1"
+        ],
+        "supplied_memory_ids": [
+          "memory-synthetic-1"
+        ],
+        "record_count": 1,
+        "context_characters": 384,
+        "conflict_count": 0,
+        "corruption_count": 0
+      },
+      "execution": {
+        "operations": [
+          {
+            "category": "edit",
+            "status": "active",
+            "started_at": "2026-08-27T18:00:04Z",
+            "completed_at": null,
+            "target_label": "graci/visualizer.py",
+            "error_code": null,
+            "error_reason": null
+          }
+        ],
+        "tests": {
+          "status": "not_applicable",
+          "command_label": null,
+          "passed_count": null,
+          "failed_count": null,
+          "total_count": null,
+          "duration_ms": null,
+          "failure_reason": null
+        }
+      },
+      "review": {
+        "requested": false,
+        "reviewer_model_id": null,
+        "reviewer_status": "not_applicable",
+        "structured_verdict": null,
+        "finding_count": 0,
+        "adjudication_status": "not_applicable",
+        "final_outcome": null,
+        "reason_code": null
+      },
+      "recent_events": [
+        {
+          "event_id": "phase5a-event-000",
+          "timestamp": "2026-08-27T18:00:00Z",
+          "event_type": "system_idle",
+          "severity": "info",
+          "source": "synthetic-controller",
+          "message": "GRACI is idle.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {},
+          "schema_version": 1
+        },
+        {
+          "event_id": "phase5a-event-001",
+          "timestamp": "2026-08-27T18:00:01Z",
+          "event_type": "task_started",
+          "severity": "activity",
+          "source": "synthetic-controller",
+          "message": "Task started.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {},
+          "schema_version": 1
+        },
+        {
+          "event_id": "phase5a-event-002",
+          "timestamp": "2026-08-27T18:00:02Z",
+          "event_type": "memory_requested",
+          "severity": "activity",
+          "source": "synthetic-controller",
+          "message": "Optional memory requested.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {},
+          "schema_version": 1
+        },
+        {
+          "event_id": "phase5a-event-003",
+          "timestamp": "2026-08-27T18:00:03Z",
+          "event_type": "memory_selected",
+          "severity": "success",
+          "source": "synthetic-controller",
+          "message": "One memory record selected.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {
+            "record_count": 1
+          },
+          "schema_version": 1
+        },
+        {
+          "event_id": "phase5a-event-004",
+          "timestamp": "2026-08-27T18:00:04Z",
+          "event_type": "qwen_started",
+          "severity": "activity",
+          "source": "synthetic-controller",
+          "message": "Qwen started on the primary node.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {
+            "node": "3090"
+          },
+          "schema_version": 1
+        }
+      ],
+      "schema_version": 1
+    },
+    {
+      "snapshot_id": "phase5a-snapshot-005",
+      "generated_at": "2026-08-27T18:01:00Z",
+      "system_state": "testing",
+      "task": {
+        "task_id": "phase5a-synthetic-task",
+        "goal_id": "phase5a-goal",
+        "summary": "Implement a bounded observer-only state contract.",
+        "started_at": "2026-08-27T18:00:01Z",
+        "phase": "phase5a",
+        "progress_current": 4,
+        "progress_total": 7,
+        "final_status": "active",
+        "failure_category": null,
+        "failure_reason": null
+      },
+      "compute": {
+        "primary_3090": {
+          "node_id": "3090",
+          "role": "primary",
+          "availability": "active",
+          "endpoint_health": "healthy",
+          "eligible": true,
+          "mo2_state": null,
+          "policy_reason": null,
+          "assigned_model": null,
+          "assigned_role": null
+        },
+        "optional_4090": {
+          "node_id": "4090",
+          "role": "optional",
+          "availability": "active",
+          "endpoint_health": "healthy",
+          "eligible": true,
+          "mo2_state": "NOT_RUNNING",
+          "policy_reason": "eligible",
+          "assigned_model": null,
+          "assigned_role": null
+        }
+      },
+      "agents": {
+        "qwen": {
+          "model_id": "qwen3.8-27b-q4_k_m",
+          "role": "implementer",
+          "state": "active",
+          "assigned_node": "3090",
+          "activity": "reasoning",
+          "review_status": "not_applicable",
+          "started_at": "2026-08-27T18:00:03Z",
+          "completed_at": null
+        },
+        "glm": {
+          "model_id": "GLM-4.7-Flash-64x2.6B-Q4_K_M",
+          "role": "reviewer",
+          "state": "inactive",
+          "assigned_node": null,
+          "activity": null,
+          "review_status": "not_applicable",
+          "started_at": null,
+          "completed_at": null
+        }
+      },
+      "memory": {
+        "requested": true,
+        "mode": "optional",
+        "relevance_keys": [
+          "project.graci.visualizer"
+        ],
+        "selection_status": "MEMORY_APPLIED",
+        "selected_memory_ids": [
+          "memory-synthetic-1"
+        ],
+        "supplied_memory_ids": [
+          "memory-synthetic-1"
+        ],
+        "record_count": 1,
+        "context_characters": 384,
+        "conflict_count": 0,
+        "corruption_count": 0
+      },
+      "execution": {
+        "operations": [
+          {
+            "category": "edit",
+            "status": "passed",
+            "started_at": "2026-08-27T18:00:04Z",
+            "completed_at": "2026-08-27T18:00:05Z",
+            "target_label": "graci/visualizer.py",
+            "error_code": null,
+            "error_reason": null
+          }
+        ],
+        "tests": {
+          "status": "passed",
+          "command_label": "warning-strict repository suite",
+          "passed_count": 1,
+          "failed_count": 0,
+          "total_count": 1,
+          "duration_ms": 25,
+          "failure_reason": null
+        }
+      },
+      "review": {
+        "requested": false,
+        "reviewer_model_id": null,
+        "reviewer_status": "not_applicable",
+        "structured_verdict": null,
+        "finding_count": 0,
+        "adjudication_status": "not_applicable",
+        "final_outcome": null,
+        "reason_code": null
+      },
+      "recent_events": [
+        {
+          "event_id": "phase5a-event-000",
+          "timestamp": "2026-08-27T18:00:00Z",
+          "event_type": "system_idle",
+          "severity": "info",
+          "source": "synthetic-controller",
+          "message": "GRACI is idle.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {},
+          "schema_version": 1
+        },
+        {
+          "event_id": "phase5a-event-001",
+          "timestamp": "2026-08-27T18:00:01Z",
+          "event_type": "task_started",
+          "severity": "activity",
+          "source": "synthetic-controller",
+          "message": "Task started.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {},
+          "schema_version": 1
+        },
+        {
+          "event_id": "phase5a-event-002",
+          "timestamp": "2026-08-27T18:00:02Z",
+          "event_type": "memory_requested",
+          "severity": "activity",
+          "source": "synthetic-controller",
+          "message": "Optional memory requested.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {},
+          "schema_version": 1
+        },
+        {
+          "event_id": "phase5a-event-003",
+          "timestamp": "2026-08-27T18:00:03Z",
+          "event_type": "memory_selected",
+          "severity": "success",
+          "source": "synthetic-controller",
+          "message": "One memory record selected.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {
+            "record_count": 1
+          },
+          "schema_version": 1
+        },
+        {
+          "event_id": "phase5a-event-004",
+          "timestamp": "2026-08-27T18:00:04Z",
+          "event_type": "qwen_started",
+          "severity": "activity",
+          "source": "synthetic-controller",
+          "message": "Qwen started on the primary node.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {
+            "node": "3090"
+          },
+          "schema_version": 1
+        },
+        {
+          "event_id": "phase5a-event-005",
+          "timestamp": "2026-08-27T18:00:05Z",
+          "event_type": "tool_completed",
+          "severity": "success",
+          "source": "synthetic-controller",
+          "message": "Bounded edit completed.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {},
+          "schema_version": 1
+        }
+      ],
+      "schema_version": 1
+    },
+    {
+      "snapshot_id": "phase5a-snapshot-006",
+      "generated_at": "2026-08-27T18:01:00Z",
+      "system_state": "reviewing",
+      "task": {
+        "task_id": "phase5a-synthetic-task",
+        "goal_id": "phase5a-goal",
+        "summary": "Implement a bounded observer-only state contract.",
+        "started_at": "2026-08-27T18:00:01Z",
+        "phase": "phase5a",
+        "progress_current": 5,
+        "progress_total": 7,
+        "final_status": "active",
+        "failure_category": null,
+        "failure_reason": null
+      },
+      "compute": {
+        "primary_3090": {
+          "node_id": "3090",
+          "role": "primary",
+          "availability": "active",
+          "endpoint_health": "healthy",
+          "eligible": true,
+          "mo2_state": null,
+          "policy_reason": null,
+          "assigned_model": null,
+          "assigned_role": null
+        },
+        "optional_4090": {
+          "node_id": "4090",
+          "role": "optional",
+          "availability": "active",
+          "endpoint_health": "healthy",
+          "eligible": true,
+          "mo2_state": "NOT_RUNNING",
+          "policy_reason": "eligible",
+          "assigned_model": null,
+          "assigned_role": null
+        }
+      },
+      "agents": {
+        "qwen": {
+          "model_id": "qwen3.8-27b-q4_k_m",
+          "role": "implementer",
+          "state": "completed",
+          "assigned_node": "3090",
+          "activity": "reasoning",
+          "review_status": "not_applicable",
+          "started_at": "2026-08-27T18:00:03Z",
+          "completed_at": "2026-08-27T18:00:05Z"
+        },
+        "glm": {
+          "model_id": "GLM-4.7-Flash-64x2.6B-Q4_K_M",
+          "role": "reviewer",
+          "state": "active",
+          "assigned_node": "3090",
+          "activity": "reviewing",
+          "review_status": "active",
+          "started_at": "2026-08-27T18:00:07Z",
+          "completed_at": null
+        }
+      },
+      "memory": {
+        "requested": true,
+        "mode": "optional",
+        "relevance_keys": [
+          "project.graci.visualizer"
+        ],
+        "selection_status": "MEMORY_APPLIED",
+        "selected_memory_ids": [
+          "memory-synthetic-1"
+        ],
+        "supplied_memory_ids": [
+          "memory-synthetic-1"
+        ],
+        "record_count": 1,
+        "context_characters": 384,
+        "conflict_count": 0,
+        "corruption_count": 0
+      },
+      "execution": {
+        "operations": [
+          {
+            "category": "edit",
+            "status": "passed",
+            "started_at": "2026-08-27T18:00:04Z",
+            "completed_at": "2026-08-27T18:00:05Z",
+            "target_label": "graci/visualizer.py",
+            "error_code": null,
+            "error_reason": null
+          }
+        ],
+        "tests": {
+          "status": "passed",
+          "command_label": "warning-strict repository suite",
+          "passed_count": 1,
+          "failed_count": 0,
+          "total_count": 1,
+          "duration_ms": 25,
+          "failure_reason": null
+        }
+      },
+      "review": {
+        "requested": true,
+        "reviewer_model_id": "GLM-4.7-Flash-64x2.6B-Q4_K_M",
+        "reviewer_status": "active",
+        "structured_verdict": null,
+        "finding_count": 0,
+        "adjudication_status": "pending",
+        "final_outcome": null,
+        "reason_code": null
+      },
+      "recent_events": [
+        {
+          "event_id": "phase5a-event-000",
+          "timestamp": "2026-08-27T18:00:00Z",
+          "event_type": "system_idle",
+          "severity": "info",
+          "source": "synthetic-controller",
+          "message": "GRACI is idle.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {},
+          "schema_version": 1
+        },
+        {
+          "event_id": "phase5a-event-001",
+          "timestamp": "2026-08-27T18:00:01Z",
+          "event_type": "task_started",
+          "severity": "activity",
+          "source": "synthetic-controller",
+          "message": "Task started.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {},
+          "schema_version": 1
+        },
+        {
+          "event_id": "phase5a-event-002",
+          "timestamp": "2026-08-27T18:00:02Z",
+          "event_type": "memory_requested",
+          "severity": "activity",
+          "source": "synthetic-controller",
+          "message": "Optional memory requested.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {},
+          "schema_version": 1
+        },
+        {
+          "event_id": "phase5a-event-003",
+          "timestamp": "2026-08-27T18:00:03Z",
+          "event_type": "memory_selected",
+          "severity": "success",
+          "source": "synthetic-controller",
+          "message": "One memory record selected.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {
+            "record_count": 1
+          },
+          "schema_version": 1
+        },
+        {
+          "event_id": "phase5a-event-004",
+          "timestamp": "2026-08-27T18:00:04Z",
+          "event_type": "qwen_started",
+          "severity": "activity",
+          "source": "synthetic-controller",
+          "message": "Qwen started on the primary node.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {
+            "node": "3090"
+          },
+          "schema_version": 1
+        },
+        {
+          "event_id": "phase5a-event-005",
+          "timestamp": "2026-08-27T18:00:05Z",
+          "event_type": "tool_completed",
+          "severity": "success",
+          "source": "synthetic-controller",
+          "message": "Bounded edit completed.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {},
+          "schema_version": 1
+        },
+        {
+          "event_id": "phase5a-event-006",
+          "timestamp": "2026-08-27T18:00:06Z",
+          "event_type": "tests_passed",
+          "severity": "success",
+          "source": "synthetic-controller",
+          "message": "Deterministic tests passed.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {},
+          "schema_version": 1
+        }
+      ],
+      "schema_version": 1
+    },
+    {
+      "snapshot_id": "phase5a-snapshot-007",
+      "generated_at": "2026-08-27T18:01:00Z",
+      "system_state": "adjudicating",
+      "task": {
+        "task_id": "phase5a-synthetic-task",
+        "goal_id": "phase5a-goal",
+        "summary": "Implement a bounded observer-only state contract.",
+        "started_at": "2026-08-27T18:00:01Z",
+        "phase": "phase5a",
+        "progress_current": 6,
+        "progress_total": 7,
+        "final_status": "active",
+        "failure_category": null,
+        "failure_reason": null
+      },
+      "compute": {
+        "primary_3090": {
+          "node_id": "3090",
+          "role": "primary",
+          "availability": "active",
+          "endpoint_health": "healthy",
+          "eligible": true,
+          "mo2_state": null,
+          "policy_reason": null,
+          "assigned_model": null,
+          "assigned_role": null
+        },
+        "optional_4090": {
+          "node_id": "4090",
+          "role": "optional",
+          "availability": "active",
+          "endpoint_health": "healthy",
+          "eligible": true,
+          "mo2_state": "NOT_RUNNING",
+          "policy_reason": "eligible",
+          "assigned_model": null,
+          "assigned_role": null
+        }
+      },
+      "agents": {
+        "qwen": {
+          "model_id": "qwen3.8-27b-q4_k_m",
+          "role": "implementer",
+          "state": "completed",
+          "assigned_node": "3090",
+          "activity": "reasoning",
+          "review_status": "not_applicable",
+          "started_at": "2026-08-27T18:00:03Z",
+          "completed_at": "2026-08-27T18:00:05Z"
+        },
+        "glm": {
+          "model_id": "GLM-4.7-Flash-64x2.6B-Q4_K_M",
+          "role": "reviewer",
+          "state": "active",
+          "assigned_node": "3090",
+          "activity": "reviewing",
+          "review_status": "active",
+          "started_at": "2026-08-27T18:00:07Z",
+          "completed_at": null
+        }
+      },
+      "memory": {
+        "requested": true,
+        "mode": "optional",
+        "relevance_keys": [
+          "project.graci.visualizer"
+        ],
+        "selection_status": "MEMORY_APPLIED",
+        "selected_memory_ids": [
+          "memory-synthetic-1"
+        ],
+        "supplied_memory_ids": [
+          "memory-synthetic-1"
+        ],
+        "record_count": 1,
+        "context_characters": 384,
+        "conflict_count": 0,
+        "corruption_count": 0
+      },
+      "execution": {
+        "operations": [
+          {
+            "category": "edit",
+            "status": "passed",
+            "started_at": "2026-08-27T18:00:04Z",
+            "completed_at": "2026-08-27T18:00:05Z",
+            "target_label": "graci/visualizer.py",
+            "error_code": null,
+            "error_reason": null
+          }
+        ],
+        "tests": {
+          "status": "passed",
+          "command_label": "warning-strict repository suite",
+          "passed_count": 1,
+          "failed_count": 0,
+          "total_count": 1,
+          "duration_ms": 25,
+          "failure_reason": null
+        }
+      },
+      "review": {
+        "requested": true,
+        "reviewer_model_id": "GLM-4.7-Flash-64x2.6B-Q4_K_M",
+        "reviewer_status": "passed",
+        "structured_verdict": "PASS",
+        "finding_count": 0,
+        "adjudication_status": "passed",
+        "final_outcome": "PASS",
+        "reason_code": "tests_passed_and_review_passed"
+      },
+      "recent_events": [
+        {
+          "event_id": "phase5a-event-000",
+          "timestamp": "2026-08-27T18:00:00Z",
+          "event_type": "system_idle",
+          "severity": "info",
+          "source": "synthetic-controller",
+          "message": "GRACI is idle.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {},
+          "schema_version": 1
+        },
+        {
+          "event_id": "phase5a-event-001",
+          "timestamp": "2026-08-27T18:00:01Z",
+          "event_type": "task_started",
+          "severity": "activity",
+          "source": "synthetic-controller",
+          "message": "Task started.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {},
+          "schema_version": 1
+        },
+        {
+          "event_id": "phase5a-event-002",
+          "timestamp": "2026-08-27T18:00:02Z",
+          "event_type": "memory_requested",
+          "severity": "activity",
+          "source": "synthetic-controller",
+          "message": "Optional memory requested.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {},
+          "schema_version": 1
+        },
+        {
+          "event_id": "phase5a-event-003",
+          "timestamp": "2026-08-27T18:00:03Z",
+          "event_type": "memory_selected",
+          "severity": "success",
+          "source": "synthetic-controller",
+          "message": "One memory record selected.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {
+            "record_count": 1
+          },
+          "schema_version": 1
+        },
+        {
+          "event_id": "phase5a-event-004",
+          "timestamp": "2026-08-27T18:00:04Z",
+          "event_type": "qwen_started",
+          "severity": "activity",
+          "source": "synthetic-controller",
+          "message": "Qwen started on the primary node.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {
+            "node": "3090"
+          },
+          "schema_version": 1
+        },
+        {
+          "event_id": "phase5a-event-005",
+          "timestamp": "2026-08-27T18:00:05Z",
+          "event_type": "tool_completed",
+          "severity": "success",
+          "source": "synthetic-controller",
+          "message": "Bounded edit completed.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {},
+          "schema_version": 1
+        },
+        {
+          "event_id": "phase5a-event-006",
+          "timestamp": "2026-08-27T18:00:06Z",
+          "event_type": "tests_passed",
+          "severity": "success",
+          "source": "synthetic-controller",
+          "message": "Deterministic tests passed.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {},
+          "schema_version": 1
+        },
+        {
+          "event_id": "phase5a-event-007",
+          "timestamp": "2026-08-27T18:00:07Z",
+          "event_type": "review_started",
+          "severity": "activity",
+          "source": "synthetic-controller",
+          "message": "GLM review started.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {},
+          "schema_version": 1
+        }
+      ],
+      "schema_version": 1
+    },
+    {
+      "snapshot_id": "phase5a-snapshot-008",
+      "generated_at": "2026-08-27T18:01:00Z",
+      "system_state": "completed",
+      "task": {
+        "task_id": "phase5a-synthetic-task",
+        "goal_id": "phase5a-goal",
+        "summary": "Implement a bounded observer-only state contract.",
+        "started_at": "2026-08-27T18:00:01Z",
+        "phase": "phase5a",
+        "progress_current": 7,
+        "progress_total": 7,
+        "final_status": "passed",
+        "failure_category": null,
+        "failure_reason": null
+      },
+      "compute": {
+        "primary_3090": {
+          "node_id": "3090",
+          "role": "primary",
+          "availability": "active",
+          "endpoint_health": "healthy",
+          "eligible": true,
+          "mo2_state": null,
+          "policy_reason": null,
+          "assigned_model": null,
+          "assigned_role": null
+        },
+        "optional_4090": {
+          "node_id": "4090",
+          "role": "optional",
+          "availability": "active",
+          "endpoint_health": "healthy",
+          "eligible": true,
+          "mo2_state": "NOT_RUNNING",
+          "policy_reason": "eligible",
+          "assigned_model": null,
+          "assigned_role": null
+        }
+      },
+      "agents": {
+        "qwen": {
+          "model_id": "qwen3.8-27b-q4_k_m",
+          "role": "implementer",
+          "state": "completed",
+          "assigned_node": "3090",
+          "activity": "reasoning",
+          "review_status": "not_applicable",
+          "started_at": "2026-08-27T18:00:03Z",
+          "completed_at": "2026-08-27T18:00:05Z"
+        },
+        "glm": {
+          "model_id": "GLM-4.7-Flash-64x2.6B-Q4_K_M",
+          "role": "reviewer",
+          "state": "completed",
+          "assigned_node": "3090",
+          "activity": "reviewing",
+          "review_status": "passed",
+          "started_at": "2026-08-27T18:00:07Z",
+          "completed_at": "2026-08-27T18:00:08Z"
+        }
+      },
+      "memory": {
+        "requested": true,
+        "mode": "optional",
+        "relevance_keys": [
+          "project.graci.visualizer"
+        ],
+        "selection_status": "MEMORY_APPLIED",
+        "selected_memory_ids": [
+          "memory-synthetic-1"
+        ],
+        "supplied_memory_ids": [
+          "memory-synthetic-1"
+        ],
+        "record_count": 1,
+        "context_characters": 384,
+        "conflict_count": 0,
+        "corruption_count": 0
+      },
+      "execution": {
+        "operations": [
+          {
+            "category": "edit",
+            "status": "passed",
+            "started_at": "2026-08-27T18:00:04Z",
+            "completed_at": "2026-08-27T18:00:05Z",
+            "target_label": "graci/visualizer.py",
+            "error_code": null,
+            "error_reason": null
+          }
+        ],
+        "tests": {
+          "status": "passed",
+          "command_label": "warning-strict repository suite",
+          "passed_count": 1,
+          "failed_count": 0,
+          "total_count": 1,
+          "duration_ms": 25,
+          "failure_reason": null
+        }
+      },
+      "review": {
+        "requested": true,
+        "reviewer_model_id": "GLM-4.7-Flash-64x2.6B-Q4_K_M",
+        "reviewer_status": "passed",
+        "structured_verdict": "PASS",
+        "finding_count": 0,
+        "adjudication_status": "passed",
+        "final_outcome": "PASS",
+        "reason_code": "tests_passed_and_review_passed"
+      },
+      "recent_events": [
+        {
+          "event_id": "phase5a-event-000",
+          "timestamp": "2026-08-27T18:00:00Z",
+          "event_type": "system_idle",
+          "severity": "info",
+          "source": "synthetic-controller",
+          "message": "GRACI is idle.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {},
+          "schema_version": 1
+        },
+        {
+          "event_id": "phase5a-event-001",
+          "timestamp": "2026-08-27T18:00:01Z",
+          "event_type": "task_started",
+          "severity": "activity",
+          "source": "synthetic-controller",
+          "message": "Task started.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {},
+          "schema_version": 1
+        },
+        {
+          "event_id": "phase5a-event-002",
+          "timestamp": "2026-08-27T18:00:02Z",
+          "event_type": "memory_requested",
+          "severity": "activity",
+          "source": "synthetic-controller",
+          "message": "Optional memory requested.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {},
+          "schema_version": 1
+        },
+        {
+          "event_id": "phase5a-event-003",
+          "timestamp": "2026-08-27T18:00:03Z",
+          "event_type": "memory_selected",
+          "severity": "success",
+          "source": "synthetic-controller",
+          "message": "One memory record selected.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {
+            "record_count": 1
+          },
+          "schema_version": 1
+        },
+        {
+          "event_id": "phase5a-event-004",
+          "timestamp": "2026-08-27T18:00:04Z",
+          "event_type": "qwen_started",
+          "severity": "activity",
+          "source": "synthetic-controller",
+          "message": "Qwen started on the primary node.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {
+            "node": "3090"
+          },
+          "schema_version": 1
+        },
+        {
+          "event_id": "phase5a-event-005",
+          "timestamp": "2026-08-27T18:00:05Z",
+          "event_type": "tool_completed",
+          "severity": "success",
+          "source": "synthetic-controller",
+          "message": "Bounded edit completed.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {},
+          "schema_version": 1
+        },
+        {
+          "event_id": "phase5a-event-006",
+          "timestamp": "2026-08-27T18:00:06Z",
+          "event_type": "tests_passed",
+          "severity": "success",
+          "source": "synthetic-controller",
+          "message": "Deterministic tests passed.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {},
+          "schema_version": 1
+        },
+        {
+          "event_id": "phase5a-event-007",
+          "timestamp": "2026-08-27T18:00:07Z",
+          "event_type": "review_started",
+          "severity": "activity",
+          "source": "synthetic-controller",
+          "message": "GLM review started.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {},
+          "schema_version": 1
+        },
+        {
+          "event_id": "phase5a-event-008",
+          "timestamp": "2026-08-27T18:00:08Z",
+          "event_type": "adjudication_completed",
+          "severity": "success",
+          "source": "synthetic-controller",
+          "message": "Deterministic adjudication passed.",
+          "task_id": "phase5a-synthetic-task",
+          "metadata": {},
+          "schema_version": 1
+        }
+      ],
+      "schema_version": 1
+    }
+  ],
+  "variants": {
+    "4090_eligible": {
+      "snapshot_id": "eligible",
+      "generated_at": "2026-08-27T18:00:00Z",
+      "system_state": "idle",
+      "task": {
+        "task_id": null,
+        "goal_id": null,
+        "summary": null,
+        "started_at": null,
+        "phase": null,
+        "progress_current": null,
+        "progress_total": null,
+        "final_status": "not_applicable",
+        "failure_category": null,
+        "failure_reason": null
+      },
+      "compute": {
+        "primary_3090": {
+          "node_id": "3090",
+          "role": "primary",
+          "availability": "active",
+          "endpoint_health": "healthy",
+          "eligible": true,
+          "mo2_state": null,
+          "policy_reason": null,
+          "assigned_model": null,
+          "assigned_role": null
+        },
+        "optional_4090": {
+          "node_id": "4090",
+          "role": "optional",
+          "availability": "active",
+          "endpoint_health": "healthy",
+          "eligible": true,
+          "mo2_state": "NOT_RUNNING",
+          "policy_reason": "eligible",
+          "assigned_model": null,
+          "assigned_role": null
+        }
+      },
+      "agents": {
+        "qwen": {
+          "model_id": "qwen3.8-27b-q4_k_m",
+          "role": "implementer",
+          "state": "inactive",
+          "assigned_node": null,
+          "activity": null,
+          "review_status": "not_applicable",
+          "started_at": null,
+          "completed_at": null
+        },
+        "glm": {
+          "model_id": "GLM-4.7-Flash-64x2.6B-Q4_K_M",
+          "role": "reviewer",
+          "state": "inactive",
+          "assigned_node": null,
+          "activity": null,
+          "review_status": "not_applicable",
+          "started_at": null,
+          "completed_at": null
+        }
+      },
+      "memory": {
+        "requested": false,
+        "mode": "not_applicable",
+        "relevance_keys": [],
+        "selection_status": null,
+        "selected_memory_ids": [],
+        "supplied_memory_ids": [],
+        "record_count": 0,
+        "context_characters": 0,
+        "conflict_count": 0,
+        "corruption_count": 0
+      },
+      "execution": {
+        "operations": [],
+        "tests": {
+          "status": "not_applicable",
+          "command_label": null,
+          "passed_count": null,
+          "failed_count": null,
+          "total_count": null,
+          "duration_ms": null,
+          "failure_reason": null
+        }
+      },
+      "review": {
+        "requested": false,
+        "reviewer_model_id": null,
+        "reviewer_status": "not_applicable",
+        "structured_verdict": null,
+        "finding_count": 0,
+        "adjudication_status": "not_applicable",
+        "final_outcome": null,
+        "reason_code": null
+      },
+      "recent_events": [],
+      "schema_version": 1
+    },
+    "4090_mo2_running": {
+      "snapshot_id": "mo2",
+      "generated_at": "2026-08-27T18:00:00Z",
+      "system_state": "warning",
+      "task": {
+        "task_id": null,
+        "goal_id": null,
+        "summary": null,
+        "started_at": null,
+        "phase": null,
+        "progress_current": null,
+        "progress_total": null,
+        "final_status": "not_applicable",
+        "failure_category": null,
+        "failure_reason": null
+      },
+      "compute": {
+        "primary_3090": {
+          "node_id": "3090",
+          "role": "primary",
+          "availability": "active",
+          "endpoint_health": "healthy",
+          "eligible": true,
+          "mo2_state": null,
+          "policy_reason": null,
+          "assigned_model": null,
+          "assigned_role": null
+        },
+        "optional_4090": {
+          "node_id": "4090",
+          "role": "optional",
+          "availability": "inactive",
+          "endpoint_health": "healthy",
+          "eligible": false,
+          "mo2_state": "RUNNING",
+          "policy_reason": "mo2_running",
+          "assigned_model": null,
+          "assigned_role": null
+        }
+      },
+      "agents": {
+        "qwen": {
+          "model_id": "qwen3.8-27b-q4_k_m",
+          "role": "implementer",
+          "state": "inactive",
+          "assigned_node": null,
+          "activity": null,
+          "review_status": "not_applicable",
+          "started_at": null,
+          "completed_at": null
+        },
+        "glm": {
+          "model_id": "GLM-4.7-Flash-64x2.6B-Q4_K_M",
+          "role": "reviewer",
+          "state": "inactive",
+          "assigned_node": null,
+          "activity": null,
+          "review_status": "not_applicable",
+          "started_at": null,
+          "completed_at": null
+        }
+      },
+      "memory": {
+        "requested": false,
+        "mode": "not_applicable",
+        "relevance_keys": [],
+        "selection_status": null,
+        "selected_memory_ids": [],
+        "supplied_memory_ids": [],
+        "record_count": 0,
+        "context_characters": 0,
+        "conflict_count": 0,
+        "corruption_count": 0
+      },
+      "execution": {
+        "operations": [],
+        "tests": {
+          "status": "not_applicable",
+          "command_label": null,
+          "passed_count": null,
+          "failed_count": null,
+          "total_count": null,
+          "duration_ms": null,
+          "failure_reason": null
+        }
+      },
+      "review": {
+        "requested": false,
+        "reviewer_model_id": null,
+        "reviewer_status": "not_applicable",
+        "structured_verdict": null,
+        "finding_count": 0,
+        "adjudication_status": "not_applicable",
+        "final_outcome": null,
+        "reason_code": null
+      },
+      "recent_events": [],
+      "schema_version": 1
+    },
+    "optional_memory_unavailable": {
+      "snapshot_id": "memory-optional",
+      "generated_at": "2026-08-27T18:00:00Z",
+      "system_state": "warning",
+      "task": {
+        "task_id": "phase5a-synthetic-task",
+        "goal_id": "phase5a-goal",
+        "summary": "Implement a bounded observer-only state contract.",
+        "started_at": "2026-08-27T18:00:01Z",
+        "phase": "phase5a",
+        "progress_current": 0,
+        "progress_total": 7,
+        "final_status": "active",
+        "failure_category": null,
+        "failure_reason": null
+      },
+      "compute": {
+        "primary_3090": {
+          "node_id": "3090",
+          "role": "primary",
+          "availability": "active",
+          "endpoint_health": "healthy",
+          "eligible": true,
+          "mo2_state": null,
+          "policy_reason": null,
+          "assigned_model": null,
+          "assigned_role": null
+        },
+        "optional_4090": {
+          "node_id": "4090",
+          "role": "optional",
+          "availability": "active",
+          "endpoint_health": "healthy",
+          "eligible": true,
+          "mo2_state": "NOT_RUNNING",
+          "policy_reason": "eligible",
+          "assigned_model": null,
+          "assigned_role": null
+        }
+      },
+      "agents": {
+        "qwen": {
+          "model_id": "qwen3.8-27b-q4_k_m",
+          "role": "implementer",
+          "state": "inactive",
+          "assigned_node": null,
+          "activity": null,
+          "review_status": "not_applicable",
+          "started_at": null,
+          "completed_at": null
+        },
+        "glm": {
+          "model_id": "GLM-4.7-Flash-64x2.6B-Q4_K_M",
+          "role": "reviewer",
+          "state": "inactive",
+          "assigned_node": null,
+          "activity": null,
+          "review_status": "not_applicable",
+          "started_at": null,
+          "completed_at": null
+        }
+      },
+      "memory": {
+        "requested": true,
+        "mode": "optional",
+        "relevance_keys": [
+          "project.graci.missing"
+        ],
+        "selection_status": "NO_APPLICABLE_MEMORY",
+        "selected_memory_ids": [],
+        "supplied_memory_ids": [],
+        "record_count": 0,
+        "context_characters": 0,
+        "conflict_count": 0,
+        "corruption_count": 0
+      },
+      "execution": {
+        "operations": [],
+        "tests": {
+          "status": "not_applicable",
+          "command_label": null,
+          "passed_count": null,
+          "failed_count": null,
+          "total_count": null,
+          "duration_ms": null,
+          "failure_reason": null
+        }
+      },
+      "review": {
+        "requested": false,
+        "reviewer_model_id": null,
+        "reviewer_status": "not_applicable",
+        "structured_verdict": null,
+        "finding_count": 0,
+        "adjudication_status": "not_applicable",
+        "final_outcome": null,
+        "reason_code": null
+      },
+      "recent_events": [],
+      "schema_version": 1
+    },
+    "required_memory_conflict": {
+      "snapshot_id": "memory-conflict",
+      "generated_at": "2026-08-27T18:00:00Z",
+      "system_state": "failed",
+      "task": {
+        "task_id": "phase5a-synthetic-task",
+        "goal_id": "phase5a-goal",
+        "summary": "Implement a bounded observer-only state contract.",
+        "started_at": "2026-08-27T18:00:01Z",
+        "phase": "phase5a",
+        "progress_current": 0,
+        "progress_total": 7,
+        "final_status": "failed",
+        "failure_category": "deterministic_test_failure",
+        "failure_reason": "One deterministic test failed."
+      },
+      "compute": {
+        "primary_3090": {
+          "node_id": "3090",
+          "role": "primary",
+          "availability": "active",
+          "endpoint_health": "healthy",
+          "eligible": true,
+          "mo2_state": null,
+          "policy_reason": null,
+          "assigned_model": null,
+          "assigned_role": null
+        },
+        "optional_4090": {
+          "node_id": "4090",
+          "role": "optional",
+          "availability": "active",
+          "endpoint_health": "healthy",
+          "eligible": true,
+          "mo2_state": "NOT_RUNNING",
+          "policy_reason": "eligible",
+          "assigned_model": null,
+          "assigned_role": null
+        }
+      },
+      "agents": {
+        "qwen": {
+          "model_id": "qwen3.8-27b-q4_k_m",
+          "role": "implementer",
+          "state": "inactive",
+          "assigned_node": null,
+          "activity": null,
+          "review_status": "not_applicable",
+          "started_at": null,
+          "completed_at": null
+        },
+        "glm": {
+          "model_id": "GLM-4.7-Flash-64x2.6B-Q4_K_M",
+          "role": "reviewer",
+          "state": "inactive",
+          "assigned_node": null,
+          "activity": null,
+          "review_status": "not_applicable",
+          "started_at": null,
+          "completed_at": null
+        }
+      },
+      "memory": {
+        "requested": true,
+        "mode": "required",
+        "relevance_keys": [
+          "project.graci.conflict"
+        ],
+        "selection_status": "MEMORY_CONFLICT",
+        "selected_memory_ids": [],
+        "supplied_memory_ids": [],
+        "record_count": 0,
+        "context_characters": 0,
+        "conflict_count": 2,
+        "corruption_count": 0
+      },
+      "execution": {
+        "operations": [],
+        "tests": {
+          "status": "not_applicable",
+          "command_label": null,
+          "passed_count": null,
+          "failed_count": null,
+          "total_count": null,
+          "duration_ms": null,
+          "failure_reason": null
+        }
+      },
+      "review": {
+        "requested": false,
+        "reviewer_model_id": null,
+        "reviewer_status": "not_applicable",
+        "structured_verdict": null,
+        "finding_count": 0,
+        "adjudication_status": "not_applicable",
+        "final_outcome": null,
+        "reason_code": null
+      },
+      "recent_events": [],
+      "schema_version": 1
+    },
+    "deterministic_test_failure": {
+      "snapshot_id": "tests-failed",
+      "generated_at": "2026-08-27T18:00:00Z",
+      "system_state": "failed",
+      "task": {
+        "task_id": "phase5a-synthetic-task",
+        "goal_id": "phase5a-goal",
+        "summary": "Implement a bounded observer-only state contract.",
+        "started_at": "2026-08-27T18:00:01Z",
+        "phase": "phase5a",
+        "progress_current": 0,
+        "progress_total": 7,
+        "final_status": "failed",
+        "failure_category": "deterministic_test_failure",
+        "failure_reason": "One deterministic test failed."
+      },
+      "compute": {
+        "primary_3090": {
+          "node_id": "3090",
+          "role": "primary",
+          "availability": "active",
+          "endpoint_health": "healthy",
+          "eligible": true,
+          "mo2_state": null,
+          "policy_reason": null,
+          "assigned_model": null,
+          "assigned_role": null
+        },
+        "optional_4090": {
+          "node_id": "4090",
+          "role": "optional",
+          "availability": "active",
+          "endpoint_health": "healthy",
+          "eligible": true,
+          "mo2_state": "NOT_RUNNING",
+          "policy_reason": "eligible",
+          "assigned_model": null,
+          "assigned_role": null
+        }
+      },
+      "agents": {
+        "qwen": {
+          "model_id": "qwen3.8-27b-q4_k_m",
+          "role": "implementer",
+          "state": "inactive",
+          "assigned_node": null,
+          "activity": null,
+          "review_status": "not_applicable",
+          "started_at": null,
+          "completed_at": null
+        },
+        "glm": {
+          "model_id": "GLM-4.7-Flash-64x2.6B-Q4_K_M",
+          "role": "reviewer",
+          "state": "inactive",
+          "assigned_node": null,
+          "activity": null,
+          "review_status": "not_applicable",
+          "started_at": null,
+          "completed_at": null
+        }
+      },
+      "memory": {
+        "requested": false,
+        "mode": "not_applicable",
+        "relevance_keys": [],
+        "selection_status": null,
+        "selected_memory_ids": [],
+        "supplied_memory_ids": [],
+        "record_count": 0,
+        "context_characters": 0,
+        "conflict_count": 0,
+        "corruption_count": 0
+      },
+      "execution": {
+        "operations": [],
+        "tests": {
+          "status": "failed",
+          "command_label": "warning-strict repository suite",
+          "passed_count": 9,
+          "failed_count": 1,
+          "total_count": 10,
+          "duration_ms": 30,
+          "failure_reason": "assertion_failed"
+        }
+      },
+      "review": {
+        "requested": false,
+        "reviewer_model_id": null,
+        "reviewer_status": "not_applicable",
+        "structured_verdict": null,
+        "finding_count": 0,
+        "adjudication_status": "not_applicable",
+        "final_outcome": null,
+        "reason_code": null
+      },
+      "recent_events": [],
+      "schema_version": 1
+    },
+    "task_failure": {
+      "snapshot_id": "task-failed",
+      "generated_at": "2026-08-27T18:00:00Z",
+      "system_state": "failed",
+      "task": {
+        "task_id": "phase5a-synthetic-task",
+        "goal_id": "phase5a-goal",
+        "summary": "Implement a bounded observer-only state contract.",
+        "started_at": "2026-08-27T18:00:01Z",
+        "phase": "phase5a",
+        "progress_current": 0,
+        "progress_total": 7,
+        "final_status": "failed",
+        "failure_category": "deterministic_test_failure",
+        "failure_reason": "One deterministic test failed."
+      },
+      "compute": {
+        "primary_3090": {
+          "node_id": "3090",
+          "role": "primary",
+          "availability": "active",
+          "endpoint_health": "healthy",
+          "eligible": true,
+          "mo2_state": null,
+          "policy_reason": null,
+          "assigned_model": null,
+          "assigned_role": null
+        },
+        "optional_4090": {
+          "node_id": "4090",
+          "role": "optional",
+          "availability": "active",
+          "endpoint_health": "healthy",
+          "eligible": true,
+          "mo2_state": "NOT_RUNNING",
+          "policy_reason": "eligible",
+          "assigned_model": null,
+          "assigned_role": null
+        }
+      },
+      "agents": {
+        "qwen": {
+          "model_id": "qwen3.8-27b-q4_k_m",
+          "role": "implementer",
+          "state": "inactive",
+          "assigned_node": null,
+          "activity": null,
+          "review_status": "not_applicable",
+          "started_at": null,
+          "completed_at": null
+        },
+        "glm": {
+          "model_id": "GLM-4.7-Flash-64x2.6B-Q4_K_M",
+          "role": "reviewer",
+          "state": "inactive",
+          "assigned_node": null,
+          "activity": null,
+          "review_status": "not_applicable",
+          "started_at": null,
+          "completed_at": null
+        }
+      },
+      "memory": {
+        "requested": false,
+        "mode": "not_applicable",
+        "relevance_keys": [],
+        "selection_status": null,
+        "selected_memory_ids": [],
+        "supplied_memory_ids": [],
+        "record_count": 0,
+        "context_characters": 0,
+        "conflict_count": 0,
+        "corruption_count": 0
+      },
+      "execution": {
+        "operations": [],
+        "tests": {
+          "status": "not_applicable",
+          "command_label": null,
+          "passed_count": null,
+          "failed_count": null,
+          "total_count": null,
+          "duration_ms": null,
+          "failure_reason": null
+        }
+      },
+      "review": {
+        "requested": false,
+        "reviewer_model_id": null,
+        "reviewer_status": "not_applicable",
+        "structured_verdict": null,
+        "finding_count": 0,
+        "adjudication_status": "not_applicable",
+        "final_outcome": null,
+        "reason_code": null
+      },
+      "recent_events": [],
+      "schema_version": 1
+    }
+  },
+  "compute": {
+    "3090": "primary authority",
+    "4090": "optional capacity",
+    "mo2_running": "4090 unavailable and ineligible",
+    "network_probe": "none"
+  },
+  "memory": {
+    "display": "bounded metadata only",
+    "content": "excluded",
+    "selected_and_supplied_ids": true,
+    "conflict_and_corruption_counts": true
+  },
+  "test_review_adjudication": {
+    "deterministic_test_failure_cannot_pass": true,
+    "reviewer_verdict_separate_from_adjudication": true,
+    "hidden_reviewer_reasoning": "excluded"
+  },
+  "security": {
+    "observer_only": true,
+    "source_authoritative": true,
+    "tools": "no capability",
+    "memory_mutation": "no capability",
+    "routing_mutation": "no capability",
+    "approval": "no capability",
+    "canonical_execution_write": "no capability"
+  },
+  "sensitive_data_boundary": [
+    "no full prompts",
+    "no memory contents",
+    "no raw command output",
+    "no environment dumps",
+    "no credentials",
+    "no hidden chain-of-thought"
+  ],
+  "privacy": {
+    "cloud_ai_usage": "none",
+    "model_inference": "none",
+    "remote_requests": "none"
+  },
+  "verification": {
+    "focused_phase5a_tests": {
+      "count": 25,
+      "status": "PASS"
+    },
+    "complete_warning_strict_suite": {
+      "count": 213,
+      "status": "PASS",
+      "includes_phase1_through_phase4": true
+    },
+    "compilation_static_validation": "PASS",
+    "evidence_json_validation": "PASS",
+    "bounded_secret_assignment_scan": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "defects_discovered_and_repaired": [
+    "TrustedRuntimeState initially accepted a raw controller-state string; strict enum and terminal-status validation were added."
+  ],
+  "limitations": [
+    "no browser UI",
+    "no HTTP or WebSocket server",
+    "no controls or task submission",
+    "no voice implementation",
+    "no remote visualizer access"
+  ],
+  "final_acceptance": "PASS"
+}

@@ -1,3 +1,15 @@
+# GRACI Phase 5A Visualizer State Contract — Complete
+
+Phase 5A defines versioned immutable snapshot and event contracts plus a pure,
+observer-only projector over trusted runtime facts. It exposes bounded task,
+3090/4090, MO2, Qwen/GLM, memory metadata, tool/test, review/adjudication, and recent
+event state without adding authority. The event buffer retains at most 100 entries;
+display text is hard-bounded; prompts, memory contents, raw output, secrets, and
+hidden reasoning are excluded by architecture. Offline lifecycle acceptance and
+details are under `phase5a/`. Phase 5A includes no UI, server, controls, voice, or
+remote access. The next authorized stage is Phase 5B — Local Visualizer Backend; it
+has not begun.
+
 # GRACI Phase 4 Persistent Memory — Complete
 
 Phase 4E integrated acceptance is complete. The local 3090-authoritative persistent

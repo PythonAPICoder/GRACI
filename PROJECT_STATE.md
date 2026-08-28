@@ -1,5 +1,41 @@
 # GRACI Project State
 
+## Phase 5A visualizer state contract — COMPLETE
+
+- Starting commit `7ddf51c7fd55fd9e2f4c5fee74a8c18445f40bb3` and a clean
+  authoritative repository were verified before modification.
+- `graci.visualizer` defines immutable snapshot schema v1 and event schema v1 as a
+  pure projection of typed, trusted runtime facts. Dependency direction is
+  authoritative runtime/domain/evidence -> visualizer projection -> immutable
+  snapshot/events -> future backend/UI. Core modules do not depend on it.
+- System states are idle, listening, planning, retrieving_memory, reasoning,
+  executing_tool, testing, reviewing, adjudicating, completed, warning, failed,
+  and speaking. Listening/speaking reserve Phase 6 vocabulary only. Deterministic
+  failure wins, and completion requires deterministic terminal support rather than
+  a model claim.
+- The fixed compute view preserves the 3090 as primary authority and the 4090 as
+  optional capacity. It mirrors endpoint/eligibility/MO2 facts without probing or
+  changing policy; MO2 RUNNING displays the 4090 unavailable and ineligible.
+  Qwen/GLM activity is separate, memory is metadata-only, raw tool output is
+  excluded, and reviewer verdict remains separate from deterministic adjudication.
+- Recent immutable events use strict event-type and severity enums, reject duplicate
+  IDs plus future/out-of-order insertion, and evict oldest-first at 100 entries.
+  Bounds are 240 characters for task/error summaries, 320 for event messages, 160
+  for display labels, 16 bounded scalar metadata entries, and 25 operations.
+- Architectural minimization excludes full prompts, memory/vault content, arbitrary
+  files, raw stdout/stderr, environment dumps, credentials/tokens, and hidden
+  chain-of-thought/reviewer rationale. Narrow secret-key rejection is not claimed as
+  comprehensive DLP. The contract has no tool, memory mutation, routing, approval,
+  task submission, network, provider, filesystem-write, or canonical-state capability.
+- Offline synthetic acceptance covers idle through task/memory/Qwen/tool/tests/GLM/
+  adjudication/completion, eligible and MO2-blocked 4090 state, optional memory
+  absence, required memory conflict, deterministic test failure, task failure,
+  serialization, source immutability, and bounded event eviction. Durable evidence
+  is `phase5a/evidence/phase5a-acceptance.json`; no model inference or cloud AI is used.
+- Phase 5A implements no browser UI, HTTP/WebSocket server, controls/task submission,
+  voice, or remote visualizer access. Next authorized stage: Phase 5B — Local
+  Visualizer Backend. It has not begun.
+
 ## Phase 4C relevance, scope, and supersession — COMPLETE
 
 - Starting commit `0747e14f4bfcf3d0eb8ac3a487df80e64ad7a476` and a clean
