@@ -4,10 +4,17 @@
 
 - Phase 5 — COMPLETE
 - Phase 6 — IN PROGRESS
-- Phase 6A — CURRENT
-- Authoritative starting commit: `17c35e0a44463a53a0204221a37eda4e745cbd8f`.
+- Phase 6A — COMPLETE
+- Phase 6B — COMPLETE
+- Phase 6B authoritative starting commit: `291240f623bd73957f4afc84a6adb61c9ce3fdae`.
 - Phase 6 interaction model: push-to-talk. Always-listening and wake word are deferred.
-- Phase 6A qualifies local STT/TTS and defines the architecture only; Phase 6B production capture has not started.
+- Phase 6B adds explicit push-to-talk, dependency-free Windows PCM capture, typed
+  lifecycle/results, and fully local faster-whisper `small.en` CPU `int8` through an
+  isolated local-only worker. Audio is transient by default; no runtime submission,
+  TTS coupling, background listening, cloud, or 4090 dependency was added.
+- Phase 6B focused tests pass 16/16; the full warning-strict suite passes 278/278.
+  The concrete local worker transcribed a tracked synthetic WAV from the existing
+  cache. A real microphone smoke test remains optional and was not run.
 - Phase 6A voice decision: Kokoro-82M ONNX `af_bella` is the preferred production candidate. A bounded speech-only lexicon pronounces the unchanged written tokens `GRACI`, `3090`, and `4090` as `GRAY-see`, `thirty ninety`, and `forty ninety`; unrelated numbers are not rewritten.
 - Evidence: `phase6a/evidence/phase6a-qualification.json`; architecture and reconstruction: `phase6a/ARCHITECTURE.md` and `phase6a/README.md`.
 

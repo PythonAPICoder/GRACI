@@ -35,11 +35,12 @@ class Phase6AQualificationTests(unittest.TestCase):
         for phrase in ("untrusted user input", "authoritative final user-facing response", "must not authorize tools", "must not"):
             self.assertIn(phrase, text)
 
-    def test_project_state_marks_phase6a_current(self):
+    def test_project_state_marks_phase6a_complete(self):
         first = (ROOT / "PROJECT_STATE.md").read_text(encoding="utf-8")[:600]
         self.assertIn("Phase 5 — COMPLETE", first)
         self.assertIn("Phase 6 — IN PROGRESS", first)
-        self.assertIn("Phase 6A — CURRENT", first)
+        self.assertIn("Phase 6A — COMPLETE", first)
+        self.assertIn("Phase 6B — COMPLETE", first)
 
     def test_pronunciation_override_is_bounded_whole_token_and_speech_only(self):
         source = "GRACI uses 3090 and 4090. GRACIOUS, XGRACI, 13090, 4090X, and 5090 remain unchanged."

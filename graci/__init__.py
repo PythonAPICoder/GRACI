@@ -33,6 +33,13 @@ from .memory_execution import (MAX_EXECUTION_MEMORY_CONTEXT_CHARACTERS,
                                MAX_EXECUTION_MEMORY_RECORDS, MemoryPreparation,
                                MemoryRequirement, prepare_execution_memory,
                                serialize_memory_envelope)
+from .audio_capture import (AudioCaptureConfig, AudioCaptureError,
+                            WindowsWaveInCapture)
+from .push_to_talk import (PushToTalkController, PushToTalkLifecycleError,
+                           PushToTalkState)
+from .speech import (CapturedAudio, FasterWhisperConfig,
+                     FasterWhisperSubprocessSTT, TranscriptionResult,
+                     TranscriptionStatus)
 
 __all__ = [
     "AutonomousRepairController", "Config", "Controller", "LoopLimits",
@@ -52,4 +59,8 @@ __all__ = [
     "prepare_execution_memory", "serialize_memory_envelope",
     "build_phase3a_registry", "check_4090_mo2_status", "evaluate_4090_eligibility",
     "evaluate_eligibility",
+    "AudioCaptureConfig", "AudioCaptureError", "WindowsWaveInCapture",
+    "PushToTalkController", "PushToTalkLifecycleError", "PushToTalkState",
+    "CapturedAudio", "FasterWhisperConfig", "FasterWhisperSubprocessSTT",
+    "TranscriptionResult", "TranscriptionStatus",
 ]

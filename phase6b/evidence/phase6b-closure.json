@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "phase": "6B",
+  "status": "PASS",
+  "starting_commit": "291240f623bd73957f4afc84a6adb61c9ce3fdae",
+  "architecture": {
+    "capture": "Windows waveIn mono 16-bit PCM 16000 Hz",
+    "lifecycle": "idle-recording-transcribing-terminal-idle",
+    "stt": "faster-whisper small.en CPU int8 local-files-only subprocess",
+    "audio_retained_by_default": false,
+    "cloud_stt": false,
+    "requires_4090": false,
+    "runtime_submission_added": false,
+    "tts_coupling_added": false
+  },
+  "verification": {
+    "focused_tests_passed": 16,
+    "phase6a_and_phase6b_tests_passed": 24,
+    "full_tests_passed": 278,
+    "warning_strict": true,
+    "compileall_passed": true,
+    "cached_local_stt_fixture_passed": true,
+    "physical_microphone_smoke_test_run": false
+  }
+}
