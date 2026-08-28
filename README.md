@@ -1,3 +1,12 @@
+# GRACI Phase 6 Integrated Voice Acceptance — Complete
+
+Phase 6 is complete at bounded push-to-talk voice interaction: explicit local capture,
+local STT, typed-input-equivalent governed submission, optional bounded local speech
+presentation from an explicit authoritative final response, and observer-only
+`IDLE`/`LISTENING`/`SPEAKING`. Integrated deterministic acceptance adds no production
+coordinator or autonomous voice loop. Closure evidence is under `phase6/`. No Phase
+6F is named or authorized; future voice enhancements require separate authorization.
+
 # GRACI Phase 6E Voice Lifecycle Publication — Complete
 
 Phase 6E reuses the canonical observer state model to publish `LISTENING` only during

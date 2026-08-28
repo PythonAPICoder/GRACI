@@ -28,3 +28,13 @@ through transcription, and `SPEAKING` only around actual playback after synthesi
 Every bounded exit restores `IDLE`. Observer failures are logged/recorded and cannot
 alter capture, transcription, playback, presentation, or governed runtime results.
 See `phase6e/README.md`.
+
+Phase 6 closes at this bounded composition:
+
+`explicit push-to-talk -> local STT -> existing governed run(task) -> independent governed result -> explicit AuthoritativeFinalResponse -> optional local TTS/playback`
+
+Integrated acceptance composes the existing interfaces with deterministic fakes; no
+production coordinator was added. The transcript has typed-input-equivalent authority,
+the governed result exists independently of presentation, synthesis remains `IDLE`,
+and only bounded capture/recognition and actual playback publish `LISTENING` and
+`SPEAKING`. Phase 6 contains no autonomous voice loop. See `phase6/README.md`.

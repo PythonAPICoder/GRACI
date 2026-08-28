@@ -9,6 +9,7 @@
 - Phase 6C — COMPLETE
 - Phase 6D — COMPLETE
 - Phase 6E — COMPLETE
+- **Phase 6 — COMPLETE AT BOUNDED PUSH-TO-TALK VOICE INTERACTION**
 - Phase 6B authoritative starting commit: `291240f623bd73957f4afc84a6adb61c9ce3fdae`.
 - Phase 6 interaction model: push-to-talk. Always-listening and wake word are deferred.
 - Phase 6B adds explicit push-to-talk, dependency-free Windows PCM capture, typed
@@ -32,6 +33,18 @@
   reject overlap/late restoration, and isolate recorded publisher failures from all
   authoritative and presentation results. Phase 6E focused tests pass 8/8; the full
   warning-strict suite passes 315/315. No physical microphone/speaker test was run.
+- Integrated Phase 6 closure composes the accepted 6B–6E interfaces in deterministic
+  tests without a production coordinator: explicit capture and local transcription,
+  exactly one ordinary governed submission for one accepted transcript, an independent
+  governed result, explicit authoritative-response construction, optional bounded
+  synthesis/playback, and observer-only lifecycle publication. Phase 6 closure adds
+  no autonomous loop, execution path, authority, scheduling, network, or persistence.
+  Consolidated evidence is `phase6/evidence/phase6-closure.json`.
+- No Phase 6F is named or authorized. Wake word, VAD, continuous listening, automatic
+  reopening/submission/speech loops, turn-taking, duplex, expanded interruption,
+  UI/device work, fallback engines, network/cloud/distributed speech, GPU/4090 voice
+  routing, scheduling changes, and persistence remain deferred pending separate
+  roadmap authorization.
 - Phase 6A voice decision: Kokoro-82M ONNX `af_bella` is the preferred production candidate. A bounded speech-only lexicon pronounces the unchanged written tokens `GRACI`, `3090`, and `4090` as `GRAY-see`, `thirty ninety`, and `forty ninety`; unrelated numbers are not rewritten.
 - Evidence: `phase6a/evidence/phase6a-qualification.json`; architecture and reconstruction: `phase6a/ARCHITECTURE.md` and `phase6a/README.md`.
 

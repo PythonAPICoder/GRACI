@@ -11,7 +11,12 @@
 - Phase 6E voice lifecycle publication: complete. Canonical `LISTENING` and
   `SPEAKING` facts wrap only bounded listening/recognition and actual playback;
   observer failures are isolated and all exits restore `IDLE`.
-- All later voice-loop behavior remains deferred.
+- **Phase 6 complete — bounded push-to-talk voice architecture accepted.** Integrated
+  deterministic acceptance composes the existing 6B–6E interfaces without a new
+  production coordinator, execution path, authority, network dependency, scheduling,
+  or persistence.
+- All later voice-loop behavior remains deferred. No Phase 6F is named or authorized;
+  any future voice enhancement requires separate roadmap authorization.
 
 GRACI remains local-first and fully functional on the primary RTX 3090 machine alone.
 No cloud speech service or optional 4090 capacity is required.

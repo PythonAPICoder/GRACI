@@ -1,0 +1,168 @@
+{
+  "schema_version": 1,
+  "phase": "6",
+  "status": "PASS",
+  "accepted_baseline_commit": "c5c7c2883e88751772818c8c49554d3a40270d8d",
+  "architecture": {
+    "interaction": "explicit bounded push-to-talk",
+    "capture": "local mono 16-bit PCM",
+    "stt": "local faster-whisper small.en CPU int8",
+    "runtime_boundary": "existing governed run(task)",
+    "transcript_authority": "equivalent to typed user input",
+    "presentation": "optional explicit authoritative response to local bounded TTS/playback",
+    "lifecycle_publication": "observer-only",
+    "autonomous_voice_loop": false,
+    "new_production_coordinator": false,
+    "new_execution_path": false,
+    "new_runtime_authority": false,
+    "new_scheduling_authority": false,
+    "new_persistence": false,
+    "network_dependency": false
+  },
+  "runtime_submission_counts": {
+    "accepted_transcript": 1,
+    "failed_transcript": 0,
+    "blank_transcript": 0,
+    "presentation_side_effects": 0
+  },
+  "canonical_lifecycle_states": ["idle", "listening", "speaking"],
+  "success_transition_order": [
+    "idle", "listening", "idle", "governed_submission", "governed_result",
+    "synthesis_while_idle", "speaking", "idle"
+  ],
+  "inherited_bounds": {
+    "capture_max_seconds": 120,
+    "capture_min_seconds": 0.15,
+    "capture_sample_rate_hz": 16000,
+    "tts_input_max_characters": 20000,
+    "synthesized_audio_max_bytes": 8388608,
+    "synthesized_audio_max_seconds": 120,
+    "synthesis_timeout_seconds": 60,
+    "playback_timeout_seconds": 125,
+    "outstanding_synthesis_limit": 1,
+    "outstanding_playback_limit": 1
+  },
+  "authoritative_response": {
+    "explicit_type_required": "AuthoritativeFinalResponse",
+    "text_mutated": false,
+    "pronunciation_copy_separate": true,
+    "whole_token_graci_spoken_as": "GRAY-see"
+  },
+  "failure_isolation": {
+    "rejected_transcription_submits_runtime": false,
+    "tts_failure_mutates_governed_result": false,
+    "playback_failure_mutates_governed_result": false,
+    "stop_cancel_rolls_back_governed_result": false,
+    "publisher_failure_mutates_results": false,
+    "all_voice_terminal_paths_restore_idle": true,
+    "generation_guard_prevents_late_restoration": true,
+    "contradictory_voice_state_prevented": true
+  },
+  "representative_failure_ordering": [
+    {
+      "case": "capture_success_transcription_rejected",
+      "runtime_submissions": 0,
+      "authoritative_result": null,
+      "presentation_result": null,
+      "terminal_lifecycle": "idle"
+    },
+    {
+      "case": "runtime_success_synthesis_failure",
+      "runtime_submissions": 1,
+      "authoritative_result": "original governed result preserved",
+      "presentation_result": "failed",
+      "terminal_lifecycle": "idle"
+    },
+    {
+      "case": "runtime_success_playback_failure",
+      "runtime_submissions": 1,
+      "authoritative_result": "original governed result preserved",
+      "presentation_result": "failed",
+      "terminal_lifecycle": "idle"
+    },
+    {
+      "case": "listening_publisher_failure",
+      "runtime_submissions": 1,
+      "authoritative_result": "original governed result preserved",
+      "presentation_result": "spoken",
+      "terminal_lifecycle": "idle"
+    },
+    {
+      "case": "speaking_publisher_failure",
+      "runtime_submissions": 1,
+      "authoritative_result": "original governed result preserved",
+      "presentation_result": "spoken",
+      "terminal_lifecycle": "idle"
+    },
+    {
+      "case": "listening_cancellation",
+      "runtime_submissions": 0,
+      "authoritative_result": null,
+      "presentation_result": null,
+      "terminal_lifecycle": "idle"
+    },
+    {
+      "case": "playback_cancellation",
+      "runtime_submissions": 1,
+      "authoritative_result": "original governed result preserved",
+      "presentation_result": "cancelled",
+      "terminal_lifecycle": "idle"
+    }
+  ],
+  "deterministic_test_requirements": {
+    "microphone": false,
+    "speaker": false,
+    "network": false,
+    "cloud_model": false,
+    "rtx_4090": false,
+    "live_kokoro": false,
+    "live_faster_whisper": false
+  },
+  "verification": {
+    "integrated_tests_passed": 10,
+    "full_tests_passed": 325,
+    "warning_strict": true,
+    "compileall_passed": true,
+    "git_diff_check_passed": true,
+    "json_validation_passed": true,
+    "compilation_scope": "GRACI-owned source and tests",
+    "accepted_compile_commands": [
+      "python -W error -m py_compile phase6a/pronunciation.py",
+      "python -W error -m compileall -q graci phase6b phase6c phase6d phase6e phase6 tests"
+    ],
+    "excluded_third_party_cache_diagnostic": {
+      "path": "phase6a/cache/uv/python/cpython-3.12.11-windows-x86_64-none/tcl/tix8.4.3/pref/WmDefault.py",
+      "result": "pre-existing upstream TabError",
+      "tracked": false,
+      "graci_source_failure": false
+    }
+  },
+  "prior_accepted_evidence": [
+    "phase6a/evidence/phase6a-qualification.json",
+    "phase6b/evidence/phase6b-closure.json",
+    "phase6d/evidence/phase6d-closure.json",
+    "phase6d/evidence/live-kokoro-synthesis.json",
+    "phase6e/evidence/phase6e-closure.json"
+  ],
+  "live_validation": {
+    "phase6a_stt_and_tts_qualification_previously_established": true,
+    "phase6b_tracked_wav_transcription_previously_established": true,
+    "phase6d_local_kokoro_synthesis_previously_established": true,
+    "physical_microphone_performed": false,
+    "physical_speaker_performed": false
+  },
+  "deferred": [
+    "wake_word", "vad", "continuous_listening", "automatic_microphone_reopening",
+    "automatic_speech_loop", "automatic_ambient_submission", "turn_taking",
+    "duplex", "barge_in_beyond_explicit_stop_cancel", "hotkey_ui",
+    "visualizer_redesign", "animations", "device_selection_ui", "warm_stt_worker",
+    "piper_fallback_implementation", "network_lifecycle_broadcasting", "cloud_speech",
+    "distributed_speech", "gpu_4090_voice_routing", "voice_scheduling_changes",
+    "new_voice_persistence"
+  ],
+  "roadmap": {
+    "phase6_complete_at_bounded_push_to_talk": true,
+    "phase6f_named_or_authorized": false,
+    "future_voice_enhancements_require_separate_authorization": true
+  }
+}
