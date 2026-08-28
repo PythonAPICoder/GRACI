@@ -27,9 +27,11 @@ Listen to Piper under `phase6a/artifacts/audition/<voice>/line-01.wav` through `
 
 ## Final pronunciation decision
 
-`GRACI` must be spoken as `GRAY-see`. `pronunciation.py` implements a bounded, explicit whole-token technical lexicon that derives a speech-presentation string immediately before TTS. It does not mutate the authoritative response, conversation text, memory, evidence source text, logs, task input, reviewer output, adjudication, or stored project data. This is not a broad rewriting system.
+`GRACI` must be spoken as `GRAY-see`, `3090` as `thirty ninety`, and `4090` as `forty ninety`. `pronunciation.py` implements these three bounded, explicit whole-token technical entries and derives a speech-presentation string immediately before TTS. It does not mutate the authoritative response, conversation text, memory, evidence source text, logs, task input, reviewer output, adjudication, or stored project data. Unrelated numbers are unchanged; this is not a broad rewriting system.
 
 The four final `af_bella` pronunciation samples and their separate source/presentation evidence are under `artifacts/audition/finalist-af_bella/`. Their authoritative source fields retain `GRACI`; only `speech_presentation_text` contains `GRAY-see`. An offline back-check with the cached faster-whisper `small.en` model transcribed all four spoken names as “Gracie.” faster-whisper `small.en` CPU `int8` remains the recommended Phase 6B STT baseline.
+
+The follow-up GPU-number listening set is under `artifacts/audition/technical-pronunciation-af_bella/`. Its manifest preserves the four authoritative sentences with numeric `3090`/`4090` and separately records the speech strings with `thirty ninety`/`forty ninety`.
 
 Piper generation was roughly 1.3 seconds per line on CPU. Kokoro used the 88 MiB int8 ONNX model and CPU provider; its detailed per-line timing is in `artifacts/audition/kokoro-generation.json`. The original Kokoro Python frontend was blocked by Windows Application Control while importing a spaCy DLL; the ONNX path succeeded.
 

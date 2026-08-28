@@ -42,10 +42,10 @@ class Phase6AQualificationTests(unittest.TestCase):
         self.assertIn("Phase 6A — CURRENT", first)
 
     def test_pronunciation_override_is_bounded_whole_token_and_speech_only(self):
-        source = "GRACI is ready. GRACIOUS and XGRACI remain unchanged."
+        source = "GRACI uses 3090 and 4090. GRACIOUS, XGRACI, 13090, 4090X, and 5090 remain unchanged."
         rendered = speech_presentation_text(source)
-        self.assertEqual(rendered, "GRAY-see is ready. GRACIOUS and XGRACI remain unchanged.")
-        self.assertEqual(source, "GRACI is ready. GRACIOUS and XGRACI remain unchanged.")
+        self.assertEqual(rendered, "GRAY-see uses thirty ninety and forty ninety. GRACIOUS, XGRACI, 13090, 4090X, and 5090 remain unchanged.")
+        self.assertEqual(source, "GRACI uses 3090 and 4090. GRACIOUS, XGRACI, 13090, 4090X, and 5090 remain unchanged.")
         with self.assertRaises(ValueError):
             speech_presentation_text("x" * 20_001)
 
@@ -58,6 +58,17 @@ class Phase6AQualificationTests(unittest.TestCase):
             self.assertIn("GRACI", row["authoritative_source_text"])
             self.assertNotIn("GRAY-see", row["authoritative_source_text"])
             self.assertIn("GRAY-see", row["speech_presentation_text"])
+
+    def test_technical_pronunciation_qa_preserves_source_and_is_explicit(self):
+        evidence = json.loads((ROOT / "phase6a/artifacts/audition/technical-pronunciation-af_bella/technical-pronunciation-qa.json").read_text(encoding="utf-8"))
+        self.assertEqual(evidence["explicit_pronunciations"], {
+            "GRACI": "GRAY-see", "3090": "thirty ninety", "4090": "forty ninety"})
+        self.assertFalse(evidence["generic_number_rewriting"])
+        self.assertFalse(evidence["authoritative_text_mutated"])
+        self.assertEqual(len(evidence["results"]), 4)
+        for row in evidence["results"]:
+            self.assertNotIn("thirty ninety", row["authoritative_source_text"])
+            self.assertNotIn("forty ninety", row["authoritative_source_text"])
 
 if __name__ == "__main__":
     unittest.main()

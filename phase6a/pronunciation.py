@@ -8,7 +8,11 @@ MAX_TTS_TEXT_CHARS = 20_000
 MAX_PRONUNCIATION_ENTRIES = 32
 
 # Keys remain canonical written forms; values are presentation-only TTS spellings.
-TECHNICAL_PRONUNCIATIONS = MappingProxyType({"GRACI": "GRAY-see"})
+TECHNICAL_PRONUNCIATIONS = MappingProxyType({
+    "GRACI": "GRAY-see",
+    "3090": "thirty ninety",
+    "4090": "forty ninety",
+})
 
 
 def speech_presentation_text(authoritative_text: str) -> str:

@@ -8,7 +8,7 @@
 - Authoritative starting commit: `17c35e0a44463a53a0204221a37eda4e745cbd8f`.
 - Phase 6 interaction model: push-to-talk. Always-listening and wake word are deferred.
 - Phase 6A qualifies local STT/TTS and defines the architecture only; Phase 6B production capture has not started.
-- Phase 6A voice decision: Kokoro-82M ONNX `af_bella` is the preferred production candidate. A bounded speech-only lexicon pronounces the unchanged written name `GRACI` as `GRAY-see`.
+- Phase 6A voice decision: Kokoro-82M ONNX `af_bella` is the preferred production candidate. A bounded speech-only lexicon pronounces the unchanged written tokens `GRACI`, `3090`, and `4090` as `GRAY-see`, `thirty ninety`, and `forty ninety`; unrelated numbers are not rewritten.
 - Evidence: `phase6a/evidence/phase6a-qualification.json`; architecture and reconstruction: `phase6a/ARCHITECTURE.md` and `phase6a/README.md`.
 
 ## Phase 5C command-center UI — COMPLETE

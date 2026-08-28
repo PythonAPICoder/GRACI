@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "engine": "Kokoro-82M ONNX",
+  "voice": "af_bella",
+  "purpose": "Phase 6A explicit technical pronunciation QA",
+  "authoritative_text_mutated": false,
+  "explicit_pronunciations": {
+    "GRACI": "GRAY-see",
+    "3090": "thirty ninety",
+    "4090": "forty ninety"
+  },
+  "generic_number_rewriting": false,
+  "results": [
+    {
+      "line": 1,
+      "authoritative_source_text": "GRACI will continue using the 3090.",
+      "speech_presentation_text": "GRAY-see will continue using the thirty ninety.",
+      "file": "phase6a/artifacts/audition/technical-pronunciation-af_bella/technical-pronunciation-01.wav",
+      "audio_seconds": 2.752,
+      "generation_seconds": 1.811
+    },
+    {
+      "line": 2,
+      "authoritative_source_text": "The 4090 is available for optional processing.",
+      "speech_presentation_text": "The forty ninety is available for optional processing.",
+      "file": "phase6a/artifacts/audition/technical-pronunciation-af_bella/technical-pronunciation-02.wav",
+      "audio_seconds": 3.392,
+      "generation_seconds": 2.32
+    },
+    {
+      "line": 3,
+      "authoritative_source_text": "The 4090 is unavailable, so GRACI will continue using the 3090.",
+      "speech_presentation_text": "The forty ninety is unavailable, so GRAY-see will continue using the thirty ninety.",
+      "file": "phase6a/artifacts/audition/technical-pronunciation-af_bella/technical-pronunciation-03.wav",
+      "audio_seconds": 5.227,
+      "generation_seconds": 3.286
+    },
+    {
+      "line": 4,
+      "authoritative_source_text": "GRACI is running on the 3090, with the 4090 available as optional capacity.",
+      "speech_presentation_text": "GRAY-see is running on the thirty ninety, with the forty ninety available as optional capacity.",
+      "file": "phase6a/artifacts/audition/technical-pronunciation-af_bella/technical-pronunciation-04.wav",
+      "audio_seconds": 5.675,
+      "generation_seconds": 3.51
+    }
+  ]
+}
