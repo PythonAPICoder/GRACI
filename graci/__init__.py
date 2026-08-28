@@ -23,6 +23,8 @@ from .distributed import (DistributedRoutingError, Phase3DDistributedRouter,
 from .memory import (EnumerationResult, MemoryCollisionError, MemoryNotFoundError,
                      MemoryStatus, MemoryStorageError, MemoryStore, MemoryType,
                      MemoryValidationError, ProvenanceOrigin, ScopeKind)
+from .memory_pipeline import (DEFAULT_RETRIEVAL_LIMIT, MAX_RETRIEVAL_LIMIT,
+                              MemoryPipeline, RetrievalResult, WriteResult)
 
 __all__ = [
     "AutonomousRepairController", "Config", "Controller", "LoopLimits",
@@ -33,6 +35,8 @@ __all__ = [
     "EnumerationResult", "MemoryCollisionError", "MemoryNotFoundError",
     "MemoryStatus", "MemoryStorageError", "MemoryStore", "MemoryType",
     "MemoryValidationError", "ProvenanceOrigin", "ScopeKind",
+    "DEFAULT_RETRIEVAL_LIMIT", "MAX_RETRIEVAL_LIMIT", "MemoryPipeline",
+    "RetrievalResult", "WriteResult",
     "build_phase3a_registry", "check_4090_mo2_status", "evaluate_4090_eligibility",
     "evaluate_eligibility",
 ]

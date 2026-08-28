@@ -1,3 +1,14 @@
+# GRACI Phase 4B Governed Memory Pipeline
+
+Phases 0–3 and Phase 4A remain complete. Phase 4B adds explicit provenance-forcing
+write capabilities, operation-level retry idempotency, and bounded deterministic
+exact retrieval over the local Phase 4A JSON store. Memory remains inert untrusted
+context and grants no execution, policy, routing, or acceptance authority. There is
+no automatic conversation memory, semantic search, prompt injection, network/cloud,
+4090, shared-drive, or Obsidian dependency. Architecture and accepted synthetic live
+evidence are under `phase4b/`. The next authorized stage is Phase 4C — Relevance,
+Scope & Supersession; it has not begun.
+
 # GRACI Phase 4A Persistent Memory Storage
 
 Phases 0–3 remain complete. Phase 4A adds a local-only, versioned, strict JSON

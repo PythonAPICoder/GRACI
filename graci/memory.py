@@ -18,6 +18,7 @@ from typing import Any, Callable, Mapping
 
 
 SCHEMA_VERSION = 1
+MAX_CONTENT_BYTES = 16_384
 MAX_ENUMERATION_LIMIT = 1000
 DEFAULT_ENUMERATION_LIMIT = 100
 _FIELDS = {"schema_version", "memory_id", "created_at", "updated_at", "scope",
@@ -182,6 +183,12 @@ def validate_record(record: Mapping[str, Any]) -> dict[str, Any]:
     content = record["content"]
     if not isinstance(content, str) or not content.strip():
         raise MemoryValidationError("content must be a non-empty string")
+    try:
+        content_bytes = content.encode("utf-8")
+    except UnicodeEncodeError as exc:
+        raise MemoryValidationError("content must be valid UTF-8 text") from exc
+    if len(content_bytes) > MAX_CONTENT_BYTES:
+        raise MemoryValidationError(f"content exceeds {MAX_CONTENT_BYTES} UTF-8 bytes")
     _reject_obvious_secrets(content)
     return {
         "schema_version": SCHEMA_VERSION, "memory_id": memory_id,

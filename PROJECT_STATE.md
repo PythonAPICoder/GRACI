@@ -1,5 +1,43 @@
 # GRACI Project State
 
+## Phase 4B memory write / retrieval pipeline — COMPLETE
+
+- Starting commit `e472fe948637f18422aa75b49df235b55d9fa741` was verified
+  exactly with a clean authoritative `E:\GRACI` working tree before modification.
+- `graci.memory_pipeline.MemoryPipeline` provides four explicit governed write
+  capabilities. Trusted user, trusted deterministic runtime, model proposal, and
+  trusted import paths force `explicit_user`, `runtime_observation`,
+  `model_generated`, and `imported_external` respectively. Caller prose cannot
+  claim stronger provenance, and ordinary controller/task text is never persisted.
+- The exact write request contains only operation UUID, scope, type, content, and
+  source reference. GRACI assigns UUID, timestamps, active status, schema version,
+  and initial version. Empty or over-16,384-byte content, metadata injection, and
+  accepted Phase 4A obvious-secret patterns fail closed without content echo.
+- Operational idempotency derives a UUIDv5 from capability plus operation UUID.
+  Identical retries resolve to the existing record, changed retry payloads conflict,
+  and distinct operations remain distinct even with identical text. Semantics are
+  not compared.
+- Retrieval requires explicit exact scope and supports exact ID, type, provenance,
+  status, and inclusive created/updated time bounds. Status defaults to active.
+  Ordering is updated time descending, created time descending, then UUID ascending.
+  Results default to 25, reject limits over 100, inspect at most 1,000 candidates,
+  and explicitly report truncation and Phase 4A corruption diagnostics.
+- Memory stays inert, untrusted context. It grants no tool, filesystem, repository,
+  routing, MO2, security, cloud, 4090, or acceptance authority and is not injected
+  into Qwen/GLM/agent prompts. There is no network/provider dependency.
+- JSON on the local 3090 remains canonical. No shared-drive/4090 replication or
+  mutation and no Obsidian runtime/edit path was introduced. Future immutable
+  export/backup may be evaluated separately.
+- The complete warning-strict suite passes 150 tests: 22 focused Phase 4B tests and
+  all 128 Phase 1–4A regressions. Bounded synthetic live acceptance, idempotency,
+  exact retrieval, fresh-instance reconstruction, and corruption exclusion pass.
+  Durable details are in `phase4b/README.md` and
+  `phase4b/evidence/phase4b-acceptance.json`; no cloud AI or 4090 was used.
+- Phase 4B still does not implement semantic relevance/search, embeddings, automatic
+  conversation extraction, conflict/supersession resolution, expiration governance,
+  implicit scope composition, or autonomous prompt injection.
+- Next authorized stage: Phase 4C — Relevance, Scope & Supersession. It has not begun.
+
 ## Phase 4A persistent memory storage — COMPLETE
 
 - Canonical schema-v1 UTF-8 JSON records live one per canonical UUID filename under

@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "phase": "4B",
+  "status": "PASS",
+  "starting_commit": "e472fe948637f18422aa75b49df235b55d9fa741",
+  "write_policy": "explicit strict capability entry points; GRACI assigns canonical metadata",
+  "provenance_authorization": {
+    "explicit_user": "trusted_explicit_user_path_only",
+    "runtime_observation": "trusted_runtime_path_only",
+    "model_generated": "model_proposal_path_forced",
+    "imported_external": "trusted_import_path_forced",
+    "privileged_model_claim_rejected": true
+  },
+  "no_silent_memory": true,
+  "idempotency": {
+    "basis": "capability plus canonical operation UUID",
+    "replay": true,
+    "canonical_record_count": 4,
+    "distinct_operation_distinct_record": true
+  },
+  "retrieval": {
+    "filters": [
+      "memory_id",
+      "scope",
+      "memory_type",
+      "provenance",
+      "status",
+      "created_at_gte",
+      "created_at_lte",
+      "updated_at_gte",
+      "updated_at_lte"
+    ],
+    "order": [
+      "updated_at_desc",
+      "created_at_desc",
+      "memory_id_asc"
+    ],
+    "default_limit": 25,
+    "hard_limit": 100,
+    "scan_limit": 1000,
+    "filtered_count": 2,
+    "semantic_search": "not_implemented"
+  },
+  "synthetic_record_ids": [
+    "2c95bb9d-cde1-585d-bee5-c508ccd7a065",
+    "e8c94935-39ce-5d25-975e-00a0ce0c5e55",
+    "33b8586c-d5c8-5e9a-997d-0f2810f59e16",
+    "eebc6d54-a8b3-5714-b28c-2a6cc40518f9"
+  ],
+  "reconstruction": {
+    "status": "PASS",
+    "record_count": 4
+  },
+  "corruption": {
+    "status": "PASS",
+    "excluded": true,
+    "diagnostic_count": 1
+  },
+  "automated_tests": {
+    "command": "python -W error -m unittest discover -s tests -v",
+    "count": 150,
+    "status": "PASS"
+  },
+  "secret_scan": "bounded_no_findings",
+  "cloud_usage": "none",
+  "dependency_on_4090": false,
+  "shared_storage_used": false,
+  "obsidian_dependency": false,
+  "final_acceptance": "PASS"
+}
