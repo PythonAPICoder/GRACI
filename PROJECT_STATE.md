@@ -11,13 +11,43 @@ GRACI is a local-first AI workload orchestration project. It will coordinate inf
 - Overall Build: Phase 3
 - Completed Phases: Phase 1 — Minimal GRACI Core; Phase 2 — Autonomous Loop
 - Current Phase: Phase 3 — Resource / Model Router
-- Completed Stage: Phase 3A — Resource & Endpoint Registry
-- Next Stage: Phase 3B — Local Model Role Routing
+- Completed Stages: Phase 3A — Resource & Endpoint Registry; Phase 3B — Local Model Role Routing
+- Next Stage: Phase 3C — 4090 Availability & MO2 Policy
 
 Phase 1A through Phase 1D and Phase 2A through Phase 2C are accepted. Phase 2 is
 implemented, verified, closed, and committed by the closure commit containing this
-state. Phase 3A is implemented, verified, and accepted. Phase 3B is authorized but
-has not begun.
+state. Phase 3A and Phase 3B are implemented, verified, and accepted.
+
+## Phase 3B local model role routing
+
+- `graci.routing.Phase3BRoleRouter` resolves implementer, reviewer, and verifier
+  through the Phase 3A registry. Implementer resolves to Qwen on the primary 3090;
+  reviewer and verifier resolve to GLM on the same localhost endpoint. Resolution
+  checks enabled resources, healthy endpoint evidence, observed model presence,
+  role metadata, and the Phase 3B primary-node-only policy.
+- `graci.phase3b.Phase3BController` binds provider requests to each immutable
+  resolution. Server-reported model identity must match exactly. The existing
+  governed Qwen loop remains responsible for implementation and deterministic
+  tests; GLM is invoked only after those tests pass.
+- GLM has no tool or mutation interface. It receives bounded task, allowlisted
+  initial/final files, ordered modification metadata, implementer action history,
+  budget state, and bounded deterministic test evidence. Its strict schema permits
+  only PASS or FAIL plus bounded structured findings and rationale. Malformed
+  output, provider errors, or identity mismatch fail closed.
+- Deterministic ordinary code adjudicates outcomes: failed tests produce FAIL;
+  passing tests plus review PASS produce PASS; review FAIL produces
+  REVIEW_REJECTED; unavailable or invalid required review produces REVIEW_ERROR.
+  Reviewer claims never alter stored deterministic facts, so disagreement remains
+  visible in separate evidence fields.
+- The warning-strict suite passes 75 tests: all 65 Phase 1/2/3A regressions plus ten
+  Phase 3B methods. Live run `bc5e85b9-8d5e-431c-877d-193f7f447036` observed both
+  exact models at localhost, used Qwen for three governed cycles, passed two tests,
+  used GLM for one valid read-only PASS review, and deterministically adjudicated
+  PASS. Evidence is under `phase3b/evidence/`.
+- Security review confirmed workspace containment, fixed commands, tool policy,
+  Git/package/network/system prohibitions, exact endpoint/model binding, bounded
+  reviewer context, read-only review, deterministic PASS authority, and the 4090
+  policy block remain intact. No 4090 or cloud request was made.
 
 ## Phase 3A resource and endpoint registry
 
@@ -219,15 +249,16 @@ has not begun.
 ## Current limitations
 
 - One task is executed synchronously per CLI invocation.
-- There are no provider retries, reviewers, resource scheduling, cloud escalation,
+- There are no provider retries, resource scheduling, cloud escalation,
   authentication, service/API wrapper, or 4090 execution path.
 - Tool execution is synchronous and intentionally narrow. It has no recursive deletion,
   arbitrary shell, package management, network command, Git mutation, file patch/diff
   primitive, or streaming output. Phase 2A bounds model feedback, but durable tool
   records retain complete output.
-- Phase 2B supports bounded multi-step repair but no independent reviewer, multi-model
-  adjudication, general planning, dynamic tool discovery, Git operations, routing,
-  scheduling, memory, service/API wrapper, or automatic workspace/parent creation.
+- Phase 3B review is a single read-only post-test opinion. There is no reviewer-driven
+  repair loop, reviewer tool execution, third-model adjudication, general planning,
+  dynamic tool discovery, Git operations, load balancing, failover, scheduling,
+  memory, service/API wrapper, or automatic workspace/parent creation.
 - Repair uses complete-file atomic replacement, not a patch primitive. The caller
   must enumerate readable/editable files and provide the deterministic test directory.
 - The unresolved 4090 process-detection blocker remains fail-closed.
@@ -263,6 +294,6 @@ The Work environment cannot currently authenticate a safe, read-only remote proc
 
 ## Next work
 
-The next authorized stage is Phase 3B — Local Model Role Routing. It must preserve
-the 3090 as independently sufficient and must not make the 4090 eligible while the
-remote process-detection blocker remains unresolved.
+The next authorized stage is Phase 3C — 4090 Availability & MO2 Policy. Phase 3B
+must not be extended into that stage without new authorization; the 4090 remains
+ineligible while the remote process-detection blocker is unresolved.

@@ -200,9 +200,9 @@ def apply_health_result(endpoint: Endpoint, result: HealthResult) -> Endpoint:
 def evaluate_eligibility(registry: Registry, node_id: str, endpoint_id: str, model_id: str,
                          *, required_role: ModelRole | str | None = None,
                          policy_state: str = "phase3a") -> EligibilityResult:
-    if policy_state != "phase3a":
+    if policy_state not in {"phase3a", "phase3b"}:
         return EligibilityResult(False, EligibilityReason.UNKNOWN_POLICY_STATE,
-                                 "Only the Phase 3A policy state is recognized.")
+                                 "Only the Phase 3A and Phase 3B policy states are recognized.")
     node = registry.nodes.get(node_id)
     if node is None:
         return EligibilityResult(False, EligibilityReason.UNKNOWN_NODE, "Node is not registered.")
@@ -218,7 +218,7 @@ def evaluate_eligibility(registry: Registry, node_id: str, endpoint_id: str, mod
                                  "Registry node, endpoint, and model references do not agree.")
     if node_id == OPTIONAL_NODE_ID:
         return EligibilityResult(False, EligibilityReason.POLICY_BLOCKED_NODE,
-                                 "Phase 3A does not authorize remote optional-node routing.")
+                                 f"{policy_state.title()} does not authorize remote optional-node routing.")
     if not node.enabled or not endpoint.enabled or not model.enabled:
         return EligibilityResult(False, EligibilityReason.DISABLED_RESOURCE,
                                  "A required registry resource is disabled.")

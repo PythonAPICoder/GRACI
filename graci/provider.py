@@ -142,6 +142,26 @@ class LocalLlamaCppProvider:
         }
         return self._request(body)
 
+    def review(self, context: dict[str, Any]) -> ProviderResponse:
+        """Request a strict, read-only review of bounded supplied evidence."""
+        body = {
+            "model": self.config.model,
+            "messages": [
+                {"role": "system", "content": (
+                    "/no_think\nYou are GRACI's read-only reviewer. You have no tools and may "
+                    "not request file changes, execute commands, alter policy, or override recorded "
+                    "deterministic facts. Assess only the supplied bounded evidence. Return raw JSON "
+                    "only, with exactly: schema_version (integer 1), verdict (PASS or FAIL), findings "
+                    "(an array of at most 10 objects, each exactly severity and message, both non-empty "
+                    "strings), and rationale (a non-empty string). Do not use markdown fences.")},
+                {"role": "user", "content": json.dumps(context, ensure_ascii=False)},
+            ],
+            "temperature": 0, "max_tokens": 2048,
+            "response_format": {"type": "json_object"},
+            "chat_template_kwargs": {"enable_thinking": False},
+        }
+        return self._request(body)
+
     def _request(self, body: dict[str, Any]) -> ProviderResponse:
         request = urllib.request.Request(
             self.config.endpoint.rstrip("/") + "/chat/completions",

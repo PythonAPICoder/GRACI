@@ -6,6 +6,9 @@ from .autonomous import AutonomousRepairController, LoopLimits
 from .tools import ToolLayer
 from .vertical_slice import VerticalSliceController
 from .registry import build_phase3a_registry, evaluate_eligibility
+from .phase3b import Phase3BController
+from .routing import Phase3BRoleRouter
 
 __all__ = ["AutonomousRepairController", "Config", "Controller", "LoopLimits", "ToolLayer",
-           "VerticalSliceController", "build_phase3a_registry", "evaluate_eligibility"]
+           "VerticalSliceController", "build_phase3a_registry", "evaluate_eligibility",
+           "Phase3BController", "Phase3BRoleRouter"]

@@ -1,9 +1,10 @@
-# GRACI Phase 3 Resource / Model Router — Phase 3A Complete
+# GRACI Phase 3 Resource / Model Router — Phase 3B Complete
 
-Phase 1 and Phase 2 are complete. Phase 3A adds the deterministic typed resource,
-endpoint, model, health, and eligibility registry that later routing will use.
-Both the primary 3090 and optional 4090 are represented, but Phase 3A policy keeps
-the 4090 ineligible and no workload routing has been added. Phase 2 provides a bounded governed multi-step repair loop
+Phase 1 and Phase 2 are complete. Phase 3A added the deterministic typed resource,
+endpoint, model, health, and eligibility registry. Phase 3B uses it to route the
+implementer role to Qwen and reviewer/verifier roles to GLM on the primary 3090.
+Both the primary 3090 and optional 4090 are represented, but Phase 3B policy keeps
+the 4090 ineligible. Phase 2 provides a bounded governed multi-step repair loop
 over a disposable workspace. Local Qwen can list configured scope, inspect explicitly
 allowlisted files, make multiple independently governed replacements, and request the
 fixed deterministic unittest command. Only verified tests establish PASS.
@@ -24,8 +25,10 @@ Run the complete warning-strict offline and acceptance suite with:
 python -W error -m unittest discover -s tests -v
 ```
 
-All inference is fixed to local provider `local-llama-cpp`, endpoint
-`http://127.0.0.1:8080/v1`, and model `qwen3.8-27b-q4_k_m`. The unresolved safe
+All inference is fixed to local provider `local-llama-cpp` and endpoint
+`http://127.0.0.1:8080/v1`. Governed implementation uses
+`qwen3.8-27b-q4_k_m`; required read-only review uses
+`GLM-4.7-Flash-64x2.6B-Q4_K_M`. The unresolved safe
 process-detection requirement keeps the 4090 unavailable, and the accepted system
 has no cloud AI path.
 
@@ -71,7 +74,13 @@ see `phase2c/README.md` and `phase2c/evidence/`.
 See `phase3a/README.md` and `phase3a/evidence/` for the registered topology,
 fail-closed health and eligibility semantics, and localhost-only validation.
 
-The implementation still has no reviewer execution, unrestricted planning,
-scheduling, routing, memory, arbitrary shell, package/network operations, Git
-mutation, 4090 execution, or cloud escalation. Phase 3B — Local Model Role Routing
-is the next authorized stage and has not begun.
+Phase 3B adds `Phase3BRoleRouter` and `Phase3BController`. After deterministic test
+success, GLM receives only bounded allowlisted evidence and returns a strict review
+contract. Ordinary code adjudicates tests plus review; reviewer FAIL, malformed
+output, identity mismatch, or provider failure prevents workflow PASS. See
+`phase3b/README.md` and `phase3b/evidence/`.
+
+The implementation still has no reviewer-driven repair, reviewer tools,
+unrestricted planning, scheduling, load balancing, memory, arbitrary shell,
+package/network operations, Git mutation, 4090 execution, or cloud escalation.
+Phase 3C — 4090 Availability & MO2 Policy is the next authorized stage.
