@@ -12,8 +12,9 @@
     {"engine": "faster-whisper", "version": "1.2.1", "model": "small.en", "mode": "cpu-int8", "cold_start_seconds": 10.420, "transcription_seconds": 9.539, "rtf": 0.395, "wer": 0.1296, "rss_delta_lower_bound_bytes": 346542080},
     {"engine": "whisper.cpp", "version": "b4938", "model": "ggml-small.en", "mode": "cpu-f16", "transcription_seconds": 34.301, "rtf_including_process_start": 1.421, "wer": 0.1111, "model_bytes": 487614201}
   ],
-  "recommendation": {"stt": "faster-whisper small.en CPU int8", "tts": "Kokoro-82M ONNX CPU subject to user voice selection", "fallback_tts": "Piper CPU", "gpu_default": false, "requires_4090": false},
-  "tts_audition": {"kokoro_voices": ["af_heart", "af_bella", "af_nicole"], "piper_voices": ["en_US-amy-medium", "en_US-hfc_female-medium", "en_US-lessac-medium"], "lines_each": 6, "user_selection_required": true, "chatterbox_executed": false},
+  "recommendation": {"stt": "faster-whisper small.en CPU int8", "tts": "Kokoro-82M ONNX CPU with af_bella", "fallback_tts": "Piper CPU", "gpu_default": false, "requires_4090": false},
+  "tts_audition": {"kokoro_voices": ["af_heart", "af_bella", "af_nicole"], "piper_voices": ["en_US-amy-medium", "en_US-hfc_female-medium", "en_US-lessac-medium"], "lines_each": 6, "user_selected_voice": "af_bella", "selection_finalized": true, "chatterbox_executed": false},
+  "pronunciation": {"written_name": "GRACI", "spoken_form": "GRAY-see", "layer": "TTS presentation only", "authoritative_text_mutated": false, "lexicon_bounded": true, "automatic_rewriting": false, "finalist_samples": 4, "offline_small_en_backcheck": "4/4 transcribed as Gracie"},
   "privacy": {"audio_local_only": true, "audio_transient_by_default": true, "transcript_untrusted": true, "transcript_equivalent_to_typed_input": true, "tts_final_response_only": true, "cloud_runtime_allowed": false, "voice_has_authority": false},
   "licenses": [
     {"component": "faster-whisper", "license": "MIT"}, {"component": "Whisper code and weights", "license": "MIT"}, {"component": "whisper.cpp", "license": "MIT"}, {"component": "Kokoro-82M model and voices", "license": "Apache-2.0"}, {"component": "Chatterbox code and weights", "license": "MIT"}, {"component": "Piper 1.4.1 engine", "license": "GPL-3.0"}, {"component": "Piper voices", "license": "per-voice metadata; verify before redistribution"}

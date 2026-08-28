@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "engine": "Kokoro-82M ONNX",
+  "voice": "af_bella",
+  "purpose": "Phase 6A speech-only pronunciation finalist check",
+  "authoritative_text_mutated": false,
+  "results": [
+    {
+      "line": 1,
+      "authoritative_source_text": "GRACI is online and ready.",
+      "speech_presentation_text": "GRAY-see is online and ready.",
+      "pronunciation_override": {
+        "written": "GRACI",
+        "spoken": "GRAY-see"
+      },
+      "file": "phase6a/artifacts/audition/finalist-af_bella/graci-gray-see-01.wav",
+      "audio_seconds": 1.664,
+      "generation_seconds": 1.296
+    },
+    {
+      "line": 2,
+      "authoritative_source_text": "Good morning. GRACI is ready to help.",
+      "speech_presentation_text": "Good morning. GRAY-see is ready to help.",
+      "pronunciation_override": {
+        "written": "GRACI",
+        "spoken": "GRAY-see"
+      },
+      "file": "phase6a/artifacts/audition/finalist-af_bella/graci-gray-see-02.wav",
+      "audio_seconds": 2.261,
+      "generation_seconds": 1.46
+    },
+    {
+      "line": 3,
+      "authoritative_source_text": "GRACI will continue using the 3090.",
+      "speech_presentation_text": "GRAY-see will continue using the 3090.",
+      "pronunciation_override": {
+        "written": "GRACI",
+        "spoken": "GRAY-see"
+      },
+      "file": "phase6a/artifacts/audition/finalist-af_bella/graci-gray-see-03.wav",
+      "audio_seconds": 3.243,
+      "generation_seconds": 1.916
+    },
+    {
+      "line": 4,
+      "authoritative_source_text": "I am GRACI.",
+      "speech_presentation_text": "I am GRAY-see.",
+      "pronunciation_override": {
+        "written": "GRACI",
+        "spoken": "GRAY-see"
+      },
+      "file": "phase6a/artifacts/audition/finalist-af_bella/graci-gray-see-04.wav",
+      "audio_seconds": 1.003,
+      "generation_seconds": 0.925
+    }
+  ]
+}

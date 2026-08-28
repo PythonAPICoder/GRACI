@@ -23,7 +23,13 @@ Six identical lines were generated for each voice:
 - Kokoro: `af_heart`, `af_bella`, `af_nicole`
 - Piper: `en_US-amy-medium`, `en_US-hfc_female-medium`, `en_US-lessac-medium`
 
-Listen to Piper under `phase6a/artifacts/audition/<voice>/line-01.wav` through `line-06.wav`, and Kokoro under `phase6a/artifacts/audition/kokoro/<voice>/line-01.wav` through `line-06.wav`. The user must select finalists; Phase 6A does not choose GRACI's permanent voice. The committed pack is about 9.8 MB including the corpus and manifests. Model caches are excluded.
+Listen to Piper under `phase6a/artifacts/audition/<voice>/line-01.wav` through `line-06.wav`, and Kokoro under `phase6a/artifacts/audition/kokoro/<voice>/line-01.wav` through `line-06.wav`. The user selected Kokoro `af_bella` as the preferred Phase 6 production voice. The original pack remains as decision evidence. Model caches are excluded.
+
+## Final pronunciation decision
+
+`GRACI` must be spoken as `GRAY-see`. `pronunciation.py` implements a bounded, explicit whole-token technical lexicon that derives a speech-presentation string immediately before TTS. It does not mutate the authoritative response, conversation text, memory, evidence source text, logs, task input, reviewer output, adjudication, or stored project data. This is not a broad rewriting system.
+
+The four final `af_bella` pronunciation samples and their separate source/presentation evidence are under `artifacts/audition/finalist-af_bella/`. Their authoritative source fields retain `GRACI`; only `speech_presentation_text` contains `GRAY-see`. An offline back-check with the cached faster-whisper `small.en` model transcribed all four spoken names as “Gracie.” faster-whisper `small.en` CPU `int8` remains the recommended Phase 6B STT baseline.
 
 Piper generation was roughly 1.3 seconds per line on CPU. Kokoro used the 88 MiB int8 ONNX model and CPU provider; its detailed per-line timing is in `artifacts/audition/kokoro-generation.json`. The original Kokoro Python frontend was blocked by Windows Application Control while importing a spaCy DLL; the ONNX path succeeded.
 

@@ -2,6 +2,8 @@ import json
 import unittest
 from pathlib import Path
 
+from phase6a.pronunciation import speech_presentation_text
+
 ROOT = Path(__file__).resolve().parents[1]
 
 class Phase6AQualificationTests(unittest.TestCase):
@@ -18,7 +20,8 @@ class Phase6AQualificationTests(unittest.TestCase):
         self.assertEqual(len(data["stt_results"]), 3)
         self.assertFalse(data["runtime_integration_added"])
         self.assertTrue(all(not value for value in data["boundaries"].values()))
-        self.assertTrue(data["tts_audition"]["user_selection_required"])
+        self.assertTrue(data["tts_audition"]["selection_finalized"])
+        self.assertEqual(data["tts_audition"]["user_selected_voice"], "af_bella")
 
     def test_no_private_audio_or_model_cache_is_tracked(self):
         ignored = (ROOT / ".gitignore").read_text(encoding="utf-8")
@@ -37,6 +40,24 @@ class Phase6AQualificationTests(unittest.TestCase):
         self.assertIn("Phase 5 — COMPLETE", first)
         self.assertIn("Phase 6 — IN PROGRESS", first)
         self.assertIn("Phase 6A — CURRENT", first)
+
+    def test_pronunciation_override_is_bounded_whole_token_and_speech_only(self):
+        source = "GRACI is ready. GRACIOUS and XGRACI remain unchanged."
+        rendered = speech_presentation_text(source)
+        self.assertEqual(rendered, "GRAY-see is ready. GRACIOUS and XGRACI remain unchanged.")
+        self.assertEqual(source, "GRACI is ready. GRACIOUS and XGRACI remain unchanged.")
+        with self.assertRaises(ValueError):
+            speech_presentation_text("x" * 20_001)
+
+    def test_finalist_evidence_preserves_authoritative_sentences(self):
+        evidence = json.loads((ROOT / "phase6a/artifacts/audition/finalist-af_bella/pronunciation-audition.json").read_text(encoding="utf-8"))
+        self.assertEqual(evidence["voice"], "af_bella")
+        self.assertFalse(evidence["authoritative_text_mutated"])
+        self.assertEqual(len(evidence["results"]), 4)
+        for row in evidence["results"]:
+            self.assertIn("GRACI", row["authoritative_source_text"])
+            self.assertNotIn("GRAY-see", row["authoritative_source_text"])
+            self.assertIn("GRAY-see", row["speech_presentation_text"])
 
 if __name__ == "__main__":
     unittest.main()

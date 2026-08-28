@@ -7,7 +7,7 @@ Phase 6 uses push-to-talk. Voice is outside GRACI's authority boundary.
 - `VoiceCapture` (6B): explicit press/release, one local mono PCM buffer, hard duration/size limits, transient by default.
 - `SpeechToText` (6B): local faster-whisper worker, CPU `int8`, model kept warm when enabled, bounded transcript/result metadata.
 - `VoiceInputAdapter` (6C): validates and labels the transcript as untrusted user input, then calls the existing governed input boundary. It owns no tool, routing, memory, approval, or policy capability.
-- `TextToSpeech` (6D): accepts only the authoritative final user-facing response. Default implementation target is Kokoro ONNX on CPU; Piper is the reliability fallback. Voice selection remains user-gated.
+- `TextToSpeech` (6D): accepts only the authoritative final user-facing response. It derives a bounded speech-presentation copy through an explicit technical pronunciation lexicon, then sends only that copy to Kokoro. The authoritative response is never mutated. The selected implementation target is Kokoro ONNX on CPU with `af_bella`; Piper is the reliability fallback.
 - `AudioPlayback` (6D): local bounded queue, stop/cancel, no network, no authority.
 - `VoiceLifecycleObserver` (6E): observes trusted capture/playback boundaries and publishes LISTENING/SPEAKING later. It cannot affect execution and is not implemented in 6A.
 
@@ -23,4 +23,4 @@ Use faster-whisper `small.en`, CPU `int8`, as the Phase 6B baseline on this mach
 
 Do not use GPU voice inference by default. At inventory time the 3090 had 23,228 of 24,576 MiB in use by the existing workload. GPU qualification was therefore not practical without displacing GRACI inference; 4090 use is not required or assumed. A later opportunistic GPU mode may run only under existing capacity policy and must fall back to CPU.
 
-Kokoro-82M ONNX CPU is the preferred Phase 6D implementation target subject to user voice audition. Piper CPU is the fallback. Chatterbox remains a quality reference but was not executed: its 500M/PyTorch and reference-voice workflow add resource, consent, and deployment complexity that is unnecessary before the user auditions fixed voices.
+Kokoro-82M ONNX CPU with `af_bella` is the user-selected preferred Phase 6 production voice. The deterministic speech-only lexicon maps the whole token `GRACI` to `GRAY-see`; displayed, stored, logged, remembered, reviewed, and adjudicated text remains `GRACI`. Piper CPU is the fallback. Chatterbox remains a quality reference but was not executed: its 500M/PyTorch and reference-voice workflow add resource, consent, and deployment complexity.
