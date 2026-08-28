@@ -178,6 +178,16 @@ class Phase4DTests(unittest.TestCase):
         self.assertNotIn("Use COBALT", json.dumps(second.evidence))
         self.assertEqual(second.evidence["model_roles"], ["implementer"])
 
+    def test_corrupt_record_is_diagnosed_and_never_supplied(self):
+        valid_id = self.write().memory_id
+        corrupt_id = str(uuid.uuid4())
+        (self.memory_root / f"{corrupt_id}.json").write_text("{truncated", encoding="utf-8")
+        result = prepare_execution_memory(self.governance, self.request())
+        self.assertEqual(result.evidence["supplied_memory_ids"], [valid_id])
+        self.assertEqual(result.evidence["corruptions"][0]["memory_id_hint"], corrupt_id)
+        self.assertIn("malformed", result.evidence["corruptions"][0]["reason"])
+        self.assertNotIn(corrupt_id, serialize_memory_envelope(result.envelope))
+
     def test_phase4d_evidence_contract(self):
         path = Path(__file__).resolve().parents[1] / "phase4d" / "evidence" / "phase4d-acceptance.json"
         evidence = json.loads(path.read_text(encoding="utf-8"))

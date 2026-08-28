@@ -1,3 +1,13 @@
+# GRACI Phase 4 Persistent Memory — Complete
+
+Phase 4E integrated acceptance is complete. The local 3090-authoritative persistent
+memory subsystem now has accepted canonical JSON storage, governed writes and exact
+retrieval, explicit relevance/scope/lifecycle governance, and bounded untrusted-data
+integration with Qwen. Memory grants no authority, GLM remains content-independent,
+and the 4090, shared drive, Obsidian, and cloud are not canonical-memory dependencies.
+Closure architecture and evidence are under `phase4e/`. The next authorized phase is
+Phase 5 — Visualizer; it has not begun.
+
 # GRACI Phase 4D Memory-Guided Agent Execution
 
 Phases 0–3 and Phase 4A–4C remain complete. Phase 4D supplies exact governed

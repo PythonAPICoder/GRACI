@@ -1,0 +1,180 @@
+{
+  "evidence_schema_version": 1,
+  "phase": "4E",
+  "status": "PASS",
+  "starting_commit": "09e99810f713f3d489f075973af79a74becc799c",
+  "generated_at": "2026-08-28T03:48:00.567695Z",
+  "phase4_architecture": [
+    "4A canonical local JSON storage",
+    "4B governed ingress and exact retrieval",
+    "4C exact scope/relevance/lifecycle selection",
+    "4D bounded untrusted context for local execution"
+  ],
+  "canonical_schema_versions": [
+    1,
+    2
+  ],
+  "checks": {
+    "pipeline_create_retrieve_replay": true,
+    "forced_provenance": true,
+    "restart_continuity": true,
+    "supersession": true,
+    "expiration": true,
+    "conflict_fail_closed": true,
+    "corruption_excluded": true,
+    "real_qwen": true,
+    "server_identity": true
+  },
+  "synthetic_memory_ids": {
+    "durable": "70771c26-7e12-5ebc-86e2-375ebca8a80f",
+    "amber": "db8038aa-30eb-52bd-b171-36258421b809",
+    "superseded": "564577bb-3f2a-5113-8c6d-a12c26b063a2",
+    "replacement": "b421c2af-50f3-5d09-8a24-f87ef60a01f1",
+    "expired": "2dade175-1a92-53d5-ad8e-66f7dd451c3a"
+  },
+  "durability": {
+    "fresh_store": true,
+    "fresh_pipeline": true,
+    "fresh_governance": true,
+    "fresh_execution_preparation": true,
+    "same_id": "db8038aa-30eb-52bd-b171-36258421b809",
+    "envelope_characters": 647
+  },
+  "scope_relevance": {
+    "exact_only": true,
+    "no_fuzzy_matching": true,
+    "composition": "session -> project -> global only when explicitly requested",
+    "cross_scope_leakage": false
+  },
+  "supersession": {
+    "old_retained": true,
+    "old_status": "superseded",
+    "new_selected": true,
+    "idempotent_replay": true
+  },
+  "expiration": {
+    "host_clock": true,
+    "expired_excluded": true,
+    "read_time_mutation": false
+  },
+  "conflict": {
+    "diagnostics": [
+      {
+        "relevance_key": "project.phase4e.conflict",
+        "memory_type": "decision",
+        "memory_ids": [
+          "756fc640-3d0d-5fb1-86f4-2258683075ed",
+          "9057728b-4e2f-5fd5-81ec-058334b5461b"
+        ],
+        "reason": "AMBIGUOUS_ACTIVE_CANDIDATES"
+      }
+    ],
+    "usable_ids": [],
+    "model_arbitration": false
+  },
+  "corruption": {
+    "diagnostics": [
+      {
+        "memory_id_hint": "030f09a5-64c2-4bf3-8848-102e0f032643",
+        "reason": "MemoryValidationError: stored record 030f09a5-64c2-4bf3-8848-102e0f032643 is malformed"
+      },
+      {
+        "memory_id_hint": "c566df33-60fd-4caf-ba8f-7a795b1c8d11",
+        "reason": "MemoryValidationError: stored record c566df33-60fd-4caf-ba8f-7a795b1c8d11 is malformed"
+      }
+    ],
+    "reached_qwen": false
+  },
+  "bounds": {
+    "retrieval_default": 25,
+    "retrieval_hard": 100,
+    "scan": 1000,
+    "relevance_keys": 50,
+    "injection_records": 10,
+    "per_record_characters": 2000,
+    "aggregate_characters": 12000,
+    "llm_summarization": false
+  },
+  "optional_memory": {
+    "no_match_may_continue": true,
+    "truthful_status": true
+  },
+  "required_memory": {
+    "status": "MEMORY_CONFLICT",
+    "model_calls": 0,
+    "failed_before_inference": true
+  },
+  "qwen": {
+    "task_status": "PASS",
+    "memory_status": "MEMORY_APPLIED",
+    "selected_ids": [
+      "db8038aa-30eb-52bd-b171-36258421b809"
+    ],
+    "supplied_ids": [
+      "db8038aa-30eb-52bd-b171-36258421b809"
+    ],
+    "context_characters": 647,
+    "server_reported_model": "qwen3.8-27b-q4_k_m",
+    "deterministic_result": "PASS"
+  },
+  "security": {
+    "attack_fixtures": [
+      "imperative instruction",
+      "fake system message",
+      "fake tool request",
+      "fake routing/MO2 override",
+      "fake reviewer approval",
+      "fake cloud authorization",
+      "path-looking content",
+      "code/shell-looking content"
+    ],
+    "untrusted_data": true,
+    "policy_changed": false,
+    "unauthorized_action_executed": false
+  },
+  "reviewer": {
+    "memory_content_supplied": false,
+    "metadata_only": true,
+    "deterministic_adjudication": true,
+    "live_glm": "omitted; existing Phase 3B/4D regression tests prove the boundary"
+  },
+  "authority": {
+    "canonical_memory_host": "3090",
+    "4090_vault_access": "none",
+    "4090_vault_mutation": "none",
+    "shared_mutable_memory": false,
+    "shared_drive": "intentionally unused",
+    "obsidian_runtime_dependency": false
+  },
+  "privacy": {
+    "cloud_ai_usage": "none",
+    "cloud_memory_service": "none",
+    "memory_telemetry": "none",
+    "new_memory_network_service": "none"
+  },
+  "schema_v1": {
+    "readable": true,
+    "governance_metadata_invented": false
+  },
+  "automatic_memory_write": false,
+  "automated_verification": {
+    "warning_strict_tests": 188,
+    "result": "PASS",
+    "prior_phase_1_through_4d_tests": 185,
+    "prior_phase_regression": "PASS",
+    "compilation_static_validation": "PASS",
+    "json_evidence_files_validated": 26,
+    "bounded_secret_scan": "PASS; only intentional rejection fixtures matched",
+    "git_diff_check": "PASS"
+  },
+  "defects": [
+    {
+      "component": "Phase 4D corruption evidence serialization",
+      "symptom": "Corrupt vault record caused AttributeError before context preparation",
+      "cause": "Memory execution referenced reason instead of CorruptionDiagnostic.error",
+      "repair": "Use the canonical error field and regress corrupt exclusion",
+      "result": "PASS"
+    }
+  ],
+  "final_acceptance": "PASS"
+}

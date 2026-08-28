@@ -542,3 +542,49 @@ Memory. Phase 4 has not begun.
   4090-owned vault, cloud memory, or Obsidian integration.
 - Phase 4D stops here. The next authorized stage is Phase 4E — Persistent Memory
   Acceptance & Closure. Phase 4E has not begun.
+
+# Phase 4E integrated acceptance and closure
+
+- Accepted starting commit `09e99810f713f3d489f075973af79a74becc799c` and a clean
+  authoritative `E:\GRACI` worktree were verified before modification.
+- Phase 4A–4D compose as canonical local UTF-8 JSON storage, explicit governed
+  provenance-forcing writes and exact retrieval, deterministic relevance/scope/
+  lifecycle selection, and bounded Qwen context classified as untrusted data.
+- Schema v1 remains readable without invented relevance or lifecycle metadata.
+  Schema v2 is the governed form with exact dotted relevance keys, expiration, and
+  explicit supersession. No destructive migration was performed.
+- The acceptance matrix covers durability and fresh reconstruction, all four write
+  provenance paths, UUIDv5 retry semantics, project/session/global isolation, exact
+  relevance, supersession/history, host-clock expiration, conflicts, corruption,
+  bounds, optional and required execution, hostile content, reviewer independence,
+  3090/4090 authority, and cloud/privacy boundaries.
+- Fresh `MemoryStore`, `MemoryPipeline`, `MemoryGovernance`, and Phase 4D preparation
+  objects recovered the same synthetic AMBER record and produced the same bounded
+  usable context. Required conflict stopped with zero model calls.
+- A real local 3090 Qwen run received the selected/supplied AMBER memory ID, reported
+  model `qwen3.8-27b-q4_k_m`, changed only the allowlisted disposable file, and passed
+  deterministic tests. Memory did not alter tools, tests, budgets, routing, or policy.
+- Eight hostile fixtures cover imperative, fake-system, fake-tool, routing/MO2,
+  reviewer, cloud, path-looking, and shell-looking content. They remain inert envelope
+  data and confer no permission.
+- GLM content independence remains proven by deterministic Phase 3B/4D integration:
+  reviewer input contains memory status/IDs only, failed tests remain FAIL, malformed
+  output fails closed, identity is enforced, and adjudication is deterministic. A
+  redundant live GLM opinion was intentionally omitted.
+- Acceptance discovered and repaired one genuine defect: Phase 4D corruption evidence
+  read `CorruptionDiagnostic.reason`, although the storage contract names the field
+  `error`. The one-line compatibility repair plus regression test proves corrupt
+  records are diagnosed and never supplied to Qwen.
+- Canonical memory remains exclusively 3090-authoritative. There was no 4090 vault
+  access or mutation and no shared mutable memory. Shared-drive use remains
+  intentionally unnecessary; future immutable backup/export may be considered
+  separately. Obsidian remains a possible derived view, never a canonical editor or
+  runtime dependency.
+- Phase 4 provides no semantic/vector search, embeddings, automatic conversation
+  capture, unrestricted autonomous learning, model conflict resolution, comprehensive
+  secret detection, Obsidian canonical editing, or cross-machine canonical-memory
+  synchronization. These omissions are intentional boundaries.
+- Closure evidence is `phase4e/evidence/phase4e-closure.json`; the consolidated design
+  and operational contract is `phase4e/README.md`.
+- **PHASE 4 — PERSISTENT MEMORY COMPLETE.** The next authorized phase is Phase 5 —
+  Visualizer. Phase 5 has not begun.

@@ -63,7 +63,7 @@ def prepare_execution_memory(governance: MemoryGovernance | None,
                        "memory_type": item.memory_type,
                        "memory_ids": list(item.memory_ids), "reason": item.reason}
                       for item in selection.conflicts],
-        "corruptions": [{"memory_id_hint": item.memory_id_hint, "reason": item.reason}
+        "corruptions": [{"memory_id_hint": item.memory_id_hint, "reason": item.error}
                         for item in selection.corruptions],
         "selection_exclusions": [{"memory_id": item.memory_id, "reason": item.reason}
                                  for item in selection.exclusions],
