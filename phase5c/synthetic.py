@@ -17,7 +17,8 @@ from graci.visualizer import (
 STATES = (SystemState.IDLE, SystemState.PLANNING, SystemState.RETRIEVING_MEMORY,
           SystemState.REASONING, SystemState.EXECUTING_TOOL, SystemState.TESTING,
           SystemState.REVIEWING, SystemState.ADJUDICATING, SystemState.COMPLETED,
-          SystemState.WARNING, SystemState.FAILED)
+          SystemState.WARNING, SystemState.FAILED, SystemState.LISTENING,
+          SystemState.SPEAKING)
 EVENT_TYPES = (EventType.SYSTEM_IDLE, EventType.TASK_STARTED, EventType.MEMORY_REQUESTED,
                EventType.QWEN_STARTED, EventType.TOOL_STARTED, EventType.TESTS_STARTED,
                EventType.REVIEW_STARTED, EventType.ADJUDICATION_COMPLETED,

@@ -10,13 +10,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+from graci.visualizer import SystemState
 from graci.visualizer_backend import DEFAULT_PORT, VisualizerServer, VisualizerStateProvider
 from phase5c.synthetic import lifecycle
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--hold", choices=("idle", "reasoning", "completed", "blocked"))
+    parser.add_argument("--hold", choices=tuple(state.value for state in SystemState) + ("blocked",))
     parser.add_argument("--interval", type=float, default=2.5)
     args = parser.parse_args()
     provider = VisualizerStateProvider()
@@ -32,9 +33,10 @@ def main() -> None:
             if args.hold:
                 while True: time.sleep(1)
             while True:
-                for index, snapshot in enumerate(snapshots[:9]):
+                for index, snapshot in enumerate(snapshots):
                     provider.publish_snapshot(snapshot)
-                    provider.publish_event(events[index], observed_at=events[-1].timestamp)
+                    if index < len(events):
+                        provider.publish_event(events[index], observed_at=events[-1].timestamp)
                     time.sleep(max(.25, args.interval))
         except KeyboardInterrupt:
             pass

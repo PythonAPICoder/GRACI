@@ -2,6 +2,13 @@
   "phase": "5C",
   "status": "PASS",
   "starting_commit": "7a12d4c42a9ac1951c47653ce11048c2da346df8",
+  "visual_refinement": {
+    "starting_commit": "8645d77d78f5927a542c25c1947c6e0a9aefbfc2",
+    "request": "User visual review requested a living computational orb through visible dashed orbital motion without redesigning the accepted central core.",
+    "implementation": "CSS/SVG flowing dashed primary orbit, tilted counter-rotating secondary orbit, and five restrained signal nodes with state-aware timing and semantics.",
+    "reduced_motion": "Continuous core-orbit, dash, node, ripple, and pulse animation is disabled; static paths, nodes, labels, and semantic color remain.",
+    "visual_approval": "Pending follow-up user inspection; permanent visual-design approval is not declared."
+  },
   "architecture": {
     "technology": "packaged HTML, CSS, vanilla JavaScript, and SVG; zero external runtime dependencies",
     "local_url": "http://127.0.0.1:8766/",
@@ -21,7 +28,7 @@
     "reviewing": "violet GLM pathway",
     "adjudicating": "faster convergence",
     "completed_warning_failed": "green amber red semantic response",
-    "listening_speaking": "reserved wave geometry",
+    "listening_speaking": "reserved calm ripple and rhythmic outward pulse; no voice implementation",
     "reduced_motion": "continuous animation disabled; labels, color, and geometry retained"
   },
   "security": {
@@ -45,6 +52,9 @@
     "snapshot_rendered": true,
     "sse_events_rendered": true,
     "reasoning_state_rendered": true,
+    "reasoning_orbital_refinement_rendered": true,
+    "core_text_stationary_and_readable": true,
+    "reduced_motion_observed_in_browser": true,
     "completed_state_rendered": true,
     "4090_available_rendered": true,
     "4090_mo2_blocked_rendered": true,
@@ -54,14 +64,15 @@
     "horizontal_overflow_1920": false
   },
   "synthetic_fixture": {
-    "states": ["idle", "planning", "retrieving_memory", "reasoning", "executing_tool", "testing", "reviewing", "adjudicating", "completed", "warning", "failed"],
+    "states": ["idle", "planning", "retrieving_memory", "reasoning", "executing_tool", "testing", "reviewing", "adjudicating", "completed", "warning", "failed", "listening", "speaking"],
     "http_mutator": false,
     "core_runtime_dependency": false,
     "result": "PASS"
   },
   "screenshots": [
     "phase5c/evidence/screenshots/phase5c-reasoning-3440x1440.png",
-    "phase5c/evidence/screenshots/phase5c-completed-3440x1440.png"
+    "phase5c/evidence/screenshots/phase5c-completed-3440x1440.png",
+    "phase5c/evidence/screenshots/phase5c-reasoning-orbital-refinement-3440x1440.png"
   ],
   "known_limitations": [
     "Version 1 visual styling remains subject to user review.",
@@ -69,7 +80,7 @@
     "Phase 5D real runtime publication wiring is intentionally absent."
   ],
   "verification": {
-    "focused_phase5a_to_5c_tests": "50 passed",
+    "focused_phase5a_to_5c_tests": "51 passed",
     "warning_strict_repository_tests": "239 passed",
     "phase5a_phase5b_regression": "PASS (included in focused 50)",
     "phase1_to_4_regression": "PASS (included in 239)",

@@ -14,7 +14,7 @@ Phase 5C adds G.R.A.C.I.'s first browser identity as a same-origin, read-only co
 
 The primary layout is compute/agents, central SVG core, and current activity. A horizontal memory → Qwen → tools → tests → GLM review → deterministic adjudication pipeline and bounded operations/event regions fill the lower screen. The columns compress at 1920px; below 1450px activity reflows below the core.
 
-The core uses concentric orbits, network paths, nodes, a breathing center, and semantic pathway pulses. Idle is calm; planning/reasoning accelerate; memory, tool, and review illuminate directional paths; testing scans; adjudication converges; completed, warning, and failed use green, amber, and red semantics; listening/speaking reserve a wave treatment. Reduced motion disables continuous movement while preserving labels, color, and geometry.
+Following user visual review at commit `8645d77d78f5927a542c25c1947c6e0a9aefbfc2`, the accepted central text, hexagon, scale, and outer geometry remain unchanged. The inner core now has a flowing dashed primary orbit, a lighter tilted counter-orbit, and five restrained signal nodes. CSS-only transforms and dash offsets provide state-aware motion: idle is calm; planning/reasoning accelerate; memory, tool, and review emphasize their semantic paths; testing scans; adjudication stabilizes; completed pulses once; warning and failure remain non-flashing amber/red; listening and speaking reserve ripple/pulse behaviors without implementing voice. Reduced motion stops continuous movement while preserving labels, semantic color, dashed geometry, and nodes.
 
 3090 and 4090 remain separate. The 3090 is PRIMARY / AUTHORITY. The 4090 shows endpoint, eligibility, MO2, and policy reason from snapshot truth. Qwen uses cyan and GLM violet; neither exposes or fabricates thought text. Memory shows metadata counts only. Model review and deterministic acceptance are separate panels.
 
@@ -28,4 +28,4 @@ Phase 5C does **not** implement real runtime publication wiring, task submission
 
 ## Manual inspection
 
-Run `python -m phase5c.run_visual_demo --hold reasoning`, then open `http://127.0.0.1:8766/`. Replace `reasoning` with `idle`, `completed`, or `blocked`; omit `--hold` to loop. Evidence is in `phase5c/evidence/phase5c-acceptance.json`; browser captures are under `phase5c/evidence/screenshots/`.
+Run `python -m phase5c.run_visual_demo --hold reasoning`, then open `http://127.0.0.1:8766/`. `--hold` accepts every system state plus `blocked`; omit it to loop through every visual state. Evidence is in `phase5c/evidence/phase5c-acceptance.json`; browser captures are under `phase5c/evidence/screenshots/`. Visual styling remains subject to the user's follow-up inspection; this refinement is not permanent design approval.
