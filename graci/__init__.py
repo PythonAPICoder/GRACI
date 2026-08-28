@@ -40,6 +40,8 @@ from .push_to_talk import (PushToTalkController, PushToTalkLifecycleError,
 from .speech import (CapturedAudio, FasterWhisperConfig,
                      FasterWhisperSubprocessSTT, TranscriptionResult,
                      TranscriptionStatus)
+from .speech_runtime import (GovernedRuntime, SpeechRuntimeAdapter,
+                             TranscriptSubmissionError)
 
 __all__ = [
     "AutonomousRepairController", "Config", "Controller", "LoopLimits",
@@ -63,4 +65,5 @@ __all__ = [
     "PushToTalkController", "PushToTalkLifecycleError", "PushToTalkState",
     "CapturedAudio", "FasterWhisperConfig", "FasterWhisperSubprocessSTT",
     "TranscriptionResult", "TranscriptionStatus",
+    "GovernedRuntime", "SpeechRuntimeAdapter", "TranscriptSubmissionError",
 ]

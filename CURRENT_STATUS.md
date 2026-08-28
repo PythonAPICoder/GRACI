@@ -4,7 +4,9 @@
 - Phase 6A voice qualification: complete.
 - Phase 6B push-to-talk/local STT: complete; verification is recorded in
   `phase6b/TEST_LOG.md` and `phase6b/evidence/phase6b-closure.json`.
-- Phase 6C runtime transcript integration and all later voice-loop behavior: deferred.
+- Phase 6C governed runtime transcript integration: complete; successful nonblank
+  transcripts enter the ordinary governed `run(task)` boundary unchanged.
+- TTS, automatic spoken responses, and all later voice-loop behavior: deferred.
 
 GRACI remains local-first and fully functional on the primary RTX 3090 machine alone.
 No cloud speech service or optional 4090 capacity is required.

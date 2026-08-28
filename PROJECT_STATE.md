@@ -718,3 +718,21 @@ Memory. Phase 4 has not begun.
   architecture and limitations are `phase5e/README.md`.
 - **PHASE 5 — VISUALIZER COMPLETE.** The next authorized phase is Phase 6 — Voice.
   Phase 6 has not begun.
+
+# Phase 6C governed runtime transcript integration
+
+- Accepted starting commit `daa4d8496dfcfacc812fc05f3a447291191a38df` with a clean
+  `main` worktree after Phase 6B closure.
+- Added a thin typed adapter from Phase 6B `TranscriptionResult` to the existing
+  governed runtime `run(task)` user-input boundary. Exact transcript text is passed
+  unchanged and gains no additional authority.
+- Failed, empty, and whitespace-only transcriptions stop before runtime submission.
+  Runtime exceptions remain exceptions and governed FAIL records are returned intact;
+  no response is fabricated.
+- Repeated sequential inputs are supported. Each accepted transcript causes exactly
+  one governed runtime call. No TTS, secondary execution, microphone logic, memory
+  change, persistence/schema change, cloud path, or 4090 scheduling was added.
+- The current runtime record has no appropriate input-source metadata field. Phase 6C
+  therefore does not rewrite semantic text or redesign persistence to encode speech
+  provenance.
+- Verification and reconstruction details are recorded under `phase6c/`.

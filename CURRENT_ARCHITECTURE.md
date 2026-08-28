@@ -1,13 +1,16 @@
 # Current GRACI Architecture
 
 The authoritative detailed history remains `PROJECT_STATE.md`; phase reconstruction
-documents live under each `phase*/` directory. Phase 6B adds an independent local
-speech-input stack:
+documents live under each `phase*/` directory. Phase 6C connects the independent
+local speech-input stack to the existing governed runtime:
 
-`explicit push-to-talk -> Windows PCM capture -> transient WAV -> local faster-whisper -> typed transcription result`
+`explicit push-to-talk -> Windows PCM capture -> transient WAV -> local faster-whisper -> typed transcription result -> SpeechRuntimeAdapter -> existing governed runtime run(task)`
 
-Capture, lifecycle orchestration, STT, and higher-level GRACI behavior are separate.
-The transcript is not yet connected to the governed runtime and grants no authority.
+The adapter accepts only successful, nonblank typed results and passes their exact
+text through the same `run(task)` boundary as typed input. It does not add grants,
+approval, execution, memory, or validation behavior. Capture, lifecycle orchestration,
+STT, and higher-level GRACI behavior remain separate. The runtime has no input-source
+metadata facility, so no semantic text is altered to encode speech provenance.
 The primary 3090 machine is independently sufficient; STT uses CPU and no cloud or
-4090 path. See `phase6a/ARCHITECTURE.md` for the voice authority boundary and
-`phase6b/README.md` for implementation detail.
+4090 path. There is still no TTS or automatic spoken response. See
+`phase6c/README.md` for the integration contract.
