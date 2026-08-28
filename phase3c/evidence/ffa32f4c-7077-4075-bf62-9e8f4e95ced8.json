@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "phase": "3C",
+  "run_id": "ffa32f4c-7077-4075-bf62-9e8f4e95ced8",
+  "started_at": "2026-08-28T00:39:19.683495Z",
+  "ended_at": "2026-08-28T00:39:19.756881Z",
+  "node_id": "4090",
+  "endpoint_id": "4090-llama-cpp",
+  "endpoint": "http://192.168.0.101:8080/v1",
+  "mo2_query": {
+    "state": "RUNNING",
+    "reason_code": "exact_process_found",
+    "checked_at": "2026-08-28T00:39:19.683525Z",
+    "http_status": 200,
+    "mechanism": "graci-mo2-status-http-v1",
+    "process_name": "ModOrganizer.exe",
+    "expected_state": "RUNNING"
+  },
+  "endpoint_health": {
+    "state": "healthy",
+    "reason": "models_endpoint_valid",
+    "checked_at": "2026-08-28T00:39:19.744218Z",
+    "observed_models": [
+      "GLM-4.7-Flash-64x2.6B-Q4_K_M",
+      "qwen3.8-27b-q4_k_m"
+    ],
+    "http_status": 200
+  },
+  "required_model_check": {
+    "model_id": "qwen3.8-27b-q4_k_m",
+    "available": true
+  },
+  "eligibility": {
+    "eligible": false,
+    "reason_code": "mo2_running",
+    "explanation": "ModOrganizer.exe is running on the 4090."
+  },
+  "network_operations": [
+    {
+      "method": "GET",
+      "purpose": "exact MO2 status",
+      "path": "/graci/v1/mo2"
+    },
+    {
+      "method": "GET",
+      "purpose": "llama.cpp health and model discovery",
+      "path": "/v1/models"
+    }
+  ],
+  "inference_requests": 0,
+  "cloud_ai_used": false,
+  "final_status": "PASS"
+}

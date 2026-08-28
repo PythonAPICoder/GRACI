@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "phase": "3C",
+  "run_id": "c60baa4e-db7c-441c-b57d-877ee5e5e1e8",
+  "started_at": "2026-08-28T00:36:56.089603Z",
+  "ended_at": "2026-08-28T00:36:56.179462Z",
+  "node_id": "4090",
+  "endpoint_id": "4090-llama-cpp",
+  "endpoint": "http://192.168.0.101:8080/v1",
+  "mo2_query": {
+    "state": "NOT_RUNNING",
+    "reason_code": "exact_process_absent",
+    "checked_at": "2026-08-28T00:36:56.089633Z",
+    "http_status": 200,
+    "mechanism": "graci-mo2-status-http-v1",
+    "process_name": "ModOrganizer.exe",
+    "expected_state": "NOT_RUNNING"
+  },
+  "endpoint_health": {
+    "state": "healthy",
+    "reason": "models_endpoint_valid",
+    "checked_at": "2026-08-28T00:36:56.167348Z",
+    "observed_models": [
+      "GLM-4.7-Flash-64x2.6B-Q4_K_M",
+      "qwen3.8-27b-q4_k_m"
+    ],
+    "http_status": 200
+  },
+  "required_model_check": {
+    "model_id": "qwen3.8-27b-q4_k_m",
+    "available": true
+  },
+  "eligibility": {
+    "eligible": true,
+    "reason_code": "eligible",
+    "explanation": "MO2 is absent and the optional endpoint and model are available."
+  },
+  "network_operations": [
+    {
+      "method": "GET",
+      "purpose": "exact MO2 status",
+      "path": "/graci/v1/mo2"
+    },
+    {
+      "method": "GET",
+      "purpose": "llama.cpp health and model discovery",
+      "path": "/v1/models"
+    }
+  ],
+  "inference_requests": 0,
+  "cloud_ai_used": false,
+  "final_status": "PASS"
+}

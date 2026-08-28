@@ -11,12 +11,37 @@ GRACI is a local-first AI workload orchestration project. It will coordinate inf
 - Overall Build: Phase 3
 - Completed Phases: Phase 1 — Minimal GRACI Core; Phase 2 — Autonomous Loop
 - Current Phase: Phase 3 — Resource / Model Router
-- Completed Stages: Phase 3A — Resource & Endpoint Registry; Phase 3B — Local Model Role Routing
-- Next Stage: Phase 3C — 4090 Availability & MO2 Policy
+- Completed Stages: Phase 3A — Resource & Endpoint Registry; Phase 3B — Local Model Role Routing; Phase 3C — 4090 Availability & MO2 Policy
+- Next Stage: Phase 3D — Distributed Routing / Failover
 
 Phase 1A through Phase 1D and Phase 2A through Phase 2C are accepted. Phase 2 is
 implemented, verified, closed, and committed by the closure commit containing this
-state. Phase 3A and Phase 3B are implemented, verified, and accepted.
+state. Phase 3A, Phase 3B, and Phase 3C are implemented, verified, and accepted.
+
+## Phase 3C 4090 availability and MO2 policy
+
+- `graci.availability` adds a fixed, read-only, fail-closed query for exact process
+  `ModOrganizer.exe` through the 4090's narrow LAN status endpoint. Explicit states
+  are RUNNING, NOT_RUNNING, UNKNOWN, and ERROR; only definitive NOT_RUNNING permits
+  evaluation to continue.
+- The one-time 4090 configuration is a startup Scheduled Task serving only the
+  schema-version-1 MO2 response on TCP 8765. Its firewall rule allows only
+  `192.168.0.100` to `192.168.0.101:8765`. It enables no WinRM, remote WMI,
+  general PowerShell remoting, arbitrary query/command, termination, or service
+  control. Details are under `phase3c/`.
+- Eligibility precedence is node disabled, MO2 running, MO2 unknown, MO2 query
+  error, endpoint unknown, endpoint unhealthy, required model unavailable, other
+  policy block, then eligible. The bounded schema-valid `/models` health check is
+  independent and can never override the MO2 gate.
+- The warning-strict suite passes 86 tests, including all 75 prior regressions.
+  Real Test A `c60baa4e-db7c-441c-b57d-877ee5e5e1e8` observed MO2 NOT_RUNNING,
+  a healthy 4090 endpoint, both models, and eligibility true. Real Test B
+  `ffa32f4c-7077-4075-bf62-9e8f4e95ced8` observed MO2 RUNNING while the endpoint
+  remained healthy, and eligibility failed with `mo2_running`. Evidence is under
+  `phase3c/evidence/`; both records prove zero inference requests.
+- The 3090 remains primary and authoritative. Phase 3B Qwen/GLM routing is
+  unchanged and independent of every 4090 condition. Phase 3C exposes only an
+  eligibility answer; distributed execution remains unauthorized until Phase 3D.
 
 ## Phase 3B local model role routing
 
@@ -261,7 +286,8 @@ state. Phase 3A and Phase 3B are implemented, verified, and accepted.
   memory, service/API wrapper, or automatic workspace/parent creation.
 - Repair uses complete-file atomic replacement, not a patch primitive. The caller
   must enumerate readable/editable files and provide the deterministic test directory.
-- The unresolved 4090 process-detection blocker remains fail-closed.
+- The 4090 requires its narrowly configured startup status task and firewall rule;
+  their absence or failure makes only the 4090 ineligible.
 
 ## Qualification status
 
@@ -282,18 +308,21 @@ state. Phase 3A and Phase 3B are implemented, verified, and accepted.
 - GRACI must never depend on the 4090 to complete required work.
 - Before sending inference or other workloads to the 4090, GRACI must determine that `ModOrganizer.exe` is not running on the 4090 PC.
 - If `ModOrganizer.exe` is running, GRACI must send no tasks to the 4090.
-- Remote detection of `ModOrganizer.exe` is unresolved and must remain fail-closed. Until detection is implemented and verified, the 4090 is not eligible for GRACI workloads.
+- Remote detection of exact `ModOrganizer.exe` is implemented through the narrow
+  read-only Phase 3C status endpoint. Unknown and error results remain fail-closed.
 - Local AI is the default.
 - Cloud AI is an exception and escalation path, not the normal execution path.
 - No cloud-AI integration is authorized for Phase 1A.
 - The repository and durable on-disk state are authoritative. Do not rely on conversation history as project state.
 
-## Known blocker
+## Resolved Phase 3C blocker
 
-The Work environment cannot currently authenticate a safe, read-only remote process query on the 4090 PC. A least-privilege mechanism must later be selected, authorized, implemented, and verified before the 4090 becomes workload-eligible.
+The prior remote-process authentication blocker was resolved without broad Windows
+remoting by installing the narrow Phase 3C status endpoint. It exposes no unrelated
+process data or command interface.
 
 ## Next work
 
-The next authorized stage is Phase 3C — 4090 Availability & MO2 Policy. Phase 3B
-must not be extended into that stage without new authorization; the 4090 remains
-ineligible while the remote process-detection blocker is unresolved.
+The next authorized stage is Phase 3D — Distributed Routing / Failover. Phase 3C
+must not be extended into that stage without new authorization. The 4090 remains
+an optional eligibility signal only and receives no workloads.

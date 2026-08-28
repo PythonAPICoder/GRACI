@@ -1,10 +1,11 @@
-# GRACI Phase 3 Resource / Model Router — Phase 3B Complete
+# GRACI Phase 3 Resource / Model Router — Phase 3C Complete
 
 Phase 1 and Phase 2 are complete. Phase 3A added the deterministic typed resource,
 endpoint, model, health, and eligibility registry. Phase 3B uses it to route the
 implementer role to Qwen and reviewer/verifier roles to GLM on the primary 3090.
-Both the primary 3090 and optional 4090 are represented, but Phase 3B policy keeps
-the 4090 ineligible. Phase 2 provides a bounded governed multi-step repair loop
+Phase 3C can evaluate whether the optional 4090 is eligible using exact MO2 process
+state plus independent endpoint/model health. It still cannot route work there.
+Phase 2 provides a bounded governed multi-step repair loop
 over a disposable workspace. Local Qwen can list configured scope, inspect explicitly
 allowlisted files, make multiple independently governed replacements, and request the
 fixed deterministic unittest command. Only verified tests establish PASS.
@@ -28,9 +29,8 @@ python -W error -m unittest discover -s tests -v
 All inference is fixed to local provider `local-llama-cpp` and endpoint
 `http://127.0.0.1:8080/v1`. Governed implementation uses
 `qwen3.8-27b-q4_k_m`; required read-only review uses
-`GLM-4.7-Flash-64x2.6B-Q4_K_M`. The unresolved safe
-process-detection requirement keeps the 4090 unavailable, and the accepted system
-has no cloud AI path.
+`GLM-4.7-Flash-64x2.6B-Q4_K_M`. The accepted system has no 4090 inference or
+cloud AI path.
 
 Phase 1B adds a deterministic, workspace-contained `graci.ToolLayer` for safe text
 file operations, a narrow approved command policy, unittest execution, and read-only
@@ -80,7 +80,12 @@ contract. Ordinary code adjudicates tests plus review; reviewer FAIL, malformed
 output, identity mismatch, or provider failure prevents workflow PASS. See
 `phase3b/README.md` and `phase3b/evidence/`.
 
+Phase 3C adds the fixed read-only `ModOrganizer.exe` status detector and pure 4090
+eligibility policy. Both real MO2 states were observed: NOT_RUNNING plus healthy
+models was eligible, while RUNNING plus the same healthy endpoint was ineligible
+with `mo2_running`. See `phase3c/README.md` and `phase3c/evidence/`.
+
 The implementation still has no reviewer-driven repair, reviewer tools,
 unrestricted planning, scheduling, load balancing, memory, arbitrary shell,
 package/network operations, Git mutation, 4090 execution, or cloud escalation.
-Phase 3C — 4090 Availability & MO2 Policy is the next authorized stage.
+Phase 3D — Distributed Routing / Failover is the next authorized stage.
