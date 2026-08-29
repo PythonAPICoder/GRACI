@@ -1,5 +1,10 @@
 # Current GRACI Status
 
+Current authority and policy are canonical in
+[`governance/CURRENT_POLICY.md`](governance/CURRENT_POLICY.md) and the stable
+[`governance/POLICY_INDEX.md`](governance/POLICY_INDEX.md). This file reports
+implementation status and evidence; it does not independently grant authority.
+
 ## Phase 8B resident latest-turn continuity — COMPLETE IN REPOSITORY
 
 The resident visualizer now projects one bounded latest completed browser turn in

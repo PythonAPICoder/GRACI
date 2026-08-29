@@ -1,5 +1,9 @@
 # GRACI Phase 8 — Presence & Visual Identity In Progress
 
+> Current governance is canonical in [`governance/CURRENT_POLICY.md`](governance/CURRENT_POLICY.md),
+> with stable policy IDs in [`governance/POLICY_INDEX.md`](governance/POLICY_INDEX.md).
+> Phase records below remain historical implementation evidence.
+
 **G.R.A.C.I.** = **General Reasoning And Conversational Intelligence**
 
 This is the current product-owner canonical identity definition. It supersedes the

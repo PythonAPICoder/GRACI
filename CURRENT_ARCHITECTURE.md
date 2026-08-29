@@ -1,5 +1,10 @@
 # Current GRACI Architecture
 
+Canonical governance and stable policy IDs live in
+[`governance/CURRENT_POLICY.md`](governance/CURRENT_POLICY.md) and
+[`governance/POLICY_INDEX.md`](governance/POLICY_INDEX.md). This document describes
+implemented architecture; code/configuration/tests remain deterministic enforcement.
+
 ## Phase 8B resident latest-turn continuity
 
 `completed governed browser turn -> validated TurnResult/AuthoritativeFinalResponse -> fail-open bounded LatestTurnView -> snapshot v2 + latest_turn_updated SSE event -> localhost browser`
