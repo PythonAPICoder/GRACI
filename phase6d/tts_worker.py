@@ -14,7 +14,7 @@ def main() -> None:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--model", type=Path, required=True)
     parser.add_argument("--voices", type=Path, required=True)
-    parser.add_argument("--voice", choices=("af_bella",), required=True)
+    parser.add_argument("--voice", choices=("af_heart",), required=True)
     parser.add_argument("--device", choices=("cpu",), required=True)
     parser.add_argument("--max-text-chars", type=int, required=True)
     parser.add_argument("--max-audio-bytes", type=int, required=True)

@@ -90,7 +90,7 @@ Ordinary `python -m graci "task"` interaction now enters the accepted Phase 7A
 coordinator and its single existing governed `run(task)` submission statement.
 `--speech` is one explicit push-to-talk turn: hold Spacebar to capture and release
 Spacebar to stop and transcribe; `--speak` is explicit opt-in presentation through
-accepted local Kokoro `af_bella`. Typed mode never captures audio and presentation
+accepted local Kokoro `af_heart`. Typed mode never captures audio and presentation
 is absent by default.
 
 The CLI emits a bounded allowlisted JSON projection and deterministic exit status.

@@ -22,9 +22,10 @@ rewritten.
 ## Synthesis and playback
 
 `KokoroSubprocessTTS` starts the qualified Python 3.12 environment for each explicit
-request and invokes `phase6d/tts_worker.py`. The worker accepts only `af_bella`, CPU,
-local model/voice paths, and bounded file inputs. It uses Kokoro-82M ONNX and writes a
-mono 16-bit PCM WAV. The parent validates the strict JSON identity and the WAV before
+request and invokes `phase6d/tts_worker.py`. The worker accepts only `af_heart`, CPU,
+local model/voice paths, and bounded file inputs. Synthesis remains fixed at speed
+`1.00`. It uses Kokoro-82M ONNX and writes a mono 16-bit PCM WAV. The parent validates
+the strict JSON identity and the WAV before
 exposing immutable audio bytes. The worker is not resident and has no download,
 cloud, GPU, or 4090 path.
 

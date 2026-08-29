@@ -91,15 +91,15 @@ class KokoroConfig:
     worker_script: Path
     model_path: Path
     voices_path: Path
-    voice: str = "af_bella"
+    voice: str = "af_heart"
     device: str = "cpu"
     timeout_seconds: float = 60.0
     max_audio_bytes: int = MAX_SYNTHESIZED_AUDIO_BYTES
     max_audio_seconds: float = MAX_SYNTHESIZED_AUDIO_SECONDS
 
     def __post_init__(self) -> None:
-        if self.voice != "af_bella":
-            raise ValueError("Phase 6D production voice is fixed to af_bella")
+        if self.voice != "af_heart":
+            raise ValueError("production voice is fixed to af_heart")
         if self.device != "cpu":
             raise ValueError("Phase 6D Kokoro synthesis is fixed to local CPU")
         if not 0 < self.timeout_seconds <= 120:
@@ -178,7 +178,7 @@ class KokoroSubprocessTTS:
                 payload = json.loads(stdout)
                 if set(payload) != {"status", "voice", "device"}:
                     raise ValueError("worker response fields are invalid")
-                if payload != {"status": "success", "voice": "af_bella", "device": "cpu"}:
+                if payload != {"status": "success", "voice": "af_heart", "device": "cpu"}:
                     raise ValueError("worker response identity is invalid")
                 audio = self._read_audio(audio_path)
             except (EOFError, json.JSONDecodeError, OSError, ValueError, wave.Error) as exc:

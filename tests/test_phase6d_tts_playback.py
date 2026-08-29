@@ -79,7 +79,7 @@ class KokoroTests(unittest.TestCase):
         output = Path(command[command.index("--output") + 1])
         output.write_bytes(wav_bytes())
         return FakeProcess(command, json.dumps(
-            {"status": "success", "voice": "af_bella", "device": "cpu"}))
+            {"status": "success", "voice": "af_heart", "device": "cpu"}))
 
     def test_authoritative_boundary_valid_blank_type_and_maximum(self):
         value = AuthoritativeFinalResponse("GRACI completed the task.")
@@ -107,12 +107,12 @@ class KokoroTests(unittest.TestCase):
                          "  GRAY-see uses thirty ninety, but XGRACI stays written.  ")
         self.assertEqual(source, "  GRACI uses 3090, but XGRACI stays written.  ")
 
-    def test_configuration_is_fixed_to_af_bella_local_cpu_and_bounded(self):
+    def test_configuration_is_fixed_to_af_heart_local_cpu_and_bounded(self):
         config = self.config()
-        self.assertEqual(config.voice, "af_bella")
+        self.assertEqual(config.voice, "af_heart")
         self.assertEqual(config.device, "cpu")
         with self.assertRaises(ValueError):
-            KokoroConfig(Path("p"), Path("w"), Path("m"), Path("v"), voice="af_heart")
+            KokoroConfig(Path("p"), Path("w"), Path("m"), Path("v"), voice="af_bella")
         with self.assertRaises(ValueError):
             KokoroConfig(Path("p"), Path("w"), Path("m"), Path("v"), device="cuda")
         with self.assertRaises(ValueError):
@@ -127,7 +127,7 @@ class KokoroTests(unittest.TestCase):
             KokoroSubprocessTTS(self.config()).synthesize(
                 TTSRequest(AuthoritativeFinalResponse("hello")))
         command = seen["command"]
-        self.assertEqual(command[command.index("--voice") + 1], "af_bella")
+        self.assertEqual(command[command.index("--voice") + 1], "af_heart")
         self.assertEqual(command[command.index("--device") + 1], "cpu")
         self.assertIn("--max-audio-bytes", command)
         self.assertNotIn("http", " ".join(command).lower())
@@ -143,10 +143,10 @@ class KokoroTests(unittest.TestCase):
                     "--voices", str(root / "voices"), "--device", "cpu",
                     "--max-text-chars", "20000", "--max-audio-bytes", "8388608",
                     "--max-audio-seconds", "120"]
-            invalid = subprocess.run(base + ["--voice", "af_heart"], capture_output=True,
+            invalid = subprocess.run(base + ["--voice", "af_bella"], capture_output=True,
                                      text=True, check=False)
             self.assertNotEqual(invalid.returncode, 0)
-            missing = subprocess.run(base + ["--voice", "af_bella"], capture_output=True,
+            missing = subprocess.run(base + ["--voice", "af_heart"], capture_output=True,
                                      text=True, check=False)
             self.assertNotEqual(missing.returncode, 0)
             self.assertFalse((root / "out.wav").exists())
@@ -155,7 +155,7 @@ class KokoroTests(unittest.TestCase):
         cases = [
             (FakeProcess([], "not json"), "invalid_tts_response"),
             (FakeProcess([], "", "worker crash", 2), "tts_worker_failed"),
-            (FakeProcess([], json.dumps({"status": "success", "voice": "af_bella",
+            (FakeProcess([], json.dumps({"status": "success", "voice": "af_heart",
                                         "device": "cpu"})), "invalid_tts_response"),
         ]
         for process, code in cases:
@@ -209,7 +209,7 @@ class KokoroTests(unittest.TestCase):
     def test_cancel_and_single_outstanding_budget(self):
         release = threading.Event()
         process = FakeProcess([], stdout=json.dumps(
-            {"status": "success", "voice": "af_bella", "device": "cpu"}), block=release)
+            {"status": "success", "voice": "af_heart", "device": "cpu"}), block=release)
         adapter = KokoroSubprocessTTS(self.config())
         with patch("graci.tts.subprocess.Popen", return_value=process):
             result_holder = []
@@ -329,7 +329,7 @@ class PresentationIsolationTests(unittest.TestCase):
 
     def tts_success(self):
         response = self.response()
-        return TTSResult(TTSStatus.SUCCESS, "Kokoro-82M-ONNX:cpu", "af_bella",
+        return TTSResult(TTSStatus.SUCCESS, "Kokoro-82M-ONNX:cpu", "af_heart",
                          response.text, "GRAY-see completed successfully.", audio())
 
     def test_success_uses_only_explicit_response_and_preserves_exact_text(self):
@@ -344,7 +344,7 @@ class PresentationIsolationTests(unittest.TestCase):
     def test_tts_failure_and_exception_preserve_completed_result(self):
         governed_result = {"status": "PASS", "final_response": "GRACI completed successfully."}
         response = self.response()
-        failure = TTSResult(TTSStatus.FAILED, "Kokoro-82M-ONNX:cpu", "af_bella",
+        failure = TTSResult(TTSStatus.FAILED, "Kokoro-82M-ONNX:cpu", "af_heart",
                             response.text, "GRAY-see completed successfully.",
                             error_code="tts_unavailable", error_message="missing")
         for tts in (FakeTTS(failure), FakeTTS(error=RuntimeError("crash"))):

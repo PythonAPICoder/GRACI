@@ -17,7 +17,7 @@ Spacebar shortcut) or starts the existing CLI push-to-talk path. The browser exp
 only this narrow explicit voice turn; it has no generic task-submission authority.
 A successful browser voice turn displays the validated response and, by default,
 presents that same `AuthoritativeFinalResponse` through the existing Phase 6D local
-Kokoro `af_bella` and Windows playback path. Typed interactions retain their existing
+Kokoro `af_heart` and Windows playback path. Typed interactions retain their existing
 explicit `--speak` behavior.
 
 Run operator scripts from the repository root. Where local PowerShell policy blocks
@@ -122,7 +122,7 @@ Ordinary `python -m graci "task"` interaction now uses the accepted Phase 7A
 single-turn coordinator. `python -m graci --speech` performs at most one explicit
 push-to-talk turn: hold Spacebar to capture, then release Spacebar to stop and
 transcribe. Key repeat does not restart capture and no Enter press is required.
-Add `--speak` only when local Kokoro `af_bella` presentation is desired. There is no
+Add `--speak` only when local Kokoro `af_heart` presentation is desired. There is no
 implicit microphone or speaker use, retry, wake word, always-listening behavior,
 automatic follow-up, REPL, or conversation loop. Output is bounded JSON and
 presentation cannot alter governed authority. Phase 7C later accepted this bounded
@@ -168,10 +168,11 @@ Architecture, deterministic tests, and closure evidence are under `phase6e/`.
 
 Phase 6D adds an optional presentation-only path from an explicitly constructed
 authoritative final user-facing response through local Kokoro-82M ONNX CPU synthesis
-with `af_bella` and bounded subprocess-isolated Windows playback. Speech failure does
-not alter the governed task result. Phase 6A pronunciation overrides are applied only
-to the speech copy. Architecture, reconstruction, tests, and evidence are under
-`phase6d/`. Phase 6E later added observer-only lifecycle publication without changing
+with the current `af_heart` production selection at speed `1.00` and bounded
+subprocess-isolated Windows playback. Speech failure does not alter the governed task
+result. Phase 6A pronunciation overrides are applied only to the speech copy.
+Architecture, reconstruction, tests, and evidence are under `phase6d/`. Phase 6E
+later added observer-only lifecycle publication without changing
 this accepted presentation boundary.
 
 # GRACI Phase 5C Command-Center UI

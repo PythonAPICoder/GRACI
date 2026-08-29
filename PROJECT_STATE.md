@@ -3,6 +3,20 @@
 Current accepted build: Phase 5 — COMPLETE; Phase 6 — COMPLETE; Phase 6A — COMPLETE;
 Phase 6B — COMPLETE; Phase 7 — COMPLETE; Phase 8A — COMPLETE.
 
+## Production voice selection (2026-08-29)
+
+- The product-owner audition selected local Kokoro-82M ONNX `af_heart` as the
+  production voice at speed `1.00`, replacing `af_bella` without changing the TTS
+  architecture or conversational behavior.
+- The existing speech-only pronunciation lexicon, bounded WAV generation, Windows
+  playback, voice lifecycle, Browser PTT, CLI behavior, and local-only CPU execution
+  remain unchanged. Historical Phase 6A/6D records retain the earlier `af_bella`
+  selection as truthful evidence of the configuration in effect at that time.
+- Focused warning-strict voice/TTS/Browser-PTT/CLI verification passes 72/72 and the
+  complete warning-strict suite passes 420/420. A bounded production-composition
+  check synthesized `GRACI` as `GRAY-see` with `af_heart` and completed Windows
+  playback successfully; Browser PTT uses that same production coordinator.
+
 ## Windows startup and resident host implementation (2026-08-29)
 
 - Added the supported idle `graci.resident_host` composition for the authoritative
@@ -125,7 +139,7 @@ Phase 6B — COMPLETE; Phase 7 — COMPLETE; Phase 8A — COMPLETE.
   `run(task)` boundary and adds no separate speech authority.
 - Phase 6D accepts only an explicit immutable authoritative final-response value,
   derives the Phase 6A speech-only pronunciation copy, synthesizes through local
-  Kokoro-82M ONNX CPU `af_bella`, validates bounded WAV output, and plays through a
+  Kokoro-82M ONNX CPU `af_heart`, validates bounded WAV output, and plays through a
   bounded stoppable subprocess. Presentation failures never alter governed results.
 - Phase 6D focused tests pass 21/21; the complete warning-strict suite passes 307/307.
   Live cached Kokoro synthesis passed; physical speaker playback was not performed.
@@ -880,7 +894,7 @@ Memory. Phase 4 has not begun.
   existing Phase 6A whole-token lexicon creates a separate speech copy immediately
   before synthesis, including `GRACI` -> `GRAY-see`.
 - Kokoro-82M ONNX runs in the isolated qualified Python 3.12 environment with local
-  model/voice assets, CPU, and fixed `af_bella`. The one-shot worker has no network
+  model/voice assets, CPU, and fixed `af_heart`. The one-shot worker has no network
   path and no 4090 dependency.
 - Mono 16-bit WAV output is limited to 8 MiB and 120 seconds. Input is limited to
   20,000 characters; synthesis is limited to 60 seconds; playback to 125 seconds;

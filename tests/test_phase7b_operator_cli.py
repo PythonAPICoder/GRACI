@@ -78,7 +78,7 @@ class TTS:
 
     def synthesize(self, request):
         self.calls.append(request)
-        return TTSResult(TTSStatus.FAILED, "kokoro", "af_bella",
+        return TTSResult(TTSStatus.FAILED, "kokoro", "af_heart",
                          request.authoritative_response.text,
                          error_code="tts_failed", error_message="bounded failure")
 

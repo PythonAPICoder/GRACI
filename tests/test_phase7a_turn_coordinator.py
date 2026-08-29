@@ -101,10 +101,10 @@ class TTS:
     def synthesize(self, request):
         self.calls.append(request)
         if self.fail:
-            return TTSResult(TTSStatus.FAILED, "kokoro", "af_bella",
+            return TTSResult(TTSStatus.FAILED, "kokoro", "af_heart",
                              request.authoritative_response.text,
                              error_code="tts_failed", error_message="failed")
-        return TTSResult(TTSStatus.SUCCESS, "kokoro", "af_bella",
+        return TTSResult(TTSStatus.SUCCESS, "kokoro", "af_heart",
                          request.authoritative_response.text,
                          "GRAY-see completed the governed turn.", audio())
 

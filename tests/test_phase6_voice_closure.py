@@ -103,9 +103,9 @@ class Synthesizer:
         text = request.authoritative_response.text
         spoken = speech_presentation_text(text)
         if self.status is not TTSStatus.SUCCESS:
-            return TTSResult(self.status, "closure-fake-tts", "af_bella", text,
+            return TTSResult(self.status, "closure-fake-tts", "af_heart", text,
                              spoken, error_code="tts_failed", error_message="failed")
-        return TTSResult(self.status, "closure-fake-tts", "af_bella", text,
+        return TTSResult(self.status, "closure-fake-tts", "af_heart", text,
                          spoken, bounded_audio())
 
     def cancel(self):

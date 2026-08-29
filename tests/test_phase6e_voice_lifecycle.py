@@ -76,7 +76,7 @@ class Synthesizer:
     def __init__(self, lifecycle, result=None):
         self.lifecycle = lifecycle
         self.observed = None
-        self.result = result or TTSResult(TTSStatus.SUCCESS, "kokoro", "af_bella",
+        self.result = result or TTSResult(TTSStatus.SUCCESS, "kokoro", "af_heart",
                                           "completed governed result",
                                           "completed governed result", audio())
 
@@ -201,7 +201,7 @@ class VoiceLifecycleTests(unittest.TestCase):
     def test_synthesis_failure_never_claims_speaking(self):
         observer = RecordingObserver()
         lifecycle = VoiceLifecycle(observer)
-        synth = Synthesizer(lifecycle, TTSResult(TTSStatus.FAILED, "kokoro", "af_bella",
+        synth = Synthesizer(lifecycle, TTSResult(TTSStatus.FAILED, "kokoro", "af_heart",
                                                 "done", error_code="tts",
                                                 error_message="bad"))
         result = SpeechPresentationService(synth, Player(lifecycle), lifecycle).speak(

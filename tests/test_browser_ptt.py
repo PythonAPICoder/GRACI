@@ -107,11 +107,11 @@ class PresentationTTS:
     def synthesize(self, request):
         self.calls.append(request)
         if self.fail:
-            return TTSResult(TTSStatus.FAILED, "Kokoro-82M-ONNX:cpu", "af_bella",
+            return TTSResult(TTSStatus.FAILED, "Kokoro-82M-ONNX:cpu", "af_heart",
                              request.authoritative_response.text,
                              error_code="tts_failed", error_message="synthetic failure")
         audio = SynthesizedAudio(b"RIFFbrowser-ptt", 24_000, 1, 2, .25)
-        return TTSResult(TTSStatus.SUCCESS, "Kokoro-82M-ONNX:cpu", "af_bella",
+        return TTSResult(TTSStatus.SUCCESS, "Kokoro-82M-ONNX:cpu", "af_heart",
                          request.authoritative_response.text,
                          "GRAY-see completed the browser voice turn.", audio)
     def cancel(self): pass
