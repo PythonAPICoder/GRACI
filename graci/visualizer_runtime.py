@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import threading
 import uuid
 from dataclasses import replace
 from datetime import datetime, timezone
@@ -18,6 +19,7 @@ from .visualizer import (
     WorkflowStatus, default_compute, inactive_agents, project_snapshot,
 )
 from .visualizer_backend import VisualizerStateProvider
+from .voice_lifecycle import VoiceLifecycleEvent
 
 
 _EVENT_TYPES = {
@@ -54,18 +56,51 @@ class VisualizerRuntimeObserver:
         self.review = ReviewView()
         self.terminal: str | None = None
         self.tests_failed = False
+        self._lock = threading.RLock()
 
     def observe(self, observation: RuntimeObservation) -> None:
-        facts = dict(observation.facts)
-        self._apply(observation, facts)
-        event = self._event(observation, facts)
-        if event is not None:
-            self.events = self.events.append(event, observed_at=datetime.now(timezone.utc))
-            self.provider.publish_event(event, observed_at=datetime.now(timezone.utc))
+        with self._lock:
+            facts = dict(observation.facts)
+            self._apply(observation, facts)
+            event = self._event(observation, facts)
+            if event is not None:
+                self._publish_event(event)
+            self._publish_snapshot(observation.run_id)
+
+    def publish_voice(self, event: VoiceLifecycleEvent) -> None:
+        """Project bounded presentation activity without changing runtime authority."""
+        with self._lock:
+            if event.state is SystemState.LISTENING:
+                event_type = EventType.VOICE_LISTENING
+            elif event.state is SystemState.SPEAKING:
+                event_type = EventType.VOICE_SPEAKING
+            elif event.state is SystemState.IDLE:
+                event_type = EventType.SYSTEM_IDLE
+            else:
+                raise ValueError("unsupported voice lifecycle state")
+            display_state = event.state
+            if event.state is SystemState.IDLE and self.terminal is not None:
+                display_state = (SystemState.COMPLETED if self.terminal == "PASS"
+                                 else SystemState.FAILED)
+            self.state = display_state
+            projected = VisualizerEvent(
+                uuid.uuid4().hex, event.timestamp, event_type, EventSeverity.ACTIVITY,
+                "voice", f"voice {event.state.value}", self.task.task_id,
+                EventMetadata((("sequence", event.sequence),)),
+            )
+            self._publish_event(projected)
+            self._publish_snapshot(self.task.task_id or "voice")
+
+    def _publish_event(self, event: VisualizerEvent) -> None:
+        observed_at = datetime.now(timezone.utc)
+        self.events = self.events.append(event, observed_at=observed_at)
+        self.provider.publish_event(event, observed_at=observed_at)
+
+    def _publish_snapshot(self, source_id: str) -> None:
         source = TrustedRuntimeState(
             self.state, self.task, self.compute, self.agents, self.memory,
             self.execution, self.review, self.tests_failed, self.terminal)
-        snapshot = project_snapshot(source, snapshot_id=f"{observation.run_id}:{uuid.uuid4().hex}",
+        snapshot = project_snapshot(source, snapshot_id=f"{source_id}:{uuid.uuid4().hex}",
                                     generated_at=datetime.now(timezone.utc), events=self.events)
         self.provider.publish_snapshot(snapshot)
 
@@ -229,3 +264,13 @@ class VisualizerRuntimeObserver:
                                        if key in facts and type(facts[key]) in {str, int, float, bool, type(None)}))
         return VisualizerEvent(uuid.uuid4().hex, item.timestamp, event_type, severity,
                                "runtime", item.kind.value.replace("_", " "), item.run_id, metadata)
+
+
+class VisualizerVoiceObserver:
+    """VoiceLifecycle-compatible adapter into the shared runtime projection."""
+
+    def __init__(self, runtime_observer: VisualizerRuntimeObserver):
+        self.runtime_observer = runtime_observer
+
+    def publish(self, event: VoiceLifecycleEvent) -> None:
+        self.runtime_observer.publish_voice(event)

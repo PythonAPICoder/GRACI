@@ -94,6 +94,8 @@ class EventSeverity(str, Enum):
 class EventType(str, Enum):
     SYSTEM_READY = "system_ready"
     SYSTEM_IDLE = "system_idle"
+    VOICE_LISTENING = "voice_listening"
+    VOICE_SPEAKING = "voice_speaking"
     TASK_STARTED = "task_started"
     TASK_COMPLETED = "task_completed"
     TASK_FAILED = "task_failed"

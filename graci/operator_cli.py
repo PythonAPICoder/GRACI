@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -14,6 +15,8 @@ from .speech_presentation import SpeechPresentationResult, SpeechPresentationSer
 from .tts import AuthoritativeFinalResponse, KokoroConfig, KokoroSubprocessTTS
 from .turn_coordinator import ExplicitTurnCoordinator, TurnResult
 from .voice_lifecycle import VoiceLifecycle
+from .visualizer_backend import VisualizerServer, VisualizerStateProvider
+from .visualizer_runtime import VisualizerRuntimeObserver, VisualizerVoiceObserver
 
 MAX_CLI_TEXT = 20_000
 MAX_CLI_ERROR = 500
@@ -34,10 +37,24 @@ class GovernedSummaryResponseConstructor:
         return AuthoritativeFinalResponse(user_response)
 
 
-def build_operator_coordinator(repository_root: Path | None = None) -> ExplicitTurnCoordinator:
+@dataclass(frozen=True)
+class OperatorComposition:
+    coordinator: ExplicitTurnCoordinator
+    provider: VisualizerStateProvider | None = None
+    runtime_observer: VisualizerRuntimeObserver | None = None
+    voice_lifecycle: VoiceLifecycle | None = None
+    server: VisualizerServer | None = None
+
+
+def build_operator_composition(repository_root: Path | None = None, *,
+                               visualizer: bool = False) -> OperatorComposition:
     """Compose accepted local components without adding another runtime authority."""
     root = repository_root or Path(__file__).resolve().parents[1]
-    lifecycle = VoiceLifecycle()
+    provider = VisualizerStateProvider() if visualizer else None
+    runtime_observer = VisualizerRuntimeObserver(provider) if provider is not None else None
+    voice_observer = (VisualizerVoiceObserver(runtime_observer)
+                      if runtime_observer is not None else None)
+    lifecycle = VoiceLifecycle(voice_observer) if voice_observer is not None else VoiceLifecycle()
     stt = FasterWhisperSubprocessSTT(FasterWhisperConfig(
         root / "phase6a" / ".venv" / "Scripts" / "python.exe",
         root / "phase6b" / "stt_worker.py",
@@ -54,11 +71,18 @@ def build_operator_coordinator(repository_root: Path | None = None) -> ExplicitT
     player = SubprocessWavePlayback(PlaybackConfig(
         speech_python, root / "phase6d" / "playback_worker.py"))
     presentation = SpeechPresentationService(synthesizer, player, lifecycle)
-    return ExplicitTurnCoordinator(
-        Controller(), push_to_talk=push_to_talk,
+    coordinator = ExplicitTurnCoordinator(
+        Controller(observer=runtime_observer), push_to_talk=push_to_talk,
         final_response_constructor=GovernedSummaryResponseConstructor(),
         speech_presentation=presentation,
     )
+    server = VisualizerServer(provider) if provider is not None else None
+    return OperatorComposition(coordinator, provider, runtime_observer, lifecycle, server)
+
+
+def build_operator_coordinator(repository_root: Path | None = None) -> ExplicitTurnCoordinator:
+    """Backward-compatible production factory for an observer-free operator turn."""
+    return build_operator_composition(repository_root).coordinator
 
 
 def serialize_turn_result(result: TurnResult, *,

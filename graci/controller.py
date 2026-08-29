@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from .config import Config
+from .observation import ObservationKind, observe
 from .provider import LocalLlamaCppProvider, ProviderError
 from .validation import ValidationError, validate_model_result
 
@@ -17,9 +18,11 @@ def _timestamp() -> str:
 
 
 class Controller:
-    def __init__(self, config: Config | None = None, provider: Any = None):
+    def __init__(self, config: Config | None = None, provider: Any = None,
+                 observer: Any = None):
         self.config = config or Config()
         self.provider = provider or LocalLlamaCppProvider(self.config)
+        self.observer = observer
 
     def run(self, task: str) -> dict[str, Any]:
         if not isinstance(task, str) or not task.strip():
@@ -42,8 +45,15 @@ class Controller:
             "validated_model_result": None,
             "errors": [],
         }
+        observe(self.observer, ObservationKind.TASK_STARTED, record["run_id"],
+                summary="Explicit local operator turn")
+        observe(self.observer, ObservationKind.MODEL_STARTED, record["run_id"],
+                role="implementer", model=self.config.model, node=self.config.node)
         try:
             response = self.provider.execute(task)
+            observe(self.observer, ObservationKind.MODEL_COMPLETED, record["run_id"],
+                    role="implementer", model=self.config.model, node=self.config.node,
+                    success=True)
             record["http_status"] = response.http_status
             record["provider_response_model"] = response.response_model
             if response.response_model != self.config.model:
@@ -67,6 +77,13 @@ class Controller:
             record["errors"].append(f"unexpected_error: {type(exc).__name__}: {exc}")
         finally:
             record["ended_at"] = _timestamp()
+            if record["status"] == "PASS":
+                observe(self.observer, ObservationKind.TASK_COMPLETED, record["run_id"],
+                        success=True)
+            else:
+                observe(self.observer, ObservationKind.TASK_FAILED, record["run_id"],
+                        category="governed_runtime", reason=(record["errors"][-1]
+                        if record["errors"] else "governed runtime failed"), success=False)
             self._persist(record)
         return record
 

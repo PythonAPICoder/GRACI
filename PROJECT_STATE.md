@@ -1,5 +1,33 @@
 # GRACI Project State
 
+## QA-002 / QA-004 / QA-005 production observer composition repair
+
+- Ordinary local operation now has an explicit observer-only path:
+  `python -m graci "task" --visualizer`. It binds only `127.0.0.1:8766` for the
+  duration of that process. Add `--visualizer-hold` to inspect a completed one-shot
+  turn until Enter is pressed; this is a bounded hold, not a session or REPL.
+- The opt-in production factory creates exactly one in-process
+  `VisualizerStateProvider`. `VisualizerRuntimeObserver`, the bounded voice adapter,
+  and `VisualizerServer` share that provider. Without `--visualizer`, no provider,
+  projector, or server is created.
+- The ordinary governed `Controller` publishes task start, actual model start/end,
+  and truthful terminal completion/failure through the existing fail-open runtime
+  observation boundary. It does not synthesize memory, tool, test, review, or
+  adjudication stages that the simple controller did not execute.
+- The existing guarded `VoiceLifecycle` publishes `LISTENING` during explicit PTT
+  capture and `SPEAKING` only during actual playback through the shared projection.
+  Restoration and generation/lease protection remain unchanged; presentation state
+  cannot alter governed results.
+- The browser transport remains GET/HEAD-only, loopback-only, local-only, and
+  observer-only. No task, microphone, TTS, routing, shutdown, model, memory, or other
+  mutation endpoint was added. The 3090/4090 and MO2 policies are unchanged.
+- Focused Phase 5/6/7/8A plus repair verification passes 183 tests. The complete
+  warning-strict suite passes 379 tests. A live ordinary typed smoke produced run
+  `d45d2812-fc45-4cf2-9e15-bf9d1dbc161f`, governed PASS, and the real event sequence
+  `task_started`, `qwen_started`, `qwen_completed`, `task_completed`; the held browser
+  snapshot reported `completed` / `passed` from the same provider.
+- QA-003, QA-006, and Phase 8B remain untouched.
+
 ## Current build status
 
 - **Phase 8 — IN PROGRESS**

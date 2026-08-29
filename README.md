@@ -28,6 +28,13 @@ automatic follow-up, REPL, or conversation loop. Output is bounded JSON and
 presentation cannot alter governed authority. Phase 7C later accepted this bounded
 composition and closed Phase 7. Details and evidence are under `phase7b/`.
 
+Add `--visualizer` to an ordinary typed or explicit speech turn to serve the same
+in-process observer stream at `http://127.0.0.1:8766/`. For a one-shot turn that a
+human needs time to inspect, also add `--visualizer-hold`; GRACI waits for Enter after
+the turn and then stops the server. The visualizer is loopback-only and observer-only:
+it has no task, microphone, speech, routing, shutdown, memory, model, or mutation
+controls.
+
 # GRACI Phase 7A Explicit Turn Coordinator — Complete
 
 Phase 7 has begun. Phase 7A adds a production coordinator for one explicitly
