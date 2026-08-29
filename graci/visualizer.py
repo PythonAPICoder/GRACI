@@ -17,13 +17,14 @@ from .availability import Mo2State
 from .registry import GLM_MODEL_ID, QWEN_MODEL_ID, HealthState, NodeRole
 
 
-SNAPSHOT_SCHEMA_VERSION = 1
+SNAPSHOT_SCHEMA_VERSION = 2
 EVENT_SCHEMA_VERSION = 1
 RECENT_EVENT_LIMIT = 100
 TASK_SUMMARY_LIMIT = 240
 EVENT_MESSAGE_LIMIT = 320
 ERROR_SUMMARY_LIMIT = 240
 DISPLAY_LABEL_LIMIT = 160
+LATEST_RESPONSE_LIMIT = 4_000
 METADATA_ENTRY_LIMIT = 16
 METADATA_KEY_LIMIT = 64
 METADATA_VALUE_LIMIT = 160
@@ -64,6 +65,13 @@ class WorkflowStatus(str, Enum):
     REJECTED = "rejected"
 
 
+class PresentationOutcome(str, Enum):
+    NOT_REQUESTED = "not_requested"
+    SPOKEN = "spoken"
+    CANCELLED = "cancelled"
+    FAILED = "failed"
+
+
 class MemoryMode(str, Enum):
     NOT_APPLICABLE = "not_applicable"
     OPTIONAL = "optional"
@@ -99,6 +107,7 @@ class EventType(str, Enum):
     TASK_STARTED = "task_started"
     TASK_COMPLETED = "task_completed"
     TASK_FAILED = "task_failed"
+    LATEST_TURN_UPDATED = "latest_turn_updated"
     ROUTE_SELECTED = "route_selected"
     ROUTE_FALLBACK = "route_fallback"
     NODE_INELIGIBLE = "node_ineligible"
@@ -145,6 +154,17 @@ def _bounded(value: str | None, limit: int, name: str, *, allow_none: bool = Tru
     if limit == 1:
         return "…"
     return cleaned[:limit - 1].rstrip() + "…"
+
+
+def _bounded_multiline(value: str | None, limit: int, name: str) -> str | None:
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise ValueError(f"{name} must be a string")
+    cleaned = value.strip()
+    if not cleaned:
+        raise ValueError(f"{name} must not be empty")
+    return cleaned if len(cleaned) <= limit else cleaned[:limit - 1].rstrip() + "…"
 
 
 def _enum(value: Any, enum_type: type[Enum], name: str) -> None:
@@ -257,6 +277,46 @@ class TaskView:
             raise ValueError("task progress must provide both current and total")
         if self.progress_current is not None and not (0 <= self.progress_current <= self.progress_total):
             raise ValueError("task progress is invalid")
+
+
+@dataclass(frozen=True)
+class LatestTurnView:
+    """Bounded presentation facts from one already-completed governed turn."""
+
+    run_id: str
+    input_source: str
+    started_at: datetime
+    completed_at: datetime
+    governed_status: WorkflowStatus
+    response_available: bool
+    response_text: str | None = None
+    presentation_outcome: PresentationOutcome = PresentationOutcome.NOT_REQUESTED
+    failure_category: str | None = None
+    failure_reason: str | None = None
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "run_id", _bounded(self.run_id, 128, "latest turn run_id", allow_none=False))
+        object.__setattr__(self, "input_source", _bounded(self.input_source, 40, "latest turn input source", allow_none=False))
+        _aware(self.started_at, "latest turn started_at")
+        _aware(self.completed_at, "latest turn completed_at")
+        if self.completed_at < self.started_at:
+            raise ValueError("latest turn completion precedes its start")
+        _enum(self.governed_status, WorkflowStatus, "latest turn governed status")
+        if self.governed_status not in {WorkflowStatus.PASSED, WorkflowStatus.FAILED}:
+            raise ValueError("latest turn must have a terminal governed status")
+        if type(self.response_available) is not bool:
+            raise ValueError("latest turn response_available must be boolean")
+        object.__setattr__(self, "response_text", _bounded_multiline(
+            self.response_text, LATEST_RESPONSE_LIMIT, "latest turn response"))
+        if self.response_available != (self.response_text is not None):
+            raise ValueError("latest turn response availability is inconsistent")
+        if self.governed_status is WorkflowStatus.FAILED and self.response_available:
+            raise ValueError("failed governed turns cannot expose an authoritative response")
+        _enum(self.presentation_outcome, PresentationOutcome, "latest turn presentation outcome")
+        object.__setattr__(self, "failure_category", _bounded(
+            self.failure_category, 80, "latest turn failure category"))
+        object.__setattr__(self, "failure_reason", _bounded(
+            self.failure_reason, ERROR_SUMMARY_LIMIT, "latest turn failure reason"))
 
 
 @dataclass(frozen=True)
@@ -448,6 +508,7 @@ class VisualizerSnapshot:
     memory: MemoryView
     execution: ExecutionView
     review: ReviewView
+    latest_turn: LatestTurnView | None = None
     recent_events: tuple[VisualizerEvent, ...] = ()
     schema_version: int = SNAPSHOT_SCHEMA_VERSION
 
@@ -460,6 +521,8 @@ class VisualizerSnapshot:
         RecentEventBuffer(self.recent_events)
         if any(event.timestamp > self.generated_at for event in self.recent_events):
             raise ValueError("snapshot cannot contain future events")
+        if self.latest_turn is not None and self.latest_turn.completed_at > self.generated_at:
+            raise ValueError("snapshot cannot contain a future latest turn")
 
 
 @dataclass(frozen=True)
@@ -475,6 +538,7 @@ class TrustedRuntimeState:
     review: ReviewView
     deterministic_tests_failed: bool = False
     deterministic_terminal_status: str | None = None
+    latest_turn: LatestTurnView | None = None
 
     def __post_init__(self) -> None:
         _enum(self.controller_state, SystemState, "controller_state")
@@ -505,7 +569,7 @@ def project_snapshot(source: TrustedRuntimeState, *, snapshot_id: str,
         snapshot_id=snapshot_id, generated_at=generated_at,
         system_state=derive_system_state(source), task=source.task,
         compute=source.compute, agents=source.agents, memory=source.memory,
-        execution=source.execution, review=source.review,
+        execution=source.execution, review=source.review, latest_turn=source.latest_turn,
         recent_events=() if events is None else events.events)
 
 

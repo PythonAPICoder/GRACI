@@ -14,12 +14,14 @@ from .registry import GLM_MODEL_ID, QWEN_MODEL_ID, HealthState, NodeRole
 from .visualizer import (
     ActivityState, AgentView, AgentsView, ComputeNodeView, ComputeView,
     EventMetadata, EventSeverity, EventType, ExecutionView, MemoryMode,
-    MemoryView, OperationCategory, OperationView, RecentEventBuffer, ReviewView,
+    LatestTurnView, MemoryView, OperationCategory, OperationView, PresentationOutcome,
+    RecentEventBuffer, ReviewView,
     SystemState, TaskView, TestView, TrustedRuntimeState, VisualizerEvent,
     WorkflowStatus, default_compute, inactive_agents, project_snapshot,
 )
 from .visualizer_backend import VisualizerStateProvider
 from .voice_lifecycle import VoiceLifecycleEvent
+from .turn_coordinator import TurnResult
 
 
 _EVENT_TYPES = {
@@ -54,6 +56,7 @@ class VisualizerRuntimeObserver:
         self.memory = MemoryView()
         self.execution = ExecutionView()
         self.review = ReviewView()
+        self.latest_turn: LatestTurnView | None = None
         self.terminal: str | None = None
         self.tests_failed = False
         self._lock = threading.RLock()
@@ -85,6 +88,66 @@ class VisualizerRuntimeObserver:
             self.terminal = None
             self.tests_failed = False
             self._publish_snapshot("resident-restart")
+
+    def publish_completed_turn(self, result: TurnResult) -> None:
+        """Publish only bounded facts from an already-completed governed turn."""
+        record = result.governed_result
+        if not result.governed_submitted or not isinstance(record, dict):
+            return
+        run_id = record.get("run_id")
+        started_at = self._record_time(record.get("started_at"))
+        completed_at = self._record_time(record.get("ended_at"))
+        status = record.get("status")
+        if not isinstance(run_id, str) or started_at is None or completed_at is None:
+            return
+        if status not in {"PASS", "FAIL"}:
+            return
+        governed_status = (WorkflowStatus.PASSED if status == "PASS"
+                           else WorkflowStatus.FAILED)
+        response = result.authoritative_response
+        response_text = (response.text if governed_status is WorkflowStatus.PASSED
+                         and response is not None else None)
+        if result.speech_presentation is not None:
+            presentation = PresentationOutcome(result.speech_presentation.status.value)
+        elif result.speech_requested:
+            presentation = PresentationOutcome.FAILED
+        else:
+            presentation = PresentationOutcome.NOT_REQUESTED
+        errors = record.get("errors")
+        governed_reason = (errors[-1] if isinstance(errors, list) and errors
+                           and isinstance(errors[-1], str) else None)
+        failure_category = None
+        failure_reason = None
+        if governed_status is WorkflowStatus.FAILED:
+            failure_category, failure_reason = "governed_runtime", governed_reason
+        elif result.error_code is not None:
+            failure_category, failure_reason = result.error_code, result.error_message
+        projected = LatestTurnView(
+            run_id, "browser_ptt", started_at, completed_at, governed_status,
+            response_text is not None, response_text, presentation,
+            failure_category, failure_reason)
+        with self._lock:
+            self.latest_turn = projected
+            self._publish_event(VisualizerEvent(
+                uuid.uuid4().hex, datetime.now(timezone.utc),
+                EventType.LATEST_TURN_UPDATED,
+                (EventSeverity.SUCCESS if governed_status is WorkflowStatus.PASSED
+                 else EventSeverity.ERROR),
+                "latest-turn", "latest completed turn presentation updated", run_id,
+                EventMetadata((("governed_status", governed_status.value),
+                               ("presentation", presentation.value))),
+            ))
+            self._publish_snapshot(run_id)
+
+    @staticmethod
+    def _record_time(value: object) -> datetime | None:
+        if not isinstance(value, str):
+            return None
+        try:
+            parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except ValueError:
+            return None
+        return parsed if parsed.tzinfo is not None else None
 
     def publish_voice(self, event: VoiceLifecycleEvent) -> None:
         """Project bounded presentation activity without changing runtime authority."""
@@ -118,7 +181,8 @@ class VisualizerRuntimeObserver:
     def _publish_snapshot(self, source_id: str) -> None:
         source = TrustedRuntimeState(
             self.state, self.task, self.compute, self.agents, self.memory,
-            self.execution, self.review, self.tests_failed, self.terminal)
+            self.execution, self.review, self.tests_failed, self.terminal,
+            self.latest_turn)
         snapshot = project_snapshot(source, snapshot_id=f"{source_id}:{uuid.uuid4().hex}",
                                     generated_at=datetime.now(timezone.utc), events=self.events)
         self.provider.publish_snapshot(snapshot)

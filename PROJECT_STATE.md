@@ -1,7 +1,24 @@
 # GRACI Project State
 
 Current accepted build: Phase 5 — COMPLETE; Phase 6 — COMPLETE; Phase 6A — COMPLETE;
-Phase 6B — COMPLETE; Phase 7 — COMPLETE; Phase 8A — COMPLETE.
+Phase 6B — COMPLETE; Phase 7 — COMPLETE; Phase 8A — COMPLETE; Phase 8B — COMPLETE.
+
+## Phase 8B resident latest-turn continuity
+
+- Snapshot schema v2 adds one frozen, bounded `LatestTurnView`, sourced only from an
+  already-completed submitted browser `TurnResult`.
+- At most 4,000 presentation characters of a validated authoritative response are
+  exposed. Governed failure has no response. Rejected attempts, prompts, transcripts,
+  memory content, raw output, credentials, and arbitrary run-file contents are excluded.
+- Resident snapshots and a metadata-only `latest_turn_updated` SSE event provide the
+  same value to refreshes, reconnects, and additional localhost tabs. Active task
+  state remains independent from the previous completed result.
+- Restart retains the latest completed presentation while clearing transient state.
+  Resident process reconstruction starts empty and reads no historical runs.
+- Publication is fail-open and follows the existing coordinator call; zero-run paths
+  publish nothing. The only POST routes remain PTT begin/chunk/finish/cancel and restart.
+- No execution, retry, approval, routing, memory, model, compute, 3090/4090/MO2,
+  cloud, remote, session, or history authority was added.
 
 ## Governed model structured-response hardening
 
@@ -214,7 +231,10 @@ Phase 6B — COMPLETE; Phase 7 — COMPLETE; Phase 8A — COMPLETE.
   UI/device work, fallback engines, network/cloud/distributed speech, GPU/4090 voice
   routing, scheduling changes, and persistence remain deferred pending separate
   roadmap authorization.
-- Phase 6A voice decision: Kokoro-82M ONNX `af_bella` is the preferred production candidate. A bounded speech-only lexicon pronounces the unchanged written tokens `GRACI`, `3090`, and `4090` as `GRAY-see`, `thirty ninety`, and `forty ninety`; unrelated numbers are not rewritten.
+- Historical Phase 6A qualification selected `af_bella`; the current production
+  voice is the later product-owner-selected Kokoro-82M ONNX `af_heart` at speed
+  `1.00`. The bounded speech-only lexicon still pronounces `GRACI`, `3090`, and
+  `4090` as `GRAY-see`, `thirty ninety`, and `forty ninety`.
 - Evidence: `phase6a/evidence/phase6a-qualification.json`; architecture and reconstruction: `phase6a/ARCHITECTURE.md` and `phase6a/README.md`.
 
 ## Phase 5C command-center UI — COMPLETE
@@ -963,15 +983,16 @@ Memory. Phase 4 has not begun.
 
 - **Phase 8 — IN PROGRESS**
 - **Phase 8A — COMPLETE: observer-only presence foundation**
+- **Phase 8B — COMPLETE: resident latest-turn continuity and reconciliation**
 - Trusted `system_state` is mapped only in the frontend to bounded presentation
   categories; no second authoritative state, persistence, or runtime publication exists.
 - The exact state and stale/disconnected condition remain visible. Reduced-motion
   mode preserves static and textual semantics.
-- The Phase 5 observer/security boundary and three-file static allowlist are unchanged.
-  Voice lifecycle is observed, not controlled. The 3090 remains independently
-  sufficient; optional 4090 and MO2 policy are unchanged.
-- Phase 8B and later refinement, conversation UI, continuous listening, autonomous
-  follow-up, and all new authority remain unauthorized.
+- The three-file static allowlist remains unchanged. Current loopback POST authority
+  is limited to separately accepted PTT begin/chunk/finish/cancel and Restart GRACI;
+  every other visualizer panel and Phase 8B projection is observer-only.
+- Phase 8C and later refinement, conversation UI, continuous listening, autonomous
+  follow-up, generic browser control, and all further authority remain unauthorized.
 
 # Post-Phase-7 production speech repair
 

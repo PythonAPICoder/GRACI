@@ -71,7 +71,7 @@ class SnapshotContractTests(unittest.TestCase):
         self.assertEqual(first, serialize_visualizer(result))
         parsed = json.loads(first)
         self.assertEqual(parsed["generated_at"], "2026-08-27T12:10:00Z")
-        self.assertEqual(parsed["schema_version"], 1)
+        self.assertEqual(parsed["schema_version"], 2)
         self.assertEqual(parsed["system_state"], "idle")
         with self.assertRaises(ValueError):
             project_snapshot(source(), snapshot_id="x", generated_at=datetime(2026, 1, 1))

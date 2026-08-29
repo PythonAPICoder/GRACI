@@ -1,5 +1,26 @@
 # Current GRACI Architecture
 
+## Phase 8B resident latest-turn continuity
+
+`completed governed browser turn -> validated TurnResult/AuthoritativeFinalResponse -> fail-open bounded LatestTurnView -> snapshot v2 + latest_turn_updated SSE event -> localhost browser`
+
+`LatestTurnView` contains only bounded run identity, browser-PTT source, governed
+start/end times and PASS/FAIL, bounded failure facts, an optional validated response
+copy, and the independent spoken/cancelled/failed presentation outcome. It receives
+no transcript, prompt, model attempt, raw output, memory content, tool stream,
+credential, or arbitrary run-file field.
+
+The browser operator invokes the publisher only after its existing coordinator call
+returns a submitted governed record. Publication failure is caught and cannot change
+the `TurnResult`; zero-submission paths never invoke it. Refresh, polling, SSE
+reconnect, and `latest_turn_updated` converge on resident memory. Restart clears
+transient projection but retains the latest completed value. Process exit discards it
+and startup reads no run history.
+
+The browser POST allowlist remains exactly PTT begin/chunk/finish/cancel and Restart
+GRACI. Loopback, same-origin, no-CORS, 3090 authority, optional 4090/MO2 policy,
+strict validation, and governed execution boundaries are unchanged.
+
 ## Explicit PTT playback barge-in
 
 `completed governed run -> immutable AuthoritativeFinalResponse -> SPEAKING/owned playback subprocess -> explicit Browser or CLI PTT press -> stop owned playback only -> LISTENING/capture -> release -> deferred-STT finalization -> exactly one new governed run`
@@ -205,7 +226,8 @@ governed result. Existing Phase 6 components alone publish bounded `LISTENING` a
 is no autonomous conversation loop, wake word, always listening, VAD, automatic
 follow-up, or background listener. The 3090 remains independently sufficient and
 the optional 4090 remains governed only by the unchanged MO2 policy. Phase 7C later
-closed the bounded composition; Phase 8 behavior remains unauthorized.
+closed that bounded composition without authorizing Phase 8; Phase 8A, Phase 8B, and
+the later narrow resident controls were authorized separately.
 
 The authoritative detailed history remains `PROJECT_STATE.md`; phase reconstruction
 documents live under each `phase*/` directory. Phase 6C connects the independent

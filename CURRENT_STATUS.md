@@ -1,5 +1,19 @@
 # Current GRACI Status
 
+## Phase 8B resident latest-turn continuity — COMPLETE IN REPOSITORY
+
+The resident visualizer now projects one bounded latest completed browser turn in
+snapshot schema v2. It is sourced only from an already-completed submitted
+`TurnResult`; successful text must already be a validated
+`AuthoritativeFinalResponse`. Governed failure exposes bounded status without a
+fabricated response, and speech outcome remains separate.
+
+This process-memory value survives refresh, SSE reconnect, additional localhost
+tabs, a subsequent active task, and Restart GRACI. Resident exit discards it. No
+conversation history, run-file reconstruction, transcript display, typed browser
+submission, new route, or execution authority was added. Physical multi-tab/browser
+acceptance remains a manual product-owner item.
+
 ## Governed model JSON reliability — REPAIRED IN REPOSITORY
 
 The two retained failures (`b1f1ab3d-c0f5-437b-bd6b-66b7af9a1eba` and
@@ -58,7 +72,8 @@ show one listening event, one release/idle event, one task start, and one Qwen r
 with no duplicate capture, transcript, submission, repeat, or stale-key cleanup.
 That governed run independently failed strict response validation with
 `validation_error: model output is not valid JSON: Expecting value`. Model-output
-JSON reliability is a separate follow-up defect and is not part of PTT barge-in.
+At that acceptance point JSON reliability was a separate follow-up defect. It was
+subsequently repaired by the structured-response hardening above.
 
 The explicit localhost-only `Restart GRACI` recovery returned `ready` and `IDLE`,
 preserved the failed durable run byte-for-byte and retained its event evidence, and
@@ -113,9 +128,9 @@ and performed only two requests total (one preview and one final), demonstrating
 latest-only replacement rather than backlog accumulation. Cancellation returned
 immediately and its worker had exited within three seconds. Governed calls remained
 zero before release and exactly one followed finalization. The
-finalization-to-submission interval was not separately instrumented. Physical
-browser-button and CLI Spacebar microphone interaction remains the one manual
-verification not performed by Codex in this phase.
+finalization-to-submission interval was not separately instrumented. Physical Browser
+Spacebar acceptance was subsequently completed during barge-in acceptance. Physical
+CLI Spacebar microphone acceptance remains unrecorded.
 
 The accepted login composition also has a distinct `GRACI 3090 llama.cpp Router`
 current-user task. Both it and `GRACI Resident Host` use hidden noninteractive task
@@ -156,11 +171,13 @@ changed.
 
 ## Phase 8 presence and visual identity — IN PROGRESS
 
-**Phase 8A — COMPLETE.** Existing trusted `system_state` drives nine bounded,
+**Phase 8A and Phase 8B — COMPLETE.** Existing trusted `system_state` drives nine bounded,
 frontend-only presence categories while the exact state and stale/disconnected
 truth remain visible. Reduced motion preserves static and textual semantics. No
-write/control API or runtime authority was added; voice is observed only, the 3090
-remains independently sufficient, and optional 4090/MO2 policy is unchanged.
+Phase 8A itself added no control or runtime authority. Later accepted resident work
+added only explicit Browser PTT and Restart GRACI. Phase 8B adds read-only latest-turn
+continuity without expanding those controls. The 3090 remains independently
+sufficient, and optional 4090/MO2 policy is unchanged.
 
 ## Phase 7 bounded explicit local interaction — COMPLETE
 
@@ -171,12 +188,13 @@ observer-only lifecycle composition. Accepted typed or speech input submits exac
 once; rejected or failed pre-submission input submits zero times. Governed truth is
 unchanged by serialization, observation, synthesis, or playback failure.
 
-The local CLI is the normal operator surface. Phase 1C workspace/target remains a
+At Phase 7 closure, the local CLI was the normal operator surface. Phase 1C workspace/target remains a
 specialized legacy mode. The 3090 remains independently sufficient and the 4090
 remains optional under unchanged MO2 policy. Future interaction enhancements require
-a separately authorized later phase; wake word, VAD, sessions/history, automatic
-follow-up, autonomous conversation, browser control, new persistence, and Phase 8
-presence work are not accepted.
+a separately authorized later phase. The subsequently accepted Browser PTT and
+Restart GRACI controls are documented above; wake word, VAD, sessions/history,
+automatic follow-up, autonomous conversation, generic browser control, new
+persistence, and further Phase 8 presence work remain unaccepted.
 
 ## Phase 7B local operator CLI integration — COMPLETE
 
@@ -249,4 +267,4 @@ remains observer-only. `LISTENING` is backend-published only during an accepted 
 there is no wake word, VAD, continuous listening, automatic follow-up, generic task
 submission, routing, memory, or persistence control. The
 3090 remains independently sufficient, and optional 4090/MO2 policy is unchanged.
-Phase 8B and later presence work remains unauthorized.
+Phase 8B is complete in repository. Phase 8C and later presence work remain unauthorized.

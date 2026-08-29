@@ -86,7 +86,9 @@ def build_operator_composition(repository_root: Path | None = None, *,
         raise ValueError("browser operator control requires the visualizer")
     browser_ptt = (BrowserPTTOperator(
         stt, coordinator, lifecycle,
-        interrupt_speaking=presentation.interrupt_playback)
+        interrupt_speaking=presentation.interrupt_playback,
+        completed_turn_observer=(runtime_observer.publish_completed_turn
+                                 if runtime_observer is not None else None))
                    if browser_operator else None)
     def restart_runtime() -> None:
         presentation.interrupt_playback()

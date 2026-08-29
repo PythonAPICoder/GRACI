@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+import logging
 import secrets
 import threading
 import wave
@@ -20,6 +21,7 @@ from .voice_lifecycle import VoiceLifecycle, VoiceLifecycleLease
 
 MAX_BROWSER_AUDIO_BYTES = 4_000_000
 TOKEN_BYTES = 24
+_LOG = logging.getLogger(__name__)
 
 
 class BrowserPTTStatus(str, Enum):
@@ -50,12 +52,14 @@ class BrowserPTTOperator:
 
     def __init__(self, stt: SpeechToText, coordinator: ExplicitTurnCoordinator,
                  lifecycle: VoiceLifecycle, config: AudioCaptureConfig = AudioCaptureConfig(),
-                 interrupt_speaking: Callable[[], None] | None = None):
+                 interrupt_speaking: Callable[[], None] | None = None,
+                 completed_turn_observer: Callable[[TurnResult], None] | None = None):
         self._stt = stt
         self._coordinator = coordinator
         self._lifecycle = lifecycle
         self._config = config
         self._interrupt_speaking = interrupt_speaking
+        self._completed_turn_observer = completed_turn_observer
         self._lock = threading.Lock()
         self._token: str | None = None
         self._processing = 0
@@ -126,6 +130,14 @@ class BrowserPTTOperator:
         # Browser PTT is a voice modality: the existing coordinator constructs one
         # authoritative response and presents that same object through Phase 6D.
         result = self._coordinator.run_typed(transcription.text, present_speech=True)
+        if (self._completed_turn_observer is not None
+                and getattr(result, "governed_submitted", False)
+                and getattr(result, "governed_result", None) is not None):
+            try:
+                self._completed_turn_observer(result)
+            except Exception as exc:
+                _LOG.warning("latest-turn observer failed (%s): %s",
+                             type(exc).__name__, exc)
         return BrowserPTTResult(BrowserPTTStatus.ACCEPTED, result, transcription)
 
     def offer(self, token: str, wav_bytes: bytes) -> bool:

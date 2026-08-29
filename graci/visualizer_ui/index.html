@@ -90,7 +90,11 @@
         </button>
         <div class="operator-status" role="status" aria-live="polite"><b id="ptt-status">MICROPHONE OFF</b><span id="ptt-detail">Audio is captured only while held.</span></div>
         <button id="restart-button" class="restart-button" type="button">RESTART GRACI</button>
-        <article class="operator-response" aria-live="polite"><span>LATEST VALIDATED RESPONSE</span><p id="operator-response">No browser operator response yet.</p></article>
+        <article class="operator-response" aria-labelledby="latest-turn-label" aria-live="polite">
+          <span id="latest-turn-label">LATEST COMPLETED TURN</span>
+          <div class="latest-turn-meta"><b id="latest-turn-status">NONE</b><small id="latest-turn-id">NO RESIDENT RESULT</small><small id="latest-turn-presentation">PRESENTATION N/A</small></div>
+          <p id="operator-response">No completed resident turn yet.</p>
+        </article>
       </div>
     </section>
 

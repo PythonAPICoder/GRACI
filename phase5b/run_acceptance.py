@@ -48,7 +48,7 @@ def main() -> None:
         health = json.loads(body)
         checks["health_before_state"] = status == 200 and health["snapshot_available"] is False
         checks["versions"] = (health["api_version"], health["snapshot_schema_version"],
-                              health["event_schema_version"]) == (1, 1, 1)
+                              health["event_schema_version"]) == (1, 2, 1)
 
         idle_state = TrustedRuntimeState(SystemState.IDLE, TaskView(), default_compute(),
                                          inactive_agents(), MemoryView(), ExecutionView(), ReviewView())

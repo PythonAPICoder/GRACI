@@ -5,6 +5,22 @@
 This is the current product-owner canonical identity definition. It supersedes the
 former expansion without rewriting historical project records.
 
+## Phase 8B resident latest-turn continuity
+
+**Phase 8B — COMPLETE IN REPOSITORY.** Snapshot schema v2 now carries one
+bounded, immutable latest-completed-turn presentation. Only an already-completed
+governed record, its strictly validated `AuthoritativeFinalResponse`, and the
+independent speech outcome can populate it. Refresh, SSE reconnect, and additional
+localhost tabs render the same resident-memory result while a new active task remains
+distinct from the previous completed response.
+
+Restart GRACI clears transient task, capture, STT, and lifecycle projection while
+retaining this presentation until another completed turn replaces it or the resident
+process exits. Startup reads no history from `runs/`. Zero-run paths publish nothing.
+The existing PTT/restart routes are unchanged; no typed submission, history/session,
+model, routing, memory, compute, remote, cloud, or generic control was added. See
+`phase8b/`.
+
 ## Explicit PTT speech barge-in
 
 While GRACI is in `SPEAKING`, a new explicit browser pointer/Spacebar hold or CLI
@@ -109,12 +125,12 @@ Qwen, confirm its `/v1/models` status is `loaded`, run one harmless completion, 
 repeat for GLM and finally Qwen. Each request must use the exact registered model ID.
 Do not contact `192.168.0.101`; required reviewer work is 3090-only.
 
-**Phase 8A — COMPLETE. Phase 8 — IN PROGRESS.** Trusted observer state now drives
+**Phase 8A and Phase 8B — COMPLETE. Phase 8 — IN PROGRESS.** Trusted observer state now drives
 a bounded presentation-only GRACI presence. The resident visualizer has one narrow
 explicit PTT operator path; every other panel remains observer-only. Voice lifecycle
 is observed, the 3090 remains independently sufficient, and optional 4090/MO2 policy
-is unchanged. Later Phase 8 work remains
-unauthorized. Details and evidence are under `phase8a/`.
+is unchanged. Phase 8C and later Phase 8 work remain unauthorized. Details and
+evidence are under `phase8a/` and `phase8b/`.
 
 # GRACI Phase 7 — Bounded Explicit Local Interaction Complete
 
