@@ -4,14 +4,21 @@
 
 - Phase 7 — IN PROGRESS
 - Phase 7A — COMPLETE
+- Phase 7B — COMPLETE
 - Phase 5 — COMPLETE
-- Phase 6 — IN PROGRESS
 - Phase 6A — COMPLETE
 - Phase 6B — COMPLETE
 - Phase 6C — COMPLETE
 - Phase 6D — COMPLETE
 - Phase 6E — COMPLETE
 - **Phase 6 — COMPLETE AT BOUNDED PUSH-TO-TALK VOICE INTERACTION**
+- Phase 7B makes the ordinary local CLI a thin adapter over Phase 7A. Typed tasks use
+  `run_typed`; explicit `--speech` performs one operator-started/operator-stopped
+  push-to-talk turn; explicit `--speak` alone enables accepted local presentation.
+  Output is bounded and allowlisted, exit codes are deterministic, and the Phase 1C
+  workspace/target boundary remains a specialized legacy path. There is no retry,
+  wake word, background/continuous listening, automatic follow-up, or conversation
+  loop. Evidence: `phase7b/evidence/phase7b-closure.json`.
 - Phase 7A adds `ExplicitTurnCoordinator` for one explicitly initiated typed or
   push-to-talk turn. Both sources use one shared call to the existing governed
   `run(task)` boundary; accepted input submits exactly once and rejected input zero

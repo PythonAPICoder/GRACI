@@ -1,3 +1,14 @@
+# GRACI Phase 7B Local Operator CLI Integration — Complete
+
+Ordinary `python -m graci "task"` interaction now uses the accepted Phase 7A
+single-turn coordinator. `python -m graci --speech` performs at most one explicit
+push-to-talk turn and requires separate Enter actions to start and stop capture.
+Add `--speak` only when local Kokoro `af_bella` presentation is desired. There is no
+implicit microphone or speaker use, retry, wake word, always-listening behavior,
+automatic follow-up, REPL, or conversation loop. Output is bounded JSON and
+presentation cannot alter governed authority. Phase 7 remains in progress; later
+Phase 7 work is unauthorized. Details and evidence are under `phase7b/`.
+
 # GRACI Phase 7A Explicit Turn Coordinator — Complete
 
 Phase 7 has begun. Phase 7A adds a production coordinator for one explicitly

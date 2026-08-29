@@ -1,5 +1,24 @@
 # Current GRACI Architecture
 
+## Phase 7B local operator adapter
+
+The ordinary CLI is now:
+
+`explicit typed task OR explicit bounded --speech -> Phase 7A ExplicitTurnCoordinator -> existing governed run(task) -> bounded allowlisted JSON -> optional explicit --speak presentation`
+
+`graci.operator_cli` owns only production composition and safe serialization.
+`graci.__main__` selects one mode and calls the coordinator once; it contains no
+duplicate orchestration or retry. Speech requires distinct operator actions to begin
+and end capture and cannot produce a second turn. Presentation is opt-in and its
+failure cannot change governed truth. Phase 1C `--workspace`/`--target` remains a
+specialized legacy security boundary and cannot be combined with voice options.
+
+No new runtime, execution authority, routing, memory, persistence, network control,
+background listener, wake word, VAD, REPL, or autonomous loop exists. Voice remains
+local CPU-only. The 3090 is independently sufficient and optional 4090 eligibility,
+exact MO2 gating, health/model freshness, and fallback semantics are unchanged.
+Phase 7 remains in progress; Phase 7A and Phase 7B are complete.
+
 ## Phase 7A explicit single-turn composition
 
 `graci.turn_coordinator.ExplicitTurnCoordinator` is a small orchestration layer over

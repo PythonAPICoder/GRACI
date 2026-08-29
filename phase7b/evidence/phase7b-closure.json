@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "phase": "7B",
+  "title": "Local Operator CLI Integration",
+  "status": "PASS",
+  "starting_commit": "852471b30d693f6a979948fb8ebef7f970f9da56",
+  "starting_branch": "main",
+  "starting_tree_clean": true,
+  "ordinary_path": "CLI -> ExplicitTurnCoordinator -> existing governed run(task)",
+  "invariants": {
+    "accepted_ordinary_turn_exactly_one_governed_submission": true,
+    "rejected_input_zero_governed_submissions": true,
+    "speech_invocation_at_most_one_transcript_and_submission": true,
+    "no_cli_retry": true,
+    "source_metadata_preserves_semantic_task_text": true,
+    "presentation_does_not_alter_governed_authority": true
+  },
+  "operator_modes": {
+    "typed": "one explicit positional task",
+    "speech": "explicit --speech with separate Enter actions to start and stop",
+    "presentation": "explicit --speak only",
+    "workspace_target": "preserved specialized Phase 1C legacy path"
+  },
+  "verification": {
+    "focused_command": "python -W error -m unittest tests.test_phase7b_operator_cli tests.test_phase7a_turn_coordinator -v",
+    "focused_phase7b_tests_passed": 13,
+    "focused_phase7b_plus_phase7a_tests_passed": 23,
+    "full_command": "python -W error -m unittest discover -s tests -v",
+    "full_tests_passed": 348,
+    "hardware_required_for_tests": false,
+    "warning_strict_compilation": "PASS",
+    "evidence_json_files_validated": 37,
+    "git_diff_check": "PASS",
+    "bounded_prohibited_surface_inspection": "PASS"
+  },
+  "architecture": {
+    "3090_independently_sufficient": true,
+    "4090_optional_under_unchanged_mo2_policy": true,
+    "voice_uses_4090": false,
+    "cloud_dependency_added": false,
+    "new_runtime_authority_added": false,
+    "new_persistence_or_routing_authority_added": false,
+    "wake_word_or_always_listening_added": false,
+    "autonomous_or_continuous_conversation_added": false
+  },
+  "phase_state": {
+    "phase_7": "IN PROGRESS",
+    "phase_7a": "COMPLETE",
+    "phase_7b": "COMPLETE",
+    "later_phase_7_work_authorized": false
+  }
+}

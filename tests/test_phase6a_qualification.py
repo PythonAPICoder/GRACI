@@ -38,7 +38,8 @@ class Phase6AQualificationTests(unittest.TestCase):
     def test_project_state_marks_phase6a_complete(self):
         first = (ROOT / "PROJECT_STATE.md").read_text(encoding="utf-8")[:600]
         self.assertIn("Phase 5 — COMPLETE", first)
-        self.assertIn("Phase 6 — IN PROGRESS", first)
+        self.assertIn("Phase 6 — COMPLETE", first)
+        self.assertNotIn("Phase 6 — IN PROGRESS", first)
         self.assertIn("Phase 6A — COMPLETE", first)
         self.assertIn("Phase 6B — COMPLETE", first)
 

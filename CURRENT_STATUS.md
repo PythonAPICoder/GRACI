@@ -1,5 +1,22 @@
 # Current GRACI Status
 
+## Phase 7B local operator CLI integration — COMPLETE
+
+Phase 7 has begun and remains in progress. Phase 7A and Phase 7B are complete.
+Ordinary `python -m graci "task"` interaction now enters the accepted Phase 7A
+coordinator and its single existing governed `run(task)` submission statement.
+`--speech` is one explicit push-to-talk turn with separate operator start/stop
+actions; `--speak` is explicit opt-in presentation through accepted local Kokoro
+`af_bella`. Typed mode never captures audio and presentation is absent by default.
+
+The CLI emits a bounded allowlisted JSON projection and deterministic exit status.
+One accepted input submits exactly once; rejected input submits zero times; there is
+no CLI retry. Presentation failure remains visible without changing governed PASS.
+The Phase 1C `--workspace`/`--target` security boundary remains a specialized legacy
+path. There is no wake word, always-listening mode, background capture, VAD, REPL,
+automatic follow-up, or conversation loop. The 3090 remains independently sufficient
+and the 4090 remains optional under unchanged MO2 policy. Evidence is under `phase7b/`.
+
 ## Phase 7A explicit turn coordinator — COMPLETE
 
 Phase 7 has begun and remains in progress. Phase 7A provides only explicit
