@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from .audio_capture import WindowsWaveInCapture
+from .browser_ptt import BrowserPTTOperator
 from .controller import Controller
 from .playback import PlaybackConfig, SubprocessWavePlayback
 from .push_to_talk import PushToTalkController
@@ -44,10 +45,12 @@ class OperatorComposition:
     runtime_observer: VisualizerRuntimeObserver | None = None
     voice_lifecycle: VoiceLifecycle | None = None
     server: VisualizerServer | None = None
+    browser_ptt: BrowserPTTOperator | None = None
 
 
 def build_operator_composition(repository_root: Path | None = None, *,
-                               visualizer: bool = False) -> OperatorComposition:
+                               visualizer: bool = False,
+                               browser_operator: bool = False) -> OperatorComposition:
     """Compose accepted local components without adding another runtime authority."""
     root = repository_root or Path(__file__).resolve().parents[1]
     provider = VisualizerStateProvider() if visualizer else None
@@ -76,8 +79,13 @@ def build_operator_composition(repository_root: Path | None = None, *,
         final_response_constructor=GovernedSummaryResponseConstructor(),
         speech_presentation=presentation,
     )
-    server = VisualizerServer(provider) if provider is not None else None
-    return OperatorComposition(coordinator, provider, runtime_observer, lifecycle, server)
+    if browser_operator and provider is None:
+        raise ValueError("browser operator control requires the visualizer")
+    browser_ptt = (BrowserPTTOperator(stt, coordinator, lifecycle)
+                   if browser_operator else None)
+    server = VisualizerServer(provider, browser_ptt=browser_ptt) if provider is not None else None
+    return OperatorComposition(coordinator, provider, runtime_observer, lifecycle, server,
+                               browser_ptt)
 
 
 def build_operator_coordinator(repository_root: Path | None = None) -> ExplicitTurnCoordinator:

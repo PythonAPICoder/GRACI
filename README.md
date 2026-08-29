@@ -8,12 +8,17 @@ former expansion without rewriting historical project records.
 ## Windows resident host
 
 GRACI has one supported always-available composition for the authoritative 3090 PC.
-The resident host owns one existing governed runtime composition and the existing
-observer-only visualizer at `http://127.0.0.1:8766/`. It publishes `IDLE` at startup
+The resident host owns one existing governed runtime composition and the local
+visualizer at `http://127.0.0.1:8766/`. It publishes `IDLE` at startup
 and then waits. **Resident does not mean autonomous:** startup submits no task, starts
 no run, performs no follow-up, and activates no microphone. The microphone remains
-inactive unless an operator explicitly starts an accepted push-to-talk path; browser
-PTT and browser task submission are not implemented.
+inactive unless an operator explicitly holds the browser PTT control (or valid
+Spacebar shortcut) or starts the existing CLI push-to-talk path. The browser exposes
+only this narrow explicit voice turn; it has no generic task-submission authority.
+A successful browser voice turn displays the validated response and, by default,
+presents that same `AuthoritativeFinalResponse` through the existing Phase 6D local
+Kokoro `af_bella` and Windows playback path. Typed interactions retain their existing
+explicit `--speak` behavior.
 
 Run operator scripts from the repository root. Where local PowerShell policy blocks
 scripts, use process-only bypass (it does not change machine or user policy):
@@ -94,9 +99,10 @@ repeat for GLM and finally Qwen. Each request must use the exact registered mode
 Do not contact `192.168.0.101`; required reviewer work is 3090-only.
 
 **Phase 8A — COMPLETE. Phase 8 — IN PROGRESS.** Trusted observer state now drives
-a bounded presentation-only GRACI presence; the visualizer remains incapable of
-task/runtime control. Voice lifecycle is observed, the 3090 remains independently
-sufficient, and optional 4090/MO2 policy is unchanged. Later Phase 8 work remains
+a bounded presentation-only GRACI presence. The resident visualizer has one narrow
+explicit PTT operator path; every other panel remains observer-only. Voice lifecycle
+is observed, the 3090 remains independently sufficient, and optional 4090/MO2 policy
+is unchanged. Later Phase 8 work remains
 unauthorized. Details and evidence are under `phase8a/`.
 
 # GRACI Phase 7 — Bounded Explicit Local Interaction Complete
@@ -125,9 +131,9 @@ composition and closed Phase 7. Details and evidence are under `phase7b/`.
 Add `--visualizer` to an ordinary typed or explicit speech turn to serve the same
 in-process observer stream at `http://127.0.0.1:8766/`. For a one-shot turn that a
 human needs time to inspect, also add `--visualizer-hold`; GRACI waits for Enter after
-the turn and then stops the server. The visualizer is loopback-only and observer-only:
-it has no task, microphone, speech, routing, shutdown, memory, model, or mutation
-controls.
+the turn and then stops the server. That one-shot visualizer remains observer-only.
+The resident visualizer adds explicit browser PTT; neither surface has routing,
+shutdown, memory, model, or generic mutation controls.
 
 # GRACI Phase 7A Explicit Turn Coordinator — Complete
 

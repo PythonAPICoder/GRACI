@@ -82,6 +82,17 @@
       </aside>
     </section>
 
+    <section class="operator-section" aria-label="Explicit push-to-talk operator control">
+      <div class="section-heading"><span>PTT</span> EXPLICIT OPERATOR CONTROL</div>
+      <div class="operator-control">
+        <button id="ptt-button" class="ptt-button" type="button" aria-pressed="false">
+          <span class="mic-icon" aria-hidden="true">●</span><strong>HOLD TO TALK</strong><small>OR HOLD SPACEBAR</small>
+        </button>
+        <div class="operator-status" role="status" aria-live="polite"><b id="ptt-status">MICROPHONE OFF</b><span id="ptt-detail">Audio is captured only while held.</span></div>
+        <article class="operator-response" aria-live="polite"><span>LATEST VALIDATED RESPONSE</span><p id="operator-response">No browser operator response yet.</p></article>
+      </div>
+    </section>
+
     <section class="pipeline-section" aria-label="Execution pipeline">
       <div class="section-heading"><span>03</span> EXECUTION PIPELINE</div>
       <div id="pipeline" class="pipeline">

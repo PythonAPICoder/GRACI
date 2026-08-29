@@ -14,4 +14,4 @@ if ($null -eq $process) {
     exit 1
 }
 Write-Output "GRACI resident host is running (PID $($record.pid), started $($record.started_at))."
-Write-Output "Observer-only visualizer: http://127.0.0.1:$($record.visualizer.port)/"
+Write-Output "Local visualizer with explicit PTT: http://127.0.0.1:$($record.visualizer.port)/"

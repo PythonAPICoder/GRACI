@@ -48,11 +48,13 @@ class StaticContractTests(unittest.TestCase):
     def setUpClass(cls):
         cls.html=(UI/"index.html").read_text("utf-8"); cls.css=(UI/"visualizer.css").read_text("utf-8"); cls.js=(UI/"visualizer.js").read_text("utf-8")
 
-    def test_offline_no_remote_fonts_cdn_analytics_or_controls(self):
+    def test_offline_no_remote_fonts_cdn_analytics_or_broad_controls(self):
         combined=self.html+self.css+self.js
         for forbidden in ("http://","https://","@import","googleapis","analytics","task-entry","prompt-entry","model selector","approve","reject","memory_content","chain_of_thought","stdout","stderr"):
             self.assertNotIn(forbidden.lower(),combined.lower())
-        self.assertNotRegex(self.html,r"<(?:form|input|button|textarea|select)\b")
+        self.assertNotRegex(self.html,r"<(?:form|input|textarea|select)\b")
+        self.assertEqual(len(re.findall(r"<button\b", self.html)), 1)
+        self.assertIn('id="ptt-button"', self.html)
 
     def test_paths_bounds_polling_disconnect_and_all_contract_enums(self):
         for suffix in ("/health","/snapshot","/events","/events/stream"): self.assertIn(f'${{API}}{suffix}',self.js)

@@ -40,4 +40,4 @@ if ($null -eq $record -or $record.instance_id -ne $instanceId -or [int]$record.p
 $validated = Get-ValidatedGraciResidentProcess -Record $record
 if ($null -eq $validated) { throw "GRACI resident host exited during startup. See $stderr" }
 Write-Output "Started GRACI resident host PID $($record.pid)."
-Write-Output "Observer-only visualizer: http://127.0.0.1:$($record.visualizer.port)/"
+Write-Output "Local visualizer with explicit PTT: http://127.0.0.1:$($record.visualizer.port)/"

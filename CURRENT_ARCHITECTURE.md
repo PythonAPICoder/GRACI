@@ -7,9 +7,11 @@
 The authoritative 3090 may run `graci.resident_host` as the one supported resident
 composition. It creates exactly one existing governed controller/coordinator instance
 and owns the existing GET/HEAD/SSE observer server for its lifetime. It invokes no
-coordinator method at startup, contains no task loop, and exposes no browser control
-or submission endpoint. The microphone, STT, TTS, wake word, VAD, and continuous
-listening remain inactive. Resident is availability infrastructure, not autonomy.
+coordinator method at startup and contains no task loop. Its sole browser control is
+explicit PTT: same-origin loopback begin, bounded PCM-WAV finish, and cancellation
+feed local faster-whisper output into the existing coordinator. Microphone acquisition
+occurs only after a valid browser hold; wake word, VAD, and continuous listening are
+absent. Resident is availability infrastructure, not autonomy.
 
 An OS-held lock under `.runtime/resident-host` is authoritative. A versioned state
 record carries the GRACI owner marker, instance ID, PID, resolved Python executable,
@@ -76,13 +78,27 @@ validated v2 PASS can cross the final-response boundary; internal summaries and 
 remain governed diagnostics. Typed and speech input still converge on the same single
 submission and response-construction path.
 
-## Phase 8A observer-only presence
+## Phase 8 visualizer presence and explicit browser PTT
 
 `trusted observer system_state -> frozen presentation mapping -> HTML/CSS/SVG presence`
 
 The mapping is not persisted or published. Unknown state uses warning presentation
 without replacing its displayed label; freshness independently marks stale data.
-The Phase 5 read-only API and static allowlist are unchanged.
+All compute, task, routing, memory, review, pipeline, event, and presence panels remain
+observer-only. The sole control exception is resident-host browser PTT:
+
+`explicit pointer/valid Spacebar hold -> transient mono PCM WAV -> loopback resident -> existing local faster-whisper -> existing ExplicitTurnCoordinator -> exactly one governed run(task) -> one validated AuthoritativeFinalResponse -> latest-result panel + existing Phase 6D Kokoro/Windows playback`
+
+Begin acquires a guarded turn and publishes authoritative `LISTENING`; finish ends
+`LISTENING` before STT, and cancel/timeout restores `IDLE` with zero submission.
+Blank/failed STT also submits zero times. Opaque one-use tokens, one in-flight turn,
+strict same-origin/content-type/WAV validation, the existing 120-second voice limit,
+and a 4,000,000-byte body limit prevent replay and broad control. There is no CORS,
+file-path, command, generic task, routing, memory, model, or remote/mobile endpoint.
+Browser PTT requests the coordinator's existing presentation option because its input
+modality is voice. Text and speech share the same constructed response object;
+synthesis/playback failure remains presentation-only, never reruns the task, and
+`SPEAKING` is published only around actual accepted playback.
 
 ## Phase 7 accepted local interaction composition
 
@@ -94,9 +110,10 @@ presentation, and lifecycle publication remain non-authoritative. `LISTENING` wr
 only bounded microphone capture, `SPEAKING` only actual playback, and voice returns
 to `IDLE`. There is no retry or automatic second turn.
 
-The ordinary local CLI is the operator surface. Phase 1C workspace/target remains an
-intentionally distinct specialized legacy mode; internal/test APIs are not alternate
-ordinary surfaces; the browser visualizer remains observer-only. The 3090 remains
+The local CLI and resident browser's narrow explicit PTT are operator surfaces.
+Phase 1C workspace/target remains an intentionally distinct specialized legacy mode;
+internal/test APIs are not alternate
+ordinary surfaces. Other browser panels remain observer-only. The 3090 remains
 independently sufficient and the optional 4090 policy is unchanged. Future interaction
 enhancements require a separately authorized later phase.
 

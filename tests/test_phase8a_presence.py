@@ -42,12 +42,15 @@ class PresenceSourceTests(unittest.TestCase):
         self.assertIn("animation:none!important", reduced)
         self.assertIn("transition:none!important", reduced)
 
-    def test_ui_has_no_control_or_remote_dependency(self):
+    def test_presence_panels_have_only_the_later_explicit_ptt_control(self):
         combined = (self.html + self.css + self.js).lower()
-        self.assertNotRegex(self.html, r"<(?:form|input|button|textarea|select)\b")
-        for forbidden in ("http://", "https://", "microphone", "getusermedia", "speechsynthesis", "wake word", "websocket", "analytics"):
+        self.assertNotRegex(self.html, r"<(?:form|input|textarea|select)\b")
+        self.assertEqual(len(re.findall(r"<button\b", self.html)), 1)
+        self.assertIn('id="ptt-button"', self.html)
+        for forbidden in ("http://", "https://", "speechsynthesis", "wake word", "websocket", "analytics"):
             self.assertNotIn(forbidden, combined)
-        self.assertNotRegex(self.js, r"fetch\([^\n]+method\s*:\s*[\"'](?:POST|PUT|PATCH|DELETE)")
+        for authority in ("routing", "model selector", "memory write", "command execution"):
+            self.assertNotIn(authority, combined)
 
     def test_3090_and_mo2_truth_remain_visible(self):
         self.assertIn("PRIMARY / AUTHORITY", self.html)

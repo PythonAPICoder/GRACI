@@ -3,7 +3,7 @@
 ## Windows startup and resident host — COMPLETE IN REPOSITORY
 
 The authoritative 3090 now has one supported idle resident composition. It owns one
-accepted GRACI runtime instance and the loopback-only observer visualizer continuously,
+accepted GRACI runtime instance and the loopback-only visualizer continuously,
 publishing initial `IDLE` without starting a governed run. Startup performs no task
 submission, microphone activation, wake word, VAD, continuous listening, or automatic
 follow-up. Resident does not mean autonomous, and the microphone remains inactive
@@ -14,7 +14,13 @@ until an explicit accepted push-to-talk operator action.
 remove scripts manage only the named current-user Task Scheduler entry. Repository
 tests do not install it; real Task Scheduler validation remains a manual 3090
 acceptance step. Existing model routing, 4090 policy, memory, and governed execution
-boundaries are unchanged.
+boundaries are unchanged. Its one browser operator capability is explicit hold-to-talk:
+pointer hold or Spacebar outside normal text-entry/editor contexts. Release uploads
+transient local PCM WAV for local faster-whisper and exactly one governed coordinator
+turn. A successful turn shows and speaks the same validated authoritative response
+through existing Phase 6D Kokoro/Windows playback. Presentation failure cannot change
+the successful governed result or cause another run. Cancellation, blank/failed STT,
+invalid audio, and contention submit zero runs.
 
 The accepted login composition also has a distinct `GRACI 3090 llama.cpp Router`
 current-user task. Both it and `GRACI Resident Host` use hidden noninteractive task
@@ -142,7 +148,10 @@ categories are frontend-only and are not persisted or returned to GRACI. Unknown
 values fail safely to warning presentation; stale/disconnected transport remains
 explicit. Reduced-motion users retain textual and static semantic distinctions.
 
-No visualizer write/control API, voice control, task submission, routing, memory, or
-persistence behavior was added. LISTENING, SPEAKING, and IDLE are observed only. The
+Phase 8A itself added no control. This later authorized capability adds only resident
+browser explicit PTT plus a latest validated-response area. All other visualizer state
+remains observer-only. `LISTENING` is backend-published only during an accepted hold;
+there is no wake word, VAD, continuous listening, automatic follow-up, generic task
+submission, routing, memory, or persistence control. The
 3090 remains independently sufficient, and optional 4090/MO2 policy is unchanged.
 Phase 8B and later presence work remains unauthorized.

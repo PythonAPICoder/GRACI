@@ -153,7 +153,7 @@ class ResidentHost:
                 except (OSError, ValueError):
                     pass
         try:
-            composition = self.composition_factory(visualizer=True)
+            composition = self.composition_factory(visualizer=True, browser_operator=True)
             if composition.server is None or composition.runtime_observer is None:
                 raise RuntimeError("resident composition requires the accepted visualizer observer")
             composition.runtime_observer.publish_current("resident-startup")
@@ -166,6 +166,8 @@ class ResidentHost:
         finally:
             if server_started and composition is not None and composition.server is not None:
                 composition.server.stop()
+            if composition is not None and composition.browser_ptt is not None:
+                composition.browser_ptt.close()
             self.ownership.release()
             for number, handler in previous.items():
                 try:

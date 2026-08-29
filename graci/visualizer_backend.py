@@ -1,4 +1,4 @@
-"""Loopback-only, observer-only transport for Phase 5A visualizer projections."""
+"""Loopback visualizer transport with one narrow resident-owned browser PTT path."""
 
 from __future__ import annotations
 
@@ -11,13 +11,16 @@ from datetime import datetime, timezone
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from typing import Final
+from typing import Final, TYPE_CHECKING
 from urllib.parse import unquote, urlsplit
 
 from .visualizer import (
     EVENT_SCHEMA_VERSION, RECENT_EVENT_LIMIT, SNAPSHOT_SCHEMA_VERSION,
     RecentEventBuffer, VisualizerEvent, VisualizerSnapshot, serialize_visualizer,
 )
+
+if TYPE_CHECKING:
+    from .browser_ptt import BrowserPTTOperator
 
 API_VERSION: Final[int] = 1
 DEFAULT_HOST: Final[str] = "127.0.0.1"
@@ -33,6 +36,7 @@ STATIC_ASSETS: Final[dict[str, tuple[str, str]]] = {
     "/visualizer.js": ("visualizer.js", "text/javascript; charset=utf-8"),
 }
 MAX_STATIC_FILE_BYTES: Final[int] = 512_000
+MAX_CONTROL_JSON_BYTES: Final[int] = 512
 CONTENT_SECURITY_POLICY: Final[str] = (
     "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; "
     "connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; "
@@ -91,13 +95,15 @@ class _BoundedHTTPServer(ThreadingHTTPServer):
     allow_reuse_address = False
 
     def __init__(self, address: tuple[str, int], provider: VisualizerStateProvider,
-                 max_live_clients: int, heartbeat_seconds: float):
+                 max_live_clients: int, heartbeat_seconds: float,
+                 browser_ptt: BrowserPTTOperator | None):
         self.provider = provider
         self.max_live_clients = max_live_clients
         self.heartbeat_seconds = heartbeat_seconds
         self.live_lock = threading.Lock()
         self.live_clients = 0
         self.stopping = threading.Event()
+        self.browser_ptt = browser_ptt
         super().__init__(address, _Handler, bind_and_activate=True)
 
     def acquire_live_client(self) -> bool:
@@ -148,19 +154,12 @@ class _Handler(BaseHTTPRequestHandler):
         port = self.app.server_address[1]
         return host in {f"127.0.0.1:{port}", f"localhost:{port}"}
 
-    def _preflight(self) -> str | None:
+    def _request_path(self) -> str | None:
         if len(self.path) > MAX_REQUEST_TARGET:
             self._error(HTTPStatus.REQUEST_URI_TOO_LONG, "request_target_too_long", "request target is too long")
             return None
         if not self._valid_host():
             self._error(HTTPStatus.BAD_REQUEST, "invalid_host", "Host must match the local visualizer")
-            return None
-        try:
-            length = int(self.headers.get("Content-Length", "0"))
-        except ValueError:
-            length = -1
-        if length != 0 or self.headers.get("Transfer-Encoding") is not None:
-            self._error(HTTPStatus.BAD_REQUEST, "request_body_rejected", "request bodies are not accepted")
             return None
         target = urlsplit(self.path)
         try:
@@ -173,6 +172,32 @@ class _Handler(BaseHTTPRequestHandler):
             return None
         return decoded_path
 
+    def _same_origin_loopback(self) -> bool:
+        if self.client_address[0] not in {"127.0.0.1", "::1"}:
+            return False
+        origin = self.headers.get("Origin")
+        return origin is None or origin == f"http://{self.headers.get('Host', '')}"
+
+    def _content_length(self, maximum: int) -> int | None:
+        if self.headers.get("Transfer-Encoding") is not None:
+            self._error(HTTPStatus.BAD_REQUEST, "transfer_encoding_rejected",
+                        "streamed request bodies are not accepted")
+            return None
+        raw = self.headers.get("Content-Length")
+        try:
+            length = int(raw) if raw is not None else -1
+        except ValueError:
+            length = -1
+        if length < 0:
+            self._error(HTTPStatus.LENGTH_REQUIRED, "content_length_required",
+                        "a valid Content-Length is required")
+            return None
+        if length > maximum:
+            self._error(HTTPStatus.REQUEST_ENTITY_TOO_LARGE, "request_too_large",
+                        "request body exceeds the push-to-talk limit")
+            return None
+        return length
+
     def do_HEAD(self) -> None:
         self._read(head_only=True)
 
@@ -180,8 +205,15 @@ class _Handler(BaseHTTPRequestHandler):
         self._read(head_only=False)
 
     def _read(self, *, head_only: bool) -> None:
-        path = self._preflight()
+        path = self._request_path()
         if path is None:
+            return
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+        except ValueError:
+            length = -1
+        if length != 0 or self.headers.get("Transfer-Encoding") is not None:
+            self._error(HTTPStatus.BAD_REQUEST, "request_body_rejected", "request bodies are not accepted")
             return
         if path == f"{BASE_PATH}/health":
             now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
@@ -243,6 +275,108 @@ class _Handler(BaseHTTPRequestHandler):
         if not head_only:
             self.wfile.write(body)
 
+    def do_POST(self) -> None:
+        path = self._request_path()
+        if path is None:
+            return
+        if not self._same_origin_loopback():
+            self._error(HTTPStatus.FORBIDDEN, "loopback_origin_required",
+                        "browser PTT is available only to the local visualizer origin")
+            return
+        allowed = {f"{BASE_PATH}/ptt/begin", f"{BASE_PATH}/ptt/finish",
+                   f"{BASE_PATH}/ptt/cancel"}
+        if path not in allowed:
+            self._error(HTTPStatus.METHOD_NOT_ALLOWED, "method_not_allowed",
+                        "POST is accepted only for explicit browser push-to-talk")
+            return
+        if self.app.browser_ptt is None:
+            self._error(HTTPStatus.SERVICE_UNAVAILABLE, "browser_ptt_unavailable",
+                        "browser push-to-talk is not configured")
+            return
+        if path == f"{BASE_PATH}/ptt/begin":
+            self._ptt_begin()
+        elif path == f"{BASE_PATH}/ptt/finish":
+            self._ptt_finish()
+        elif path == f"{BASE_PATH}/ptt/cancel":
+            self._ptt_cancel()
+
+    def _ptt_begin(self) -> None:
+        if self.headers.get("Content-Type") != "application/json":
+            self._error(HTTPStatus.UNSUPPORTED_MEDIA_TYPE, "invalid_content_type",
+                        "PTT begin requires application/json")
+            return
+        length = self._content_length(MAX_CONTROL_JSON_BYTES)
+        if length is None:
+            return
+        try:
+            value = json.loads(self.rfile.read(length))
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            value = None
+        if value != {}:
+            self._error(HTTPStatus.BAD_REQUEST, "invalid_begin_request",
+                        "PTT begin accepts only an empty JSON object")
+            return
+        try:
+            token = self.app.browser_ptt.begin()
+        except Exception as exc:
+            from .browser_ptt import BrowserPTTBusy
+            if isinstance(exc, BrowserPTTBusy):
+                self._error(HTTPStatus.CONFLICT, "operator_busy", str(exc))
+            else:
+                _LOG.exception("browser PTT begin failed")
+                self._error(HTTPStatus.INTERNAL_SERVER_ERROR, "ptt_begin_failed",
+                            "browser push-to-talk could not start")
+            return
+        self._json({"status": "listening", "turn_token": token}, False)
+
+    def _ptt_finish(self) -> None:
+        from .browser_ptt import MAX_BROWSER_AUDIO_BYTES, BrowserPTTInvalid
+        if self.headers.get("Content-Type") != "audio/wav":
+            self._error(HTTPStatus.UNSUPPORTED_MEDIA_TYPE, "invalid_content_type",
+                        "PTT finish requires audio/wav")
+            return
+        length = self._content_length(MAX_BROWSER_AUDIO_BYTES)
+        if length is None:
+            return
+        token = self.headers.get("X-GRACI-PTT-Token", "")
+        try:
+            result = self.app.browser_ptt.finish(token, self.rfile.read(length))
+        except BrowserPTTInvalid as exc:
+            self._error(HTTPStatus.CONFLICT, "invalid_or_expired_turn", str(exc))
+            return
+        response = (result.turn_result.authoritative_response
+                    if result.turn_result is not None else None)
+        if result.status.value == "accepted" and response is not None:
+            self._json({"status": "ok", "response": response.text}, False)
+        elif result.status.value == "failed":
+            self._error(HTTPStatus.BAD_GATEWAY, result.error_code or "ptt_failed",
+                        result.error_message or "browser push-to-talk failed")
+        else:
+            code = result.error_code or "governed_response_unavailable"
+            message = result.error_message or "no validated user-facing response is available"
+            self._error(HTTPStatus.UNPROCESSABLE_ENTITY, code, message)
+
+    def _ptt_cancel(self) -> None:
+        from .browser_ptt import BrowserPTTInvalid
+        if self.headers.get("Content-Type") != "application/json":
+            self._error(HTTPStatus.UNSUPPORTED_MEDIA_TYPE, "invalid_content_type",
+                        "PTT cancel requires application/json")
+            return
+        length = self._content_length(MAX_CONTROL_JSON_BYTES)
+        if length is None:
+            return
+        try:
+            value = json.loads(self.rfile.read(length))
+            token = value.get("turn_token") if isinstance(value, dict) else None
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            token = None
+        try:
+            self.app.browser_ptt.cancel(token)
+        except BrowserPTTInvalid as exc:
+            self._error(HTTPStatus.CONFLICT, "invalid_or_expired_turn", str(exc))
+            return
+        self._json({"status": "cancelled"}, False)
+
     def _stream(self, last_id: str | None) -> None:
         if not self.app.acquire_live_client():
             self._error(HTTPStatus.SERVICE_UNAVAILABLE, "live_client_limit", "live client limit reached")
@@ -284,7 +418,7 @@ class _Handler(BaseHTTPRequestHandler):
     def _reject_method(self) -> None:
         self._error(HTTPStatus.METHOD_NOT_ALLOWED, "method_not_allowed", "only GET and HEAD are allowed")
 
-    do_POST = do_PUT = do_PATCH = do_DELETE = do_OPTIONS = do_TRACE = do_CONNECT = _reject_method
+    do_PUT = do_PATCH = do_DELETE = do_OPTIONS = do_TRACE = do_CONNECT = _reject_method
 
 
 @dataclass
@@ -296,6 +430,7 @@ class VisualizerServer:
     port: int = DEFAULT_PORT
     max_live_clients: int = MAX_LIVE_CLIENTS
     heartbeat_seconds: float = SSE_HEARTBEAT_SECONDS
+    browser_ptt: BrowserPTTOperator | None = None
 
     def __post_init__(self) -> None:
         if self.host != DEFAULT_HOST:
@@ -319,7 +454,8 @@ class VisualizerServer:
         if self._httpd is not None:
             raise RuntimeError("visualizer server is already started")
         httpd = _BoundedHTTPServer((self.host, self.port), self.provider,
-                                   self.max_live_clients, self.heartbeat_seconds)
+                                   self.max_live_clients, self.heartbeat_seconds,
+                                   self.browser_ptt)
         thread = threading.Thread(target=httpd.serve_forever, name="graci-visualizer", daemon=True)
         self._httpd, self._thread = httpd, thread
         thread.start()
