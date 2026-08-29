@@ -1,0 +1,20 @@
+{
+  "phase": "8A",
+  "status": "PASS",
+  "starting_commit": "20e6ba3ee9b730a8f3adc53dbbe3ee836a042f17",
+  "presence_contract": "trusted system_state -> bounded presentation-only category",
+  "state_mapping": {
+    "idle": "resting", "listening": "receptive", "planning": "thinking",
+    "retrieving_memory": "thinking", "reasoning": "thinking",
+    "executing_tool": "acting", "testing": "validating", "reviewing": "validating",
+    "adjudicating": "validating", "completed": "success", "warning": "warning",
+    "failed": "failure", "speaking": "responding"
+  },
+  "unknown_state_fallback": "warning presentation with supplied authoritative label retained",
+  "security_boundary": {"observer_only": true, "write_or_control_api": false, "static_allowlist_changed": false},
+  "accessibility": {"authoritative_label_visible": true, "category_text_visible": true, "stale_text_visible": true, "reduced_motion_supported": true, "static_semantics_preserved": true},
+  "compute_policy": {"primary_3090_independently_sufficient": true, "optional_4090_unchanged": true, "mo2_policy_unchanged": true},
+  "verification": {"focused_phase8a": "PASS - 7 tests", "phase5_regressions": "PASS - 51 tests", "phase6_7_regressions": "PASS - 40 tests", "full_warning_strict_suite": "PASS - 364 tests", "compile_static": "PASS", "tracked_json": "PASS", "diff_check": "PASS"},
+  "visual_inspection": "not performed; deterministic HTML/CSS/JS source inspection covered all states and stale/disconnected presentation",
+  "deferred": ["Phase 8B and later", "task submission", "conversation UI", "microphone and speech controls", "wake word and VAD", "continuous listening", "autonomous follow-up", "new backend authority", "routing, memory, and persistence changes"]
+}

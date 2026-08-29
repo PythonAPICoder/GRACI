@@ -7,7 +7,7 @@
   <title>G.R.A.C.I. Visualizer</title>
   <link rel="stylesheet" href="/visualizer.css">
 </head>
-<body data-system-state="idle" data-connection="connecting">
+<body data-system-state="idle" data-presence="resting" data-connection="connecting">
   <div class="ambient" aria-hidden="true"></div>
   <main class="command-center">
     <header class="topbar">
@@ -59,7 +59,7 @@
           <g class="inner"><polygon points="320,190 430,255 430,385 320,450 210,385 210,255"/><circle cx="320" cy="320" r="88"/><circle cx="320" cy="320" r="48"/></g>
           <g class="pulse-paths"><path class="memory-path" d="M75 320H210"/><path class="tool-path" d="M430 320H568"/><path class="review-path" d="M320 190V76"/></g>
         </svg>
-        <div class="core-label"><span>GRACI CORE</span><strong id="core-state">IDLE</strong><small id="freshness">NO SNAPSHOT</small></div>
+        <div class="core-label" role="status" aria-live="polite"><span>GRACI PRESENCE</span><strong id="core-state">IDLE</strong><b id="presence-category">RESTING</b><small id="freshness">NO SNAPSHOT</small></div>
         <div class="state-index" aria-label="System telemetry"><span>SCHEMA <b id="schema">—</b></span><span>SNAPSHOT <b id="snapshot-id">—</b></span><span>UPDATED <b id="updated">—</b></span></div>
       </section>
 

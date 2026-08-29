@@ -1,5 +1,13 @@
 # Current GRACI Status
 
+## Phase 8 presence and visual identity — IN PROGRESS
+
+**Phase 8A — COMPLETE.** Existing trusted `system_state` drives nine bounded,
+frontend-only presence categories while the exact state and stale/disconnected
+truth remain visible. Reduced motion preserves static and textual semantics. No
+write/control API or runtime authority was added; voice is observed only, the 3090
+remains independently sufficient, and optional 4090/MO2 policy is unchanged.
+
 ## Phase 7 bounded explicit local interaction — COMPLETE
 
 **Phase 7 — COMPLETE AT BOUNDED EXPLICIT LOCAL INTERACTION.** Phase 7C exercises
@@ -70,3 +78,17 @@ bounded composition. Evidence is `phase7a/evidence/phase7a-closure.json`.
 
 GRACI remains local-first and fully functional on the primary RTX 3090 machine alone.
 No cloud speech service or optional 4090 capacity is required.
+# Phase 8 presence and visual identity — IN PROGRESS
+
+## Phase 8A observer-only presence foundation — COMPLETE
+
+Phase 8A deterministically presents existing trusted `system_state` values through
+nine bounded visual categories while retaining the exact authoritative label. The
+categories are frontend-only and are not persisted or returned to GRACI. Unknown
+values fail safely to warning presentation; stale/disconnected transport remains
+explicit. Reduced-motion users retain textual and static semantic distinctions.
+
+No visualizer write/control API, voice control, task submission, routing, memory, or
+persistence behavior was added. LISTENING, SPEAKING, and IDLE are observed only. The
+3090 remains independently sufficient, and optional 4090/MO2 policy is unchanged.
+Phase 8B and later presence work remains unauthorized.

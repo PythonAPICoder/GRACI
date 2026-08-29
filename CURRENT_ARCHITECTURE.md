@@ -1,5 +1,13 @@
 # Current GRACI Architecture
 
+## Phase 8A observer-only presence
+
+`trusted observer system_state -> frozen presentation mapping -> HTML/CSS/SVG presence`
+
+The mapping is not persisted or published. Unknown state uses warning presentation
+without replacing its displayed label; freshness independently marks stale data.
+The Phase 5 read-only API and static allowlist are unchanged.
+
 ## Phase 7 accepted local interaction composition
 
 `explicit operator action -> typed OR explicit push-to-talk -> ExplicitTurnCoordinator -> exactly one governed run(task) -> governed result -> explicit AuthoritativeFinalResponse -> optional local Kokoro CPU speech -> bounded operator result`
@@ -95,3 +103,19 @@ production coordinator was added. The transcript has typed-input-equivalent auth
 the governed result exists independently of presentation, synthesis remains `IDLE`,
 and only bounded capture/recognition and actual playback publish `LISTENING` and
 `SPEAKING`. Phase 6 contains no autonomous voice loop. See `phase6/README.md`.
+# Phase 8A observer-only presence architecture
+
+`trusted runtime/observer system_state -> frozen frontend mapping -> abstract SVG/CSS presence`
+
+The mapping is a presentation boundary, not a second state machine. It produces one
+of resting, receptive, thinking, acting, validating, responding, success, warning,
+or failure and never publishes or persists that value. The actual authoritative
+state label remains visible. Unknown state falls back to warning presentation, and
+connection freshness independently marks stale/disconnected data.
+
+The no-build HTML/CSS/SVG implementation adds no assets, dependencies, endpoint, or
+backend field. The Phase 5 three-resource static allowlist and read-only observer API
+remain unchanged. Phase 6 voice lifecycle is observed without microphone, speech,
+or turn authority. The primary 3090 remains independently sufficient; optional 4090
+eligibility and MO2 blocking remain unchanged. Phase 8 is in progress; only Phase 8A
+is complete.

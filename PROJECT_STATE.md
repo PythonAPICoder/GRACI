@@ -2,6 +2,8 @@
 
 ## Current build status
 
+- **Phase 8 — IN PROGRESS**
+- **Phase 8A — COMPLETE: observer-only presence foundation**
 - **Phase 7 — COMPLETE AT BOUNDED EXPLICIT LOCAL INTERACTION**
 - Phase 7A — COMPLETE
 - Phase 7B — COMPLETE
@@ -820,3 +822,16 @@ Memory. Phase 4 has not begun.
   307/307. A 3.563-second local Kokoro fixture synthesized successfully; its WAV was
   validated and hashed but not retained. Physical speaker playback was not performed.
 - Evidence and reconstruction details are under `phase6d/`. Phase 6E has not begun.
+# Current phase state
+
+- **Phase 8 — IN PROGRESS**
+- **Phase 8A — COMPLETE: observer-only presence foundation**
+- Trusted `system_state` is mapped only in the frontend to bounded presentation
+  categories; no second authoritative state, persistence, or runtime publication exists.
+- The exact state and stale/disconnected condition remain visible. Reduced-motion
+  mode preserves static and textual semantics.
+- The Phase 5 observer/security boundary and three-file static allowlist are unchanged.
+  Voice lifecycle is observed, not controlled. The 3090 remains independently
+  sufficient; optional 4090 and MO2 policy are unchanged.
+- Phase 8B and later refinement, conversation UI, continuous listening, autonomous
+  follow-up, and all new authority remain unauthorized.

@@ -1,3 +1,11 @@
+# GRACI Phase 8 — Presence & Visual Identity In Progress
+
+**Phase 8A — COMPLETE. Phase 8 — IN PROGRESS.** Trusted observer state now drives
+a bounded presentation-only GRACI presence; the visualizer remains incapable of
+task/runtime control. Voice lifecycle is observed, the 3090 remains independently
+sufficient, and optional 4090/MO2 policy is unchanged. Later Phase 8 work remains
+unauthorized. Details and evidence are under `phase8a/`.
+
 # GRACI Phase 7 — Bounded Explicit Local Interaction Complete
 
 **Phase 7 — COMPLETE AT BOUNDED EXPLICIT LOCAL INTERACTION.** Ordinary local typed
@@ -245,3 +253,12 @@ unrestricted planning, scheduling, load balancing, memory, arbitrary shell,
 package installation, Git mutation by models, remote administration, opaque load
 balancing, shared mutable coordination, or cloud escalation. Phase 3E — Resource /
 Model Router Acceptance & Closure is the next authorized stage.
+# GRACI Phase 8 — Presence & Visual Identity In Progress
+
+**Phase 8A — COMPLETE. Phase 8 — IN PROGRESS.** The existing Phase 5 read-only
+visualizer now maps trusted `system_state` facts to a bounded, presentation-only
+GRACI presence. The authoritative state label, stale/disconnected truth, operational
+panels, and MO2-blocked optional 4090 status remain visible. Voice lifecycle is
+observed, never controlled. The 3090 remains independently sufficient, the 4090 and
+MO2 policy are unchanged, and later Phase 8 refinement remains unauthorized. See
+`phase8a/` for the contract and closure evidence.

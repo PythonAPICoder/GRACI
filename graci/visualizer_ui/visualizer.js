@@ -3,7 +3,15 @@
   const API = "/graci/visualizer/v1";
   const SNAPSHOT_INTERVAL_MS = 3000;
   const MAX_EVENT_ROWS = 100;
-  const ALL_STATES = ["idle","listening","planning","retrieving_memory","reasoning","executing_tool","testing","reviewing","adjudicating","completed","warning","failed","speaking"];
+  const PRESENCE_BY_STATE = Object.freeze({
+    "idle":"resting", "listening":"receptive", "planning":"thinking",
+    "retrieving_memory":"thinking", "reasoning":"thinking", "executing_tool":"acting",
+    "testing":"validating", "reviewing":"validating", "adjudicating":"validating",
+    "completed":"success", "warning":"warning", "failed":"failure", "speaking":"responding"
+  });
+  const SAFE_PRESENCE = "warning";
+  const presenceFor = (systemState) => PRESENCE_BY_STATE[systemState] || SAFE_PRESENCE;
+  const ALL_STATES = Object.freeze(Object.keys(PRESENCE_BY_STATE));
   const ALL_SEVERITIES = ["info","activity","success","warning","error"];
   const $ = (id) => document.getElementById(id);
   const state = { snapshot: null, events: new Map(), lastSuccess: 0, eventSource: null };
@@ -26,8 +34,8 @@
     setStage("memory",memory); setStage("qwen",s.agents.qwen.state,s.agents.qwen.activity||s.agents.qwen.state); setStage("tools",opFailed?"failed":opActive||active==="executing_tool"?"active":ops.length?"passed":"not_applicable"); setStage("tests",s.execution.tests.status); setStage("review",s.review.reviewer_status); setStage("adjudication",s.review.adjudication_status);
   }
   function renderSnapshot(s) {
-    state.snapshot=s; state.lastSuccess=Date.now(); connection("live","LIVE"); document.body.dataset.systemState=ALL_STATES.includes(s.system_state)?s.system_state:"warning";
-    $("overall-state").textContent=text(s.system_state); $("core-state").textContent=text(s.system_state); $("schema").textContent=`v${s.schema_version}`; $("snapshot-id").textContent=shortId(s.snapshot_id); $("updated").textContent=localTime(s.generated_at); $("freshness").textContent="LIVE OBSERVED STATE";
+    state.snapshot=s; state.lastSuccess=Date.now(); connection("live","LIVE"); const presence=presenceFor(s.system_state); document.body.dataset.systemState=ALL_STATES.includes(s.system_state)?s.system_state:"warning"; document.body.dataset.presence=presence;
+    $("overall-state").textContent=text(s.system_state,"UNKNOWN"); $("core-state").textContent=text(s.system_state,"UNKNOWN"); $("presence-category").textContent=text(presence); $("schema").textContent=`v${s.schema_version}`; $("snapshot-id").textContent=shortId(s.snapshot_id); $("updated").textContent=localTime(s.generated_at); $("freshness").textContent="LIVE OBSERVED STATE";
     renderNode("node-3090",s.compute.primary_3090); renderNode("node-4090",s.compute.optional_4090); renderAgent("agent-qwen",s.agents.qwen); renderAgent("agent-glm",s.agents.glm);
     const task=s.task, hasTask=Boolean(task.task_id); $("task-summary").textContent=hasTask?(task.summary||"BOUNDED TASK"):"SYSTEM AT REST"; $("task-id").textContent=shortId(task.task_id); $("task-phase").textContent=text(task.phase,hasTask?text(s.system_state):"IDLE"); $("task-started").textContent=localTime(task.started_at);
     const pct=task.progress_total?Math.min(100,Math.round(task.progress_current/task.progress_total*100)):0; $("task-progress").style.width=`${pct}%`; $("task-status").textContent=task.failure_reason|| (hasTask?`${text(task.final_status)} · ${pct}% observed progress`:"No current task. Monitoring local runtime.");
