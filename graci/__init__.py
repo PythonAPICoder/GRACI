@@ -50,6 +50,9 @@ from .speech_presentation import (PresentationStatus, SpeechPresentationResult,
                                   SpeechPresentationService)
 from .voice_lifecycle import (VoiceLifecycle, VoiceLifecycleEvent,
                               VoiceLifecycleLease, VoiceLifecycleObserver)
+from .turn_coordinator import (ExplicitTurnCoordinator, FinalResponseConstructor,
+                               InputOutcome, InputSource, TurnDisposition,
+                               TurnResult)
 
 __all__ = [
     "AutonomousRepairController", "Config", "Controller", "LoopLimits",
@@ -80,4 +83,6 @@ __all__ = [
     "PresentationStatus", "SpeechPresentationResult", "SpeechPresentationService",
     "VoiceLifecycle", "VoiceLifecycleEvent", "VoiceLifecycleLease",
     "VoiceLifecycleObserver",
+    "ExplicitTurnCoordinator", "FinalResponseConstructor", "InputOutcome",
+    "InputSource", "TurnDisposition", "TurnResult",
 ]

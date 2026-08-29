@@ -2,6 +2,8 @@
 
 ## Current build status
 
+- Phase 7 — IN PROGRESS
+- Phase 7A — COMPLETE
 - Phase 5 — COMPLETE
 - Phase 6 — IN PROGRESS
 - Phase 6A — COMPLETE
@@ -10,6 +12,19 @@
 - Phase 6D — COMPLETE
 - Phase 6E — COMPLETE
 - **Phase 6 — COMPLETE AT BOUNDED PUSH-TO-TALK VOICE INTERACTION**
+- Phase 7A adds `ExplicitTurnCoordinator` for one explicitly initiated typed or
+  push-to-talk turn. Both sources use one shared call to the existing governed
+  `run(task)` boundary; accepted input submits exactly once and rejected input zero
+  times. Source metadata never changes semantic task text.
+- The frozen turn result composes input/transcription, submission, governed result,
+  explicit authoritative final response, optional presentation, and terminal outcome.
+  TTS/playback and observer failures cannot replace the governed result.
+- Speech presentation remains explicit and reuses accepted local Kokoro/playback and
+  Phase 6A pronunciation. There is no wake word, always-listening mode, autonomous
+  conversation loop, automatic follow-up, background listener, or new persistence.
+- The 3090 remains independently sufficient; the 4090 remains optional under the
+  unchanged MO2 policy. Phase 7A does not complete Phase 7 or authorize deferred work.
+- Evidence: `phase7a/evidence/phase7a-closure.json`.
 - Phase 6B authoritative starting commit: `291240f623bd73957f4afc84a6adb61c9ce3fdae`.
 - Phase 6 interaction model: push-to-talk. Always-listening and wake word are deferred.
 - Phase 6B adds explicit push-to-talk, dependency-free Windows PCM capture, typed

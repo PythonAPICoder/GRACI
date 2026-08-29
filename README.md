@@ -1,3 +1,15 @@
+# GRACI Phase 7A Explicit Turn Coordinator — Complete
+
+Phase 7 has begun. Phase 7A adds a production coordinator for one explicitly
+initiated typed or push-to-talk turn. Both sources enter the same existing governed
+`run(task)` boundary, with at most one submission per turn. The frozen turn result
+keeps governed authority independent from explicitly constructed final-response text
+and optional accepted local speech presentation. There is no autonomous conversation
+loop, wake word, always-listening mode, new persistence, or new routing authority.
+The 3090 remains sufficient and the 4090 remains optional under existing MO2 policy.
+Details and evidence are under `phase7a/`; later Phase 7 work is not authorized by
+this stage.
+
 # GRACI Phase 6 Integrated Voice Acceptance — Complete
 
 Phase 6 is complete at bounded push-to-talk voice interaction: explicit local capture,

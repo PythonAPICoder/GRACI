@@ -1,5 +1,27 @@
 # Current GRACI Architecture
 
+## Phase 7A explicit single-turn composition
+
+`graci.turn_coordinator.ExplicitTurnCoordinator` is a small orchestration layer over
+accepted interfaces:
+
+`explicit typed input OR explicit Phase 6 push-to-talk transcript -> one shared existing governed run(task) call -> independent governed result -> explicit AuthoritativeFinalResponse construction -> optional accepted Phase 6D presentation -> frozen TurnResult`
+
+`typed` and `speech` are the only structural source values and never modify semantic
+task text. Pre-submission rejection yields zero submissions; accepted input reaches
+the single submission statement exactly once. The coordinator has no retry loop,
+tool, policy, approval, memory, routing, repository, scheduling, persistence, or
+lifecycle authority.
+
+Final-response construction remains explicit and typed. Presentation is caller
+requested, uses the existing local Kokoro/playback path, and cannot change the prior
+governed result. Existing Phase 6 components alone publish bounded `LISTENING` and
+`SPEAKING` observation and restore `IDLE`; observer failure remains isolated. There
+is no autonomous conversation loop, wake word, always listening, VAD, automatic
+follow-up, or background listener. The 3090 remains independently sufficient and
+the optional 4090 remains governed only by the unchanged MO2 policy. Phase 7 remains
+in progress; Phase 7A authorizes no deferred Phase 7 or Phase 8 behavior.
+
 The authoritative detailed history remains `PROJECT_STATE.md`; phase reconstruction
 documents live under each `phase*/` directory. Phase 6C connects the independent
 local speech-input stack to the existing governed runtime:

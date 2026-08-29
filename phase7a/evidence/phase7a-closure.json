@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "phase": "7A",
+  "status": "PASS",
+  "accepted_baseline_commit": "1d5df1d1ec1b51f8b4197179be2b003ec868085b",
+  "architecture": {
+    "interaction": "explicit single turn only",
+    "input_sources": ["typed", "speech"],
+    "runtime_boundary": "existing governed run(task)",
+    "shared_submission_statement": true,
+    "source_metadata_mutates_task_text": false,
+    "authoritative_response_type": "AuthoritativeFinalResponse",
+    "speech_presentation": "optional accepted Phase 6D local path",
+    "observer_only_lifecycle": true,
+    "autonomous_conversation_loop": false,
+    "wake_word": false,
+    "always_listening": false,
+    "new_execution_authority": false,
+    "new_persistence": false,
+    "network_dependency": false,
+    "requires_4090": false,
+    "mo2_policy_changed": false
+  },
+  "submission_invariant": {
+    "accepted_typed_input": 1,
+    "accepted_speech_transcript": 1,
+    "blank_typed_input": 0,
+    "failed_speech_acquisition": 0,
+    "failed_transcription": 0,
+    "blank_transcription": 0,
+    "presentation_side_effects": 0,
+    "maximum_per_turn": 1
+  },
+  "failure_isolation": {
+    "tts_failure_mutates_governed_result": false,
+    "playback_failure_mutates_governed_result": false,
+    "observer_failure_mutates_authoritative_result": false,
+    "response_construction_failure_mutates_governed_result": false,
+    "runtime_exception_retries_submission": false
+  },
+  "lifecycle": {
+    "listening_scope": "accepted bounded capture and recognition",
+    "speaking_scope": "actual bounded playback only",
+    "terminal_state": "idle",
+    "competing_authority_added": false
+  },
+  "verification": {
+    "focused_tests_passed": 10,
+    "full_tests_passed": 335,
+    "warning_strict": true,
+    "compileall_passed": true,
+    "json_validation_passed": true,
+    "git_diff_check_passed": true,
+    "compilation_scope": "GRACI-owned source and tests",
+    "excluded_third_party_cache": "phase6a/cache Tcl/Tix diagnostic retained from Phase 6"
+  },
+  "deterministic_test_requirements": {
+    "microphone": false,
+    "speaker": false,
+    "network": false,
+    "cloud": false,
+    "gpu": false,
+    "rtx_4090": false
+  },
+  "deferred": [
+    "wake_word", "always_listening", "vad", "continuous_conversation",
+    "autonomous_voice_loop", "duplex", "barge_in", "automatic_follow_up",
+    "session_memory", "background_agent", "scheduler", "new_persistence",
+    "ui_controls", "http_mutation_api", "remote_interaction", "phase8_presence"
+  ]
+}
