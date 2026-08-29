@@ -27,7 +27,7 @@ The Phase 5 read-only API and static allowlist are unchanged.
 Accepted input text is unchanged by source metadata. Accepted turns submit exactly
 once; rejected or failed input submits zero times. Serialization, optional
 presentation, and lifecycle publication remain non-authoritative. `LISTENING` wraps
-only bounded capture/recognition, `SPEAKING` only actual playback, and voice returns
+only bounded microphone capture, `SPEAKING` only actual playback, and voice returns
 to `IDLE`. There is no retry or automatic second turn.
 
 The ordinary local CLI is the operator surface. Phase 1C workspace/target remains an

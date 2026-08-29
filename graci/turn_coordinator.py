@@ -34,6 +34,7 @@ class TurnDisposition(str, Enum):
 class PushToTalk(Protocol):
     def begin(self) -> None: ...
     def end_and_transcribe(self) -> TranscriptionResult: ...
+    def cancel(self) -> None: ...
 
 
 class FinalResponseConstructor(Protocol):
@@ -117,6 +118,13 @@ class ExplicitTurnCoordinator:
                                   transcription=transcription)
         return self._submit(InputSource.SPEECH, transcription.text, transcription,
                             present_speech)
+
+    def cancel_speech_turn(self) -> None:
+        """Cancel an active capture without transcription or governed submission."""
+        if self._push_to_talk is None or not self._speech_active:
+            return
+        self._speech_active = False
+        self._push_to_talk.cancel()
 
     def _submit(self, source: InputSource, task: str,
                 transcription: TranscriptionResult | None,

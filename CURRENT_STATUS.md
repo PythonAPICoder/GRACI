@@ -39,9 +39,10 @@ presence work are not accepted.
 Phase 7A and Phase 7B are complete and accepted by Phase 7C closure.
 Ordinary `python -m graci "task"` interaction now enters the accepted Phase 7A
 coordinator and its single existing governed `run(task)` submission statement.
-`--speech` is one explicit push-to-talk turn with separate operator start/stop
-actions; `--speak` is explicit opt-in presentation through accepted local Kokoro
-`af_bella`. Typed mode never captures audio and presentation is absent by default.
+`--speech` is one explicit push-to-talk turn: hold Spacebar to capture and release
+Spacebar to stop and transcribe; `--speak` is explicit opt-in presentation through
+accepted local Kokoro `af_bella`. Typed mode never captures audio and presentation
+is absent by default.
 
 The CLI emits a bounded allowlisted JSON projection and deterministic exit status.
 One accepted input submits exactly once; rejected input submits zero times; there is

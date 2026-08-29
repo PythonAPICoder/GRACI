@@ -118,7 +118,7 @@ class VoiceLifecycleTests(unittest.TestCase):
         lifecycle = VoiceLifecycle(observer)
         controller = self.controller(
             lifecycle, stt=STT(inspect=lambda: self.assertIs(
-                lifecycle.state, SystemState.LISTENING)))
+                lifecycle.state, SystemState.IDLE)))
         self.assertIs(lifecycle.state, SystemState.IDLE)  # capability alone is idle
         controller.begin()
         self.assertIs(lifecycle.state, SystemState.LISTENING)

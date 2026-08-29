@@ -77,6 +77,9 @@ class PushToTalkController:
                     result = self._failure("capture_failed", str(exc), 0.0)
                     self._finish(PushToTalkState.FAILED)
                 return result
+            finally:
+                # LISTENING describes microphone capture, not local STT work.
+                self._restore_lifecycle()
             with self._lock:
                 if audio.duration_seconds < self._config.minimum_duration_seconds:
                     result = self._failure("insufficient_audio", "recording contained no meaningful audio",

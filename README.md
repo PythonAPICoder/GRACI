@@ -21,7 +21,8 @@ authorization. See `phase7/` and `phase7c/`.
 
 Ordinary `python -m graci "task"` interaction now uses the accepted Phase 7A
 single-turn coordinator. `python -m graci --speech` performs at most one explicit
-push-to-talk turn and requires separate Enter actions to start and stop capture.
+push-to-talk turn: hold Spacebar to capture, then release Spacebar to stop and
+transcribe. Key repeat does not restart capture and no Enter press is required.
 Add `--speak` only when local Kokoro `af_bella` presentation is desired. There is no
 implicit microphone or speaker use, retry, wake word, always-listening behavior,
 automatic follow-up, REPL, or conversation loop. Output is bounded JSON and
@@ -59,7 +60,7 @@ coordinator or autonomous voice loop. Closure evidence is under `phase6/`. No Ph
 # GRACI Phase 6E Voice Lifecycle Publication — Complete
 
 Phase 6E reuses the canonical observer state model to publish `LISTENING` only during
-bounded Phase 6B capture/recognition and `SPEAKING` only during actual Phase 6D
+bounded Phase 6B microphone capture and `SPEAKING` only during actual Phase 6D
 playback. Guarded leases deterministically restore `IDLE`; publisher failures are
 recorded and isolated from transcription, presentation, and governed runtime results.
 Architecture, deterministic tests, and closure evidence are under `phase6e/`.

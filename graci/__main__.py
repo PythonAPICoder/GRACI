@@ -5,6 +5,7 @@ import json
 import sys
 from collections.abc import Callable, Sequence
 
+from .keyboard_input import HoldSpacebarToTalk, KeyboardInput, WindowsSpacebarInput
 from .operator_cli import (OperatorComposition, build_operator_composition,
                            build_operator_coordinator, serialize_turn_result)
 from .turn_coordinator import ExplicitTurnCoordinator, TurnDisposition
@@ -14,11 +15,13 @@ from .vertical_slice import VerticalSliceController
 def main(argv: Sequence[str] | None = None, *,
          coordinator_factory: Callable[[], ExplicitTurnCoordinator] = build_operator_coordinator,
          composition_factory: Callable[..., OperatorComposition] = build_operator_composition,
-         input_fn: Callable[[str], str] = input) -> int:
+         input_fn: Callable[[str], str] = input,
+         keyboard_factory: Callable[[], KeyboardInput] = WindowsSpacebarInput,
+         prompt_fn: Callable[[str], None] = print) -> int:
     parser = argparse.ArgumentParser(description="Run one explicit local GRACI operator turn")
     parser.add_argument("task", nargs="?", help="text task to submit")
     parser.add_argument("--speech", action="store_true",
-                        help="explicitly capture and transcribe one push-to-talk turn")
+                        help="hold Spacebar for one capture; release to transcribe")
     parser.add_argument("--speak", action="store_true",
                         help="present the authoritative final response through local speech")
     parser.add_argument("--visualizer", action="store_true",
@@ -51,11 +54,9 @@ def main(argv: Sequence[str] | None = None, *,
               file=sys.stderr)
     try:
         if args.speech:
-            input_fn("Press Enter to begin push-to-talk capture.")
-            result = coordinator.begin_speech_turn()
-            if result is None:
-                input_fn("Recording. Press Enter to stop and transcribe.")
-                result = coordinator.finish_speech_turn(present_speech=args.speak)
+            prompt_fn("Hold Spacebar to talk; release Spacebar to stop and transcribe.")
+            result = HoldSpacebarToTalk(keyboard_factory()).run(
+                coordinator, present_speech=args.speak)
         else:
             result = coordinator.run_typed(args.task, present_speech=args.speak)
         if args.visualizer_hold:

@@ -69,7 +69,7 @@ class STT:
     def transcribe(self, audio):
         self.calls += 1
         if self.lifecycle is not None:
-            assert self.lifecycle.state is SystemState.LISTENING
+            assert self.lifecycle.state is SystemState.IDLE
         if self.error:
             raise self.error
         return self.result

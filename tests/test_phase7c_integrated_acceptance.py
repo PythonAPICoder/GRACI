@@ -8,6 +8,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from graci.__main__ import main
+from graci.keyboard_input import KeyEvent, VK_SPACE
 from graci.operator_cli import MAX_CLI_ERROR, build_operator_coordinator
 from graci.playback import PlaybackResult, PlaybackStatus
 from graci.speech import CapturedAudio, TranscriptionResult, TranscriptionStatus
@@ -123,6 +124,14 @@ class Player:
         pass
 
 
+class Keyboard:
+    def __init__(self):
+        self.events = iter((KeyEvent(VK_SPACE, True), KeyEvent(VK_SPACE, False)))
+
+    def next_event(self):
+        return next(self.events)
+
+
 class Phase7CIntegratedAcceptanceTests(unittest.TestCase):
     def test_production_stt_uses_qualified_hugging_face_cache(self):
         repository_root = Path("qualified-root")
@@ -163,7 +172,8 @@ class Phase7CIntegratedAcceptanceTests(unittest.TestCase):
 
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
-            code = main(argv, coordinator_factory=lambda: coordinator, input_fn=input_fn)
+            code = main(argv, coordinator_factory=lambda: coordinator, input_fn=input_fn,
+                        keyboard_factory=Keyboard, prompt_fn=prompts.append)
         return code, json.loads(output.getvalue()), prompts
 
     def test_production_typed_path_is_exactly_once_and_voice_inert_by_default(self):
@@ -186,9 +196,10 @@ class Phase7CIntegratedAcceptanceTests(unittest.TestCase):
 
     def test_production_speech_path_requires_two_actions_and_never_reopens(self):
         coordinator, runtime, capture, stt, tts, player = self.production()
-        code, payload, prompts = self.invoke(["--speech"], coordinator, ("", ""))
+        code, payload, prompts = self.invoke(["--speech"], coordinator)
         self.assertEqual(code, 0)
-        self.assertEqual(len(prompts), 2)
+        self.assertEqual(prompts,
+                         ["Hold Spacebar to talk; release Spacebar to stop and transcribe."])
         self.assertEqual((capture.starts, stt.calls), (1, 1))
         self.assertEqual(runtime.calls, ["exact spoken task"])
         self.assertEqual((len(tts.calls), len(player.calls)), (0, 0))
@@ -203,7 +214,7 @@ class Phase7CIntegratedAcceptanceTests(unittest.TestCase):
         for result in results:
             with self.subTest(result=result):
                 coordinator, runtime, capture, stt, *_ = self.production(stt=STT(result))
-                code, payload, _ = self.invoke(["--speech"], coordinator, ("", ""))
+                code, payload, _ = self.invoke(["--speech"], coordinator)
                 self.assertEqual(code, 1)
                 self.assertEqual(runtime.calls, [])
                 self.assertEqual((capture.starts, stt.calls), (1, 1))
@@ -235,7 +246,7 @@ class Phase7CIntegratedAcceptanceTests(unittest.TestCase):
     def test_integrated_lifecycle_is_bounded_observer_only_and_returns_idle(self):
         observer = Observer(fail=True)
         coordinator, runtime, *_ = self.production(observer=observer)
-        code, payload, _ = self.invoke(["--speech", "--speak"], coordinator, ("", ""))
+        code, payload, _ = self.invoke(["--speech", "--speak"], coordinator)
         self.assertEqual(code, 0)
         self.assertEqual(runtime.calls, ["exact spoken task"])
         self.assertEqual(observer.states, [SystemState.LISTENING, SystemState.IDLE,

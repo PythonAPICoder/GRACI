@@ -7,6 +7,7 @@ import unittest
 from unittest.mock import patch
 
 from graci.__main__ import main
+from graci.keyboard_input import KeyEvent, VK_SPACE
 from graci.operator_cli import serialize_turn_result
 from graci.playback import PlaybackResult, PlaybackStatus
 from graci.speech import TranscriptionResult, TranscriptionStatus
@@ -53,6 +54,17 @@ class PushToTalk:
         self.finishes += 1
         return self.transcription
 
+    def cancel(self):
+        pass
+
+
+class Keyboard:
+    def __init__(self, events=None):
+        self.events = iter(events or (KeyEvent(VK_SPACE, True), KeyEvent(VK_SPACE, False)))
+
+    def next_event(self):
+        return next(self.events)
+
 
 class Constructor:
     def construct(self, governed):
@@ -97,7 +109,8 @@ class Phase7BOperatorCLITests(unittest.TestCase):
 
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
-            code = main(argv, coordinator_factory=lambda: coordinator, input_fn=input_fn)
+            code = main(argv, coordinator_factory=lambda: coordinator, input_fn=input_fn,
+                        keyboard_factory=Keyboard, prompt_fn=prompts.append)
         return code, json.loads(output.getvalue()), prompts
 
     @staticmethod
@@ -125,10 +138,11 @@ class Phase7BOperatorCLITests(unittest.TestCase):
 
     def test_speech_requires_explicit_start_and_stop_and_submits_at_most_once(self):
         runtime, ptt = Runtime(), PushToTalk()
-        code, payload, prompts = self.run_cli(["--speech"], self.coordinator(runtime, ptt), ("", ""))
+        code, payload, prompts = self.run_cli(["--speech"], self.coordinator(runtime, ptt))
         self.assertEqual(code, 0)
         self.assertEqual((ptt.begins, ptt.finishes), (1, 1))
-        self.assertEqual(len(prompts), 2)
+        self.assertEqual(prompts,
+                         ["Hold Spacebar to talk; release Spacebar to stop and transcribe."])
         self.assertEqual(runtime.calls, ["spoken task"])
         self.assertEqual(payload["input"]["source"], "speech")
 
@@ -136,7 +150,7 @@ class Phase7BOperatorCLITests(unittest.TestCase):
         failed = TranscriptionResult(TranscriptionStatus.FAILED, "fake", 0.2,
                                      error_code="no_speech", error_message="none")
         runtime, ptt = Runtime(), PushToTalk(failed)
-        code, payload, _ = self.run_cli(["--speech"], self.coordinator(runtime, ptt), ("", ""))
+        code, payload, _ = self.run_cli(["--speech"], self.coordinator(runtime, ptt))
         self.assertEqual(code, 1)
         self.assertEqual(runtime.calls, [])
         self.assertFalse(payload["governed"]["submitted"])
@@ -144,7 +158,7 @@ class Phase7BOperatorCLITests(unittest.TestCase):
     def test_speech_start_failure_reports_requested_presentation_truthfully(self):
         runtime, ptt = Runtime(), PushToTalk(begin_error=OSError("no microphone"))
         code, payload, _ = self.run_cli(["--speech", "--speak"],
-                                        self.coordinator(runtime, ptt), ("",))
+                                        self.coordinator(runtime, ptt))
         self.assertEqual(code, 1)
         self.assertEqual(runtime.calls, [])
         self.assertTrue(payload["presentation"]["requested"])

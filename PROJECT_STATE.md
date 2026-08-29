@@ -1,5 +1,8 @@
 # GRACI Project State
 
+Current accepted build: Phase 5 — COMPLETE; Phase 6 — COMPLETE; Phase 6A — COMPLETE;
+Phase 6B — COMPLETE; Phase 7 — COMPLETE; Phase 8A — COMPLETE.
+
 ## QA-002 / QA-004 / QA-005 production observer composition repair
 
 - Ordinary local operation now has an explicit observer-only path:
@@ -50,8 +53,9 @@
   local presentation. Evidence: `phase7c/evidence/phase7c-closure.json` and
   `phase7/evidence/phase7-closure.json`.
 - Phase 7B makes the ordinary local CLI a thin adapter over Phase 7A. Typed tasks use
-  `run_typed`; explicit `--speech` performs one operator-started/operator-stopped
-  push-to-talk turn; explicit `--speak` alone enables accepted local presentation.
+  `run_typed`; explicit `--speech` performs one Spacebar-held push-to-talk turn,
+  stopping and transcribing on release; explicit `--speak` alone enables accepted
+  local presentation.
   Output is bounded and allowlisted, exit codes are deterministic, and the Phase 1C
   workspace/target boundary remains a specialized legacy path. There is no retry,
   wake word, background/continuous listening, automatic follow-up, or conversation
