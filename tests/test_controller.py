@@ -43,6 +43,32 @@ class ControllerTests(unittest.TestCase):
         self.assertIsNotNone(saved["started_at"])
         self.assertIsNotNone(saved["ended_at"])
 
+    def test_v2_separates_user_response_from_internal_summary(self):
+        record = self.execute(
+            '{"schema_version":2,"status":"PASS","summary":"protocol complete",'
+            '"user_response":"Hi, I am GRACI."}')
+        self.assertEqual(record["status"], "PASS")
+        self.assertEqual(record["validated_model_result"]["summary"], "protocol complete")
+        self.assertEqual(record["validated_model_result"]["user_response"],
+                         "Hi, I am GRACI.")
+
+    def test_v2_fail_remains_fail_with_internal_diagnostics(self):
+        record = self.execute(
+            '{"schema_version":2,"status":"FAIL","summary":"request could not be completed",'
+            '"user_response":null}')
+        self.assertEqual(record["status"], "FAIL")
+        self.assertIn("request could not be completed", record["errors"][0])
+
+    def test_v2_user_response_contract_fails_closed(self):
+        samples = (
+            '{"schema_version":2,"status":"PASS","summary":"done","user_response":null}',
+            '{"schema_version":2,"status":"FAIL","summary":"failed","user_response":"leak"}',
+            '{"schema_version":2,"status":"PASS","summary":"done"}',
+        )
+        for sample in samples:
+            with self.subTest(sample=sample):
+                self.assertEqual(self.execute(sample)["status"], "FAIL")
+
     def test_valid_model_fail_is_truthful_fail(self):
         record = self.execute('{"schema_version":1,"status":"FAIL","summary":"cannot complete"}')
         self.assertEqual(record["status"], "FAIL")

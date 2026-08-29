@@ -33,9 +33,11 @@ class Runtime:
             "http_status": 200,
             "provider_response_model": "qwen3.8-27b-q4_k_m",
             "validated_model_result": {
-                "schema_version": 1,
+                "schema_version": 2,
                 "status": self.status,
                 "summary": "GRACI 3090 4090 complete.",
+                "user_response": ("GRACI 3090 4090 complete."
+                                  if self.status == "PASS" else None),
             },
             "errors": [] if self.status == "PASS" else ["governed failure"],
             "submitted_task": task,

@@ -1,5 +1,17 @@
 # Current GRACI Architecture
 
+## QA-001 identity and response separation
+
+`user task -> bounded GRACI system role -> local Qwen -> strict governed result v2 {status, internal summary, user_response} -> validated PASS user_response -> AuthoritativeFinalResponse -> typed JSON and optional local speech`
+
+Qwen is the local reasoning implementation acting for the user-facing GRACI identity;
+underlying models may still be disclosed when architecture is explicitly requested.
+The validator keeps governed PASS/FAIL independent from presentation and fails closed
+on malformed or inconsistent v2 fields. Only a nonblank `user_response` from a
+validated v2 PASS can cross the final-response boundary; internal summaries and errors
+remain governed diagnostics. Typed and speech input still converge on the same single
+submission and response-construction path.
+
 ## Phase 8A observer-only presence
 
 `trusted observer system_state -> frozen presentation mapping -> HTML/CSS/SVG presence`

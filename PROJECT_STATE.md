@@ -848,3 +848,25 @@ Memory. Phase 4 has not begun.
 - A direct local worker check loaded the cached model and transcribed an existing
   fixture. The full microphone smoke stopped before capture with `waveInOpen=11`, so
   governance, local response generation, and Kokoro playback were not reached.
+
+# QA-001 GRACI identity and conversational response contract repair
+
+- Accepted starting commit `d4f059d688f5475aaa93c4560954d0fbd604d362` on clean
+  `main`. Ordinary execution previously supplied no GRACI role and exposed the strict
+  governed `summary` directly as the typed and spoken authoritative response.
+- The local execution boundary now identifies Qwen as reasoning on behalf of GRACI,
+  records the `GRAY-see` speech pronunciation, rejects identity correction of GRACI or
+  Gracie, keeps model identity as implementation detail unless relevant or explicitly
+  requested, and separates internal protocol reasoning from user-facing content.
+- Strict result schema v2 adds `user_response`: PASS requires a nonblank string and
+  FAIL requires null. Governed status and internal summary remain authoritative and
+  diagnostic. Legacy schema v1 remains strictly parseable for historical compatibility
+  but is not eligible for final-response construction.
+- Typed and speech paths share the existing final-response constructor; only validated
+  v2 PASS `user_response` may become `AuthoritativeFinalResponse`. Exactly-once
+  submission, routing, memory, optional 4090/MO2 policy, and Phase 6/7 authority remain
+  unchanged.
+- QA-001/controller/Phase 7 focused warning-strict verification passes 49 tests; the
+  complete warning-strict suite passes 373 tests. A real local typed smoke returned
+  HTTP 200, governed PASS, and a clean GRACI introduction from Qwen with run ID
+  `7250baac-ed79-4877-a079-eb754932ba00`.

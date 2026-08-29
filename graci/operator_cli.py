@@ -20,16 +20,18 @@ MAX_CLI_ERROR = 500
 
 
 class GovernedSummaryResponseConstructor:
-    """Select only the validated governed summary as the final operator response."""
+    """Select only the explicit validated user response for operator presentation."""
 
     def construct(self, governed_result: dict[str, Any]) -> AuthoritativeFinalResponse | None:
         validated = governed_result.get("validated_model_result")
         if not isinstance(validated, dict):
             return None
-        summary = validated.get("summary")
-        if not isinstance(summary, str) or not summary.strip():
+        if validated.get("schema_version") != 2 or validated.get("status") != "PASS":
             return None
-        return AuthoritativeFinalResponse(summary)
+        user_response = validated.get("user_response")
+        if not isinstance(user_response, str) or not user_response.strip():
+            return None
+        return AuthoritativeFinalResponse(user_response)
 
 
 def build_operator_coordinator(repository_root: Path | None = None) -> ExplicitTurnCoordinator:
@@ -123,6 +125,8 @@ def _governed_result(value: dict[str, Any] | None) -> dict[str, Any] | None:
             "status": validated.get("status") if validated.get("status") in {"PASS", "FAIL"} else None,
             "summary": (_bounded(validated.get("summary"), MAX_CLI_TEXT)
                         if isinstance(validated.get("summary"), str) else None),
+            "user_response": (_bounded(validated.get("user_response"), MAX_CLI_TEXT)
+                              if isinstance(validated.get("user_response"), str) else None),
         }
     errors = value.get("errors")
     safe_errors = ([_bounded(item, MAX_CLI_ERROR) for item in errors[:20]

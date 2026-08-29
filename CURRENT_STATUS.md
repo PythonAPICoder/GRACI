@@ -1,5 +1,15 @@
 # Current GRACI Status
 
+## QA-001 GRACI identity and response contract — REPAIRED
+
+Ordinary local model execution now uses a bounded GRACI role instruction and strict
+schema-v2 result envelope. Governed `status` and internal `summary` remain available
+for execution truth and diagnostics; a distinct `user_response` is the only successful
+model field eligible for typed or optional speech presentation. Legacy schema v1
+remains accepted for historical compatibility but cannot be promoted into an ordinary
+final response. No routing, memory, authority, follow-up, session, or voice-loop policy
+changed.
+
 ## Phase 8 presence and visual identity — IN PROGRESS
 
 **Phase 8A — COMPLETE.** Existing trusted `system_state` drives nine bounded,
