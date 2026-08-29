@@ -1,5 +1,12 @@
 # Current GRACI Status
 
+## QA-006 canonical identity definition — REPAIRED
+
+The product-owner canonical expansion is **G.R.A.C.I. = General Reasoning And
+Conversational Intelligence**. This supersedes the former expansion while preserving
+historical records as written. The bounded QA-001 identity contract answers acronym
+questions with this exact wording and forbids invented or substituted expansions.
+
 ## QA-003 authoritative 3090 Qwen/GLM availability — REPAIRED
 
 The production localhost endpoint had been launched as a single Qwen model server,

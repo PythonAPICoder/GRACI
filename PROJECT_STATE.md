@@ -3,6 +3,18 @@
 Current accepted build: Phase 5 — COMPLETE; Phase 6 — COMPLETE; Phase 6A — COMPLETE;
 Phase 6B — COMPLETE; Phase 7 — COMPLETE; Phase 8A — COMPLETE.
 
+## QA-006 canonical G.R.A.C.I. expansion correction
+
+- The product-owner canonical expansion is **General Reasoning And Conversational
+  Intelligence**. It supersedes **General Reasoning, Automation, Coordination, and
+  Intelligence**; historical records retaining the former wording remain truthful
+  records of the definition in effect when they were written.
+- The existing QA-001 identity and response contract now supplies the exact current
+  expansion for GRACI, G.R.A.C.I., and equivalent natural-language questions and
+  explicitly prohibits invented or substituted expansions.
+- This correction changes no routing, memory, voice, visualizer authority,
+  3090/4090 policy, web/startup behavior, autonomy, performance, or Phase 8 behavior.
+
 ## QA-002 / QA-004 / QA-005 production observer composition repair
 
 - Ordinary local operation now has an explicit observer-only path:

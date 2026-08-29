@@ -1,5 +1,13 @@
 # Current GRACI Architecture
 
+## QA-006 canonical identity definition
+
+The user-facing identity is **G.R.A.C.I.**, canonically expanded as **General
+Reasoning And Conversational Intelligence**. The ordinary execution system contract
+provides this exact fact for GRACI, G.R.A.C.I., and equivalent acronym questions and
+prohibits alternate invented expansions. The validated `user_response` boundary and
+all QA-001 identity separation remain unchanged.
+
 ## QA-003 bounded primary model residency
 
 The authoritative RTX 3090 remains sufficient for the accepted Qwen implementer and

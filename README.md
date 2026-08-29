@@ -1,5 +1,10 @@
 # GRACI Phase 8 — Presence & Visual Identity In Progress
 
+**G.R.A.C.I.** = **General Reasoning And Conversational Intelligence**
+
+This is the current product-owner canonical identity definition. It supersedes the
+former expansion without rewriting historical project records.
+
 ## Authoritative 3090 llama.cpp operator procedure
 
 The accepted local Qwen/GLM workflow uses llama.cpp's native router mode; it does not
