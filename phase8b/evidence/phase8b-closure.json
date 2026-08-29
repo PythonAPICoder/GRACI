@@ -1,0 +1,66 @@
+{
+  "phase": "8B",
+  "status": "PASS_AUTOMATED_MANUAL_PENDING",
+  "starting_commit": "a9594041803f50c5b1d4b41c838cf84572b9b2ba",
+  "ending_implementation_commit": "ee14ce73f498ebd482342040ad107e87186cfb45",
+  "closure_evidence": "This evidence commit is the direct child of ending_implementation_commit.",
+  "objective": "Expose one bounded latest completed governed Browser PTT result as presentation-only resident state without adding execution authority.",
+  "accepted_contract": {
+    "source": "One already-completed submitted TurnResult from the existing Browser PTT coordinator path.",
+    "successful_response_source": "AuthoritativeFinalResponse only after governed PASS.",
+    "retention": "One replacement value in resident process memory; retained by Restart GRACI and discarded on process exit.",
+    "delivery": "Snapshot schema v2 is authoritative; polling, refresh, SSE reconnect, latest_turn_updated, and additional tabs converge on it.",
+    "active_task_separation": true,
+    "response_character_limit": 4000,
+    "zero_submission_publication": false,
+    "run_history_reconstruction": false
+  },
+  "authority_boundary": {
+    "presentation_only": true,
+    "observer_failure_changes_turn_result": false,
+    "post_allowlist": ["/ptt/begin", "/ptt/chunk", "/ptt/finish", "/ptt/cancel", "/restart"],
+    "new_routes": false,
+    "typed_submission": false,
+    "retry_or_followup": false,
+    "routing_memory_model_or_compute_control": false
+  },
+  "privacy_boundary": {
+    "excluded": ["prompt", "transcript", "raw model output", "model attempts", "memory content", "tool streams", "credentials", "arbitrary run-file fields"],
+    "localhost_same_origin_no_cors_unchanged": true,
+    "new_cloud_dependency": false,
+    "new_persistence": false
+  },
+  "compute_policy": {
+    "primary_3090_authoritative_and_independently_sufficient": true,
+    "optional_4090_unchanged": true,
+    "mo2_and_health_gating_unchanged": true
+  },
+  "verification": {
+    "focused_phase8b": "PASS - 10 tests",
+    "full_warning_strict_suite": "PASS - 462 tests",
+    "python_compile": "PASS",
+    "javascript_syntax": "PASS",
+    "json_parse": "PASS",
+    "diff_check": "PASS"
+  },
+  "manual_real_machine_acceptance": {
+    "status": "NOT_PERFORMED_BY_CODEX",
+    "required": [
+      "Complete one physical Browser PTT governed PASS and verify the same response after refresh and in a second tab.",
+      "Complete or observe one governed failure and verify no fabricated response text is shown.",
+      "Use explicit PTT barge-in and verify governed success remains distinct from cancelled speech presentation.",
+      "Use Restart GRACI and verify the latest completed result remains while transient task and voice state clear.",
+      "Stop and start the resident and verify latest-turn state begins empty without reading runs/."
+    ]
+  },
+  "explicit_exclusions": [
+    "conversation or session history",
+    "typed browser submission",
+    "wake word, VAD, always listening, or autonomous conversation",
+    "automatic follow-up, retry, approval, or speculative execution",
+    "generic browser command or control",
+    "run-file reconstruction or new persistence",
+    "memory, routing, validation, model, node, 3090, 4090, or MO2 policy changes",
+    "Phase 8C and later work"
+  ]
+}

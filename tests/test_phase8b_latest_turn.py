@@ -211,5 +211,23 @@ class BrowserBoundaryTests(unittest.TestCase):
         self.assertNotIn("WebSocket", backend)
 
 
+class ClosureEvidenceTests(unittest.TestCase):
+    def test_evidence_records_exact_scope_commits_and_manual_boundary(self):
+        evidence = json.loads((ROOT / "phase8b" / "evidence" /
+                               "phase8b-closure.json").read_text("utf-8"))
+        self.assertEqual(evidence["phase"], "8B")
+        self.assertEqual(evidence["starting_commit"],
+                         "a9594041803f50c5b1d4b41c838cf84572b9b2ba")
+        self.assertEqual(evidence["ending_implementation_commit"],
+                         "ee14ce73f498ebd482342040ad107e87186cfb45")
+        self.assertEqual(evidence["accepted_contract"]["response_character_limit"],
+                         LATEST_RESPONSE_LIMIT)
+        self.assertFalse(evidence["accepted_contract"]["zero_submission_publication"])
+        self.assertFalse(evidence["authority_boundary"]["new_routes"])
+        self.assertEqual(evidence["manual_real_machine_acceptance"]["status"],
+                         "NOT_PERFORMED_BY_CODEX")
+        self.assertIn("Phase 8C and later work", evidence["explicit_exclusions"])
+
+
 if __name__ == "__main__":
     unittest.main()
