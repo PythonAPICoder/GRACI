@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "phase": "7C",
+  "title": "Integrated Local Interaction Acceptance and Phase 7 Closure",
+  "status": "PASS",
+  "starting_commit": "6f9adc2ab2ce2c324a48239532340e94049b9ca8",
+  "starting_branch": "main",
+  "starting_tree_clean": true,
+  "production_composition": "CLI -> production factory -> ExplicitTurnCoordinator -> existing governed run(task) -> authoritative response -> optional accepted local presentation",
+  "submission_invariant": {
+    "accepted_typed_input": 1,
+    "accepted_speech_transcript": 1,
+    "rejected_or_failed_pre_submission_input": 0,
+    "maximum_per_explicit_turn": 1,
+    "retry_above_governed_runtime": false
+  },
+  "authority": {
+    "governed_result_precedes_final_response": true,
+    "presentation_establishes_truth": false,
+    "observation_establishes_truth": false,
+    "serialization_establishes_truth": false,
+    "presentation_failure_changes_governed_pass": false,
+    "observer_failure_changes_governed_truth": false
+  },
+  "voice": {
+    "explicit_start_and_stop_required": true,
+    "automatic_next_turn": false,
+    "background_listener": false,
+    "presentation_requires_speak": true,
+    "production_tts": "local Kokoro CPU af_bella",
+    "phase6a_pronunciation_preserved": true,
+    "terminal_lifecycle": "idle"
+  },
+  "surfaces": {
+    "ordinary_operator": "python -m graci typed or explicit --speech",
+    "workspace_target": "intentionally distinct specialized Phase 1C legacy mode",
+    "visualizer": "observer-only",
+    "alternate_ordinary_operator_path_found": false
+  },
+  "verification": {
+    "focused_phase7c_tests_passed": 9,
+    "combined_phase7a_through_phase7c_tests_passed": 32,
+    "full_warning_strict_tests_passed": 357,
+    "hardware_required_for_tests": false,
+    "warning_strict_compilation": "PASS",
+    "tracked_json_validation": "PASS",
+    "git_diff_check": "PASS",
+    "bounded_production_surface_audit": "PASS"
+  },
+  "architecture": {
+    "3090_independently_sufficient": true,
+    "4090_optional_under_unchanged_mo2_policy": true,
+    "voice_requires_4090": false,
+    "cloud_or_network_control_added": false,
+    "new_persistence_or_memory_authority_added": false,
+    "routing_or_mo2_policy_changed": false,
+    "autonomous_or_continuous_conversation_added": false
+  },
+  "live_smoke_test": {
+    "required": false,
+    "performed": true,
+    "path": "ordinary typed python -m graci production path",
+    "result": "PASS",
+    "exit_code": 0,
+    "governed_submitted": true,
+    "governed_outcome": "PASS",
+    "presentation_requested": false,
+    "bounded_evidence_only": true
+  }
+}

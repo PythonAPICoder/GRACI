@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "phase": "7",
+  "status": "PASS",
+  "closure": "COMPLETE AT BOUNDED EXPLICIT LOCAL INTERACTION",
+  "accepted_starting_commit_for_phase7c": "6f9adc2ab2ce2c324a48239532340e94049b9ca8",
+  "accepted_evidence": [
+    "phase7a/evidence/phase7a-closure.json",
+    "phase7b/evidence/phase7b-closure.json",
+    "phase7c/evidence/phase7c-closure.json"
+  ],
+  "contract": {
+    "accepted_explicit_turn_governed_submissions": 1,
+    "rejected_or_failed_input_governed_submissions": 0,
+    "governed_truth_independent_of_observation": true,
+    "governed_truth_independent_of_presentation": true,
+    "ordinary_surface": "local CLI",
+    "speech": "explicit bounded push-to-talk only",
+    "speech_output": "explicit opt-in only",
+    "visualizer": "observer-only",
+    "autonomous_conversation": false
+  },
+  "topology": {
+    "3090_independently_sufficient": true,
+    "4090_required": false,
+    "4090_policy_changed": false,
+    "exact_modorganizer_exclusion_preserved": true
+  },
+  "future_interaction_enhancements_require_separate_authorization": true
+}

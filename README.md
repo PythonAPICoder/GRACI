@@ -1,3 +1,14 @@
+# GRACI Phase 7 — Bounded Explicit Local Interaction Complete
+
+**Phase 7 — COMPLETE AT BOUNDED EXPLICIT LOCAL INTERACTION.** Ordinary local typed
+input and explicit one-turn push-to-talk share the Phase 7A coordinator and exactly
+one governed `run(task)` boundary. Accepted input submits once; rejected or failed
+input submits zero times. Optional `--speak` and observer-only lifecycle publication
+cannot replace governed truth. Phase 1C workspace/target remains a distinct specialized
+legacy mode. The 3090 remains independently sufficient and the 4090 remains optional
+under unchanged MO2 policy. Broader interaction and Phase 8 work require separate
+authorization. See `phase7/` and `phase7c/`.
+
 # GRACI Phase 7B Local Operator CLI Integration — Complete
 
 Ordinary `python -m graci "task"` interaction now uses the accepted Phase 7A
@@ -6,8 +17,8 @@ push-to-talk turn and requires separate Enter actions to start and stop capture.
 Add `--speak` only when local Kokoro `af_bella` presentation is desired. There is no
 implicit microphone or speaker use, retry, wake word, always-listening behavior,
 automatic follow-up, REPL, or conversation loop. Output is bounded JSON and
-presentation cannot alter governed authority. Phase 7 remains in progress; later
-Phase 7 work is unauthorized. Details and evidence are under `phase7b/`.
+presentation cannot alter governed authority. Phase 7C later accepted this bounded
+composition and closed Phase 7. Details and evidence are under `phase7b/`.
 
 # GRACI Phase 7A Explicit Turn Coordinator — Complete
 
@@ -18,8 +29,8 @@ keeps governed authority independent from explicitly constructed final-response 
 and optional accepted local speech presentation. There is no autonomous conversation
 loop, wake word, always-listening mode, new persistence, or new routing authority.
 The 3090 remains sufficient and the 4090 remains optional under existing MO2 policy.
-Details and evidence are under `phase7a/`; later Phase 7 work is not authorized by
-this stage.
+Details and evidence are under `phase7a/`; Phase 7C later accepted this coordinator
+without authorizing broader interaction behavior.
 
 # GRACI Phase 6 Integrated Voice Acceptance — Complete
 

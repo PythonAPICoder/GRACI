@@ -1,5 +1,21 @@
 # Current GRACI Architecture
 
+## Phase 7 accepted local interaction composition
+
+`explicit operator action -> typed OR explicit push-to-talk -> ExplicitTurnCoordinator -> exactly one governed run(task) -> governed result -> explicit AuthoritativeFinalResponse -> optional local Kokoro CPU speech -> bounded operator result`
+
+Accepted input text is unchanged by source metadata. Accepted turns submit exactly
+once; rejected or failed input submits zero times. Serialization, optional
+presentation, and lifecycle publication remain non-authoritative. `LISTENING` wraps
+only bounded capture/recognition, `SPEAKING` only actual playback, and voice returns
+to `IDLE`. There is no retry or automatic second turn.
+
+The ordinary local CLI is the operator surface. Phase 1C workspace/target remains an
+intentionally distinct specialized legacy mode; internal/test APIs are not alternate
+ordinary surfaces; the browser visualizer remains observer-only. The 3090 remains
+independently sufficient and the optional 4090 policy is unchanged. Future interaction
+enhancements require a separately authorized later phase.
+
 ## Phase 7B local operator adapter
 
 The ordinary CLI is now:
@@ -17,7 +33,7 @@ No new runtime, execution authority, routing, memory, persistence, network contr
 background listener, wake word, VAD, REPL, or autonomous loop exists. Voice remains
 local CPU-only. The 3090 is independently sufficient and optional 4090 eligibility,
 exact MO2 gating, health/model freshness, and fallback semantics are unchanged.
-Phase 7 remains in progress; Phase 7A and Phase 7B are complete.
+Phase 7A and Phase 7B are complete and accepted by Phase 7C closure.
 
 ## Phase 7A explicit single-turn composition
 
@@ -38,8 +54,8 @@ governed result. Existing Phase 6 components alone publish bounded `LISTENING` a
 `SPEAKING` observation and restore `IDLE`; observer failure remains isolated. There
 is no autonomous conversation loop, wake word, always listening, VAD, automatic
 follow-up, or background listener. The 3090 remains independently sufficient and
-the optional 4090 remains governed only by the unchanged MO2 policy. Phase 7 remains
-in progress; Phase 7A authorizes no deferred Phase 7 or Phase 8 behavior.
+the optional 4090 remains governed only by the unchanged MO2 policy. Phase 7C later
+closed the bounded composition; Phase 8 behavior remains unauthorized.
 
 The authoritative detailed history remains `PROJECT_STATE.md`; phase reconstruction
 documents live under each `phase*/` directory. Phase 6C connects the independent

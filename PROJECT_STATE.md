@@ -2,9 +2,10 @@
 
 ## Current build status
 
-- Phase 7 — IN PROGRESS
+- **Phase 7 — COMPLETE AT BOUNDED EXPLICIT LOCAL INTERACTION**
 - Phase 7A — COMPLETE
 - Phase 7B — COMPLETE
+- Phase 7C — COMPLETE
 - Phase 5 — COMPLETE
 - Phase 6A — COMPLETE
 - Phase 6B — COMPLETE
@@ -12,6 +13,12 @@
 - Phase 6D — COMPLETE
 - Phase 6E — COMPLETE
 - **Phase 6 — COMPLETE AT BOUNDED PUSH-TO-TALK VOICE INTERACTION**
+- Phase 7C accepts the integrated production composition and formally closes Phase 7.
+  One accepted typed or explicit push-to-talk turn produces exactly one ordinary
+  governed submission; rejected or failed pre-submission input produces zero.
+  Governed truth remains independent of serialization, observation, and optional
+  local presentation. Evidence: `phase7c/evidence/phase7c-closure.json` and
+  `phase7/evidence/phase7-closure.json`.
 - Phase 7B makes the ordinary local CLI a thin adapter over Phase 7A. Typed tasks use
   `run_typed`; explicit `--speech` performs one operator-started/operator-stopped
   push-to-talk turn; explicit `--speak` alone enables accepted local presentation.
@@ -30,7 +37,8 @@
   Phase 6A pronunciation. There is no wake word, always-listening mode, autonomous
   conversation loop, automatic follow-up, background listener, or new persistence.
 - The 3090 remains independently sufficient; the 4090 remains optional under the
-  unchanged MO2 policy. Phase 7A does not complete Phase 7 or authorize deferred work.
+  unchanged MO2 policy. Wake word, VAD, sessions, automatic follow-up, autonomous or
+  continuous conversation, and Phase 8 presence work remain unauthorized.
 - Evidence: `phase7a/evidence/phase7a-closure.json`.
 - Phase 6B authoritative starting commit: `291240f623bd73957f4afc84a6adb61c9ce3fdae`.
 - Phase 6 interaction model: push-to-talk. Always-listening and wake word are deferred.

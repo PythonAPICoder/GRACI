@@ -1,8 +1,24 @@
 # Current GRACI Status
 
+## Phase 7 bounded explicit local interaction — COMPLETE
+
+**Phase 7 — COMPLETE AT BOUNDED EXPLICIT LOCAL INTERACTION.** Phase 7C exercises
+the ordinary production CLI and factory with the Phase 7A coordinator, governed
+runtime boundary, Phase 6 push-to-talk and optional Kokoro presentation, and
+observer-only lifecycle composition. Accepted typed or speech input submits exactly
+once; rejected or failed pre-submission input submits zero times. Governed truth is
+unchanged by serialization, observation, synthesis, or playback failure.
+
+The local CLI is the normal operator surface. Phase 1C workspace/target remains a
+specialized legacy mode. The 3090 remains independently sufficient and the 4090
+remains optional under unchanged MO2 policy. Future interaction enhancements require
+a separately authorized later phase; wake word, VAD, sessions/history, automatic
+follow-up, autonomous conversation, browser control, new persistence, and Phase 8
+presence work are not accepted.
+
 ## Phase 7B local operator CLI integration — COMPLETE
 
-Phase 7 has begun and remains in progress. Phase 7A and Phase 7B are complete.
+Phase 7A and Phase 7B are complete and accepted by Phase 7C closure.
 Ordinary `python -m graci "task"` interaction now enters the accepted Phase 7A
 coordinator and its single existing governed `run(task)` submission statement.
 `--speech` is one explicit push-to-talk turn with separate operator start/stop
@@ -19,7 +35,7 @@ and the 4090 remains optional under unchanged MO2 policy. Evidence is under `pha
 
 ## Phase 7A explicit turn coordinator — COMPLETE
 
-Phase 7 has begun and remains in progress. Phase 7A provides only explicit
+Phase 7A provides only explicit
 single-turn coordination. Typed text and accepted Phase 6 push-to-talk transcripts
 share the existing governed `run(task)` authority boundary. One accepted explicit
 turn submits exactly once; rejected or blank input submits zero times. Input-source
@@ -31,8 +47,8 @@ Phase 6 lifecycle observation remains non-authoritative and restores `IDLE`; fai
 in observation, TTS, or playback do not replace governed truth. No wake word,
 always-listening mode, autonomous conversation loop, automatic follow-up, new
 persistence, control API, or routing policy was added. The 3090 remains sufficient;
-the 4090 remains optional under unchanged MO2 policy. Later Phase 7 capabilities are
-deferred. Evidence is `phase7a/evidence/phase7a-closure.json`.
+the 4090 remains optional under unchanged MO2 policy. Phase 7C later accepted this
+bounded composition. Evidence is `phase7a/evidence/phase7a-closure.json`.
 
 - Phases 1–5: complete.
 - Phase 6A voice qualification: complete.
