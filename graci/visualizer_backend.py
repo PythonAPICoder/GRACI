@@ -283,7 +283,7 @@ class _Handler(BaseHTTPRequestHandler):
             self._error(HTTPStatus.FORBIDDEN, "loopback_origin_required",
                         "browser PTT is available only to the local visualizer origin")
             return
-        allowed = {f"{BASE_PATH}/ptt/begin", f"{BASE_PATH}/ptt/finish",
+        allowed = {f"{BASE_PATH}/ptt/begin", f"{BASE_PATH}/ptt/chunk", f"{BASE_PATH}/ptt/finish",
                    f"{BASE_PATH}/ptt/cancel"}
         if path not in allowed:
             self._error(HTTPStatus.METHOD_NOT_ALLOWED, "method_not_allowed",
@@ -295,6 +295,8 @@ class _Handler(BaseHTTPRequestHandler):
             return
         if path == f"{BASE_PATH}/ptt/begin":
             self._ptt_begin()
+        elif path == f"{BASE_PATH}/ptt/chunk":
+            self._ptt_chunk()
         elif path == f"{BASE_PATH}/ptt/finish":
             self._ptt_finish()
         elif path == f"{BASE_PATH}/ptt/cancel":
@@ -355,6 +357,23 @@ class _Handler(BaseHTTPRequestHandler):
             code = result.error_code or "governed_response_unavailable"
             message = result.error_message or "no validated user-facing response is available"
             self._error(HTTPStatus.UNPROCESSABLE_ENTITY, code, message)
+
+    def _ptt_chunk(self) -> None:
+        from .browser_ptt import MAX_BROWSER_AUDIO_BYTES, BrowserPTTInvalid
+        if self.headers.get("Content-Type") != "audio/wav":
+            self._error(HTTPStatus.UNSUPPORTED_MEDIA_TYPE, "invalid_content_type",
+                        "PTT chunk requires audio/wav")
+            return
+        length = self._content_length(MAX_BROWSER_AUDIO_BYTES)
+        if length is None:
+            return
+        token = self.headers.get("X-GRACI-PTT-Token", "")
+        try:
+            accepted = self.app.browser_ptt.offer(token, self.rfile.read(length))
+        except BrowserPTTInvalid as exc:
+            self._error(HTTPStatus.CONFLICT, "invalid_or_expired_turn", str(exc))
+            return
+        self._json({"status": "transcribing" if accepted else "buffering"}, False)
 
     def _ptt_cancel(self) -> None:
         from .browser_ptt import BrowserPTTInvalid

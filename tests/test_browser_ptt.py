@@ -252,6 +252,18 @@ class BrowserTransportTests(unittest.TestCase):
         self.assertEqual(self.request(f"{BASE_PATH}/ptt/finish", wav_bytes(), "audio/wav", token)[0], 409)
         self.assertEqual(len(self.coordinator.calls), 1)
 
+    def test_chunk_transport_starts_stt_but_never_submits(self):
+        token = self.begin()
+        status, _, body = self.request(f"{BASE_PATH}/ptt/chunk", wav_bytes(.6),
+                                       "audio/wav", token)
+        self.assertEqual(status, 200)
+        self.assertIn(json.loads(body)["status"], {"buffering", "transcribing"})
+        self.assertEqual(self.coordinator.calls, [])
+        self.assertEqual(self.request(f"{BASE_PATH}/ptt/cancel",
+                                     json.dumps({"turn_token": token}),
+                                     "application/json")[0], 200)
+        self.assertEqual(self.coordinator.calls, [])
+
 
 class BrowserUIContractTests(unittest.TestCase):
     @classmethod
@@ -281,6 +293,7 @@ class BrowserUIContractTests(unittest.TestCase):
             self.assertIn(marker, self.js)
         self.assertNotIn("localStorage", self.js)
         self.assertNotIn("sessionStorage", self.js)
+        self.assertIn('/ptt/chunk', self.js)
 
 
 if __name__ == "__main__": unittest.main()

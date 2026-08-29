@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import json
+import queue
 import subprocess
 import tempfile
+import threading
 import wave
 from dataclasses import dataclass
 from enum import Enum
@@ -49,6 +51,10 @@ class SpeechToText(Protocol):
     def identity(self) -> str: ...
 
     def transcribe(self, audio: CapturedAudio) -> TranscriptionResult: ...
+
+
+class StreamingSpeechToText(SpeechToText, Protocol):
+    def close(self) -> None: ...
 
 
 @dataclass(frozen=True)
@@ -126,7 +132,97 @@ class FasterWhisperSubprocessSTT:
             if path is not None and not self.config.retain_audio:
                 path.unlink(missing_ok=True)
 
+    def open_stream(self) -> StreamingSpeechToText:
+        """Start one turn-scoped worker which loads the local model exactly once."""
+        return _FasterWhisperWorkerSession(self)
+
     def _failure(self, audio: CapturedAudio, code: str, message: str) -> TranscriptionResult:
         return TranscriptionResult(TranscriptionStatus.FAILED, self.identity,
                                    audio.duration_seconds, error_code=code,
                                    error_message=message)
+
+
+class _FasterWhisperWorkerSession:
+    def __init__(self, owner: FasterWhisperSubprocessSTT):
+        self._owner = owner
+        config = owner.config
+        command = [str(config.python_executable), str(config.worker_script), "--serve",
+                   "--model", config.model, "--cache", str(config.model_cache),
+                   "--device", config.device, "--compute-type", config.compute_type]
+        self._process = subprocess.Popen(command, stdin=subprocess.PIPE,
+                                         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                         text=True, bufsize=1)
+        self._responses: queue.Queue[str | None] = queue.Queue()
+        self._reader = threading.Thread(target=self._read_stdout,
+                                        name="graci-stt-worker-reader", daemon=True)
+        self._reader.start()
+        try:
+            ready = self._responses.get(timeout=config.timeout_seconds)
+            if ready is None or json.loads(ready).get("status") != "ready":
+                self.close()
+                raise OSError("local streaming STT worker did not become ready")
+        except (queue.Empty, json.JSONDecodeError, AttributeError):
+            self.close()
+            raise OSError("local streaming STT worker did not become ready") from None
+        self._lock = threading.Lock()
+
+    @property
+    def identity(self) -> str:
+        return self._owner.identity
+
+    def transcribe(self, audio: CapturedAudio) -> TranscriptionResult:
+        path: Path | None = None
+        try:
+            handle = tempfile.NamedTemporaryFile(prefix="graci-stream-", suffix=".wav",
+                                                 delete=False)
+            path = Path(handle.name)
+            handle.close()
+            with wave.open(str(path), "wb") as wav:
+                wav.setnchannels(audio.channels)
+                wav.setsampwidth(audio.sample_width)
+                wav.setframerate(audio.sample_rate)
+                wav.writeframes(audio.pcm)
+            with self._lock:
+                if self._process.poll() is not None or self._process.stdin is None:
+                    return self._owner._failure(audio, "stt_worker_failed",
+                                                "local streaming STT worker stopped")
+                self._process.stdin.write(json.dumps({"audio": str(path)}) + "\n")
+                self._process.stdin.flush()
+                line = self._responses.get(timeout=self._owner.config.timeout_seconds)
+            if line is None:
+                return self._owner._failure(audio, "stt_worker_failed",
+                                            "local streaming STT worker stopped")
+            payload = json.loads(line)
+            if "error" in payload:
+                return self._owner._failure(audio, "stt_worker_failed", str(payload["error"]))
+            text = payload["text"].strip()
+            if not text:
+                return self._owner._failure(audio, "empty_transcript",
+                                            "STT produced no transcript")
+            return TranscriptionResult(TranscriptionStatus.SUCCESS, self.identity,
+                                       audio.duration_seconds, text=text)
+        except queue.Empty:
+            self.close()
+            return self._owner._failure(audio, "stt_timeout", "local STT worker timed out")
+        except (OSError, json.JSONDecodeError, KeyError, AttributeError) as exc:
+            return self._owner._failure(audio, "stt_worker_failed", str(exc))
+        finally:
+            if path is not None:
+                path.unlink(missing_ok=True)
+
+    def close(self) -> None:
+        process = self._process
+        if process.poll() is None:
+            process.terminate()
+            try:
+                process.wait(timeout=2)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait(timeout=2)
+
+    def _read_stdout(self) -> None:
+        stdout = self._process.stdout
+        if stdout is not None:
+            for line in stdout:
+                self._responses.put(line)
+        self._responses.put(None)

@@ -87,10 +87,29 @@ without replacing its displayed label; freshness independently marks stale data.
 All compute, task, routing, memory, review, pipeline, event, and presence panels remain
 observer-only. The sole control exception is resident-host browser PTT:
 
-`explicit pointer/valid Spacebar hold -> transient mono PCM WAV -> loopback resident -> existing local faster-whisper -> existing ExplicitTurnCoordinator -> exactly one governed run(task) -> one validated AuthoritativeFinalResponse -> latest-result panel + existing Phase 6D Kokoro/Windows playback`
+`explicit pointer/valid Spacebar hold -> transient rolling mono PCM snapshots -> local faster-whisper incremental work -> PTT release -> full-audio finalization -> existing ExplicitTurnCoordinator -> exactly one governed run(task) -> one validated AuthoritativeFinalResponse -> latest-result panel + existing Phase 6D Kokoro/Windows playback`
 
-Begin acquires a guarded turn and publishes authoritative `LISTENING`; finish ends
-`LISTENING` before STT, and cancel/timeout restores `IDLE` with zero submission.
+Begin acquires a guarded turn and publishes authoritative `LISTENING`. While held,
+the browser sends full-audio WAV snapshots once per second and CLI capture offers
+thread-safe complete-buffer snapshots on the same cadence. The transcriber bounds
+preview inference to the newest three seconds. One turn-scoped local worker loads
+the faster-whisper model once and serves both previews and finalization. A latest-only
+background transcriber may replace a queued snapshot, but never concatenates partial
+text; this avoids word duplication or omission at artificial chunk boundaries. Its
+text is private, transient, non-authoritative, and never published, persisted, routed,
+or passed to the coordinator. Finish ends `LISTENING`, closes incremental work, and
+finalizes the complete released recording. An exact matching completed snapshot may
+be reused by audio digest; otherwise the complete recording is transcribed again for
+correctness. Only that one final result can reach `ExplicitTurnCoordinator`.
+
+Cancel, timeout, invalid/insufficient audio, and capture failure discard incremental
+state and restore `IDLE` with zero submission. Cancellation never waits for an
+already-running isolated STT call. Release allows at most one second for an active
+bounded preview; an overrun worker is terminated and final audio uses a fresh local
+turn worker rather than waiting for the STT timeout. faster-whisper 1.2.1 provides no
+token-stream contract in this stack;
+rolling snapshots are therefore the bounded safe strategy. This remains CPU `int8`
+on the 3090 with no cloud or optional-4090 dependency.
 Blank/failed STT also submits zero times. Opaque one-use tokens, one in-flight turn,
 strict same-origin/content-type/WAV validation, the existing 120-second voice limit,
 and a 4,000,000-byte body limit prevent replay and broad control. There is no CORS,

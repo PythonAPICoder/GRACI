@@ -15,12 +15,38 @@ remove scripts manage only the named current-user Task Scheduler entry. Reposito
 tests do not install it; real Task Scheduler validation remains a manual 3090
 acceptance step. Existing model routing, 4090 policy, memory, and governed execution
 boundaries are unchanged. Its one browser operator capability is explicit hold-to-talk:
-pointer hold or Spacebar outside normal text-entry/editor contexts. Release uploads
-transient local PCM WAV for local faster-whisper and exactly one governed coordinator
-turn. A successful turn shows and speaks the same validated authoritative response
-through existing Phase 6D Kokoro/Windows playback. Presentation failure cannot change
+pointer hold or Spacebar outside normal text-entry/editor contexts. During the hold,
+rolling transient PCM snapshots begin local faster-whisper work; release remains the
+sole submission boundary and finalizes the complete recording before exactly one
+governed coordinator turn. A successful turn shows and speaks the same validated
+authoritative response through existing Phase 6D Kokoro/Windows playback.
+Presentation failure cannot change
 the successful governed result or cause another run. Cancellation, blank/failed STT,
 invalid audio, and contention submit zero runs.
+
+The CLI Spacebar path uses the same deferred design through in-memory capture
+snapshots. Incremental transcript text is never exposed, persisted, routed, placed in
+memory, or submitted. Latest-only snapshot replacement avoids text concatenation at
+chunk boundaries; the released full recording is the correctness boundary. The
+installed faster-whisper 1.2.1 worker loads once per explicit PTT turn and has no
+token streaming contract, so this phase uses a latest-only three-second rolling
+preview rather than
+claiming native token streaming. Local CPU `int8`, 3090 sufficiency, QA-007 speech
+normalization, `af_heart`/1.00 Kokoro presentation, and `GRAY-see` pronunciation are
+unchanged.
+
+Bounded 2026-08-29 machine verification used the installed local faster-whisper
+environment/cache and existing `phase6a` corpus audio without activating a microphone.
+A six-second simulated hold offered six snapshots, launched one turn-scoped worker/model,
+performed six previews plus one final request in 7.034 seconds, and finalized after
+release in 1.030 seconds. A ten-offer burst started only one preview before release
+and performed only two requests total (one preview and one final), demonstrating
+latest-only replacement rather than backlog accumulation. Cancellation returned
+immediately and its worker had exited within three seconds. Governed calls remained
+zero before release and exactly one followed finalization. The
+finalization-to-submission interval was not separately instrumented. Physical
+browser-button and CLI Spacebar microphone interaction remains the one manual
+verification not performed by Codex in this phase.
 
 The accepted login composition also has a distinct `GRACI 3090 llama.cpp Router`
 current-user task. Both it and `GRACI Resident Host` use hidden noninteractive task

@@ -54,10 +54,24 @@ Optional manual smoke test (requires a populated local model cache):
 python -m phase6b.manual_push_to_talk
 ```
 
+## Deferred streaming transcription enhancement
+
+The later streaming-STT enhancement accepts latest-only full-audio snapshots during an
+explicit browser or CLI hold. Snapshot transcripts live only inside a capture-owned
+background object; preview inference is bounded to the newest three seconds. One
+turn-scoped subprocess loads the model once and serves previews plus finalization.
+Transcript text is not persisted or submitted. PTT release closes that
+work and finalizes the complete recording; only the resulting final transcript may
+enter `ExplicitTurnCoordinator`. Exact matching audio can reuse a completed snapshot
+by SHA-256 digest. Otherwise a complete post-release pass protects recognition
+quality and eliminates boundary concatenation, duplication, or omission. Cancel,
+timeout, and failure discard the transient state and submit zero governed turns.
+
 ## Known limitations and deferred work
 
-The worker cold-loads the model for each utterance; a warm bounded worker may be
-introduced later without changing the STT interface. Audio-device enumeration and a
+faster-whisper 1.2.1 does not provide token streaming through the installed worker
+API. The model is retained only for one explicit PTT turn and is released on finish,
+cancel, timeout, or failure. Audio-device enumeration and a
 polished hotkey/UI are deferred. Phase 6C transcript/runtime integration and Phase 6D
 TTS/playback were added later without changing this accepted Phase 6B boundary.
 LISTENING/SPEAKING publication, wake word, turn-taking, VAD-driven listening,

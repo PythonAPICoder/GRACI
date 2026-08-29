@@ -38,6 +38,7 @@ class AudioCaptureConfig:
 
 
 class CaptureSession(Protocol):
+    def snapshot(self) -> CapturedAudio: ...
     def stop(self) -> CapturedAudio: ...
     def cancel(self) -> None: ...
 
@@ -80,6 +81,7 @@ class _WindowsWaveInSession:
         self._stopping = threading.Event()
         self._failure: AudioCaptureError | None = None
         self._chunks: list[bytes] = []
+        self._chunks_lock = threading.Lock()
         self._buffers: list[ctypes.Array] = []
         self._headers: list[_WaveHeader] = []
         format_ = _WaveFormat(1, config.channels, config.sample_rate,
@@ -118,8 +120,11 @@ class _WindowsWaveInSession:
                 for header in self._headers:
                     if header.dwFlags & self._DONE:
                         if header.dwBytesRecorded:
-                            self._chunks.append(ctypes.string_at(header.lpData, header.dwBytesRecorded))
-                        if sum(map(len, self._chunks)) >= limit:
+                            with self._chunks_lock:
+                                self._chunks.append(ctypes.string_at(header.lpData, header.dwBytesRecorded))
+                        with self._chunks_lock:
+                            captured_bytes = sum(map(len, self._chunks))
+                        if captured_bytes >= limit:
                             self._stopping.set()
                             break
                         header.dwBytesRecorded = 0
@@ -135,20 +140,29 @@ class _WindowsWaveInSession:
         self._thread.join(timeout=2)
         for header in self._headers:
             if header.dwBytesRecorded:
-                self._chunks.append(ctypes.string_at(header.lpData, header.dwBytesRecorded))
+                with self._chunks_lock:
+                    self._chunks.append(ctypes.string_at(header.lpData, header.dwBytesRecorded))
                 header.dwBytesRecorded = 0
         self._close()
         if self._failure:
             raise self._failure
-        return CapturedAudio(b"".join(self._chunks), self.config.sample_rate,
+        return self.snapshot()
+
+    def snapshot(self) -> CapturedAudio:
+        """Return a transient copy of complete buffers captured so far."""
+        with self._chunks_lock:
+            pcm = b"".join(self._chunks)
+        return CapturedAudio(pcm, self.config.sample_rate,
                              self.config.channels, self.config.sample_width)
 
     def cancel(self) -> None:
-        self._chunks.clear()
+        with self._chunks_lock:
+            self._chunks.clear()
         try:
             self.stop()
         finally:
-            self._chunks.clear()
+            with self._chunks_lock:
+                self._chunks.clear()
 
     def _close(self) -> None:
         if self._handle:

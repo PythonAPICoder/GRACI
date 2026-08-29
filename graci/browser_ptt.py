@@ -11,6 +11,7 @@ from enum import Enum
 
 from .audio_capture import AudioCaptureConfig
 from .speech import CapturedAudio, SpeechToText, TranscriptionResult
+from .streaming_stt import DeferredStreamingTranscriber
 from .turn_coordinator import ExplicitTurnCoordinator, TurnResult
 from .visualizer import SystemState
 from .voice_lifecycle import VoiceLifecycle, VoiceLifecycleLease
@@ -57,6 +58,7 @@ class BrowserPTTOperator:
         self._processing = False
         self._lease: VoiceLifecycleLease | None = None
         self._timer: threading.Timer | None = None
+        self._streaming: DeferredStreamingTranscriber | None = None
 
     @property
     def active(self) -> bool:
@@ -75,6 +77,7 @@ class BrowserPTTOperator:
                                     args=(token,))
             timer.daemon = True
             self._token, self._lease, self._timer = token, lease, timer
+            self._streaming = DeferredStreamingTranscriber(self._stt)
             timer.start()
             return token
 
@@ -84,6 +87,9 @@ class BrowserPTTOperator:
         try:
             return self._finish_audio(wav_bytes)
         finally:
+            streaming, self._streaming = self._streaming, None
+            if streaming is not None:
+                streaming.cancel()
             with self._lock:
                 self._processing = False
 
@@ -98,7 +104,9 @@ class BrowserPTTOperator:
                                     error_code="insufficient_audio",
                                     error_message="recording contained no meaningful audio")
         try:
-            transcription = self._stt.transcribe(audio)
+            streaming, self._streaming = self._streaming, None
+            transcription = (streaming.finalize(audio) if streaming is not None
+                             else self._stt.transcribe(audio))
         except Exception as exc:
             return BrowserPTTResult(BrowserPTTStatus.FAILED, error_code="stt_failed",
                                     error_message=str(exc)[:500])
@@ -115,8 +123,20 @@ class BrowserPTTOperator:
         result = self._coordinator.run_typed(transcription.text, present_speech=True)
         return BrowserPTTResult(BrowserPTTStatus.ACCEPTED, result, transcription)
 
+    def offer(self, token: str, wav_bytes: bytes) -> bool:
+        """Accept one transient rolling snapshot without submission or publication."""
+        with self._lock:
+            if token != self._token or self._processing or self._streaming is None:
+                raise BrowserPTTInvalid("invalid or expired browser PTT turn")
+            streaming = self._streaming
+        return streaming.offer(decode_browser_wav(wav_bytes, self._config))
+
     def cancel(self, token: str) -> None:
-        self._take(token, processing=False).close()
+        lease = self._take(token, processing=False)
+        streaming, self._streaming = self._streaming, None
+        if streaming is not None:
+            streaming.cancel()
+        lease.close()
 
     def close(self) -> None:
         with self._lock:

@@ -7,6 +7,7 @@ from enum import Enum
 
 from .audio_capture import AudioCapture, AudioCaptureConfig, CaptureSession
 from .speech import SpeechToText, TranscriptionResult, TranscriptionStatus
+from .streaming_stt import DeferredStreamingTranscriber
 from .visualizer import SystemState
 from .voice_lifecycle import VoiceLifecycle, VoiceLifecycleLease
 
@@ -36,6 +37,9 @@ class PushToTalkController:
         self._transition_history: list[PushToTalkState] = [self._state]
         self._lifecycle = lifecycle
         self._lifecycle_lease: VoiceLifecycleLease | None = None
+        self._streaming: DeferredStreamingTranscriber | None = None
+        self._stream_stop: threading.Event | None = None
+        self._stream_thread: threading.Thread | None = None
 
     @property
     def state(self) -> PushToTalkState:
@@ -61,6 +65,11 @@ class PushToTalkController:
                 self._set_state(PushToTalkState.IDLE)
                 raise
             self._lifecycle_lease = lease
+            self._streaming = DeferredStreamingTranscriber(self._stt)
+            self._stream_stop = threading.Event()
+            self._stream_thread = threading.Thread(target=self._offer_snapshots,
+                                                   name="graci-ptt-snapshots", daemon=True)
+            self._stream_thread.start()
             self._set_state(PushToTalkState.RECORDING)
 
     def end_and_transcribe(self) -> TranscriptionResult:
@@ -70,9 +79,13 @@ class PushToTalkController:
             self._session = None
             assert session is not None
         try:
+            self._stop_snapshot_loop()
             try:
                 audio = session.stop()
             except Exception as exc:
+                streaming, self._streaming = self._streaming, None
+                if streaming is not None:
+                    streaming.cancel()
                 with self._lock:
                     result = self._failure("capture_failed", str(exc), 0.0)
                     self._finish(PushToTalkState.FAILED)
@@ -82,13 +95,17 @@ class PushToTalkController:
                 self._restore_lifecycle()
             with self._lock:
                 if audio.duration_seconds < self._config.minimum_duration_seconds:
+                    streaming, self._streaming = self._streaming, None
+                    if streaming is not None:
+                        streaming.cancel()
                     result = self._failure("insufficient_audio", "recording contained no meaningful audio",
                                            audio.duration_seconds)
                     self._finish(PushToTalkState.FAILED)
                     return result
                 self._set_state(PushToTalkState.TRANSCRIBING)
             try:
-                result = self._stt.transcribe(audio)
+                streaming, self._streaming = self._streaming, None
+                result = streaming.finalize(audio) if streaming is not None else self._stt.transcribe(audio)
             except Exception as exc:
                 result = self._failure("stt_failed", str(exc), audio.duration_seconds)
             with self._lock:
@@ -104,6 +121,10 @@ class PushToTalkController:
             self._session = None
             assert session is not None
             try:
+                self._stop_snapshot_loop()
+                streaming, self._streaming = self._streaming, None
+                if streaming is not None:
+                    streaming.cancel()
                 session.cancel()
             finally:
                 self._set_state(PushToTalkState.IDLE)
@@ -113,6 +134,30 @@ class PushToTalkController:
         lease, self._lifecycle_lease = self._lifecycle_lease, None
         if lease is not None:
             lease.close()
+
+    def _stop_snapshot_loop(self) -> None:
+        stop, thread = self._stream_stop, self._stream_thread
+        self._stream_stop = self._stream_thread = None
+        if stop is not None:
+            stop.set()
+        if thread is not None:
+            thread.join(timeout=2)
+
+    def _offer_snapshots(self) -> None:
+        stop = self._stream_stop
+        assert stop is not None
+        while not stop.wait(1.0):
+            with self._lock:
+                session, streaming = self._session, self._streaming
+            if session is None or streaming is None:
+                return
+            snapshot = getattr(session, "snapshot", None)
+            if snapshot is None:
+                return
+            try:
+                streaming.offer(snapshot())
+            except Exception:
+                return
 
     def _failure(self, code: str, message: str, duration: float) -> TranscriptionResult:
         return TranscriptionResult(TranscriptionStatus.FAILED, self._stt.identity, duration,
