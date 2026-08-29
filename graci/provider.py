@@ -26,6 +26,34 @@ class ProviderError(Exception):
 Transport = Callable[[urllib.request.Request, float], tuple[int, bytes]]
 
 
+GOVERNED_RESULT_SCHEMA: dict[str, Any] = {
+    "oneOf": [
+        {
+            "type": "object",
+            "properties": {
+                "schema_version": {"const": 2},
+                "status": {"const": "PASS"},
+                "summary": {"type": "string", "minLength": 1},
+                "user_response": {"type": "string", "minLength": 1},
+            },
+            "required": ["schema_version", "status", "summary", "user_response"],
+            "additionalProperties": False,
+        },
+        {
+            "type": "object",
+            "properties": {
+                "schema_version": {"const": 2},
+                "status": {"const": "FAIL"},
+                "summary": {"type": "string", "minLength": 1},
+                "user_response": {"type": "null"},
+            },
+            "required": ["schema_version", "status", "summary", "user_response"],
+            "additionalProperties": False,
+        },
+    ],
+}
+
+
 def _urlopen_transport(request: urllib.request.Request, timeout: float) -> tuple[int, bytes]:
     with urllib.request.urlopen(request, timeout=timeout) as response:
         return response.status, response.read()
@@ -38,7 +66,12 @@ class LocalLlamaCppProvider:
         self.transport = transport
         self.model_lifecycle = model_lifecycle
 
-    def execute(self, task: str) -> ProviderResponse:
+    def execute(self, task: str, *, correction: str | None = None) -> ProviderResponse:
+        correction_instruction = ("" if correction is None else (
+            " The preceding generation attempt was rejected by GRACI's strict validator: "
+            + correction + ". Generate the same requested result again. The original user "
+            "task below remains authoritative; do not add, repeat, or assume any action."
+        ))
         body = {
             "model": self.config.model,
             "messages": [
@@ -66,14 +99,21 @@ class LocalLlamaCppProvider:
                         "If the user asks for such a mutation, do not claim to perform it: provide a "
                         "clear, bounded explanation of that limitation and the supported offline "
                         "governance-change path in user_response, and mark PASS because the request "
-                        "was answered safely."
+                        "was answered safely." + correction_instruction
                     ),
                 },
                 {"role": "user", "content": task},
             ],
             "temperature": 0,
             "max_tokens": 1024,
-            "response_format": {"type": "json_object"},
+            "response_format": {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "graci_governed_result_v2",
+                    "strict": True,
+                    "schema": GOVERNED_RESULT_SCHEMA,
+                },
+            },
             "chat_template_kwargs": {"enable_thinking": False},
         }
         return self._request(body)

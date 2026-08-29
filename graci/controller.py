@@ -13,6 +13,9 @@ from .provider import LocalLlamaCppProvider, ProviderError
 from .validation import ValidationError, validate_model_result
 
 
+MAX_MODEL_GENERATION_ATTEMPTS = 2
+
+
 def _timestamp() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
@@ -43,29 +46,66 @@ class Controller:
             "http_status": None,
             "provider_response_model": None,
             "validated_model_result": None,
+            "model_generation_attempts": [],
             "errors": [],
         }
         observe(self.observer, ObservationKind.TASK_STARTED, record["run_id"],
                 summary="Explicit local operator turn")
-        observe(self.observer, ObservationKind.MODEL_STARTED, record["run_id"],
-                role="implementer", model=self.config.model, node=self.config.node)
         try:
-            response = self.provider.execute(task)
-            observe(self.observer, ObservationKind.MODEL_COMPLETED, record["run_id"],
-                    role="implementer", model=self.config.model, node=self.config.node,
-                    success=True)
-            record["http_status"] = response.http_status
-            record["provider_response_model"] = response.response_model
-            if response.response_model != self.config.model:
-                raise ValidationError(
-                    f"provider response model must be {self.config.model!r}, got {response.response_model!r}"
-                )
-            validated = validate_model_result(response.content)
+            validated = None
+            correction = None
+            for attempt_number in range(1, MAX_MODEL_GENERATION_ATTEMPTS + 1):
+                observe(self.observer, ObservationKind.MODEL_STARTED, record["run_id"],
+                        role="implementer", model=self.config.model, node=self.config.node,
+                        attempt=attempt_number)
+                attempt = {
+                    "attempt": attempt_number,
+                    "http_status": None,
+                    "provider_response_model": None,
+                    "content": None,
+                    "validation_error": None,
+                    "outcome": "PENDING",
+                }
+                record["model_generation_attempts"].append(attempt)
+                response = (self.provider.execute(task) if correction is None else
+                            self.provider.execute(task, correction=correction))
+                observe(self.observer, ObservationKind.MODEL_COMPLETED, record["run_id"],
+                        role="implementer", model=self.config.model, node=self.config.node,
+                        attempt=attempt_number, success=True)
+                record["http_status"] = response.http_status
+                record["provider_response_model"] = response.response_model
+                attempt["http_status"] = response.http_status
+                attempt["provider_response_model"] = response.response_model
+                attempt["content"] = response.content
+                if response.response_model != self.config.model:
+                    attempt["outcome"] = "REJECTED"
+                    attempt["validation_error"] = (
+                        f"provider response model must be {self.config.model!r}, "
+                        f"got {response.response_model!r}"
+                    )
+                    raise ValidationError(attempt["validation_error"])
+                try:
+                    validated = validate_model_result(response.content)
+                except ValidationError as exc:
+                    attempt["outcome"] = "REJECTED"
+                    attempt["validation_error"] = str(exc)
+                    if attempt_number == MAX_MODEL_GENERATION_ATTEMPTS:
+                        raise
+                    correction = str(exc)
+                    continue
+                attempt["outcome"] = "VALIDATED"
+                break
+            if validated is None:  # Defensive: the loop either validates or raises.
+                raise ValidationError("model generation ended without a validated result")
             record["validated_model_result"] = validated
             record["status"] = validated["status"]
             if validated["status"] == "FAIL":
                 record["errors"].append(f"model reported failure: {validated['summary']}")
         except ProviderError as exc:
+            if (record["model_generation_attempts"] and
+                    record["model_generation_attempts"][-1]["outcome"] == "PENDING"):
+                record["model_generation_attempts"][-1]["outcome"] = "PROVIDER_ERROR"
+                record["model_generation_attempts"][-1]["http_status"] = exc.http_status
             record["http_status"] = exc.http_status
             record["status"] = "FAIL"
             record["errors"].append(f"provider_error: {exc}")

@@ -10,11 +10,15 @@ from graci.provider import LocalLlamaCppProvider, ProviderResponse
 
 
 class FakeProvider:
-    def __init__(self, content: str, status: int = 200):
-        self.response = ProviderResponse(status, content, "qwen3.8-27b-q4_k_m")
+    def __init__(self, content: str | list[str], status: int = 200):
+        contents = [content] if isinstance(content, str) else content
+        self.responses = [ProviderResponse(status, item, "qwen3.8-27b-q4_k_m")
+                          for item in contents]
+        self.calls = []
 
-    def execute(self, task: str) -> ProviderResponse:
-        return self.response
+    def execute(self, task: str, *, correction: str | None = None) -> ProviderResponse:
+        self.calls.append((task, correction))
+        return self.responses[min(len(self.calls) - 1, len(self.responses) - 1)]
 
 
 class ControllerTests(unittest.TestCase):
@@ -79,7 +83,37 @@ class ControllerTests(unittest.TestCase):
         record = self.execute("not json")
         self.assertEqual(record["status"], "FAIL")
         self.assertIn("validation_error", record["errors"][0])
+        self.assertEqual(len(record["model_generation_attempts"]), 2)
         self.persisted(record)
+
+    def test_observed_fenced_json_retries_once_and_recovers_in_same_run(self):
+        fenced = ('```json\n{"schema_version":2,"status":"PASS",'
+                  '"summary":"done","user_response":"Hello."}\n```')
+        valid = ('{"schema_version":2,"status":"PASS",'
+                 '"summary":"done","user_response":"Hello."}')
+        provider = FakeProvider([fenced, valid])
+        record = Controller(self.config, provider).run("Hello, Gracie.")
+        self.assertEqual(record["status"], "PASS")
+        self.assertEqual(len(provider.calls), 2)
+        self.assertEqual(provider.calls[0], ("Hello, Gracie.", None))
+        self.assertEqual(provider.calls[1][0], "Hello, Gracie.")
+        self.assertIn("not valid JSON", provider.calls[1][1])
+        self.assertEqual([item["outcome"] for item in record["model_generation_attempts"]],
+                         ["REJECTED", "VALIDATED"])
+        self.assertEqual(record["model_generation_attempts"][0]["content"], fenced)
+        self.assertEqual(len(list(Path(self.temp.name).glob("*.json"))), 1)
+
+    def test_retry_exhaustion_preserves_both_attempts_and_fails(self):
+        provider = FakeProvider(["", "still not json"])
+        record = Controller(self.config, provider).run("same authoritative task")
+        self.assertEqual(record["status"], "FAIL")
+        self.assertEqual(len(provider.calls), 2)
+        self.assertEqual([call[0] for call in provider.calls],
+                         ["same authoritative task", "same authoritative task"])
+        self.assertTrue(all(item["outcome"] == "REJECTED"
+                            for item in record["model_generation_attempts"]))
+        self.assertIsNone(record["validated_model_result"])
+        self.assertEqual(len(list(Path(self.temp.name).glob("*.json"))), 1)
 
     def test_missing_and_invalid_required_fields_fail_closed(self):
         samples = [
@@ -110,12 +144,51 @@ class ControllerTests(unittest.TestCase):
         self.assertEqual(record["http_status"], 200)
         self.persisted(record)
 
+    def test_governed_request_uses_native_strict_json_schema(self):
+        captured = {}
+
+        def transport(request, timeout):
+            captured["body"] = json.loads(request.data.decode("utf-8"))
+            return 200, json.dumps({
+                "model": "qwen3.8-27b-q4_k_m",
+                "choices": [{"message": {"content": (
+                    '{"schema_version":2,"status":"PASS","summary":"done",'
+                    '"user_response":"Hello."}')}}],
+            }).encode("utf-8")
+
+        record = Controller(self.config, LocalLlamaCppProvider(
+            self.config, transport)).run("Hello, Gracie.")
+        response_format = captured["body"]["response_format"]
+        self.assertEqual(response_format["type"], "json_schema")
+        self.assertTrue(response_format["json_schema"]["strict"])
+        self.assertEqual(len(response_format["json_schema"]["schema"]["oneOf"]), 2)
+        self.assertEqual(record["status"], "PASS")
+
+    def test_corrective_request_keeps_qwen_compatible_single_system_message(self):
+        captured = {}
+
+        def transport(request, timeout):
+            captured["body"] = json.loads(request.data.decode("utf-8"))
+            return 200, json.dumps({
+                "model": "qwen3.8-27b-q4_k_m",
+                "choices": [{"message": {"content": (
+                    '{"schema_version":2,"status":"PASS","summary":"done",'
+                    '"user_response":"Hello."}')}}],
+            }).encode("utf-8")
+
+        LocalLlamaCppProvider(self.config, transport).execute(
+            "Hello, Gracie.", correction="model output is not valid JSON: Expecting value")
+        messages = captured["body"]["messages"]
+        self.assertEqual([item["role"] for item in messages], ["system", "user"])
+        self.assertIn("preceding generation attempt was rejected", messages[0]["content"])
+
     def test_response_model_mismatch_fails_closed(self):
         provider = FakeProvider('{"schema_version":1,"status":"PASS","summary":"done"}')
-        provider.response = ProviderResponse(200, provider.response.content, "other-model")
+        provider.responses[0] = ProviderResponse(200, provider.responses[0].content, "other-model")
         record = Controller(self.config, provider).run("test model mismatch")
         self.assertEqual(record["status"], "FAIL")
         self.assertIn("provider response model", record["errors"][0])
+        self.assertEqual(len(provider.calls), 1)
         self.persisted(record)
 
     def test_nonlocal_configuration_is_rejected(self):

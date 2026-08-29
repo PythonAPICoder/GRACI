@@ -91,6 +91,15 @@ eligibility policy is unchanged.
 
 `user task -> bounded GRACI system role -> local Qwen -> strict governed result v2 {status, internal summary, user_response} -> validated PASS user_response -> AuthoritativeFinalResponse -> typed JSON and optional local speech`
 
+The governed-result request uses llama.cpp's OpenAI-compatible strict `json_schema`
+response format. Its generation grammar encodes the exact v2 PASS and FAIL shapes;
+the independent Python validator remains authoritative. A rejected malformed or
+schema-invalid generation permits one corrective generation retry inside the same
+run ID. The retry receives the same authoritative task and has no tool boundary, so
+it cannot repeat a user turn, execute a tool, or replay a committed action. Durable
+run evidence records raw content and validation outcome separately for attempts 1
+and 2. Exhaustion follows the existing governed FAILED path.
+
 Qwen is the local reasoning implementation acting for the user-facing GRACI identity;
 underlying models may still be disclosed when architecture is explicitly requested.
 The validator keeps governed PASS/FAIL independent from presentation and fails closed

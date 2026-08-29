@@ -1,5 +1,36 @@
 # Current GRACI Status
 
+## Governed model JSON reliability — REPAIRED IN REPOSITORY
+
+The two retained failures (`b1f1ab3d-c0f5-437b-bd6b-66b7af9a1eba` and
+`52c61db8-f7ed-45eb-b352-974224443c8f`) both received HTTP 200 from the correct
+local Qwen model and then failed strict parsing with `Expecting value`. Historical
+run records did not retain assistant content, so their byte-exact payload cannot be
+recovered. Router evidence proves neither request was truncated. Exact production
+request replays reproduced the raw failure class: llama.cpp returned a complete JSON
+object inside a ` ```json ` markdown fence despite `response_format=json_object`;
+the provider correctly passed that text unchanged to the strict validator.
+
+The production governed-result request now uses the installed llama.cpp build's
+native strict `json_schema` response format with exact v2 PASS/FAIL alternatives.
+No fence stripping, brace extraction, repair parsing, or permissive normalization was
+added. The existing validator still decides success. One corrective generation retry
+is allowed only after model-content validation rejection, under the same governed run
+and authoritative task. Attempts retain raw content, HTTP/model identity, validation
+diagnostic, and outcome. No tool is available in this response-generation stage, and
+the ExplicitTurnCoordinator still submits the runtime exactly once. Exhaustion fails
+normally and produces no authoritative response.
+
+Warning-strict focused verification passes 56/56 and the complete suite passes
+452/452. Project-source compileall, the repository JavaScript syntax check, and
+`git diff --check` pass. Live localhost verification reproduced both original tasks
+as fenced JSON under the former `json_object` request, proved native strict schema
+output without fences, recovered an injected observed-class first attempt through one
+real Qwen retry in one durable run, and completed ordinary governed run
+`5f6cb6fe-3434-4e0c-9c02-b6cc0b652c3e` on attempt 1. The restarted resident returned
+`ready`/`IDLE` while retaining resident PID 12040 and router PID 10408. No physical
+Spacebar acceptance was rerun; that remains the product owner's final follow-up.
+
 ## Explicit PTT speech barge-in — IMPLEMENTED
 
 Browser pointer/Spacebar PTT and CLI Spacebar PTT may now interrupt only an active

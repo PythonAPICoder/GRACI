@@ -3,6 +3,32 @@
 Current accepted build: Phase 5 — COMPLETE; Phase 6 — COMPLETE; Phase 6A — COMPLETE;
 Phase 6B — COMPLETE; Phase 7 — COMPLETE; Phase 8A — COMPLETE.
 
+## Governed model structured-response hardening
+
+- Retained runs `b1f1ab3d-c0f5-437b-bd6b-66b7af9a1eba` and
+  `52c61db8-f7ed-45eb-b352-974224443c8f` prove HTTP 200, correct Qwen identity, and
+  strict `json.loads` failure at the first character. The historical format omitted
+  raw content, so byte-exact historical text is unavailable. llama.cpp logs record
+  completed 125- and 60-token generations with `truncated = 0`.
+- Replaying both exact tasks through the exact production request reproduced fenced
+  JSON (125 and 60 completion tokens respectively). Thus the evidenced failure class
+  is generation-time format weakness in `json_object` compatibility, not PTT,
+  extraction, hidden reasoning, empty output, transport shape, or truncation.
+- Governed result generation now uses local llama.cpp strict `json_schema` grammar
+  enforcement for the exact v2 PASS/FAIL union. Strict application validation remains
+  authoritative; no markdown stripping or heuristic reconstruction is accepted.
+- At most two model-generation attempts (one retry) occur within one Controller run.
+  Only validation-rejected model content is retried. The same task is preserved, the
+  stage exposes no tools, and no coordinator submission or committed action is
+  repeated. Per-attempt raw evidence is durable. Exhaustion remains FAILED.
+- Focused warning-strict tests pass 56/56 and the complete suite passes 452/452.
+  Project-source compileall, one JavaScript syntax check, and `git diff --check` pass.
+  A live ordinary local Qwen run (`5f6cb6fe-3434-4e0c-9c02-b6cc0b652c3e`) passed on
+  its first schema-constrained attempt. A bounded injected fenced-first-attempt check
+  recovered via real local Qwen on attempt 2 with one run file. Explicit localhost
+  Restart GRACI returned `ready` and `IDLE` without replacing resident PID 12040 or
+  llama.cpp router PID 10408. Physical Spacebar acceptance was not rerun.
+
 ## Explicit PTT speech barge-in
 
 - Explicit Browser and CLI PTT activation may replace `SPEAKING` with `LISTENING`
