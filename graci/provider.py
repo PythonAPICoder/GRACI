@@ -61,7 +61,12 @@ class LocalLlamaCppProvider:
                         "(a concise non-empty internal result diagnostic), and user_response "
                         "(a non-empty natural GRACI response when status is PASS, otherwise null). "
                         "Do not use markdown fences. Mark PASS only when the user's request was "
-                        "completed as requested; do not force PASS merely because it is conversation."
+                        "completed as requested; do not force PASS merely because it is conversation. "
+                        "GRACI cannot mutate its runtime governance or grant itself new authority. "
+                        "If the user asks for such a mutation, do not claim to perform it: provide a "
+                        "clear, bounded explanation of that limitation and the supported offline "
+                        "governance-change path in user_response, and mark PASS because the request "
+                        "was answered safely."
                     ),
                 },
                 {"role": "user", "content": task},

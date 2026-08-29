@@ -172,12 +172,21 @@ metadata facility, so no semantic text is altered to encode speech provenance.
 The primary 3090 machine is independently sufficient; STT uses CPU and no cloud or
 4090 path. Phase 6D is a separate optional output presentation path:
 
-`explicit AuthoritativeFinalResponse -> speech-only pronunciation copy -> isolated local Kokoro CPU synthesis -> bounded validated WAV -> isolated bounded Windows playback`
+`explicit AuthoritativeFinalResponse -> deterministic speech-only Markdown/presentation normalization -> speech-only pronunciation copy -> isolated local Kokoro CPU synthesis -> bounded validated WAV -> isolated bounded Windows playback`
 
 It has no runtime extraction or execution capability. Synthesis, playback, timeout,
 cancellation, device, worker, and cleanup failures remain presentation results and
 cannot replace the authoritative response or governed result. See `phase6c/README.md`
 and `phase6d/README.md`.
+
+Current GRACI presentation/TTS policy: formatting-only and decorative special
+characters must not be verbalized in spoken responses. Special characters may be
+verbalized only when their identity is materially necessary to communicate the
+requested content accurately. Normalization is deterministic and applies only to
+the independent speech copy; the validated `AuthoritativeFinalResponse` used by the
+browser/display remains byte-for-byte unchanged. Protected code and mathematical
+content retains meaningful symbols. This policy grants no runtime governance
+mutation or self-modification authority.
 
 Phase 6E adds an observer-only publication boundary shared by the two voice paths.
 It reuses canonical `SystemState.IDLE`, `LISTENING`, and `SPEAKING`. A guarded
