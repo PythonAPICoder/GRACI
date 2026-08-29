@@ -8,6 +8,7 @@ from typing import Any, Sequence
 
 from .autonomous import AutonomousRepairController, LoopLimits, _timestamp
 from .provider import LocalLlamaCppProvider
+from .model_lifecycle import PrimaryModelLifecycle
 from .observation import ObservationKind, observe
 from .registry import ModelRole, Registry
 from .review import adjudicate, validate_review
@@ -23,7 +24,8 @@ class Phase3BController:
                  test_directory: str = "tests", limits: LoopLimits | None = None,
                  run_directory: Path = Path("runs"), implementer_provider: Any = None,
                  reviewer_provider: Any = None, memory_governance: Any = None,
-                 memory_request: Any = None, observer: Any = None):
+                 memory_request: Any = None, observer: Any = None,
+                 model_lifecycle: PrimaryModelLifecycle | None = None):
         router = Phase3BRoleRouter(registry)
         self.implementer_binding = router.resolve(ModelRole.IMPLEMENTER)
         self.reviewer_binding = router.resolve(ModelRole.REVIEWER)
@@ -32,13 +34,19 @@ class Phase3BController:
         self.observer = observer
         implementer_config = self._config(self.implementer_binding, run_directory)
         reviewer_config = self._config(self.reviewer_binding, run_directory)
+        lifecycle = model_lifecycle or PrimaryModelLifecycle(
+            self.implementer_binding.endpoint,
+            timeout_seconds=max(implementer_config.timeout_seconds,
+                                reviewer_config.timeout_seconds))
         self.controller = AutonomousRepairController(
             workspace, readable_files=readable_files, editable_files=editable_files,
             test_directory=test_directory, limits=limits, config=implementer_config,
-            provider=implementer_provider or LocalLlamaCppProvider(implementer_config),
+            provider=implementer_provider or LocalLlamaCppProvider(
+                implementer_config, model_lifecycle=lifecycle),
             memory_governance=memory_governance, memory_request=memory_request,
             observer=observer, publish_terminal=False)
-        self.reviewer_provider = reviewer_provider or LocalLlamaCppProvider(reviewer_config)
+        self.reviewer_provider = reviewer_provider or LocalLlamaCppProvider(
+            reviewer_config, model_lifecycle=lifecycle)
         self._initial_files = self._file_snapshot()
 
     @staticmethod

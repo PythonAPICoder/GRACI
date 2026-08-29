@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import Any, Callable
 
 from .config import Config
+from .model_lifecycle import PrimaryModelLifecycle
 
 
 @dataclass(frozen=True)
@@ -31,9 +32,11 @@ def _urlopen_transport(request: urllib.request.Request, timeout: float) -> tuple
 
 
 class LocalLlamaCppProvider:
-    def __init__(self, config: Config, transport: Transport = _urlopen_transport):
+    def __init__(self, config: Config, transport: Transport = _urlopen_transport,
+                 model_lifecycle: PrimaryModelLifecycle | None = None):
         self.config = config
         self.transport = transport
+        self.model_lifecycle = model_lifecycle
 
     def execute(self, task: str) -> ProviderResponse:
         body = {
@@ -182,4 +185,7 @@ class LocalLlamaCppProvider:
             headers={"Content-Type": "application/json"},
             method="POST",
         )
-        return self._send(request)
+        if self.model_lifecycle is None:
+            return self._send(request)
+        with self.model_lifecycle.lease(self.config.model):
+            return self._send(request)

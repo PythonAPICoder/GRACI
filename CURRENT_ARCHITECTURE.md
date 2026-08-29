@@ -1,5 +1,25 @@
 # Current GRACI Architecture
 
+## QA-003 bounded primary model residency
+
+The authoritative RTX 3090 remains sufficient for the accepted Qwen implementer and
+GLM reviewer/verifier workflow despite its 24 GB VRAM limit. The local llama.cpp
+server runs in native router mode over the approved GGUF directory with
+`--models-max 1 --models-autoload`; `/v1/models` truthfully lists both available
+models and reports router load status, while at most one model is resident.
+
+Before each Phase 3B inference, GRACI takes a bounded thread and cross-process lease,
+validates the requested ID against the fixed Qwen/GLM allowlist, asks the router to
+load it, and waits until `/models` reports that exact model as `loaded`. The lease is
+held through inference, preventing Qwen/GLM eviction races. Timeout, malformed or
+wrong model state, child startup failure, and unavailable GLM all fail closed.
+
+The launcher is manual and owns only the process recorded in its private runtime PID
+record. It never replaces an occupied port or kills an unrelated llama.cpp process.
+This adds no resident host or auto-start behavior. Required review never falls back
+to or contacts the optional 4090; its MO2, health, freshness, and eligibility policy
+is unchanged.
+
 ## QA-001 identity and response separation
 
 `user task -> bounded GRACI system role -> local Qwen -> strict governed result v2 {status, internal summary, user_response} -> validated PASS user_response -> AuthoritativeFinalResponse -> typed JSON and optional local speech`

@@ -1,5 +1,35 @@
 # GRACI Phase 8 — Presence & Visual Identity In Progress
 
+## Authoritative 3090 llama.cpp operator procedure
+
+The accepted local Qwen/GLM workflow uses llama.cpp's native router mode; it does not
+keep both 16.8/18.1 GB GGUFs resident on the 24 GB RTX 3090. Start it manually from
+PowerShell:
+
+```powershell
+& E:\GRACI\ops\start-3090-llama-router.ps1
+```
+
+The script refuses to run while port 8080 is occupied. Stop the existing server by
+its original operator mechanism first; do not kill it by name. The script validates
+the exact two GGUF files, starts `E:\llama.cpp\bin\llama-server.exe` bound only to
+loopback with `--models-dir E:\llama.cpp\models --models-max 1 --models-autoload`,
+uses a bounded 32,768-token context and one slot for VRAM reliability, and waits up
+to 30 seconds for both approved IDs to appear. It creates no scheduled task, service,
+login action, or auto-start behavior.
+
+Stop only that GRACI-owned router with:
+
+```powershell
+& E:\GRACI\ops\stop-3090-llama-router.ps1
+```
+
+The stop script requires the GRACI ownership record and verifies the PID executable;
+it refuses to stop a reused or unrelated process. For manual acceptance, request
+Qwen, confirm its `/v1/models` status is `loaded`, run one harmless completion, then
+repeat for GLM and finally Qwen. Each request must use the exact registered model ID.
+Do not contact `192.168.0.101`; required reviewer work is 3090-only.
+
 **Phase 8A — COMPLETE. Phase 8 — IN PROGRESS.** Trusted observer state now drives
 a bounded presentation-only GRACI presence; the visualizer remains incapable of
 task/runtime control. Voice lifecycle is observed, the 3090 remains independently

@@ -1,5 +1,19 @@
 # Current GRACI Status
 
+## QA-003 authoritative 3090 Qwen/GLM availability — REPAIRED
+
+The production localhost endpoint had been launched as a single Qwen model server,
+so `/v1/models` could not truthfully resolve GLM review. GRACI now uses the installed
+llama.cpp router's bounded on-demand model lifecycle: both approved local GGUFs are
+discoverable, only one may be loaded, and a serialized verified lease selects Qwen
+or GLM before inference. The manual operator scripts are
+`ops/start-3090-llama-router.ps1` and `ops/stop-3090-llama-router.ps1`.
+
+The currently running legacy single-Qwen process has not been stopped by this repair,
+because its process ownership could not be established safely. An operator must make
+the one-time controlled transition described in the root README. QA-006, web PTT,
+auto-start/resident-host behavior, Phase 8B, and optional 4090 policy are untouched.
+
 ## QA-001 GRACI identity and response contract — REPAIRED
 
 Ordinary local model execution now uses a bounded GRACI role instruction and strict
