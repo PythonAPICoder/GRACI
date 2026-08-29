@@ -8,6 +8,7 @@ import threading
 import wave
 from dataclasses import dataclass
 from enum import Enum
+from typing import Callable
 
 from .audio_capture import AudioCaptureConfig
 from .speech import CapturedAudio, SpeechToText, TranscriptionResult
@@ -48,14 +49,16 @@ class BrowserPTTOperator:
     """Own one explicit browser hold and feed its transcript to the existing coordinator."""
 
     def __init__(self, stt: SpeechToText, coordinator: ExplicitTurnCoordinator,
-                 lifecycle: VoiceLifecycle, config: AudioCaptureConfig = AudioCaptureConfig()):
+                 lifecycle: VoiceLifecycle, config: AudioCaptureConfig = AudioCaptureConfig(),
+                 interrupt_speaking: Callable[[], None] | None = None):
         self._stt = stt
         self._coordinator = coordinator
         self._lifecycle = lifecycle
         self._config = config
+        self._interrupt_speaking = interrupt_speaking
         self._lock = threading.Lock()
         self._token: str | None = None
-        self._processing = False
+        self._processing = 0
         self._lease: VoiceLifecycleLease | None = None
         self._timer: threading.Timer | None = None
         self._streaming: DeferredStreamingTranscriber | None = None
@@ -67,9 +70,11 @@ class BrowserPTTOperator:
 
     def begin(self) -> str:
         with self._lock:
-            if self._token is not None or self._processing:
+            if self._token is not None:
                 raise BrowserPTTBusy("a browser operator turn is already active")
-            lease = self._lifecycle.enter(SystemState.LISTENING)
+            if self._processing and self._lifecycle.state is not SystemState.SPEAKING:
+                raise BrowserPTTBusy("a browser operator turn is already active")
+            lease = self._lifecycle.enter_listening(self._interrupt_speaking)
             if not lease.active:
                 raise BrowserPTTBusy("another explicit operator activity owns the coordinator")
             token = secrets.token_urlsafe(TOKEN_BYTES)
@@ -83,17 +88,18 @@ class BrowserPTTOperator:
 
     def finish(self, token: str, wav_bytes: bytes) -> BrowserPTTResult:
         lease = self._take(token, processing=True)
+        streaming, self._streaming = self._streaming, None
         lease.close()  # LISTENING ends before validation/STT, matching local PTT semantics.
         try:
-            return self._finish_audio(wav_bytes)
+            return self._finish_audio(wav_bytes, streaming)
         finally:
-            streaming, self._streaming = self._streaming, None
             if streaming is not None:
                 streaming.cancel()
             with self._lock:
-                self._processing = False
+                self._processing -= 1
 
-    def _finish_audio(self, wav_bytes: bytes) -> BrowserPTTResult:
+    def _finish_audio(self, wav_bytes: bytes,
+                      streaming: DeferredStreamingTranscriber | None) -> BrowserPTTResult:
         try:
             audio = decode_browser_wav(wav_bytes, self._config)
         except BrowserPTTInvalid as exc:
@@ -104,7 +110,6 @@ class BrowserPTTOperator:
                                     error_code="insufficient_audio",
                                     error_message="recording contained no meaningful audio")
         try:
-            streaming, self._streaming = self._streaming, None
             transcription = (streaming.finalize(audio) if streaming is not None
                              else self._stt.transcribe(audio))
         except Exception as exc:
@@ -126,7 +131,7 @@ class BrowserPTTOperator:
     def offer(self, token: str, wav_bytes: bytes) -> bool:
         """Accept one transient rolling snapshot without submission or publication."""
         with self._lock:
-            if token != self._token or self._processing or self._streaming is None:
+            if token != self._token or self._streaming is None:
                 raise BrowserPTTInvalid("invalid or expired browser PTT turn")
             streaming = self._streaming
         return streaming.offer(decode_browser_wav(wav_bytes, self._config))
@@ -155,7 +160,8 @@ class BrowserPTTOperator:
                 raise BrowserPTTInvalid("invalid or expired browser PTT turn")
             lease, timer = self._lease, self._timer
             self._token = self._lease = self._timer = None
-            self._processing = processing
+            if processing:
+                self._processing += 1
             if timer is not None:
                 timer.cancel()
             return lease

@@ -86,3 +86,7 @@ class SpeechPresentationService:
         self._player.stop()
 
     cancel = stop
+
+    def interrupt_playback(self) -> None:
+        """Stop only the owned playback copy; authoritative response remains untouched."""
+        self._player.stop()

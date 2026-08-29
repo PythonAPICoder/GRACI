@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import threading
 from enum import Enum
+from typing import Callable
 
 from .audio_capture import AudioCapture, AudioCaptureConfig, CaptureSession
 from .speech import SpeechToText, TranscriptionResult, TranscriptionStatus
@@ -27,7 +28,8 @@ class PushToTalkLifecycleError(RuntimeError):
 class PushToTalkController:
     def __init__(self, capture: AudioCapture, stt: SpeechToText,
                  config: AudioCaptureConfig = AudioCaptureConfig(),
-                 lifecycle: VoiceLifecycle | None = None):
+                 lifecycle: VoiceLifecycle | None = None,
+                 interrupt_speaking: Callable[[], None] | None = None):
         self._capture = capture
         self._stt = stt
         self._config = config
@@ -36,6 +38,7 @@ class PushToTalkController:
         self._lock = threading.RLock()
         self._transition_history: list[PushToTalkState] = [self._state]
         self._lifecycle = lifecycle
+        self._interrupt_speaking = interrupt_speaking
         self._lifecycle_lease: VoiceLifecycleLease | None = None
         self._streaming: DeferredStreamingTranscriber | None = None
         self._stream_stop: threading.Event | None = None
@@ -54,8 +57,10 @@ class PushToTalkController:
     def begin(self) -> None:
         with self._lock:
             self._require(PushToTalkState.IDLE)
-            lease = (self._lifecycle.enter(SystemState.LISTENING)
+            lease = (self._lifecycle.enter_listening(self._interrupt_speaking)
                      if self._lifecycle is not None else None)
+            if lease is not None and not lease.active:
+                raise PushToTalkLifecycleError("another explicit operator activity owns the coordinator")
             try:
                 self._session = self._capture.start(self._config)
             except Exception:

@@ -1,5 +1,26 @@
 # Current GRACI Architecture
 
+## Explicit PTT playback barge-in
+
+`completed governed run -> immutable AuthoritativeFinalResponse -> SPEAKING/owned playback subprocess -> explicit Browser or CLI PTT press -> stop owned playback only -> LISTENING/capture -> release -> deferred-STT finalization -> exactly one new governed run`
+
+The production composition gives both PTT adapters only the presentation service's
+playback-interruption callback. It does not cancel synthesis, the completed governed
+run, response construction, memory, or routing. `VoiceLifecycle.enter_listening`
+permits the exceptional `SPEAKING` transition only when that callback is present and
+returns successfully. Its generation check handles natural-finish/press races and
+prevents the interrupted speaking lease from restoring `IDLE` over the new capture.
+All other concurrent voice activity remains rejected.
+
+Browser request-processing counts and deferred transcribers are turn-scoped. This
+allows a new explicit hold during the prior request's blocking presentation while
+preventing stale cleanup from touching the new stream. Pointer/keyboard repeat,
+blur, visibility, page-exit, cancellation, timeout, release, and final-transcript
+rules are otherwise unchanged. CLI key-repeat and exactly-once release behavior are
+also unchanged. No governed execution overlaps because barge-in is admitted only in
+`SPEAKING`, after the previous runtime and authoritative-response construction have
+completed.
+
 ## Windows resident host
 
 `explicit operator start/logon task -> GRACI-specific exclusive OS lock -> one accepted OperatorComposition -> initial trusted IDLE projection -> loopback-only VisualizerServer -> idle wait -> validated cooperative stop`

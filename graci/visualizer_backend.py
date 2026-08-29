@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from typing import Final, TYPE_CHECKING
+from typing import Callable, Final, TYPE_CHECKING
 from urllib.parse import unquote, urlsplit
 
 from .visualizer import (
@@ -96,7 +96,8 @@ class _BoundedHTTPServer(ThreadingHTTPServer):
 
     def __init__(self, address: tuple[str, int], provider: VisualizerStateProvider,
                  max_live_clients: int, heartbeat_seconds: float,
-                 browser_ptt: BrowserPTTOperator | None):
+                 browser_ptt: BrowserPTTOperator | None,
+                 restart_runtime: Callable[[], None] | None):
         self.provider = provider
         self.max_live_clients = max_live_clients
         self.heartbeat_seconds = heartbeat_seconds
@@ -104,6 +105,8 @@ class _BoundedHTTPServer(ThreadingHTTPServer):
         self.live_clients = 0
         self.stopping = threading.Event()
         self.browser_ptt = browser_ptt
+        self.restart_runtime = restart_runtime
+        self.restart_lock = threading.Lock()
         super().__init__(address, _Handler, bind_and_activate=True)
 
     def acquire_live_client(self) -> bool:
@@ -284,10 +287,13 @@ class _Handler(BaseHTTPRequestHandler):
                         "browser PTT is available only to the local visualizer origin")
             return
         allowed = {f"{BASE_PATH}/ptt/begin", f"{BASE_PATH}/ptt/chunk", f"{BASE_PATH}/ptt/finish",
-                   f"{BASE_PATH}/ptt/cancel"}
+                   f"{BASE_PATH}/ptt/cancel", f"{BASE_PATH}/restart"}
         if path not in allowed:
             self._error(HTTPStatus.METHOD_NOT_ALLOWED, "method_not_allowed",
-                        "POST is accepted only for explicit browser push-to-talk")
+                        "POST is accepted only for explicit local operator controls")
+            return
+        if path == f"{BASE_PATH}/restart":
+            self._restart()
             return
         if self.app.browser_ptt is None:
             self._error(HTTPStatus.SERVICE_UNAVAILABLE, "browser_ptt_unavailable",
@@ -301,6 +307,39 @@ class _Handler(BaseHTTPRequestHandler):
             self._ptt_finish()
         elif path == f"{BASE_PATH}/ptt/cancel":
             self._ptt_cancel()
+
+    def _restart(self) -> None:
+        if self.app.restart_runtime is None:
+            self._error(HTTPStatus.SERVICE_UNAVAILABLE, "restart_unavailable",
+                        "runtime restart is unavailable")
+            return
+        if self.headers.get("Content-Type") != "application/json":
+            self._error(HTTPStatus.UNSUPPORTED_MEDIA_TYPE, "invalid_content_type",
+                        "restart requires application/json")
+            return
+        length = self._content_length(MAX_CONTROL_JSON_BYTES)
+        if length is None:
+            return
+        try:
+            value = json.loads(self.rfile.read(length))
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            value = None
+        if value != {}:
+            self._error(HTTPStatus.BAD_REQUEST, "invalid_restart_request",
+                        "restart request must be an empty object")
+            return
+        if not self.app.restart_lock.acquire(blocking=False):
+            self._json({"status": "restart_in_progress"}, False)
+            return
+        try:
+            self.app.restart_runtime()
+        except Exception as exc:
+            _LOG.exception("explicit local runtime restart failed")
+            self._error(HTTPStatus.INTERNAL_SERVER_ERROR, "restart_failed", str(exc)[:500])
+            return
+        finally:
+            self.app.restart_lock.release()
+        self._json({"status": "ready"}, False)
 
     def _ptt_begin(self) -> None:
         if self.headers.get("Content-Type") != "application/json":
@@ -450,6 +489,7 @@ class VisualizerServer:
     max_live_clients: int = MAX_LIVE_CLIENTS
     heartbeat_seconds: float = SSE_HEARTBEAT_SECONDS
     browser_ptt: BrowserPTTOperator | None = None
+    restart_runtime: Callable[[], None] | None = None
 
     def __post_init__(self) -> None:
         if self.host != DEFAULT_HOST:
@@ -474,7 +514,7 @@ class VisualizerServer:
             raise RuntimeError("visualizer server is already started")
         httpd = _BoundedHTTPServer((self.host, self.port), self.provider,
                                    self.max_live_clients, self.heartbeat_seconds,
-                                   self.browser_ptt)
+                                   self.browser_ptt, self.restart_runtime)
         thread = threading.Thread(target=httpd.serve_forever, name="graci-visualizer", daemon=True)
         self._httpd, self._thread = httpd, thread
         thread.start()

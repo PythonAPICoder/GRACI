@@ -1,5 +1,43 @@
 # Current GRACI Status
 
+## Explicit PTT speech barge-in — IMPLEMENTED
+
+Browser pointer/Spacebar PTT and CLI Spacebar PTT may now interrupt only an active
+owned Windows playback operation. The already-constructed `AuthoritativeFinalResponse`
+and completed governed result remain unchanged; the interrupted presentation returns
+`CANCELLED`. The guarded voice lease moves from `SPEAKING` to `LISTENING`, invalidates
+the old speaking lease, and starts capture only after the bounded playback stop call
+returns. Release remains the sole transcript/submission boundary. Press alone,
+duplicate press, cancellation, blank/failed STT, capture-start failure, and timeout
+produce zero new governed runs.
+
+Browser processing and deferred-STT objects are turn-scoped, so completion cleanup
+from the interrupted request cannot cancel or submit the new hold. Natural playback
+completion racing the press is accepted only when the same speaking generation ended;
+late old-lease cleanup cannot restore over a newer listening lease. Playback stop uses
+only the existing owned subprocess handle, with its existing terminate/wait/kill bound;
+no process-name kill, cloud service, always-listening mode, wake word, VAD authority,
+or 4090 dependency was added. Streaming STT, QA-007 normalization, `af_heart` at 1.00,
+and `GRAY-see` remain unchanged.
+
+Physical Browser Spacebar acceptance passed on 2026-08-29: keydown during
+`SPEAKING` stopped owned playback and entered `LISTENING`; release submitted the
+single transcript `Hello, Gracie.` through exactly one governed run. Resident events
+show one listening event, one release/idle event, one task start, and one Qwen run,
+with no duplicate capture, transcript, submission, repeat, or stale-key cleanup.
+That governed run independently failed strict response validation with
+`validation_error: model output is not valid JSON: Expecting value`. Model-output
+JSON reliability is a separate follow-up defect and is not part of PTT barge-in.
+
+The explicit localhost-only `Restart GRACI` recovery returned `ready` and `IDLE`,
+preserved the failed durable run byte-for-byte and retained its event evidence, and
+did not replace the resident or llama.cpp router processes. Verification passes
+38/38 focused and 448/448 complete warning-strict tests. A bounded Windows check used the real playback worker and an
+existing 7.445-second local `af_heart` WAV: playback was confirmed active, explicit
+listening entry stopped it with a measured 0.531 ms call interval, playback returned
+`cancelled`, state was `LISTENING`, the playback thread ended, and no owned process
+remained.
+
 ## Windows startup and resident host — COMPLETE IN REPOSITORY
 
 The authoritative 3090 now has one supported idle resident composition. It owns one

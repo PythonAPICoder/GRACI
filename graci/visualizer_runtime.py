@@ -72,6 +72,20 @@ class VisualizerRuntimeObserver:
         with self._lock:
             self._publish_snapshot(source_id)
 
+    def reset_transient(self) -> None:
+        """Clear runtime projection only; durable run records remain untouched."""
+        with self._lock:
+            self.state = SystemState.IDLE
+            self.task = TaskView()
+            self.compute = default_compute()
+            self.agents = inactive_agents()
+            self.memory = MemoryView()
+            self.execution = ExecutionView()
+            self.review = ReviewView()
+            self.terminal = None
+            self.tests_failed = False
+            self._publish_snapshot("resident-restart")
+
     def publish_voice(self, event: VoiceLifecycleEvent) -> None:
         """Project bounded presentation activity without changing runtime authority."""
         with self._lock:

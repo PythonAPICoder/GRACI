@@ -203,6 +203,13 @@ class BrowserPresentationIntegrationTests(unittest.TestCase):
                 self.assertIsNone(result.turn_result)
         self.assertEqual(coordinator.calls, [])
 
+    def test_begin_is_narrowly_blocked_outside_idle_and_owned_speaking(self):
+        operator, lifecycle = self.make()
+        listening = lifecycle.enter(SystemState.LISTENING)
+        with self.assertRaises(BrowserPTTBusy):
+            operator.begin()
+        listening.close()
+
 
 class BrowserTransportTests(unittest.TestCase):
     def setUp(self):
@@ -285,7 +292,16 @@ class BrowserUIContractTests(unittest.TestCase):
                        "pointerup", "pointercancel", "lostpointercapture"):
             self.assertIn(marker, self.js)
         self.assertIn('if(event.code!=="Space"||!ptt.spaceHeld)return', self.js)
-        self.assertIn('if(ptt.phase!=="idle")return', self.js)
+        self.assertIn("spaceGeneration", self.js)
+        self.assertIn("expectedGeneration!==ptt.generation", self.js)
+        self.assertIn('if(ptt.phase==="starting"){++ptt.generation;resetPTT();return;}', self.js)
+        self.assertIn('function pttAllowed()', self.js)
+        self.assertIn('["idle","completed","failed"].includes(systemState)', self.js)
+        self.assertIn('ptt.phase==="submitting"&&systemState==="speaking"', self.js)
+        self.assertIn('event.button!==0||!pttAllowed()', self.js)
+        self.assertIn('editableTarget(event.target)||!pttAllowed()', self.js)
+        self.assertIn('button.disabled=!allowed', self.js)
+        self.assertIn('"voice_listening","voice_speaking"', self.js)
 
     def test_interruption_reload_and_capture_are_cancel_only(self):
         for marker in ('window.addEventListener("blur"', '"visibilitychange"',

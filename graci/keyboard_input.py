@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import ctypes
 import sys
+import threading
 import time
 from dataclasses import dataclass
 from typing import Protocol
@@ -25,7 +26,7 @@ class KeyEvent:
 
 
 class KeyboardInput(Protocol):
-    def next_event(self) -> KeyEvent: ...
+    def next_event(self, timeout_seconds: float | None = None) -> KeyEvent | None: ...
 
 
 class WindowsSpacebarInput:
@@ -40,13 +41,21 @@ class WindowsSpacebarInput:
         self._poll_interval_seconds = poll_interval_seconds
         self._last_pressed = False
 
-    def next_event(self) -> KeyEvent:
+    def next_event(self, timeout_seconds: float | None = None) -> KeyEvent | None:
+        deadline = (time.monotonic() + timeout_seconds
+                    if timeout_seconds is not None else None)
         while True:
             pressed = bool(self._get_async_key_state(VK_SPACE) & 0x8000)
             if pressed != self._last_pressed:
                 self._last_pressed = pressed
                 return KeyEvent(VK_SPACE, pressed)
-            time.sleep(self._poll_interval_seconds)
+            if deadline is not None and time.monotonic() >= deadline:
+                return None
+            delay = self._poll_interval_seconds
+            if deadline is not None:
+                delay = min(delay, max(0.0, deadline - time.monotonic()))
+            if delay:
+                time.sleep(delay)
 
 
 class HoldSpacebarToTalk:
@@ -78,13 +87,72 @@ class HoldSpacebarToTalk:
 
     def run(self, coordinator: ExplicitTurnCoordinator, *,
             present_speech: bool = False) -> TurnResult:
+        result: TurnResult | None = None
+        worker: threading.Thread | None = None
+
+        def finish() -> None:
+            nonlocal result
+            result = coordinator.finish_speech_turn(present_speech=present_speech)
+
         try:
             while True:
-                result = self.handle_event(self._keyboard.next_event(), coordinator,
-                                           present_speech=present_speech)
-                if result is not None:
+                if worker is not None and not worker.is_alive() and not self._capture_active:
+                    worker.join()
+                    assert result is not None
                     return result
+                try:
+                    event = self._keyboard.next_event(.05 if worker is not None else None)
+                except TypeError:
+                    try:
+                        event = self._keyboard.next_event()
+                    except StopIteration:
+                        if worker is None:
+                            raise
+                        worker.join()
+                        assert result is not None
+                        return result
+                except StopIteration:
+                    if worker is None:
+                        raise
+                    worker.join()
+                    assert result is not None
+                    return result
+                if event is None:
+                    continue
+                if worker is None:
+                    if (event.virtual_key == VK_SPACE and not event.pressed
+                            and self._held and self._capture_active):
+                        self._held = False
+                        self._capture_active = False
+                        worker = threading.Thread(target=finish, name="graci-cli-turn")
+                        worker.start()
+                    else:
+                        immediate = self.handle_event(event, coordinator,
+                                                      present_speech=present_speech)
+                        if immediate is not None:
+                            return immediate
+                    continue
+                if event.virtual_key != VK_SPACE:
+                    continue
+                if event.pressed:
+                    if self._held:
+                        continue
+                    self._held = True
+                    immediate = coordinator.begin_speech_turn()
+                    self._capture_active = immediate is None
+                    if immediate is not None:
+                        self._held = False
+                elif self._held:
+                    self._held = False
+                    if self._capture_active:
+                        self._capture_active = False
+                        worker.join()
+                        result = None
+                        worker = threading.Thread(target=finish, name="graci-cli-turn")
+                        worker.start()
         finally:
             if self._capture_active:
                 self._capture_active = False
                 coordinator.cancel_speech_turn()
+            if worker is not None:
+                worker.join()

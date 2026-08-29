@@ -7,6 +7,8 @@ import time
 import unittest
 import subprocess
 import sys
+from urllib.error import HTTPError
+from urllib.request import Request, urlopen
 from pathlib import Path
 from unittest.mock import patch
 
@@ -114,6 +116,55 @@ class ResidentHostTests(unittest.TestCase):
             ResidentHost(owner, lambda **kwargs: composition).run()
         self.assertFalse(resident_is_active(self.runtime))
         self.assertFalse(owner.state_path.exists())
+
+    def test_explicit_local_restart_recovers_failed_projection_and_is_bounded(self):
+        provider = VisualizerStateProvider()
+        observer = VisualizerRuntimeObserver(provider)
+        observer.state, observer.terminal = SystemState.FAILED, "FAIL"
+        resets = []
+
+        def restart():
+            resets.append("restart")
+            observer.reset_transient()
+
+        server = VisualizerServer(provider, port=0, restart_runtime=restart)
+        observer.publish_current("failed")
+        server.start()
+        try:
+            request = Request(
+                f"http://127.0.0.1:{server.bound_port}/graci/visualizer/v1/restart",
+                data=b"{}", method="POST",
+                headers={"Content-Type": "application/json", "Origin":
+                         f"http://127.0.0.1:{server.bound_port}"})
+            with urlopen(request, timeout=2) as response:
+                self.assertEqual(json.load(response)["status"], "ready")
+            self.assertEqual(resets, ["restart"])
+            self.assertIs(provider.snapshot().system_state, SystemState.IDLE)
+        finally:
+            server.stop()
+
+    def test_restart_failure_remains_failed_and_is_visible(self):
+        provider = VisualizerStateProvider()
+        observer = VisualizerRuntimeObserver(provider)
+        observer.state, observer.terminal = SystemState.FAILED, "FAIL"
+        observer.publish_current("failed")
+        server = VisualizerServer(
+            provider, port=0,
+            restart_runtime=lambda: (_ for _ in ()).throw(RuntimeError("cleanup failed")))
+        server.start()
+        try:
+            request = Request(
+                f"http://127.0.0.1:{server.bound_port}/graci/visualizer/v1/restart",
+                data=b"{}", method="POST",
+                headers={"Content-Type": "application/json", "Origin":
+                         f"http://127.0.0.1:{server.bound_port}"})
+            with self.assertRaises(HTTPError) as raised:
+                urlopen(request, timeout=2)
+            self.assertEqual(raised.exception.code, 500)
+            raised.exception.close()
+            self.assertIs(provider.snapshot().system_state, SystemState.FAILED)
+        finally:
+            server.stop()
 
     def test_one_shot_cli_fails_closed_while_resident_is_active(self):
         with patch("graci.__main__.resident_is_active", return_value=True), \

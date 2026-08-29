@@ -3,6 +3,33 @@
 Current accepted build: Phase 5 — COMPLETE; Phase 6 — COMPLETE; Phase 6A — COMPLETE;
 Phase 6B — COMPLETE; Phase 7 — COMPLETE; Phase 8A — COMPLETE.
 
+## Explicit PTT speech barge-in
+
+- Explicit Browser and CLI PTT activation may replace `SPEAKING` with `LISTENING`
+  after bounded stop of only the owned playback subprocess.
+- The prior governed run and immutable `AuthoritativeFinalResponse` complete before
+  `SPEAKING`; barge-in changes presentation status only and never reruns or rolls back.
+- Release remains the sole submission authority. Deferred streaming previews remain
+  private and turn-scoped; cancellation/failure/blank input produces zero runs.
+- Lifecycle generations bound natural-finish/press races and stale lease cleanup.
+  Browser processing counters prevent interrupted-request cleanup from consuming the
+  new hold. No cloud, always-listening, wake-word, VAD-authority, or 4090 requirement
+  was introduced; QA-007 and production Kokoro settings remain unchanged.
+- Physical Browser Spacebar acceptance passed on 2026-08-29. Resident evidence for
+  run `52c61db8-f7ed-45eb-b352-974224443c8f` contains exactly one capture lifecycle,
+  transcript (`Hello, Gracie.`), governed submission, and model execution, with no
+  duplicate or stale keyboard activity. The subsequent `FAILED` state came solely
+  from `validation_error: model output is not valid JSON: Expecting value`; JSON
+  response reliability is recorded as a separate, out-of-scope follow-up defect.
+- Explicit localhost `Restart GRACI` returned `ready`/`IDLE`, retained all six turn
+  events, preserved the durable run SHA-256
+  `753D71A20BB6259F32C768EEDBED9613AD7DD964D21AFDF8A1388073689A9980`, and did not
+  replace resident PID 13516 or router PID 10408.
+- Warning-strict verification passes 38/38 focused and 448/448 complete. A bounded
+  real Windows playback-worker check measured 0.531 ms from simulated explicit PTT
+  activation to owned-process stop, reached `LISTENING`, returned playback
+  `cancelled`, and left no process/thread.
+
 ## Production voice selection (2026-08-29)
 
 - The product-owner audition selected local Kokoro-82M ONNX `af_heart` as the

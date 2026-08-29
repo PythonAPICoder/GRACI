@@ -53,7 +53,8 @@ class StaticContractTests(unittest.TestCase):
         for forbidden in ("http://","https://","@import","googleapis","analytics","task-entry","prompt-entry","model selector","approve","reject","memory_content","chain_of_thought","stdout","stderr"):
             self.assertNotIn(forbidden.lower(),combined.lower())
         self.assertNotRegex(self.html,r"<(?:form|input|textarea|select)\b")
-        self.assertEqual(len(re.findall(r"<button\b", self.html)), 1)
+        self.assertEqual(len(re.findall(r"<button\b", self.html)), 2)
+        self.assertIn('id="restart-button"', self.html)
         self.assertIn('id="ptt-button"', self.html)
 
     def test_paths_bounds_polling_disconnect_and_all_contract_enums(self):

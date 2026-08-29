@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from .audio_capture import WindowsWaveInCapture
 from .browser_ptt import BrowserPTTOperator
@@ -46,6 +46,7 @@ class OperatorComposition:
     voice_lifecycle: VoiceLifecycle | None = None
     server: VisualizerServer | None = None
     browser_ptt: BrowserPTTOperator | None = None
+    restart_runtime: Callable[[], None] | None = None
 
 
 def build_operator_composition(repository_root: Path | None = None, *,
@@ -63,7 +64,6 @@ def build_operator_composition(repository_root: Path | None = None, *,
         root / "phase6b" / "stt_worker.py",
         model_cache=root / "phase6a" / "cache" / "huggingface",
     ))
-    push_to_talk = PushToTalkController(WindowsWaveInCapture(), stt, lifecycle=lifecycle)
     speech_python = root / "phase6a" / ".venv312" / "Scripts" / "python.exe"
     synthesizer = KokoroSubprocessTTS(KokoroConfig(
         speech_python,
@@ -74,6 +74,9 @@ def build_operator_composition(repository_root: Path | None = None, *,
     player = SubprocessWavePlayback(PlaybackConfig(
         speech_python, root / "phase6d" / "playback_worker.py"))
     presentation = SpeechPresentationService(synthesizer, player, lifecycle)
+    push_to_talk = PushToTalkController(
+        WindowsWaveInCapture(), stt, lifecycle=lifecycle,
+        interrupt_speaking=presentation.interrupt_playback)
     coordinator = ExplicitTurnCoordinator(
         Controller(observer=runtime_observer), push_to_talk=push_to_talk,
         final_response_constructor=GovernedSummaryResponseConstructor(),
@@ -81,11 +84,23 @@ def build_operator_composition(repository_root: Path | None = None, *,
     )
     if browser_operator and provider is None:
         raise ValueError("browser operator control requires the visualizer")
-    browser_ptt = (BrowserPTTOperator(stt, coordinator, lifecycle)
+    browser_ptt = (BrowserPTTOperator(
+        stt, coordinator, lifecycle,
+        interrupt_speaking=presentation.interrupt_playback)
                    if browser_operator else None)
-    server = VisualizerServer(provider, browser_ptt=browser_ptt) if provider is not None else None
+    def restart_runtime() -> None:
+        presentation.interrupt_playback()
+        if browser_ptt is not None:
+            browser_ptt.close()
+        lifecycle.reset()
+        if runtime_observer is not None:
+            runtime_observer.reset_transient()
+
+    server = (VisualizerServer(provider, browser_ptt=browser_ptt,
+                               restart_runtime=restart_runtime)
+              if provider is not None else None)
     return OperatorComposition(coordinator, provider, runtime_observer, lifecycle, server,
-                               browser_ptt)
+                               browser_ptt, restart_runtime)
 
 
 def build_operator_coordinator(repository_root: Path | None = None) -> ExplicitTurnCoordinator:

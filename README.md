@@ -5,6 +5,17 @@
 This is the current product-owner canonical identity definition. It supersedes the
 former expansion without rewriting historical project records.
 
+## Explicit PTT speech barge-in
+
+While GRACI is in `SPEAKING`, a new explicit browser pointer/Spacebar hold or CLI
+Spacebar hold stops only GRACI's owned local playback process and begins `LISTENING`.
+The previous governed result and its `AuthoritativeFinalResponse` are already complete
+and remain unchanged. The new press never submits work; release still finalizes one
+deferred-STT transcript and is the only boundary that may start exactly one new
+governed turn. Cancelled, blank, failed, interrupted, or timed-out capture submits
+nothing. Ordinary PTT, browser focus-loss safety, streaming STT, Kokoro `af_heart`
+speed `1.00`, and `GRAY-see` pronunciation are unchanged.
+
 ## Windows resident host
 
 GRACI has one supported always-available composition for the authoritative 3090 PC.

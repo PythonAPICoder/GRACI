@@ -6,7 +6,7 @@ import logging
 import threading
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Protocol
+from typing import Callable, Protocol
 
 from .visualizer import SystemState
 
@@ -69,6 +69,13 @@ class VoiceLifecycle:
         with self._lock:
             return tuple(self._publication_failures)
 
+    def reset(self) -> None:
+        """Invalidate transient leases and return the voice surface to rest."""
+        with self._lock:
+            self._generation += 1
+            if self._state is not SystemState.IDLE:
+                self._set_and_publish(SystemState.IDLE)
+
     def enter(self, state: SystemState) -> VoiceLifecycleLease:
         if state not in _VOICE_STATES:
             raise ValueError("voice activity must be listening or speaking")
@@ -80,6 +87,31 @@ class VoiceLifecycle:
             self._generation += 1
             generation = self._generation
             self._set_and_publish(state)
+            return VoiceLifecycleLease(self, generation, True)
+
+    def enter_listening(
+        self, interrupt_speaking: Callable[[], None] | None = None,
+    ) -> VoiceLifecycleLease:
+        """Enter LISTENING, allowing only an explicit owned-playback interruption."""
+        with self._lock:
+            if self._state is not SystemState.SPEAKING:
+                return self.enter(SystemState.LISTENING)
+            if interrupt_speaking is None:
+                return VoiceLifecycleLease(self, self._generation, False)
+            speaking_generation = self._generation
+
+        # Playback termination may wait for the playback thread, whose finally block
+        # closes its lease. Never hold the lifecycle lock across that bounded wait.
+        interrupt_speaking()
+
+        with self._lock:
+            if self._generation != speaking_generation:
+                return VoiceLifecycleLease(self, self._generation, False)
+            if self._state not in (SystemState.SPEAKING, SystemState.IDLE):
+                return VoiceLifecycleLease(self, self._generation, False)
+            self._generation += 1  # invalidate the interrupted SPEAKING lease
+            generation = self._generation
+            self._set_and_publish(SystemState.LISTENING)
             return VoiceLifecycleLease(self, generation, True)
 
     def _restore(self, generation: int) -> None:
