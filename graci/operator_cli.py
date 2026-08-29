@@ -39,7 +39,7 @@ def build_operator_coordinator(repository_root: Path | None = None) -> ExplicitT
     stt = FasterWhisperSubprocessSTT(FasterWhisperConfig(
         root / "phase6a" / ".venv" / "Scripts" / "python.exe",
         root / "phase6b" / "stt_worker.py",
-        model_cache=root / "phase6a" / "cache",
+        model_cache=root / "phase6a" / "cache" / "huggingface",
     ))
     push_to_talk = PushToTalkController(WindowsWaveInCapture(), stt, lifecycle=lifecycle)
     speech_python = root / "phase6a" / ".venv312" / "Scripts" / "python.exe"

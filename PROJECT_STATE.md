@@ -835,3 +835,16 @@ Memory. Phase 4 has not begun.
   sufficient; optional 4090 and MO2 policy are unchanged.
 - Phase 8B and later refinement, conversation UI, continuous listening, autonomous
   follow-up, and all new authority remain unauthorized.
+
+# Post-Phase-7 production speech repair
+
+- Production STT now points at the qualified Hugging Face cache root,
+  `phase6a/cache/huggingface`, matching the Phase 6B worker's local-only cache layout.
+- The existing faster-whisper `small.en` CPU `int8` subprocess configuration and
+  `local_files_only=True` worker boundary are unchanged; no model files were moved.
+- Focused speech/operator/Phase 8A tests pass 56 tests and the complete warning-strict
+  suite passes 365 tests. Compilation, static syntax, 47 tracked JSON files, and
+  `git diff --check` pass.
+- A direct local worker check loaded the cached model and transcribed an existing
+  fixture. The full microphone smoke stopped before capture with `waveInOpen=11`, so
+  governance, local response generation, and Kokoro playback were not reached.

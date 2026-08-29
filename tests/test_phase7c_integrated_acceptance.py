@@ -4,6 +4,7 @@ import contextlib
 import io
 import json
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 from graci.__main__ import main
@@ -121,6 +122,16 @@ class Player:
 
 
 class Phase7CIntegratedAcceptanceTests(unittest.TestCase):
+    def test_production_stt_uses_qualified_hugging_face_cache(self):
+        repository_root = Path("qualified-root")
+        with patch("graci.operator_cli.FasterWhisperSubprocessSTT") as stt_constructor:
+            build_operator_coordinator(repository_root)
+        config = stt_constructor.call_args.args[0]
+        self.assertEqual(config.model_cache,
+                         repository_root / "phase6a" / "cache" / "huggingface")
+        self.assertEqual((config.model, config.device, config.compute_type),
+                         ("small.en", "cpu", "int8"))
+
     def production(self, runtime=None, *, capture=None, stt=None, tts=None,
                    player=None, observer=None):
         runtime = runtime or Runtime()
