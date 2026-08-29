@@ -67,6 +67,11 @@ class VisualizerRuntimeObserver:
                 self._publish_event(event)
             self._publish_snapshot(observation.run_id)
 
+    def publish_current(self, source_id: str = "resident") -> None:
+        """Publish current trusted state without manufacturing a runtime event."""
+        with self._lock:
+            self._publish_snapshot(source_id)
+
     def publish_voice(self, event: VoiceLifecycleEvent) -> None:
         """Project bounded presentation activity without changing runtime authority."""
         with self._lock:

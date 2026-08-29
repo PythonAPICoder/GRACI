@@ -1,5 +1,27 @@
 # Current GRACI Status
 
+## Windows startup and resident host — COMPLETE IN REPOSITORY
+
+The authoritative 3090 now has one supported idle resident composition. It owns one
+accepted GRACI runtime instance and the loopback-only observer visualizer continuously,
+publishing initial `IDLE` without starting a governed run. Startup performs no task
+submission, microphone activation, wake word, VAD, continuous listening, or automatic
+follow-up. Resident does not mean autonomous, and the microphone remains inactive
+until an explicit accepted push-to-talk operator action.
+
+`ops/start-graci-resident.ps1`, `status-graci-resident.ps1`, and
+`stop-graci-resident.ps1` provide bounded lifecycle operations. Explicit install and
+remove scripts manage only the named current-user Task Scheduler entry. Repository
+tests do not install it; real Task Scheduler validation remains a manual 3090
+acceptance step. Existing model routing, 4090 policy, memory, and governed execution
+boundaries are unchanged.
+
+The accepted login composition also has a distinct `GRACI 3090 llama.cpp Router`
+current-user task. Both it and `GRACI Resident Host` use hidden noninteractive task
+actions and hidden, logged child processes. Router startup preserves loopback-only
+native model-directory/autoload mode and does not preload a model; existing leases
+and health checks remain authoritative. The two tasks are failure-isolated.
+
 ## QA-006 canonical identity definition — REPAIRED
 
 The product-owner canonical expansion is **G.R.A.C.I. = General Reasoning And

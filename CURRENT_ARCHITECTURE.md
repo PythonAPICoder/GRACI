@@ -1,5 +1,41 @@
 # Current GRACI Architecture
 
+## Windows resident host
+
+`explicit operator start/logon task -> GRACI-specific exclusive OS lock -> one accepted OperatorComposition -> initial trusted IDLE projection -> loopback-only VisualizerServer -> idle wait -> validated cooperative stop`
+
+The authoritative 3090 may run `graci.resident_host` as the one supported resident
+composition. It creates exactly one existing governed controller/coordinator instance
+and owns the existing GET/HEAD/SSE observer server for its lifetime. It invokes no
+coordinator method at startup, contains no task loop, and exposes no browser control
+or submission endpoint. The microphone, STT, TTS, wake word, VAD, and continuous
+listening remain inactive. Resident is availability infrastructure, not autonomy.
+
+An OS-held lock under `.runtime/resident-host` is authoritative. A versioned state
+record carries the GRACI owner marker, instance ID, PID, resolved Python executable,
+module marker, repository root, and fixed-loopback visualizer identity. Stale records
+are replaced only after acquiring the lock. Operator stop uses a matching instance-ID
+request and never terminates by broad name or PID alone. While the lock is held, the
+one-shot CLI refuses to create another runtime; after resident stop its accepted
+behavior is unchanged.
+
+The explicit current-user Task Scheduler installer configures only `GRACI Resident
+Host`, at interactive logon, limited privilege, with `IgnoreNew` plus bounded restart
+settings. The lock—not scheduler behavior—is the duplicate/race safety boundary.
+Neither task installation nor removal is automatic. Existing routing, memory,
+governed run boundaries, 3090 sufficiency, and optional 4090 MO2/health gating are
+unchanged.
+
+The authoritative router is a separate current-user logon task named `GRACI 3090
+llama.cpp Router`. Both task actions use hidden, noninteractive PowerShell and their
+child processes use hidden window style with redirected logs. Router ownership is a
+versioned GRACI-specific PID/executable/argument record plus a bounded startup mutex;
+occupied ports and invalid/reused ownership fail closed. The router task starts only
+native `--models-dir --models-max 1 --models-autoload` discovery and never calls the
+model-load API. Existing model leases remain the sole demand-switch authority.
+Resident startup does not wait for or assume router health, and router failure does
+not terminate the observer host.
+
 ## QA-006 canonical identity definition
 
 The user-facing identity is **G.R.A.C.I.**, canonically expanded as **General
@@ -22,11 +58,11 @@ load it, and waits until `/models` reports that exact model as `loaded`. The lea
 held through inference, preventing Qwen/GLM eviction races. Timeout, malformed or
 wrong model state, child startup failure, and unavailable GLM all fail closed.
 
-The launcher is manual and owns only the process recorded in its private runtime PID
-record. It never replaces an occupied port or kills an unrelated llama.cpp process.
-This adds no resident host or auto-start behavior. Required review never falls back
-to or contacts the optional 4090; its MO2, health, freshness, and eligibility policy
-is unchanged.
+The launcher owns only the exact process recorded in its private runtime PID record.
+It never replaces an occupied port or kills an unrelated llama.cpp process. Manual
+and explicit current-user logon startup share this same lifecycle. Required review
+never falls back to or contacts the optional 4090; its MO2, health, freshness, and
+eligibility policy is unchanged.
 
 ## QA-001 identity and response separation
 

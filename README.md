@@ -5,14 +5,60 @@
 This is the current product-owner canonical identity definition. It supersedes the
 former expansion without rewriting historical project records.
 
-## Authoritative 3090 llama.cpp operator procedure
+## Windows resident host
 
-The accepted local Qwen/GLM workflow uses llama.cpp's native router mode; it does not
-keep both 16.8/18.1 GB GGUFs resident on the 24 GB RTX 3090. Start it manually from
-PowerShell:
+GRACI has one supported always-available composition for the authoritative 3090 PC.
+The resident host owns one existing governed runtime composition and the existing
+observer-only visualizer at `http://127.0.0.1:8766/`. It publishes `IDLE` at startup
+and then waits. **Resident does not mean autonomous:** startup submits no task, starts
+no run, performs no follow-up, and activates no microphone. The microphone remains
+inactive unless an operator explicitly starts an accepted push-to-talk path; browser
+PTT and browser task submission are not implemented.
+
+Run operator scripts from the repository root. Where local PowerShell policy blocks
+scripts, use process-only bypass (it does not change machine or user policy):
 
 ```powershell
-& E:\GRACI\ops\start-3090-llama-router.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\ops\start-graci-resident.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\ops\status-graci-resident.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\ops\stop-graci-resident.ps1
+```
+
+The start command is idempotent. A GRACI-specific OS lock is the authoritative
+single-instance boundary; state records are instance-specific and the scripts also
+validate the OS lock, PID, executable, module record, and instance ID. Stop is cooperative
+and never kills a Python process. While resident ownership is active, the one-shot
+CLI fails closed rather than constructing a competing runtime. Stop the resident to
+use the otherwise unchanged one-shot CLI.
+
+On Windows, the scripts select exactly one registered Python 3.14+ executable and
+fail closed if none or more than one is eligible. An operator may instead provide one
+absolute existing executable with `-Python C:\path\to\python.exe`; the scheduled-task
+installer resolves and records that concrete path rather than relying on task PATH.
+
+Automatic start is an explicit current-user Task Scheduler action:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\ops\install-graci-resident-task.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\ops\remove-graci-resident-task.ps1
+```
+
+The task runs at interactive logon with limited privilege, an unlimited resident
+execution duration, bounded restart settings, and `MultipleInstances=IgnoreNew`.
+The in-process lock remains the safety boundary if Task Scheduler or a manual start
+races. Installation/removal changes only the named `GRACI Resident Host` task and is
+never implicit. Removal does not stop an already-running host; use the stop command
+separately. No scheduled task is installed by repository setup or tests.
+
+## Authoritative 3090 llama.cpp router and login startup
+
+The accepted local Qwen/GLM workflow uses llama.cpp's native router mode; it does not
+keep both 16.8/18.1 GB GGUFs resident on the 24 GB RTX 3090. Its lifecycle commands are:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\ops\start-3090-llama-router.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\ops\status-3090-llama-router.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\ops\stop-3090-llama-router.ps1
 ```
 
 The script refuses to run while port 8080 is occupied. Stop the existing server by
@@ -20,17 +66,29 @@ its original operator mechanism first; do not kill it by name. The script valida
 the exact two GGUF files, starts `E:\llama.cpp\bin\llama-server.exe` bound only to
 loopback with `--models-dir E:\llama.cpp\models --models-max 1 --models-autoload`,
 uses a bounded 32,768-token context and one slot for VRAM reliability, and waits up
-to 30 seconds for both approved IDs to appear. It creates no scheduled task, service,
-login action, or auto-start behavior.
+to 30 seconds for both approved IDs to appear. Startup lists the models but does not
+request `/models/load`; the existing governed model lease remains solely responsible
+for Qwen/GLM demand switching.
 
-Stop only that GRACI-owned router with:
+Install or remove its distinct current-user logon task explicitly with:
 
 ```powershell
-& E:\GRACI\ops\stop-3090-llama-router.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\ops\install-3090-llama-router-task.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\ops\remove-3090-llama-router-task.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\ops\status-graci-login-tasks.ps1
 ```
 
-The stop script requires the GRACI ownership record and verifies the PID executable;
-it refuses to stop a reused or unrelated process. For manual acceptance, request
+`GRACI 3090 llama.cpp Router` and `GRACI Resident Host` are separate limited,
+interactive-logon tasks with `IgnoreNew`, bounded restart settings, hidden
+noninteractive PowerShell launchers, hidden child processes, and redirected logs.
+The separation means router failure never kills the observer-only resident. Task
+startup is not backend health authority; model calls retain existing fail-closed
+health and lease checks. Install/remove affect only their exact GRACI task names.
+
+The router start uses a GRACI startup mutex and validated ownership record, refuses
+an occupied port, recovers stale state, and never replaces another process. Stop
+validates the recorded PID executable before stopping that exact router; it never
+uses broad process-name matching. For manual acceptance, request
 Qwen, confirm its `/v1/models` status is `loaded`, run one harmless completion, then
 repeat for GLM and finally Qwen. Each request must use the exact registered model ID.
 Do not contact `192.168.0.101`; required reviewer work is 3090-only.

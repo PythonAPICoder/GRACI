@@ -8,6 +8,7 @@ from collections.abc import Callable, Sequence
 from .keyboard_input import HoldSpacebarToTalk, KeyboardInput, WindowsSpacebarInput
 from .operator_cli import (OperatorComposition, build_operator_composition,
                            build_operator_coordinator, serialize_turn_result)
+from .resident_host import resident_is_active
 from .turn_coordinator import ExplicitTurnCoordinator, TurnDisposition
 from .vertical_slice import VerticalSliceController
 
@@ -31,6 +32,8 @@ def main(argv: Sequence[str] | None = None, *,
     parser.add_argument("--workspace", help="existing isolated workspace for a Phase 1C text action")
     parser.add_argument("--target", help="single allowed relative target path for a Phase 1C text action")
     args = parser.parse_args(argv)
+    if resident_is_active():
+        parser.error("the GRACI resident host is active; stop it before using the one-shot CLI")
     if args.visualizer_hold and not args.visualizer:
         parser.error("--visualizer-hold requires --visualizer")
     if bool(args.workspace) != bool(args.target):

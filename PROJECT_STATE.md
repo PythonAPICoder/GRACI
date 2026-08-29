@@ -3,6 +3,32 @@
 Current accepted build: Phase 5 — COMPLETE; Phase 6 — COMPLETE; Phase 6A — COMPLETE;
 Phase 6B — COMPLETE; Phase 7 — COMPLETE; Phase 8A — COMPLETE.
 
+## Windows startup and resident host implementation (2026-08-29)
+
+- Added the supported idle `graci.resident_host` composition for the authoritative
+  3090. It owns one existing operator runtime composition and the existing loopback
+  GET/HEAD/SSE visualizer, publishes initial trusted `IDLE`, and performs no governed
+  run or microphone action at startup.
+- Single-instance truth is an OS-held GRACI-specific lock with a versioned
+  instance/PID/executable/module/visualizer state record. Stale state is recovered
+  only after lock acquisition. Cooperative stop is instance-ID matched and never
+  uses broad process matching or forced Python termination.
+- Added explicit start/status/stop and current-user Task Scheduler install/remove
+  scripts. No task is installed automatically. Existing one-shot CLI behavior is
+  retained when the resident is stopped and fails closed while resident ownership
+  prevents a competing runtime.
+- Resident is not autonomous: no task submission, browser controls, microphone
+  activation, wake word, VAD, continuous listening, or automatic follow-up was added.
+  Routing, memory, governed run boundaries, 3090 sufficiency, and optional 4090
+  MO2/health gating are unchanged.
+- Added a separate explicit current-user `GRACI 3090 llama.cpp Router` logon task and
+  router status command. Both login tasks use hidden noninteractive PowerShell task
+  actions, hidden child processes, and redirected logs. Router lifecycle now has a
+  GRACI-specific v2 ownership record, exact executable validation, bounded startup
+  mutex, stale recovery, occupied-port refusal, and health-aware status. Native
+  `--models-max 1 --models-autoload` behavior and existing Qwen/GLM lease switching
+  are unchanged; startup itself requests no model load.
+
 ## QA-006 canonical G.R.A.C.I. expansion correction
 
 - The product-owner canonical expansion is **General Reasoning And Conversational
