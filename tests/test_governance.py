@@ -62,6 +62,33 @@ class GovernanceTests(unittest.TestCase):
         self.assertIn("future capability, not a", current)
         self.assertNotIn(".obsidian", "\n".join(self.documents))
 
+    def test_proposed_status_is_distinct_from_behavior_and_future_capability(self):
+        current = self.documents["CURRENT_POLICY.md"]
+        index = self.documents["POLICY_INDEX.md"]
+        change = self.documents["CHANGE_PROCESS.md"]
+        self.assertIn("Status: **PROPOSED — pending Product Owner acceptance**", current)
+        self.assertIn("Status: **PROPOSED — pending Product Owner acceptance**", change)
+        self.assertIn("`PROPOSED / IMPLEMENTED BEHAVIOR`", index)
+        self.assertIn("`PROPOSED / FUTURE CAPABILITY`", index)
+        self.assertNotIn("currently accepted governance", current)
+        self.assertNotRegex(index, r"\| (?:CURRENT|CURRENT / FUTURE CAPABILITY) \|")
+
+    def test_reviewed_authorization_safety_rules_are_explicit(self):
+        current = self.documents["CURRENT_POLICY.md"]
+        required = (
+            "If authorization, scope, or applicability is absent, ambiguous,",
+            "prior tasks, prior projects, convenience, or model inference cannot create current",
+            "project completion or closure for permission",
+            "must be established explicitly by the Product Owner",
+            "the grant is inactive and",
+            "requires explicit Product Owner approval through the governance change process",
+            "Every promotion or deployment of a self-developed change to G.R.A.C.I. requires",
+            "this policy creates no such delegation",
+        )
+        for wording in required:
+            with self.subTest(wording=wording):
+                self.assertIn(wording, current)
+
 
 if __name__ == "__main__":
     unittest.main()

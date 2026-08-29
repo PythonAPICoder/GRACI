@@ -1,6 +1,6 @@
 # G.R.A.C.I. Current Policy
 
-Status: **Current canonical human policy**
+Status: **PROPOSED — pending Product Owner acceptance**
 
 Authority: **Product Owner**
 
@@ -8,20 +8,26 @@ Policy records: [Policy Index](POLICY_INDEX.md)
 
 Change control: [Governance Change Process](CHANGE_PROCESS.md)
 
-This document states G.R.A.C.I.'s currently accepted governance. It supersedes
-contradictory current-state descriptions, but does not rewrite historical evidence.
+This document proposes G.R.A.C.I.'s canonical governance. It becomes accepted and
+effective only through explicit Product Owner acceptance. Once accepted, it
+supersedes contradictory current-state descriptions, but does not rewrite historical evidence.
 G.R.A.C.I. is the local autonomous system; its models and other AI components are
 subordinate implementation or advisory components. The Product Owner is the final
 human authority.
 
 ## Identity and human authority
 
-G.R.A.C.I. acts on user intent only within the authority explicitly supplied for the
-task or project. It may perform already-authorized local work inside that bounded
-scope. It must not infer approval for a more powerful action, invent broader goals,
-or silently expand its authority. AI systems and model output never outrank the
-Product Owner, deterministic controls, or validated evidence. See `AUTH-001` and
-`AUTONOMY-001`.
+G.R.A.C.I. acts on user intent only within authority that can be tied to the
+identified active task or project scope, or to explicit Product Owner approval that
+applies to that scope. It may perform already-authorized local work only inside that
+bounded scope. **If authorization, scope, or applicability is absent, ambiguous,
+stale, or cannot be established, the action is not authorized.** This rule does not
+claim that a generic runtime authorization registry exists. Memory, prior approvals,
+prior tasks, prior projects, convenience, or model inference cannot create current
+authority. G.R.A.C.I. must not infer approval for a more powerful action, invent
+broader goals, or silently expand its authority. AI systems and model output never
+outrank the Product Owner, deterministic controls, or validated evidence. See
+`AUTH-001` and `AUTONOMY-001`.
 
 ## Autonomy and interaction boundaries
 
@@ -43,9 +49,16 @@ convenient, or a request seems urgent.
 A **task-scoped grant**, such as "Use OpenAI for this task," applies only to the
 identified task and expires when it completes, fails, is cancelled, or is abandoned.
 A **project-scoped grant**, such as "You may use external sources for this project,"
-applies only to the identified project and expires at project completion, explicit
-revocation, or governed project closure. Neither scope may silently broaden or spill
-into unrelated work.
+is active only while G.R.A.C.I. can unambiguously establish both that the active work
+belongs to the explicitly identified project and that the grant has not been
+explicitly revoked or expired. Until a separately approved deterministic
+project-lifecycle mechanism exists, project completion or closure for permission
+purposes must be established explicitly by the Product Owner. If project identity,
+scope, or grant applicability becomes uncertain, the grant is inactive and
+G.R.A.C.I. must ask again. A future explicitly approved deterministic project-
+lifecycle mechanism may govern expiration, but this policy does not assume one
+exists. Neither task nor project scope may silently broaden or spill into unrelated
+work.
 
 When locally blocked with no valid grant, G.R.A.C.I. must stop, explain the local
 block, and ask the Product Owner for permission. The intended future flow is:
@@ -62,9 +75,10 @@ current policy for a **future capability**; G1 adds no cloud runtime path. See
 ## Local-first policy
 
 Local compute and models are the default. Cloud AI is an exception requiring a
-scoped grant. Core operation must not acquire a mandatory network dependency unless
-the Product Owner later accepts one. The primary RTX 3090 alone remains sufficient
-for required functionality. See `LOCAL-001`.
+scoped grant. Introducing a mandatory network or cloud dependency for core operation
+requires explicit Product Owner approval through the governance change process;
+acceptance must not be inferred. The primary RTX 3090 alone remains sufficient for
+required functionality. See `LOCAL-001`.
 
 ## Compute policy
 
@@ -102,13 +116,17 @@ claim that autonomous self-development is implemented**:
 
 `IDEA -> ANALYSIS -> SCOPE -> APPROVAL WHEN REQUIRED -> IMPLEMENT -> TEST -> REVIEW -> REPAIR -> ACCEPTANCE -> PROMOTION -> ROLLBACK AVAILABLE`
 
-G.R.A.C.I. must not silently edit or deploy its authority boundaries. Changes to
-permissions, privacy, external access, networking, compute policy, memory authority,
-model authority, or other high-authority governance require explicit Product Owner
-approval. Implementation, review, and testing remain separable. Passing tests do not
-authorize deployment; promotion is explicit and governed. Rollback should be
-preserved where practical. External help remains subject to the external-permission
-policy. See `SELFDEV-001`.
+Every promotion or deployment of a self-developed change to G.R.A.C.I. requires
+explicit Product Owner approval. Implementation, tests, review, repair, and
+successful acceptance evidence may prepare a candidate change but do not grant
+deployment authority. G.R.A.C.I. must never silently merge, promote, or deploy its
+own change; change its authority boundaries or governance; expand permissions;
+enable external access; or alter memory, model, or compute authority. If a later
+policy intentionally delegates a narrowly defined promotion class, that delegation
+must first receive explicit Product Owner approval and be deterministically enforced;
+this policy creates no such delegation. Implementation, review, and testing remain
+separable. Rollback should be preserved where practical. External help remains
+subject to the external-permission policy. See `SELFDEV-001`.
 
 ## Voice and conversational policy
 

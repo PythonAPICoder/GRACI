@@ -1,8 +1,9 @@
 # GRACI Phase 8 — Presence & Visual Identity In Progress
 
-> Current governance is canonical in [`governance/CURRENT_POLICY.md`](governance/CURRENT_POLICY.md),
-> with stable policy IDs in [`governance/POLICY_INDEX.md`](governance/POLICY_INDEX.md).
-> Phase records below remain historical implementation evidence.
+> Proposed G1 governance pending Product Owner acceptance is in
+> [`governance/CURRENT_POLICY.md`](governance/CURRENT_POLICY.md), with stable proposed
+> policy IDs in [`governance/POLICY_INDEX.md`](governance/POLICY_INDEX.md). It is not
+> yet accepted policy. Phase records below remain historical implementation evidence.
 
 **G.R.A.C.I.** = **General Reasoning And Conversational Intelligence**
 
