@@ -4,6 +4,11 @@ import re
 import unittest
 from pathlib import Path
 
+from graci.observation import ObservationKind, observe
+from graci.registry import GLM_MODEL_ID, QWEN_MODEL_ID
+from graci.visualizer_backend import VisualizerStateProvider
+from graci.visualizer_runtime import VisualizerRuntimeObserver
+
 
 ROOT = Path(__file__).resolve().parents[1]
 UI = ROOT / "graci" / "visualizer_ui"
@@ -21,15 +26,15 @@ class ProcessingSoundContractTests(unittest.TestCase):
     def test_qwen_and_glm_use_distinct_sparse_deterministic_profiles(self):
         profiles = self.js[
             self.js.index("const PROCESSING_SOUND_PROFILES"):
-            self.js.index("const PRESENTATION_BY_STATE")
+            self.js.index("const UI_SOUND_CONFIRMATION")
         ]
         for marker in (
             'qwen:Object.freeze({wave:"triangle"',
             'glm:Object.freeze({wave:"sine"',
             "delays:Object.freeze([2100,3900,2700,5100,3200])",
             "delays:Object.freeze([2800,4700,3400,5600])",
-            "gain:.032", "gain:.026", "duration:.12", "duration:.135",
-            "initialDelay:700", "initialDelay:800",
+            "gain:.055", "gain:.045", "duration:.14", "duration:.15",
+            "initialDelay:550", "initialDelay:650",
         ):
             self.assertIn(marker, profiles)
         self.assertNotIn("Math.random", self.sound_block)
@@ -78,7 +83,7 @@ class ProcessingSoundContractTests(unittest.TestCase):
     def test_chirp_graph_is_audible_bounded_and_reaches_destination(self):
         profiles = self.js[
             self.js.index("const PROCESSING_SOUND_PROFILES"):
-            self.js.index("const PRESENTATION_BY_STATE")
+            self.js.index("const UI_SOUND_CONFIRMATION")
         ]
         gains = [float(value) for value in re.findall(r"gain:(\.\d+)", profiles)]
         durations = [float(value) for value in re.findall(r"duration:(\.\d+)", profiles)]
@@ -86,11 +91,11 @@ class ProcessingSoundContractTests(unittest.TestCase):
         self.assertEqual(len(gains), 2)
         self.assertTrue(all(gain >= .02 for gain in gains))
         self.assertTrue(all(.08 <= duration <= .16 for duration in durations))
-        self.assertTrue(all(600 <= delay <= 1000 for delay in initial_delays))
+        self.assertTrue(all(500 <= delay <= 800 for delay in initial_delays))
         for marker in (
             "oscillator.connect(gain)", "gain.connect(context.destination)",
             'oscillator.addEventListener("ended"', "oscillator.start(now)",
-            "oscillator.stop(now+profile.duration+.016)",
+            "oscillator.stop(now+profile.duration+.018)",
             'recordProcessingAudioDiagnostic("cue-started"',
             "destinationConnected:true", 'recordProcessingAudioDiagnostic("cue-completed"',
         ):
@@ -107,6 +112,65 @@ class ProcessingSoundContractTests(unittest.TestCase):
         self.assertIn("document.documentElement.dataset.processingAudioDiagnostic=JSON.stringify(processingAudioDiagnostics)", diagnostic)
         self.assertIn('Object.defineProperty(window,"__graciProcessingAudioDiagnostics"', diagnostic)
         self.assertNotIn("console.", diagnostic)
+
+    def test_ui_sounds_off_to_on_plays_one_same_context_confirmation_cue(self):
+        for marker in (
+            'const UI_SOUND_CONFIRMATION = Object.freeze({wave:"triangle",frequency:660,endFrequency:920,gain:.05,duration:.105})',
+            "async function playUiSoundsConfirmation()",
+            'startProcessingCue("ui-confirmation",UI_SOUND_CONFIRMATION',
+            "else{playUiSoundsConfirmation();if(state.snapshot)updateProcessingSounds(state.snapshot);}",
+            'recordProcessingAudioDiagnostic("cue-timeout-fired"',
+        ):
+            self.assertIn(marker, self.js)
+        confirmation = self.js[
+            self.js.index("async function playUiSoundsConfirmation"):
+            self.js.index("function queueProcessingChirp")
+        ]
+        self.assertNotIn("new AudioContext", confirmation)
+        self.assertEqual(self.js.count("new AudioContext()"), 3)
+        self.assertEqual(self.js.count("requestAnimationFrame("), 1)
+
+    def test_real_runtime_lifecycle_projects_qwen_and_glm_trusted_states(self):
+        provider = VisualizerStateProvider()
+        observer = VisualizerRuntimeObserver(provider)
+        observe(observer, ObservationKind.TASK_STARTED, "presence-real-state",
+                summary="real production mapping")
+        observe(observer, ObservationKind.MODEL_STARTED, "presence-real-state",
+                role="implementer", model=QWEN_MODEL_ID, node="3090")
+        qwen = provider.snapshot()
+        self.assertEqual(qwen.system_state.value, "reasoning")
+        self.assertEqual(qwen.agents.qwen.state.value, "active")
+        self.assertEqual(qwen.agents.glm.state.value, "inactive")
+        observe(observer, ObservationKind.MODEL_COMPLETED, "presence-real-state",
+                role="implementer", model=QWEN_MODEL_ID, node="3090")
+        observe(observer, ObservationKind.REVIEW_STARTED, "presence-real-state",
+                model=GLM_MODEL_ID, node="3090")
+        glm = provider.snapshot()
+        self.assertEqual(glm.system_state.value, "reviewing")
+        self.assertEqual(glm.agents.qwen.state.value, "completed")
+        self.assertEqual(glm.agents.glm.state.value, "active")
+
+    def test_every_real_lifecycle_sse_event_queues_a_bounded_snapshot_refresh(self):
+        bridge = self.js[
+            self.js.index("const OBSERVED_EVENT_TYPES"):
+            self.js.index("function tick")
+        ]
+        for event_type in (
+            "task_started", "qwen_started", "qwen_completed",
+            "glm_started", "glm_completed", "review_started",
+            "voice_listening", "voice_speaking", "task_completed",
+        ):
+            self.assertIn(f'"{event_type}"', bridge)
+        for marker in (
+            "function queueSnapshotRefresh(eventType)",
+            "clearTimeout(state.snapshotRefreshTimer)",
+            "state.snapshotRefreshTimer=setTimeout",
+            "refreshSnapshot();},25)",
+            "queueSnapshotRefresh(event.event_type)",
+            'recordProcessingAudioDiagnostic("trusted-event"',
+            'recordProcessingAudioDiagnostic("presentation-state"',
+        ):
+            self.assertIn(marker, self.js)
 
 
 class CircuitPresenceContractTests(unittest.TestCase):
@@ -156,8 +220,8 @@ class CircuitPresenceContractTests(unittest.TestCase):
             'body[data-circuit-mode="idle"] .packet-4',
             "--packet-duration:31s", "--packet-duration:37s",
             'body[data-circuit-mode="qwen"] .circuit-packet',
-            "--trail-near-opacity:.54", "--packet-duration:5.3s",
-            "--packet-duration:6.7s", "--packet-duration:8.6s",
+            "--trail-near-opacity:.72", "--packet-duration:4.2s",
+            "--packet-duration:5.1s", "--packet-duration:6.6s",
             'body[data-circuit-mode="glm"] .circuit-packet',
             "color:#a56cff", "animation-name:circuit-packet-reverse-head",
             'body[data-circuit-mode="speaking"] .packet-1',
