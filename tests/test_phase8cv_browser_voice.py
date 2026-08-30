@@ -145,20 +145,36 @@ class BrowserContractTests(unittest.TestCase):
                        'status-rail"', 'class="compact-actions"',
                        'latest-turn-footer"', 'id="end-session"'):
             self.assertIn(marker, self.html)
-        for marker in ("grid-template-columns:minmax(0,1fr) 338px",
-                       "width:min(82vh,880px)", ".detail-rail{display:flex!important",
-                       ".lower-grid{display:none}", ".pipeline{height:70px}"):
+        for marker in ("grid-template-columns:minmax(0,1fr) 360px",
+                       "width:min(1080px,99%)", ".detail-rail.status-rail",
+                       ".lower-grid{display:none}", ".pipeline{height:58px;display:grid"):
             self.assertIn(marker, self.css)
+
+    def test_approved_branding_orb_and_dense_environment_contract(self):
+        self.assertNotIn("GRAY-see", self.html)
+        for marker in ('class="orb-atmosphere"', 'class="orb-inner-rim"',
+                       'class="orb-horizon"', 'id="rimGradient"'):
+            self.assertIn(marker, self.html)
+        structural = self.html.split('<g class="circuit-traces structural">', 1)[1].split("</g>", 1)[0]
+        branches = self.html.split('<g class="circuit-traces branches">', 1)[1].split("</g>", 1)[0]
+        nodes = self.html.split('<g class="circuit-nodes">', 1)[1].split("</g>", 1)[0]
+        pulses = self.html.split('<g class="circuit-pulses">', 1)[1].split("</g>", 1)[0]
+        self.assertGreaterEqual(structural.count("<path"), 30)
+        self.assertGreaterEqual(branches.count("<path"), 12)
+        self.assertGreaterEqual(nodes.count("<circle"), 30)
+        self.assertGreaterEqual(pulses.count("<path"), 8)
 
     def test_radial_circuit_and_state_mapping_remain_truthful(self):
         self.assertIn("for(let i=0;i<64;i++)", self.js)
         self.assertIn('id="speech-radial"', self.html)
         self.assertIn("circuit-traces", self.html)
         self.assertIn("circuit-pulses", self.html)
-        for marker in ("body[data-system-state=reasoning] .circuit-board",
-                       "body[data-system-state=reviewing] .circuit-board",
-                       "animation-direction:reverse", "@keyframes circuit-pulse"):
+        for marker in ('body[data-active-agent="qwen"] .circuit-pulses',
+                       'body[data-active-agent="glm"] .circuit-pulses',
+                       "animation-direction:reverse", "@keyframes circuit-pulse",
+                       "transform:scaleY(.56)", "var(--bar,0)*2.35"):
             self.assertIn(marker, self.css)
+        self.assertIn('document.body.dataset.activeAgent=activeAgent', self.js)
 
     def test_compact_controls_are_presentation_only(self):
         self.assertIn('id="ptt-button"', self.html)
