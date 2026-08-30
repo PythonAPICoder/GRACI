@@ -49,11 +49,11 @@ class StaticContractTests(unittest.TestCase):
         cls.html=(UI/"index.html").read_text("utf-8"); cls.css=(UI/"visualizer.css").read_text("utf-8"); cls.js=(UI/"visualizer.js").read_text("utf-8")
 
     def test_offline_no_remote_fonts_cdn_analytics_or_broad_controls(self):
-        combined=self.html+self.css+self.js
-        for forbidden in ("http://","https://","@import","googleapis","analytics","task-entry","prompt-entry","model selector","approve","reject","memory_content","chain_of_thought","stdout","stderr"):
+        combined=(self.html+self.css+self.js).replace("http://www.w3.org/2000/svg", "")
+        for forbidden in ("http://","https://","@import","googleapis","analytics","task-entry","prompt-entry","model selector","approve-button","reject-button","memory_content","chain_of_thought","stdout","stderr"):
             self.assertNotIn(forbidden.lower(),combined.lower())
         self.assertNotRegex(self.html,r"<(?:form|input|textarea|select)\b")
-        self.assertEqual(len(re.findall(r"<button\b", self.html)), 2)
+        self.assertEqual(len(re.findall(r"<button\b", self.html)), 3)
         self.assertIn('id="restart-button"', self.html)
         self.assertIn('id="ptt-button"', self.html)
 

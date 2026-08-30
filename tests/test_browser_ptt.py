@@ -307,7 +307,8 @@ class BrowserUIContractTests(unittest.TestCase):
         for marker in ('window.addEventListener("blur"', '"visibilitychange"',
                        '"pagehide"', 'track.stop()', '"/ptt/cancel"'):
             self.assertIn(marker, self.js)
-        self.assertNotIn("localStorage", self.js)
+        self.assertIn('localStorage.setItem("graci-ui-sounds"', self.js)
+        self.assertNotIn("localStorage.setItem(\"graci-ptt", self.js)
         self.assertNotIn("sessionStorage", self.js)
         self.assertIn('/ptt/chunk', self.js)
 

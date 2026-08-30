@@ -64,7 +64,8 @@ class SpeechPresentationService:
                                             error_message=tts.error_message)
         try:
             lease = (self._lifecycle.enter(SystemState.SPEAKING)
-                     if self._lifecycle is not None else None)
+                     if self._lifecycle is not None
+                     and not getattr(self._player, "manages_lifecycle", False) else None)
             try:
                 playback = self._player.play(tts.audio)
             finally:

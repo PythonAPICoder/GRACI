@@ -265,7 +265,15 @@ metadata facility, so no semantic text is altered to encode speech provenance.
 The primary 3090 machine is independently sufficient; STT uses CPU and no cloud or
 4090 path. Phase 6D is a separate optional output presentation path:
 
-`explicit AuthoritativeFinalResponse -> deterministic speech-only Markdown/presentation normalization -> speech-only pronunciation copy -> isolated local Kokoro CPU synthesis -> bounded validated WAV -> isolated bounded Windows playback`
+`explicit AuthoritativeFinalResponse -> deterministic speech-only Markdown/presentation normalization -> speech-only pronunciation copy -> isolated local Kokoro CPU synthesis -> bounded validated SynthesizedAudio -> resident-owned opaque single-claim artifact -> browser Web Audio playback`
+
+The Phase 8C-V browser is the presentation owner only. A purpose-built in-memory
+broker exposes one expiring authorized WAV to one atomic localhost claimant. Actual
+`playing`, completion, cancellation, error, and expiry acknowledgements drive the
+speech lifecycle; stale claim tokens and old artifacts cannot affect a newer turn.
+PTT and Restart invalidate active playback. No browser route accepts text, paths,
+URLs, execution requests, or authority-bearing response data. See
+`phase8cv/README.md` for lifecycle, failure, analyser, sounds, and accessibility.
 
 It has no runtime extraction or execution capability. Synthesis, playback, timeout,
 cancellation, device, worker, and cleanup failures remain presentation results and

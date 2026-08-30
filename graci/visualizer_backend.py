@@ -21,6 +21,7 @@ from .visualizer import (
 
 if TYPE_CHECKING:
     from .browser_ptt import BrowserPTTOperator
+    from .browser_playback import BrowserPlaybackBroker
 
 API_VERSION: Final[int] = 1
 DEFAULT_HOST: Final[str] = "127.0.0.1"
@@ -39,7 +40,7 @@ MAX_STATIC_FILE_BYTES: Final[int] = 512_000
 MAX_CONTROL_JSON_BYTES: Final[int] = 512
 CONTENT_SECURITY_POLICY: Final[str] = (
     "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; "
-    "connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; "
+    "connect-src 'self'; media-src 'self' blob:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; "
     "form-action 'none'"
 )
 
@@ -97,6 +98,7 @@ class _BoundedHTTPServer(ThreadingHTTPServer):
     def __init__(self, address: tuple[str, int], provider: VisualizerStateProvider,
                  max_live_clients: int, heartbeat_seconds: float,
                  browser_ptt: BrowserPTTOperator | None,
+                 browser_playback: BrowserPlaybackBroker | None,
                  restart_runtime: Callable[[], None] | None):
         self.provider = provider
         self.max_live_clients = max_live_clients
@@ -105,6 +107,7 @@ class _BoundedHTTPServer(ThreadingHTTPServer):
         self.live_clients = 0
         self.stopping = threading.Event()
         self.browser_ptt = browser_ptt
+        self.browser_playback = browser_playback
         self.restart_runtime = restart_runtime
         self.restart_lock = threading.Lock()
         super().__init__(address, _Handler, bind_and_activate=True)
@@ -241,6 +244,12 @@ class _Handler(BaseHTTPRequestHandler):
                             "Last-Event-ID is invalid")
             else:
                 self._stream(last_id)
+        elif path == f"{BASE_PATH}/speech/available":
+            available = (self.app.browser_playback.available()
+                         if self.app.browser_playback is not None else None)
+            self._json({"audio": available}, head_only)
+        elif path.startswith(f"{BASE_PATH}/speech/audio/"):
+            self._speech_audio(path, head_only)
         elif path == f"{BASE_PATH}/events/stream":
             self.send_response(HTTPStatus.OK)
             self._safe_headers("text/event-stream; charset=utf-8", 0)
@@ -287,13 +296,17 @@ class _Handler(BaseHTTPRequestHandler):
                         "browser PTT is available only to the local visualizer origin")
             return
         allowed = {f"{BASE_PATH}/ptt/begin", f"{BASE_PATH}/ptt/chunk", f"{BASE_PATH}/ptt/finish",
-                   f"{BASE_PATH}/ptt/cancel", f"{BASE_PATH}/restart"}
+                   f"{BASE_PATH}/ptt/cancel", f"{BASE_PATH}/restart",
+                   f"{BASE_PATH}/speech/claim", f"{BASE_PATH}/speech/lifecycle"}
         if path not in allowed:
             self._error(HTTPStatus.METHOD_NOT_ALLOWED, "method_not_allowed",
                         "POST is accepted only for explicit local operator controls")
             return
         if path == f"{BASE_PATH}/restart":
             self._restart()
+            return
+        if path.startswith(f"{BASE_PATH}/speech/"):
+            self._speech_control(path)
             return
         if self.app.browser_ptt is None:
             self._error(HTTPStatus.SERVICE_UNAVAILABLE, "browser_ptt_unavailable",
@@ -340,6 +353,39 @@ class _Handler(BaseHTTPRequestHandler):
         finally:
             self.app.restart_lock.release()
         self._json({"status": "ready"}, False)
+
+    def _speech_audio(self, path: str, head_only: bool) -> None:
+        from .browser_playback import BrowserPlaybackError
+        if self.app.browser_playback is None:
+            self._error(HTTPStatus.SERVICE_UNAVAILABLE, "browser_playback_unavailable", "browser playback is unavailable"); return
+        artifact_id = path.rsplit("/", 1)[-1]
+        claim = self.headers.get("X-GRACI-Speech-Claim", "")
+        try:
+            body = self.app.browser_playback.audio(artifact_id, claim)
+        except BrowserPlaybackError as exc:
+            self._error(HTTPStatus.GONE, "invalid_speech_artifact", str(exc)); return
+        self.send_response(HTTPStatus.OK); self._safe_headers("audio/wav", len(body)); self.end_headers()
+        if not head_only: self.wfile.write(body)
+
+    def _speech_control(self, path: str) -> None:
+        from .browser_playback import BrowserPlaybackError
+        if self.app.browser_playback is None:
+            self._error(HTTPStatus.SERVICE_UNAVAILABLE, "browser_playback_unavailable", "browser playback is unavailable"); return
+        if self.headers.get("Content-Type") != "application/json":
+            self._error(HTTPStatus.UNSUPPORTED_MEDIA_TYPE, "invalid_content_type", "speech control requires application/json"); return
+        length = self._content_length(MAX_CONTROL_JSON_BYTES)
+        if length is None: return
+        try: value = json.loads(self.rfile.read(length))
+        except (UnicodeDecodeError, json.JSONDecodeError): value = None
+        try:
+            if path.endswith("/claim") and isinstance(value, dict) and set(value) == {"artifact_id", "client_id"}:
+                result = self.app.browser_playback.claim(value["artifact_id"], value["client_id"])
+            elif path.endswith("/lifecycle") and isinstance(value, dict) and set(value).issubset({"artifact_id", "claim_token", "event", "error_code"}) and {"artifact_id", "claim_token", "event"}.issubset(value):
+                self.app.browser_playback.acknowledge(value["artifact_id"], value["claim_token"], value["event"], value.get("error_code")); result = {"status":"accepted"}
+            else: raise BrowserPlaybackError("invalid speech control request")
+        except (BrowserPlaybackError, TypeError) as exc:
+            self._error(HTTPStatus.CONFLICT, "invalid_speech_control", str(exc)); return
+        self._json(result, False)
 
     def _ptt_begin(self) -> None:
         if self.headers.get("Content-Type") != "application/json":
@@ -489,6 +535,7 @@ class VisualizerServer:
     max_live_clients: int = MAX_LIVE_CLIENTS
     heartbeat_seconds: float = SSE_HEARTBEAT_SECONDS
     browser_ptt: BrowserPTTOperator | None = None
+    browser_playback: BrowserPlaybackBroker | None = None
     restart_runtime: Callable[[], None] | None = None
 
     def __post_init__(self) -> None:
@@ -514,7 +561,7 @@ class VisualizerServer:
             raise RuntimeError("visualizer server is already started")
         httpd = _BoundedHTTPServer((self.host, self.port), self.provider,
                                    self.max_live_clients, self.heartbeat_seconds,
-                                   self.browser_ptt, self.restart_runtime)
+                                   self.browser_ptt, self.browser_playback, self.restart_runtime)
         thread = threading.Thread(target=httpd.serve_forever, name="graci-visualizer", daemon=True)
         self._httpd, self._thread = httpd, thread
         thread.start()

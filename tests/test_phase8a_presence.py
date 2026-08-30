@@ -45,11 +45,12 @@ class PresenceSourceTests(unittest.TestCase):
     def test_presence_panels_have_only_the_later_explicit_ptt_control(self):
         combined = (self.html + self.css + self.js).lower()
         self.assertNotRegex(self.html, r"<(?:form|input|textarea|select)\b")
-        self.assertEqual(len(re.findall(r"<button\b", self.html)), 2)
+        self.assertEqual(len(re.findall(r"<button\b", self.html)), 3)
         self.assertIn('id="restart-button"', self.html)
         self.assertIn('id="ptt-button"', self.html)
+        presentation = combined.replace("http://www.w3.org/2000/svg", "")
         for forbidden in ("http://", "https://", "speechsynthesis", "wake word", "websocket", "analytics"):
-            self.assertNotIn(forbidden, combined)
+            self.assertNotIn(forbidden, presentation)
         for authority in ("routing", "model selector", "memory write", "command execution"):
             self.assertNotIn(authority, combined)
 

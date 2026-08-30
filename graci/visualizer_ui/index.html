@@ -52,6 +52,7 @@
           <g class="orbit orbit-b"><ellipse cx="320" cy="320" rx="245" ry="130"/><circle class="node memory-node" cx="75" cy="320" r="8"/></g>
           <g class="orbit orbit-c"><ellipse cx="320" cy="320" rx="105" ry="245"/><circle class="node review-node" cx="320" cy="75" r="7"/></g>
           <g class="network"><path d="M180 240L320 130 465 230 490 390 320 500 160 390Z"/><path d="M180 240L490 390M465 230L160 390M320 130V500"/></g>
+          <g id="speech-radial" class="speech-radial" aria-hidden="true"></g>
           <g class="core-orbits">
             <g class="core-orbit primary-orbit"><circle class="orbit-track" cx="320" cy="320" r="112"/><circle class="signal-node node-a" cx="432" cy="320" r="4.2"/><circle class="signal-node node-b" cx="264" cy="223" r="3.3"/><circle class="signal-node node-c" cx="264" cy="417" r="2.8"/></g>
             <g class="core-orbit secondary-orbit"><ellipse class="orbit-track" cx="320" cy="320" rx="138" ry="72"/><ellipse class="orbit-highlight" cx="320" cy="320" rx="138" ry="72"/><circle class="signal-node node-d" cx="458" cy="320" r="3.6"/><circle class="signal-node node-e" cx="251" cy="258" r="2.8"/></g>
@@ -90,6 +91,7 @@
         </button>
         <div class="operator-status" role="status" aria-live="polite"><b id="ptt-status">MICROPHONE OFF</b><span id="ptt-detail">Audio is captured only while held.</span></div>
         <button id="restart-button" class="restart-button" type="button">RESTART GRACI</button>
+        <button id="ui-sounds" class="sound-button" type="button" aria-pressed="true">UI SOUNDS · ON</button>
         <article class="operator-response" aria-labelledby="latest-turn-label" aria-live="polite" aria-atomic="true">
           <span id="latest-turn-label">LATEST COMPLETED TURN</span>
           <div class="latest-turn-meta"><b id="latest-turn-status">NONE</b><small id="latest-turn-currency">NO CURRENT RESPONSE</small><small id="latest-turn-id">NO RESIDENT RESULT</small><small id="latest-turn-presentation">PRESENTATION N/A</small></div>

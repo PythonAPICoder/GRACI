@@ -9,6 +9,7 @@ from typing import Any, Callable
 from .audio_capture import WindowsWaveInCapture
 from .browser_ptt import BrowserPTTOperator
 from .controller import Controller
+from .browser_playback import BrowserPlaybackBroker
 from .playback import PlaybackConfig, SubprocessWavePlayback
 from .push_to_talk import PushToTalkController
 from .speech import FasterWhisperConfig, FasterWhisperSubprocessSTT, TranscriptionResult
@@ -47,6 +48,7 @@ class OperatorComposition:
     server: VisualizerServer | None = None
     browser_ptt: BrowserPTTOperator | None = None
     restart_runtime: Callable[[], None] | None = None
+    browser_playback: BrowserPlaybackBroker | None = None
 
 
 def build_operator_composition(repository_root: Path | None = None, *,
@@ -71,8 +73,10 @@ def build_operator_composition(repository_root: Path | None = None, *,
         root / "phase6a" / "cache" / "kokoro-onnx" / "kokoro-v1.0.int8.onnx",
         root / "phase6a" / "cache" / "kokoro-onnx" / "voices-v1.0.bin",
     ))
-    player = SubprocessWavePlayback(PlaybackConfig(
-        speech_python, root / "phase6d" / "playback_worker.py"))
+    browser_playback = BrowserPlaybackBroker(lifecycle) if browser_operator else None
+    player = (browser_playback if browser_playback is not None else
+              SubprocessWavePlayback(PlaybackConfig(
+                  speech_python, root / "phase6d" / "playback_worker.py")))
     presentation = SpeechPresentationService(synthesizer, player, lifecycle)
     push_to_talk = PushToTalkController(
         WindowsWaveInCapture(), stt, lifecycle=lifecycle,
@@ -99,10 +103,11 @@ def build_operator_composition(repository_root: Path | None = None, *,
             runtime_observer.reset_transient()
 
     server = (VisualizerServer(provider, browser_ptt=browser_ptt,
+                               browser_playback=browser_playback,
                                restart_runtime=restart_runtime)
               if provider is not None else None)
     return OperatorComposition(coordinator, provider, runtime_observer, lifecycle, server,
-                               browser_ptt, restart_runtime)
+                               browser_ptt, restart_runtime, browser_playback)
 
 
 def build_operator_coordinator(repository_root: Path | None = None) -> ExplicitTurnCoordinator:
