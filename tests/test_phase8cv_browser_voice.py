@@ -182,12 +182,15 @@ class BrowserContractTests(unittest.TestCase):
         self.assertIn("for(let i=0;i<120;i++)", self.js)
         self.assertIn("circuit-primary", self.html)
         self.assertIn("circuit-packets", self.html)
-        for marker in ('body[data-active-agent="qwen"] .circuit-packets',
-                       'body[data-active-agent="glm"] .circuit-packets',
-                       "animation-direction:reverse", "@keyframes circuit-pulse",
+        for marker in ('body[data-circuit-mode="qwen"] .circuit-packet',
+                       'body[data-circuit-mode="glm"] .circuit-packet',
+                       "animation-name:circuit-packet-reverse",
+                       "@keyframes circuit-packet-forward",
                        "transform:scaleY(.82)", "var(--bar,0)*.5"):
             self.assertIn(marker, self.css)
         self.assertIn('document.body.dataset.activeAgent=activeAgent', self.js)
+        self.assertIn('document.body.dataset.circuitMode=circuitPresentationMode(s)',
+                      self.js)
 
     def test_nucleus_is_layered_and_audio_modulation_stays_bounded(self):
         for marker in ('id="hexSurfaceMask"', 'id="hexRimMask"',
