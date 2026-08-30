@@ -18,8 +18,8 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from typing import Any, Callable
 
-SCHEMA_VERSION = 1
-AGENT_VERSION = "1.0.0"
+SCHEMA_VERSION = 2
+AGENT_VERSION = "1.0.1"
 NODE_ID = "4090"
 BIND_ADDRESS = "192.168.0.101"
 PORT = 8767
@@ -164,16 +164,46 @@ def _memory_status() -> tuple[int, int]:
     return int(status.ullTotalPhys), int(status.ullAvailPhys)
 
 
-def apply_below_normal_priority() -> str:
+BELOW_NORMAL_PRIORITY_CLASS = 0x00004000
+_PRIORITY_CLASS_NAMES = {
+    0x00000040: "idle",
+    0x00004000: "below_normal",
+    0x00000020: "normal",
+    0x00008000: "above_normal",
+    0x00000080: "high",
+    0x00000100: "realtime",
+}
+
+
+def _priority_report(applied: bool, effective_class: int | None) -> dict[str, str]:
+    return {
+        "requested": "below_normal",
+        "application_result": "applied" if applied else "failed_windows_error",
+        "observed_effective": _PRIORITY_CLASS_NAMES.get(effective_class, "unknown"),
+    }
+
+
+def apply_below_normal_priority() -> dict[str, str]:
     if os.name != "nt":
-        return "not_applied_non_windows"
+        return {
+            "requested": "below_normal",
+            "application_result": "not_applied_non_windows",
+            "observed_effective": "unknown",
+        }
     try:
-        process = ctypes.windll.kernel32.GetCurrentProcess()
-        if not ctypes.windll.kernel32.SetPriorityClass(process, 0x00004000):
-            return "not_applied_windows_error"
-        return "below_normal"
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        kernel32.GetCurrentProcess.argtypes = []
+        kernel32.GetCurrentProcess.restype = ctypes.c_void_p
+        kernel32.SetPriorityClass.argtypes = [ctypes.c_void_p, ctypes.c_uint32]
+        kernel32.SetPriorityClass.restype = ctypes.c_int
+        kernel32.GetPriorityClass.argtypes = [ctypes.c_void_p]
+        kernel32.GetPriorityClass.restype = ctypes.c_uint32
+        process = kernel32.GetCurrentProcess()
+        applied = bool(kernel32.SetPriorityClass(process, BELOW_NORMAL_PRIORITY_CLASS))
+        effective_class = int(kernel32.GetPriorityClass(process)) or None
+        return _priority_report(applied, effective_class)
     except (AttributeError, OSError):
-        return "not_applied_windows_error"
+        return _priority_report(False, None)
 
 
 class HardwareSampler:
@@ -184,7 +214,7 @@ class HardwareSampler:
         self.system = system or WindowsSystemReader()
         self.clock = clock
 
-    def sample(self, priority: str) -> dict[str, Any]:
+    def sample(self, priority: dict[str, str]) -> dict[str, Any]:
         unavailable_gpu = {"status": "unavailable", "reason": "nvml_read_failed",
                            "name": None, "utilization_percent": None,
                            "vram_used_bytes": None, "vram_total_bytes": None,
@@ -204,8 +234,13 @@ class HardwareSampler:
         return {
             "schema_version": SCHEMA_VERSION, "node_id": NODE_ID,
             "hostname": socket.gethostname(), "observed_at_utc": iso_utc(self.clock()),
-            "agent": {"version": AGENT_VERSION, "sample_interval_seconds": SAMPLE_INTERVAL_SECONDS,
-                      "process_priority": priority},
+            "agent": {
+                "version": AGENT_VERSION,
+                "sample_interval_seconds": SAMPLE_INTERVAL_SECONDS,
+                "priority_requested": priority["requested"],
+                "priority_application_result": priority["application_result"],
+                "priority_observed_effective": priority["observed_effective"],
+            },
             "gpu": gpu, "cpu": cpu, "ram": ram,
         }
 

@@ -2,6 +2,7 @@
 
 import json
 import socket
+import subprocess
 import threading
 import unittest
 from datetime import datetime, timedelta, timezone
@@ -13,22 +14,25 @@ from graci.remote_telemetry import (REMOTE_TELEMETRY_TIMEOUT_SECONDS,
                                     REMOTE_TELEMETRY_URL,
                                     Remote4090TelemetryClient)
 from graci.visualizer import TelemetryState
-from telemetry_agent.agent import (ALLOWED_CLIENTS, BIND_ADDRESS, EXPECTED_GPU_FRAGMENT,
-                                    MAX_RESPONSE_BYTES, NODE_ID, PORT, SCHEMA_VERSION,
-                                    SAMPLE_INTERVAL_SECONDS, HardwareSampler,
-                                    TelemetryCache, TelemetryHttpServer)
+from telemetry_agent.agent import (AGENT_VERSION, ALLOWED_CLIENTS, BELOW_NORMAL_PRIORITY_CLASS,
+                                    BIND_ADDRESS, EXPECTED_GPU_FRAGMENT, MAX_RESPONSE_BYTES,
+                                    NODE_ID, PORT, SCHEMA_VERSION, SAMPLE_INTERVAL_SECONDS,
+                                    HardwareSampler, TelemetryCache, TelemetryHttpServer,
+                                    _priority_report)
 
 ROOT = Path(__file__).resolve().parents[1]
 NOW = datetime(2026, 8, 30, 18, 0, tzinfo=timezone.utc)
 
 
 def payload(*, observed_at=NOW, node_id="4090", gpu_name="NVIDIA GeForce RTX 4090",
-            schema_version=1):
-    return {
+            schema_version=2):
+    value = {
         "schema_version": schema_version, "node_id": node_id, "hostname": "gaming-pc",
         "observed_at_utc": observed_at.isoformat().replace("+00:00", "Z"),
-        "agent": {"version": "1.0.0", "sample_interval_seconds": 3.0,
-                  "process_priority": "below_normal"},
+        "agent": {"version": "1.0.1", "sample_interval_seconds": 3.0,
+                  "priority_requested": "below_normal",
+                  "priority_application_result": "applied",
+                  "priority_observed_effective": "below_normal"},
         "gpu": {"status": "observed", "reason": None, "name": gpu_name,
                 "utilization_percent": 5, "vram_used_bytes": 1_395_864_371,
                 "vram_total_bytes": 25_769_803_776, "temperature_c": 39},
@@ -37,6 +41,10 @@ def payload(*, observed_at=NOW, node_id="4090", gpu_name="NVIDIA GeForce RTX 409
         "ram": {"status": "observed", "reason": None,
                 "used_bytes": 19_220_234_240, "total_bytes": 68_719_476_736},
     }
+    if schema_version == 1:
+        value["agent"] = {"version": "1.0.0", "sample_interval_seconds": 3.0,
+                          "process_priority": "below_normal"}
+    return value
 
 
 class FakeGpu:
@@ -52,12 +60,23 @@ class FakeSystem:
 class AgentSamplingTests(unittest.TestCase):
     def test_sampler_uses_fixed_schema_and_explicit_cpu_temperature_absence(self):
         gpu = FakeGpu()
-        value = HardwareSampler(gpu=gpu, system=FakeSystem(), clock=lambda: NOW).sample("below_normal")
+        priority = _priority_report(True, BELOW_NORMAL_PRIORITY_CLASS)
+        value = HardwareSampler(gpu=gpu, system=FakeSystem(), clock=lambda: NOW).sample(priority)
         self.assertEqual(set(value), {"schema_version", "node_id", "hostname",
                                      "observed_at_utc", "agent", "gpu", "cpu", "ram"})
-        self.assertEqual((value["schema_version"], value["node_id"]), (1, "4090"))
+        self.assertEqual((value["schema_version"], value["node_id"]), (2, "4090"))
         self.assertIsNone(value["cpu"]["temperature_c"])
         self.assertEqual(value["agent"]["sample_interval_seconds"], SAMPLE_INTERVAL_SECONDS)
+        self.assertEqual(value["agent"], {
+            "version": AGENT_VERSION, "sample_interval_seconds": SAMPLE_INTERVAL_SECONDS,
+            "priority_requested": "below_normal", "priority_application_result": "applied",
+            "priority_observed_effective": "below_normal"})
+
+    def test_priority_application_and_observed_effective_state_are_independent(self):
+        self.assertEqual(_priority_report(False, BELOW_NORMAL_PRIORITY_CLASS), {
+            "requested": "below_normal", "application_result": "failed_windows_error",
+            "observed_effective": "below_normal"})
+        self.assertEqual(_priority_report(True, 0x00000020)["observed_effective"], "normal")
 
     def test_reviewable_defaults_manifest_matches_compiled_fixed_values(self):
         manifest = json.loads((ROOT / "telemetry_agent" / "config.defaults.json").read_text("utf-8"))
@@ -141,6 +160,7 @@ class ClientTests(unittest.TestCase):
         self.assertEqual((value.gpu_utilization_percent, value.gpu_temperature_c,
                           value.cpu_utilization_percent), (5.0, 39.0, 4.2))
         self.assertIsNone(value.cpu_temperature_c)
+        self.assertEqual(value.source, "read-only agent v1.0.1")
         request, timeout = calls[0]
         self.assertEqual((request.full_url, request.method, timeout),
                          (REMOTE_TELEMETRY_URL, "GET", REMOTE_TELEMETRY_TIMEOUT_SECONDS))
@@ -160,7 +180,7 @@ class ClientTests(unittest.TestCase):
             (lambda *_: (_ for _ in ()).throw(URLError(OSError("refused"))),
              TelemetryState.UNAVAILABLE, "remote_telemetry_unreachable"),
             (lambda *_: b"not-json", TelemetryState.UNKNOWN, "remote_telemetry_malformed"),
-            (lambda *_: self.encoded(schema_version=2), TelemetryState.UNKNOWN,
+            (lambda *_: self.encoded(schema_version=3), TelemetryState.UNKNOWN,
              "remote_telemetry_schema_mismatch"),
             (lambda *_: self.encoded(node_id="other"), TelemetryState.UNKNOWN,
              "remote_telemetry_node_identity_mismatch"),
@@ -172,6 +192,18 @@ class ClientTests(unittest.TestCase):
                 value = Remote4090TelemetryClient(transport=transport, clock=lambda: NOW).sample()
                 self.assertEqual((value.state, value.reason), (state, reason))
                 self.assertIsNone(value.gpu_utilization_percent)
+
+    def test_rolling_update_accepts_only_exact_legacy_or_current_agent_schema(self):
+        legacy = Remote4090TelemetryClient(
+            transport=lambda *_: self.encoded(schema_version=1), clock=lambda: NOW).sample()
+        self.assertEqual((legacy.state, legacy.source),
+                         (TelemetryState.OBSERVED, "read-only agent v1.0.0"))
+        malformed = payload()
+        malformed["agent"]["process_priority"] = "below_normal"
+        result = Remote4090TelemetryClient(
+            transport=lambda *_: json.dumps(malformed).encode(), clock=lambda: NOW).sample()
+        self.assertEqual((result.state, result.reason),
+                         (TelemetryState.UNKNOWN, "remote_telemetry_schema_mismatch"))
 
     def test_unobserved_blocks_cannot_smuggle_measurements(self):
         value = payload(); value["gpu"]["status"] = "unavailable"
@@ -189,10 +221,57 @@ class DeploymentArtifactTests(unittest.TestCase):
         self.assertNotIn("Stop-Process", scripts)
         self.assertNotIn("Invoke-Command", scripts)
         self.assertNotIn("Enter-PSSession", scripts)
+        self.assertEqual(install.count("Copy-Item -LiteralPath"), 4)
         for marker in ("192.168.0.101", "192.168.0.100", "8767", "Private", "-Program $python",
                        "-RunLevel Limited", "-MultipleInstances IgnoreNew",
                        "C:\\ProgramData\\GRACI\\telemetry_agent"):
             self.assertIn(marker, install)
+
+    def test_boot_startup_is_single_fixed_bounded_and_cleanly_removable(self):
+        directory = ROOT / "telemetry_agent" / "windows"
+        scripts = {path.name: path.read_text("utf-8") for path in directory.glob("*.ps1")}
+        combined = "\n".join(scripts.values())
+        install = scripts["Install-GRACI4090Telemetry.ps1"]
+        remove = scripts["Remove-GRACI4090Telemetry.ps1"]
+        self.assertEqual(combined.count("New-ScheduledTaskTrigger -AtStartup"), 1)
+        self.assertNotIn("-AtLogOn", combined)
+        for marker in ("-Argument '-m telemetry_agent'", "-UserId 'SYSTEM'",
+                       "-LogonType ServiceAccount", "-RestartCount 3",
+                       "New-TimeSpan -Minutes 1", "-MultipleInstances IgnoreNew"):
+            self.assertIn(marker, install)
+        self.assertIn("Unregister-ScheduledTask -TaskName $taskName", remove)
+
+    def test_status_script_never_maps_task_enumeration_denial_to_not_installed(self):
+        script = ROOT / "telemetry_agent" / "windows" / "Status-GRACI4090Telemetry.ps1"
+        source = script.read_text("utf-8")
+        self.assertIn("Get-ScheduledTask -TaskName $taskName -ErrorAction Stop", source)
+        self.assertIn("CmdletizationQuery_NotFound_TaskName", source)
+        self.assertIn("ObjectNotFound", source)
+        self.assertIn("TASK ENUMERATION UNAVAILABLE", source)
+        self.assertIn("INSUFFICIENT PRIVILEGE", source)
+        self.assertNotIn("-ErrorAction SilentlyContinue", source)
+        command = (
+            "function global:Get-ScheduledTask { "
+            "throw [System.UnauthorizedAccessException]::new('denied') }; "
+            f"& '{script.as_posix()}'")
+        result = subprocess.run(
+            ["powershell.exe", "-NoLogo", "-NoProfile", "-NonInteractive",
+             "-ExecutionPolicy", "Bypass", "-Command", command],
+            capture_output=True, text=True, check=False)
+        output = result.stdout + result.stderr
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("TASK ENUMERATION UNAVAILABLE", output)
+        self.assertNotIn("NOT INSTALLED", output)
+
+    def test_documentation_matches_install_count_update_and_reboot_contracts(self):
+        readme = (ROOT / "telemetry_agent" / "README.md").read_text("utf-8")
+        self.assertIn("copies four package files", readme)
+        self.assertIn("No reboot is required", readme)
+        self.assertIn("AtStartup", readme)
+        self.assertIn("limited `SYSTEM`", readme)
+        self.assertIn("one-minute restart attempts", readme)
+        self.assertIn("Do not issue a manual telemetry start command", readme)
+        self.assertIn("exactly one fixed telemetry-agent process", readme)
 
 
 if __name__ == "__main__":

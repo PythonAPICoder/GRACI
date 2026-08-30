@@ -104,3 +104,50 @@ body[data-active-agent="qwen"] .circuit-packets{opacity:.96;animation-duration:5
 @media(max-width:1800px){.telemetry-panel{padding:12px}.operator-control{grid-template-columns:minmax(205px,1.2fr) minmax(220px,1.1fr) minmax(135px,.8fr) minmax(145px,.9fr) minmax(190px,1.2fr) 112px 112px 120px 120px;gap:5px}.toggle-compact>.sound-button,.compact-actions>button{font-size:.55rem!important;padding:0 4px!important}.status-compact{padding:6px}.telemetry-gauge{grid-template-columns:58px 1fr}.telemetry-gauge>i{width:51px;height:51px}.telemetry-gauge>i:before{width:38px;height:38px}}
 @media(max-width:1500px){.operator-control{grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:68px}.toggle-compact,.compact-actions{display:contents}.telemetry-panel:not([data-telemetry="fresh"]) .telemetry-gauge>i b{font-size:.75rem;max-width:none}.telemetry-gauge>small{display:block}}
 @media(max-width:620px){.operator-control{grid-template-columns:1fr}.toggle-compact,.compact-actions{display:contents}}
+
+/* Final physical-QA telemetry presentation: four mirrored circular instruments. */
+.telemetry-panel{--gauge-accent:var(--cyan);--gauge-track:rgba(18,78,96,.48);--gauge-glow:rgba(0,218,255,.24);display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;padding:18px 20px;overflow:hidden}
+.telemetry-optional{--gauge-accent:#8d7dff;--gauge-track:rgba(74,48,126,.5);--gauge-glow:rgba(134,84,255,.24)}
+.telemetry-panel header{min-height:82px;padding:6px 12px 14px;gap:12px}
+.telemetry-panel header>div{min-width:0;display:flex;flex-direction:row;align-items:center;gap:14px}
+.telemetry-panel header b{min-width:0;line-height:1.3}
+.telemetry-panel .availability{max-width:128px;margin:0;text-align:right;line-height:1.35;white-space:normal}
+.node-contract{min-height:94px;padding:13px 12px;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 12px}
+.node-contract b{font-size:.68rem}
+.node-contract small{line-height:1.35}
+.telemetry-metrics{min-height:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));align-content:stretch;gap:12px;padding:16px 2px}
+.telemetry-metrics article{min-width:0;min-height:0;height:auto;padding:13px 10px;display:grid;grid-template-columns:1fr;grid-template-rows:22px 1fr 22px;place-items:center;text-align:center;overflow:hidden;border-color:rgba(33,154,190,.46);background:radial-gradient(circle at 50% 52%,rgba(3,36,52,.55),rgba(1,10,18,.72) 68%);box-shadow:inset 0 0 28px rgba(0,177,220,.045)}
+.telemetry-optional .telemetry-metrics article{border-color:rgba(112,88,222,.45);background:radial-gradient(circle at 50% 52%,rgba(30,20,66,.44),rgba(2,9,19,.74) 68%)}
+.telemetry-metrics article>span,.telemetry-metrics article>small{grid-column:1;margin:0;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.telemetry-metrics article>span{grid-row:1;color:#aec1c9;font-size:.62rem;font-weight:600;letter-spacing:.065em}
+.telemetry-metrics article>small{grid-row:3;color:var(--gauge-accent);font-size:.56rem;letter-spacing:.065em}
+.telemetry-gauge>i{position:relative;grid-column:1;grid-row:2;display:grid;place-items:center;width:150px;height:150px;border:1px solid color-mix(in srgb,var(--gauge-accent) 54%,transparent);border-radius:50%;background:conic-gradient(var(--gauge-accent) 0 var(--meter,0deg),var(--gauge-track) var(--meter,0deg) 360deg);box-shadow:inset 0 0 22px var(--gauge-glow),0 0 22px var(--gauge-glow);font-style:normal}
+.telemetry-gauge>i:before{content:"";position:absolute;inset:12px;width:auto;height:auto;border:1px solid color-mix(in srgb,var(--gauge-accent) 38%,transparent);border-radius:50%;background:radial-gradient(circle,#081b28 0,#020b13 72%);box-shadow:inset 0 0 18px rgba(0,0,0,.75)}
+.telemetry-optional .telemetry-gauge>i:before{background:radial-gradient(circle,#13112b 0,#050915 72%)}
+.telemetry-gauge>i:after{content:"";position:absolute;inset:-6px;border-radius:50%;background:repeating-conic-gradient(from -1deg,color-mix(in srgb,var(--gauge-accent) 72%,transparent) 0 1deg,transparent 1deg 9deg);-webkit-mask:radial-gradient(circle,transparent 0 72%,#000 73% 76%,transparent 77%);mask:radial-gradient(circle,transparent 0 72%,#000 73% 76%,transparent 77%);opacity:.72}
+.telemetry-gauge>i b{position:relative;z-index:1;max-width:104px;color:#f2fdff;font-size:1.15rem;font-weight:600;line-height:1.12;white-space:nowrap;text-shadow:0 0 10px var(--gauge-accent)}
+.telemetry-memory>i b{font-size:.67rem;letter-spacing:-.025em}
+.telemetry-panel:not([data-telemetry="fresh"]) .telemetry-gauge>i b{font-size:1.35rem;max-width:none}
+.telemetry-panel footer{position:static;align-self:end;left:auto;right:auto;bottom:auto;min-width:0;margin:0;padding:12px;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;line-height:1.35}
+.telemetry-panel footer span,.telemetry-panel footer time,.telemetry-panel footer small{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.telemetry-panel footer time{text-align:right;font-variant-numeric:tabular-nums}
+
+.operator-control{grid-template-columns:minmax(270px,1.15fr) minmax(310px,1.15fr) minmax(170px,.75fr) minmax(220px,.9fr) minmax(300px,1.25fr) 145px 145px 150px 150px;gap:8px;justify-content:stretch}
+.operator-control>*{min-width:0}
+.operator-control>.ptt-button,.operator-control>.operator-status,.operator-control>.status-compact,.toggle-compact>*:not(i),.compact-actions>button{height:72px}
+.operator-status,.status-compact{overflow:hidden}
+.operator-status b,.operator-status span,.status-compact>strong,.status-compact>small,.status-compact time{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.status-compact>strong{font-size:.7rem}
+.status-compact{padding:6px 10px;gap:2px;line-height:1.15}
+.status-compact>*{flex-shrink:0}
+.status-compact>strong{line-height:1.25}
+.status-compact>small,.status-compact time{line-height:1.2}
+.activity-compact{padding-right:10px}
+.activity-compact>small{min-height:16px}
+.toggle-compact>span{padding:0 6px;text-align:center;line-height:1.25}
+.toggle-compact>.sound-button,.compact-actions>button{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+@media(max-width:1800px){.telemetry-panel{padding:12px}.telemetry-panel header{min-height:64px;padding:5px 8px 10px}.telemetry-panel header>div{gap:8px}.telemetry-panel .availability{max-width:84px;font-size:.54rem}.node-contract{min-height:80px;padding:9px 8px;gap:6px}.node-contract span,.node-contract small{font-size:.5rem}.node-contract b{font-size:.56rem}.telemetry-metrics{grid-template-rows:repeat(2,155px);gap:7px;padding:9px 0}.telemetry-metrics article{height:155px;padding:8px 5px;grid-template-rows:20px 1fr 19px}.telemetry-metrics article>span{font-size:.51rem}.telemetry-metrics article>small{font-size:.47rem}.telemetry-gauge>i{width:94px;height:94px}.telemetry-gauge>i:before{inset:9px}.telemetry-gauge>i b{font-size:.88rem}.telemetry-memory>i b{font-size:.49rem}.telemetry-panel footer{padding:8px;font-size:.47rem}.operator-control{grid-template-columns:minmax(205px,1.2fr) minmax(220px,1.1fr) minmax(135px,.8fr) minmax(145px,.9fr) minmax(190px,1.2fr) 112px 112px 120px 120px;gap:5px}}
+@media(max-width:1500px){.telemetry-panel{grid-template-rows:auto auto minmax(0,1fr) auto}.telemetry-panel header>div{flex-direction:column;align-items:flex-start;gap:3px}.telemetry-panel .availability{max-width:76px}.telemetry-metrics{grid-template-rows:repeat(2,150px)}.telemetry-metrics article{height:150px}.telemetry-gauge>i{width:90px;height:90px}.telemetry-memory>i b{font-size:.47rem}.telemetry-gauge>small{display:block}.telemetry-panel footer{position:static;margin-top:0}.operator-control{grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:72px}.toggle-compact,.compact-actions{display:contents}.pipeline{height:auto;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.pipeline>em{display:none}}
+@media(max-width:980px){.telemetry-panel{height:560px}.telemetry-metrics{grid-template-rows:repeat(2,150px)}.operator-control{grid-template-columns:1fr 1fr}}
+@media(max-width:620px){.telemetry-panel{height:560px}.telemetry-metrics{grid-template-columns:1fr 1fr}.operator-control{grid-template-columns:1fr}.pipeline{grid-template-columns:1fr 1fr}}

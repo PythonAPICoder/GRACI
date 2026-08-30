@@ -130,6 +130,23 @@ class TelemetryPresentationTests(unittest.TestCase):
         self.assertIn("data-metric=\"gpu-state\"", self.html)
         self.assertIn("data-metric=\"cpu-state\"", self.html)
 
+    def test_each_node_has_exactly_four_matching_circular_primary_widgets(self):
+        for node_id in ("node-3090", "node-4090"):
+            start = self.html.index(f'id="{node_id}"')
+            block = self.html[start:self.html.index("</aside>", start)]
+            self.assertEqual(block.count('class="telemetry-gauge'), 4)
+            for gauge, label in (("gpu", "GPU UTILIZATION"),
+                                 ("cpu", "CPU UTILIZATION"),
+                                 ("vram", "GPU VRAM"), ("ram", "SYSTEM RAM")):
+                self.assertEqual(block.count(f'data-gauge="{gauge}"'), 1)
+                self.assertIn(f"<span>{label}</span>", block)
+            self.assertNotIn("CPU TEMP", block)
+            self.assertNotIn("GPU TEMP", block)
+            self.assertNotIn("telemetry-reading", block)
+            self.assertNotIn("telemetry-bar", block)
+        self.assertIn(".telemetry-memory>i b", self.css)
+        self.assertIn("grid-template-rows:repeat(2,minmax(0,1fr))", self.css)
+
     def test_fresh_stale_unknown_and_real_value_rendering_are_explicit(self):
         for marker in (
             "TELEMETRY_FRESH_SECONDS = 10", 'telemetry.state==="observed"',
@@ -137,8 +154,7 @@ class TelemetryPresentationTests(unittest.TestCase):
             'observed?"stale":telemetry?.state||"unknown"',
             'clearTelemetry(root,observed?"STALE":"NOT OBSERVED")',
             'telemetry.gpu_utilization_percent', 'telemetry.vram_used_mib',
-            'telemetry.gpu_temperature_c', 'telemetry.cpu_utilization_percent',
-            'telemetry.ram_used_mib', 'telemetry.cpu_temperature_c',
+            'telemetry.cpu_utilization_percent', 'telemetry.ram_used_mib',
         ):
             self.assertIn(marker, self.js)
         telemetry_renderer = self.js[
@@ -147,6 +163,24 @@ class TelemetryPresentationTests(unittest.TestCase):
         self.assertNotIn("Math.random", telemetry_renderer)
         self.assertIn('metric(root,"gpu-util",gpu===null?"—"', telemetry_renderer)
         self.assertIn('metric(root,"gpu-state",gpu===null?"NOT OBSERVED"', telemetry_renderer)
+        self.assertIn('metric(root,"vram",vram===null?"—"', telemetry_renderer)
+        self.assertIn('metric(root,"vram-percent",vram===null?"NOT OBSERVED"',
+                      telemetry_renderer)
+        self.assertIn('[["gpu",gpu],["cpu",cpu],["vram",vram],["ram",ram]]',
+                      telemetry_renderer)
+        self.assertNotIn('metric(root,"cpu-temp"', telemetry_renderer)
+        self.assertNotIn('metric(root,"gpu-temp"', telemetry_renderer)
+
+    def test_consolidated_row_keeps_all_approved_controls_as_one_grid(self):
+        start = self.html.index('class="operator-control"')
+        block = self.html[start:self.html.index("</section>", start)]
+        for marker in ('id="ptt-button"', 'class="operator-status"',
+                       'id="status-state"', 'id="status-model"',
+                       'id="status-waveform"', 'id="ui-sounds"',
+                       'id="motion-setting"', 'id="restart-button"',
+                       'id="end-session"'):
+            self.assertIn(marker, block)
+        self.assertIn("grid-template-columns:minmax(270px,1.15fr)", self.css)
 
     def test_existing_analyser_ptt_and_accessibility_paths_remain_single_source(self):
         for marker in ("createMediaElementSource", "createAnalyser",

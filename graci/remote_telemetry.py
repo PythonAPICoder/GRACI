@@ -18,7 +18,7 @@ from .visualizer import HardwareTelemetryView, TelemetryState
 REMOTE_TELEMETRY_URL = "http://192.168.0.101:8767/telemetry"
 REMOTE_TELEMETRY_TIMEOUT_SECONDS = 1.0
 REMOTE_TELEMETRY_MAX_BYTES = 16_384
-REMOTE_TELEMETRY_SCHEMA_VERSION = 1
+REMOTE_TELEMETRY_SCHEMA_VERSIONS = frozenset({1, 2})
 REMOTE_TELEMETRY_MAX_AGE_SECONDS = 10.0
 REMOTE_NODE_ID = "4090"
 
@@ -84,7 +84,8 @@ def decode_4090_telemetry(body: bytes, *, now: datetime) -> HardwareTelemetryVie
         raise ValueError("malformed telemetry document") from exc
     top = _exact(document, {"schema_version", "node_id", "hostname", "observed_at_utc",
                             "agent", "gpu", "cpu", "ram"}, "top-level")
-    if top["schema_version"] != REMOTE_TELEMETRY_SCHEMA_VERSION:
+    schema_version = top["schema_version"]
+    if type(schema_version) is not int or schema_version not in REMOTE_TELEMETRY_SCHEMA_VERSIONS:
         raise SchemaMismatch("unsupported schema version")
     if top["node_id"] != REMOTE_NODE_ID:
         raise IdentityMismatch("unexpected telemetry node id")
@@ -93,13 +94,25 @@ def decode_4090_telemetry(body: bytes, *, now: datetime) -> HardwareTelemetryVie
     observed_at = _timestamp(top["observed_at_utc"])
     if (observed_at - now).total_seconds() > 2:
         raise SchemaMismatch("observation timestamp is in the future")
-    agent = _exact(top["agent"], {"version", "sample_interval_seconds", "process_priority"},
-                   "agent")
-    if (not isinstance(agent["version"], str) or len(agent["version"]) > 24 or
+    if schema_version == 1:
+        agent = _exact(top["agent"], {
+            "version", "sample_interval_seconds", "process_priority"}, "agent")
+        priority_valid = agent["process_priority"] in {
+            "below_normal", "not_applied_windows_error", "not_applied_non_windows"}
+    else:
+        agent = _exact(top["agent"], {
+            "version", "sample_interval_seconds", "priority_requested",
+            "priority_application_result", "priority_observed_effective"}, "agent")
+        priority_valid = (
+            agent["priority_requested"] == "below_normal" and
+            agent["priority_application_result"] in {
+                "applied", "failed_windows_error", "not_applied_non_windows"} and
+            agent["priority_observed_effective"] in {
+                "idle", "below_normal", "normal", "above_normal", "high", "realtime",
+                "unknown"})
+    if (not isinstance(agent["version"], str) or not 1 <= len(agent["version"]) <= 24 or
             type(agent["sample_interval_seconds"]) not in {int, float} or
-            not 2 <= agent["sample_interval_seconds"] <= 5 or
-            agent["process_priority"] not in {"below_normal", "not_applied_windows_error",
-                                               "not_applied_non_windows"}):
+            not 2 <= agent["sample_interval_seconds"] <= 5 or not priority_valid):
         raise SchemaMismatch("invalid agent metadata")
     gpu = _exact(top["gpu"], {"status", "reason", "name", "utilization_percent",
                               "vram_used_bytes", "vram_total_bytes", "temperature_c"}, "gpu")
@@ -140,7 +153,7 @@ def decode_4090_telemetry(body: bytes, *, now: datetime) -> HardwareTelemetryVie
     reason = "remote_telemetry_stale" if age > REMOTE_TELEMETRY_MAX_AGE_SECONDS else None
     mib = 1024 * 1024
     return HardwareTelemetryView(
-        TelemetryState.OBSERVED, observed_at, "4090-read-only-agent/v1",
+        TelemetryState.OBSERVED, observed_at, f"read-only agent v{agent['version']}",
         gpu_utilization_percent=gpu_util,
         vram_used_mib=None if vram_used is None else vram_used // mib,
         vram_total_mib=None if vram_total is None else vram_total // mib,

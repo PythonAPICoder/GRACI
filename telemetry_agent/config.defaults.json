@@ -10,5 +10,5 @@
   "node_id": "4090",
   "port": 8767,
   "sample_interval_seconds": 3.0,
-  "schema_version": 1
+  "schema_version": 2
 }
