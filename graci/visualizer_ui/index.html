@@ -21,7 +21,7 @@
     </header>
 
     <section class="workspace">
-      <aside class="left-rail status-rail" aria-label="Trusted local status">
+      <aside class="trusted-bindings" aria-hidden="true">
         <div class="section-heading"><span>01</span> LOCAL STATUS</div>
         <div class="status-summary"><span>CURRENT STATE</span><strong id="rail-state">AWAITING DATA</strong><small id="rail-activity">Waiting for trusted resident state.</small><time id="rail-updated">NO UPDATE</time></div>
         <article id="node-3090" class="node-card primary">
@@ -45,33 +45,43 @@
 
       <section class="core-stage" aria-label="GRACI computational core">
         <div class="core-grid" aria-hidden="true"></div>
-        <svg class="circuit-board" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-          <g class="circuit-traces"><path d="M0 150H180l70 70h170l85-85h150l90 90h190l80-80h185"/><path d="M40 640h150l70-70h145l90 90h185l75-75h170l65 65h210"/><path d="M140 0v120l80 80v115l-70 70v160l90 90V800"/><path d="M1040 0v135l-75 75v130l90 90v155l-85 85v130"/><path d="M0 390h230l65-65h135M1200 405H970l-70-70H770"/></g>
-          <g class="circuit-pulses"><path d="M0 150H180l70 70h170l85-85h150"/><path d="M1200 650H990l-65-65H755"/><path d="M1040 0v135l-75 75v130"/></g>
-          <g class="circuit-nodes"><circle cx="250" cy="220" r="5"/><circle cx="505" cy="135" r="5"/><circle cx="755" cy="225" r="5"/><circle cx="260" cy="570" r="5"/><circle cx="495" cy="660" r="5"/><circle cx="925" cy="585" r="5"/><circle cx="295" cy="325" r="4"/><circle cx="900" cy="335" r="4"/></g>
+        <svg class="circuit-board" viewBox="0 0 1600 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <defs><linearGradient id="traceGradient"><stop stop-color="#00eaff"/><stop offset=".54" stop-color="#009cff"/><stop offset="1" stop-color="#9b3cff"/></linearGradient></defs>
+          <g class="circuit-traces">
+            <path d="M0 92h220l38 38h178l44 44h150M0 138h178l32 32h164l54 54h158M0 190h126l48 48h218l46 46h136M0 248h238l35 35h130l55 55h142M0 316h170l48 48h160l46 46h150M0 392h250l40-40h135l52-52h118M0 468h182l46-46h172l45-45h140M0 534h240l38-38h120l56-56h150M0 602h160l46-46h186l52-52h146M0 672h220l34-34h178l58-58h128"/>
+            <path d="M1600 94h-220l-40 40h-170l-50 50H980m620-38h-180l-34 34h-164l-58 58h-188m624 20h-230l-40 40h-142l-52 52H990m610-28h-170l-46 46h-174l-48 48H982m618 34h-244l-38-38h-128l-58-58H970m630 112h-188l-42-42h-164l-50-50H982m618 116h-232l-38-38h-142l-56-56H968m632 126h-170l-46-46h-180l-48-48H980m620 120h-220l-38-38h-156l-56-56H972"/>
+          </g>
+          <g class="circuit-pulses"><path d="M0 138h178l32 32h164l54 54h158"/><path d="M0 602h160l46-46h186l52-52h146"/><path d="M1600 258h-230l-40 40h-142l-52 52H990"/><path d="M1600 646h-170l-46-46h-180l-48-48H980"/></g>
+          <g class="circuit-nodes"><circle cx="258" cy="130" r="5"/><circle cx="428" cy="224" r="5"/><circle cx="273" cy="283" r="4"/><circle cx="445" cy="377" r="5"/><circle cx="278" cy="496" r="5"/><circle cx="444" cy="556" r="4"/><circle cx="1340" cy="134" r="5"/><circle cx="1222" cy="238" r="4"/><circle cx="1330" cy="298" r="5"/><circle cx="1206" cy="424" r="5"/><circle cx="1330" cy="608" r="5"/><circle cx="1186" cy="672" r="4"/></g>
         </svg>
         <div class="presence-visual">
         <svg class="core" viewBox="0 0 640 640" role="img" aria-labelledby="core-title core-desc">
-          <title id="core-title">G.R.A.C.I. system core</title><desc id="core-desc">Abstract network visualization reflecting the current observed system state.</desc>
-          <defs><radialGradient id="coreGlow"><stop offset="0" stop-color="currentColor" stop-opacity=".4"/><stop offset=".55" stop-color="currentColor" stop-opacity=".09"/><stop offset="1" stop-color="currentColor" stop-opacity="0"/></radialGradient></defs>
-          <circle class="core-haze" cx="320" cy="320" r="260" fill="url(#coreGlow)"/>
-          <g class="orbit orbit-a"><circle cx="320" cy="320" r="210"/><circle class="node" cx="530" cy="320" r="7"/></g>
-          <g class="orbit orbit-b"><ellipse cx="320" cy="320" rx="245" ry="130"/><circle class="node memory-node" cx="75" cy="320" r="8"/></g>
-          <g class="orbit orbit-c"><ellipse cx="320" cy="320" rx="105" ry="245"/><circle class="node review-node" cx="320" cy="75" r="7"/></g>
-          <g class="network"><path d="M180 240L320 130 465 230 490 390 320 500 160 390Z"/><path d="M180 240L490 390M465 230L160 390M320 130V500"/></g>
+          <title id="core-title">G.R.A.C.I. reactive voice presence</title><desc id="core-desc">A luminous local assistant orb surrounded by a browser-audio-driven radial spectrum.</desc>
+          <defs>
+            <radialGradient id="sphereFill" cx="38%" cy="30%"><stop stop-color="#126a9a" stop-opacity=".72"/><stop offset=".38" stop-color="#063b63" stop-opacity=".48"/><stop offset=".78" stop-color="#020d1c" stop-opacity=".96"/><stop offset="1" stop-color="#01050d"/></radialGradient>
+            <radialGradient id="sphereGlow"><stop stop-color="#38f6ff" stop-opacity=".44"/><stop offset=".55" stop-color="#009fff" stop-opacity=".12"/><stop offset="1" stop-color="#06152e" stop-opacity="0"/></radialGradient>
+            <pattern id="hexMesh" width="28" height="48" patternUnits="userSpaceOnUse"><path d="M14 1l13 7v16l-13 7-13-7V8zM14 31l13 7v16l-13 7-13-7V38z" fill="none" stroke="#18cfff" stroke-opacity=".11" stroke-width="1"/></pattern>
+            <filter id="orbBloom" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <circle class="outer-halo" cx="320" cy="320" r="278" fill="url(#sphereGlow)"/>
+          <circle class="ring ring-outer" cx="320" cy="320" r="267"/><circle class="ring ring-dots" cx="320" cy="320" r="244"/><circle class="ring ring-inner" cx="320" cy="320" r="219"/>
           <g id="speech-radial" class="speech-radial" aria-hidden="true"></g>
-          <g class="core-orbits">
-            <g class="core-orbit primary-orbit"><circle class="orbit-track" cx="320" cy="320" r="112"/><circle class="signal-node node-a" cx="432" cy="320" r="4.2"/><circle class="signal-node node-b" cx="264" cy="223" r="3.3"/><circle class="signal-node node-c" cx="264" cy="417" r="2.8"/></g>
-            <g class="core-orbit secondary-orbit"><ellipse class="orbit-track" cx="320" cy="320" rx="138" ry="72"/><ellipse class="orbit-highlight" cx="320" cy="320" rx="138" ry="72"/><circle class="signal-node node-d" cx="458" cy="320" r="3.6"/><circle class="signal-node node-e" cx="251" cy="258" r="2.8"/></g>
-          </g>
-          <g class="inner"><polygon points="320,190 430,255 430,385 320,450 210,385 210,255"/><circle cx="320" cy="320" r="88"/><circle cx="320" cy="320" r="48"/></g>
-          <g class="pulse-paths"><path class="memory-path" d="M75 320H210"/><path class="tool-path" d="M430 320H568"/><path class="review-path" d="M320 190V76"/></g>
+          <g class="orb" filter="url(#orbBloom)"><circle class="orb-shell" cx="320" cy="320" r="156" fill="url(#sphereFill)"/><circle class="orb-mesh" cx="320" cy="320" r="151" fill="url(#hexMesh)"/><path class="orb-shine" d="M206 296c18-82 82-129 156-122 58 6 101 38 126 86-42-48-97-66-158-54-51 10-91 41-124 90z"/><circle class="orb-edge" cx="320" cy="320" r="156"/></g>
+          <g class="orb-wordmark"><text x="320" y="333">GRACI</text><text class="orb-pronunciation" x="320" y="372">GRAY-see</text></g>
         </svg></div>
-        <div class="core-label" role="status" aria-live="polite"><span>GRACI PRESENCE</span><strong id="core-state">IDLE</strong><b id="presence-category">RESTING</b><small id="freshness">NO SNAPSHOT</small></div>
+        <div class="core-label" role="status" aria-live="polite"><span>VOICE PRESENCE</span><strong id="core-state">IDLE</strong><b id="presence-category">RESTING</b><small id="freshness">NO SNAPSHOT</small></div>
         <div class="state-index" aria-label="System telemetry"><span>SCHEMA <b id="schema">—</b></span><span>SNAPSHOT <b id="snapshot-id">—</b></span><span>UPDATED <b id="updated">—</b></span></div>
       </section>
 
-      <aside class="right-rail detail-rail" aria-label="Current activity">
+      <aside class="right-rail detail-rail status-rail" aria-label="GRACI status">
+        <div class="status-title">GRACI STATUS</div>
+        <section class="rail-block"><span>CURRENT STATE</span><strong id="status-state">AWAITING DATA</strong><p><i class="status-dot"></i><b id="status-output">Browser voice standby</b></p></section>
+        <section class="rail-block"><span>ACTIVE MODEL</span><strong id="status-model">NO ACTIVE MODEL</strong><p id="status-role">Trusted resident state</p></section>
+        <section class="rail-block activity-block"><span>ACTIVITY</span><p id="status-activity">Waiting for trusted resident state.</p><div id="status-waveform" class="status-waveform" aria-hidden="true"></div></section>
+        <section class="rail-toggle"><span>UI SOUNDS</span><b id="status-sounds">ON</b></section>
+        <section class="rail-toggle"><span>REDUCED MOTION</span><b id="motion-setting">OFF</b></section>
+        <section class="rail-block last-update"><span>LAST UPDATE</span><time id="status-updated">NO UPDATE</time></section>
+        <div class="detail-bindings" aria-hidden="true">
         <div class="section-heading"><span>02</span> CURRENT ACTIVITY</div>
         <article class="task-panel">
           <span class="eyebrow">ACTIVE TASK</span><h2 id="task-summary">SYSTEM AT REST</h2>
@@ -86,7 +96,7 @@
         <div class="decision-grid">
           <article id="review-panel"><span>MODEL REVIEW</span><strong>NOT REQUESTED</strong><small>GLM verifier verdict</small></article>
           <article id="adjudication-panel"><span>DETERMINISTIC ACCEPTANCE</span><strong>NOT APPLICABLE</strong><small>GRACI policy outcome</small></article>
-        </div>
+        </div></div>
       </aside>
     </section>
 

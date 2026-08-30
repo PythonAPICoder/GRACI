@@ -145,9 +145,9 @@ class BrowserContractTests(unittest.TestCase):
                        'status-rail"', 'class="compact-actions"',
                        'latest-turn-footer"', 'id="end-session"'):
             self.assertIn(marker, self.html)
-        for marker in ("grid-template-columns:minmax(0,1fr) 310px",
-                       "transform:translate(-50%,-50%)", "width:min(79vh,1050px)",
-                       ".lower-grid{display:none}", ".pipeline{height:38px}"):
+        for marker in ("grid-template-columns:minmax(0,1fr) 338px",
+                       "width:min(82vh,880px)", ".detail-rail{display:flex!important",
+                       ".lower-grid{display:none}", ".pipeline{height:70px}"):
             self.assertIn(marker, self.css)
 
     def test_radial_circuit_and_state_mapping_remain_truthful(self):

@@ -68,9 +68,9 @@ class StaticContractTests(unittest.TestCase):
         for marker in ('id="node-3090"','id="node-4090"','id="agent-qwen"','id="agent-glm"','id="review-panel"','id="adjudication-panel"','data-field="mo2"'):
             self.assertIn(marker,self.html)
         for stage in ("memory","qwen","tools","tests","review","adjudication"): self.assertIn(f'data-stage="{stage}"',self.html)
-        for marker in ('class="core-orbit primary-orbit"','class="core-orbit secondary-orbit"','class="orbit-highlight"','class="signal-node node-a"','class="signal-node node-e"'):
+        for marker in ('class="orb-shell"','class="orb-mesh"','class="orb-edge"','class="ring ring-outer"','class="ring ring-dots"','id="sphereFill"','id="hexMesh"','class="orb-wordmark"'):
             self.assertIn(marker,self.html)
-        for marker in ("orbit-flow","orbit-flow-reverse","stroke-dashoffset:-304","animation-duration:8s","animation-duration:13s","listening-ripple","speaking-pulse","success-pulse"):
+        for marker in ("opacity:calc(.48 + var(--bar,0)*.52)","var(--voice-energy,0)*34","width:min(82vh,880px)"):
             self.assertIn(marker,self.css)
         self.assertIn("prefers-reduced-motion:reduce",self.css)
 
