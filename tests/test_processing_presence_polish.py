@@ -28,7 +28,8 @@ class ProcessingSoundContractTests(unittest.TestCase):
             'glm:Object.freeze({wave:"sine"',
             "delays:Object.freeze([2100,3900,2700,5100,3200])",
             "delays:Object.freeze([2800,4700,3400,5600])",
-            "gain:.013", "gain:.011", "duration:.058", "duration:.074",
+            "gain:.032", "gain:.026", "duration:.12", "duration:.135",
+            "initialDelay:700", "initialDelay:800",
         ):
             self.assertIn(marker, profiles)
         self.assertNotIn("Math.random", self.sound_block)
@@ -73,6 +74,39 @@ class ProcessingSoundContractTests(unittest.TestCase):
             self.assertIn(marker, allowed)
         self.assertNotIn("setInterval", self.sound_block)
         self.assertEqual(self.sound_block.count("sound.timer=setTimeout"), 1)
+
+    def test_chirp_graph_is_audible_bounded_and_reaches_destination(self):
+        profiles = self.js[
+            self.js.index("const PROCESSING_SOUND_PROFILES"):
+            self.js.index("const PRESENTATION_BY_STATE")
+        ]
+        gains = [float(value) for value in re.findall(r"gain:(\.\d+)", profiles)]
+        durations = [float(value) for value in re.findall(r"duration:(\.\d+)", profiles)]
+        initial_delays = [int(value) for value in re.findall(r"initialDelay:(\d+)", profiles)]
+        self.assertEqual(len(gains), 2)
+        self.assertTrue(all(gain >= .02 for gain in gains))
+        self.assertTrue(all(.08 <= duration <= .16 for duration in durations))
+        self.assertTrue(all(600 <= delay <= 1000 for delay in initial_delays))
+        for marker in (
+            "oscillator.connect(gain)", "gain.connect(context.destination)",
+            'oscillator.addEventListener("ended"', "oscillator.start(now)",
+            "oscillator.stop(now+profile.duration+.016)",
+            'recordProcessingAudioDiagnostic("cue-started"',
+            "destinationConnected:true", 'recordProcessingAudioDiagnostic("cue-completed"',
+        ):
+            self.assertIn(marker, self.sound_block)
+
+    def test_opt_in_audio_diagnostics_are_bounded_and_normal_ui_is_quiet(self):
+        diagnostic = self.js[
+            self.js.index("const PROCESSING_AUDIO_DIAGNOSTIC_LIMIT"):
+            self.js.index("const PRESENTATION_BY_STATE")
+        ]
+        self.assertIn("PROCESSING_AUDIO_DIAGNOSTIC_LIMIT = 12", diagnostic)
+        self.assertIn('window.location.hash==="#processing-audio-diagnostics"', diagnostic)
+        self.assertIn("processingAudioDiagnostics.shift()", diagnostic)
+        self.assertIn("document.documentElement.dataset.processingAudioDiagnostic=JSON.stringify(processingAudioDiagnostics)", diagnostic)
+        self.assertIn('Object.defineProperty(window,"__graciProcessingAudioDiagnostics"', diagnostic)
+        self.assertNotIn("console.", diagnostic)
 
 
 class CircuitPresenceContractTests(unittest.TestCase):
@@ -125,7 +159,7 @@ class CircuitPresenceContractTests(unittest.TestCase):
             "--trail-near-opacity:.54", "--packet-duration:5.3s",
             "--packet-duration:6.7s", "--packet-duration:8.6s",
             'body[data-circuit-mode="glm"] .circuit-packet',
-            "color:#a56cff", "animation-name:circuit-packet-reverse",
+            "color:#a56cff", "animation-name:circuit-packet-reverse-head",
             'body[data-circuit-mode="speaking"] .packet-1',
             'body[data-circuit-mode="speaking"] .packet-4',
             "--packet-opacity:.15", "--packet-opacity:.13",
@@ -134,6 +168,22 @@ class CircuitPresenceContractTests(unittest.TestCase):
             self.assertIn(marker, self.css)
         self.assertIn("--trail-far-opacity:.12", self.css)
         self.assertNotIn("animation:circuit-pulse 14s", self.css)
+
+    def test_forward_and_reverse_trails_remain_behind_the_leading_point(self):
+        for marker in (
+            ".packet-trail-far{stroke-width:5.4;stroke-dasharray:6.2 93.8;stroke-dashoffset:106.2",
+            "animation-name:circuit-packet-forward-far",
+            ".packet-trail-near{stroke-width:3.2;stroke-dasharray:3.1 96.9;stroke-dashoffset:103.1",
+            "animation-name:circuit-packet-forward-near",
+            ".packet-head{stroke-width:3.8;stroke-dasharray:.65 99.35;stroke-dashoffset:100",
+            "animation-name:circuit-packet-forward-head",
+            'body[data-circuit-mode="glm"] .packet-trail-far{stroke-dashoffset:-.65;animation-name:circuit-packet-reverse-far}',
+            'body[data-circuit-mode="glm"] .packet-trail-near{stroke-dashoffset:-.65;animation-name:circuit-packet-reverse-near}',
+            'body[data-circuit-mode="glm"] .packet-head{stroke-dashoffset:0;animation-name:circuit-packet-reverse-head}',
+            "@keyframes circuit-packet-reverse-head{from{stroke-dashoffset:0}to{stroke-dashoffset:100}}",
+        ):
+            self.assertIn(marker, self.css)
+        self.assertNotIn('body[data-circuit-mode="glm"] .circuit-packet path{animation-name:', self.css)
 
     def test_reduced_motion_hides_only_traveling_packets(self):
         reduced_rules = re.findall(
