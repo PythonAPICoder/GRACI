@@ -272,4 +272,8 @@ remains observer-only. `LISTENING` is backend-published only during an accepted 
 there is no wake word, VAD, continuous listening, automatic follow-up, generic task
 submission, routing, memory, or persistence control. The
 3090 remains independently sufficient, and optional 4090/MO2 policy is unchanged.
-Phase 8B is complete in repository. Phase 8C and later presence work remain unauthorized.
+Phase 8B resident continuity remains intact. Phase 8C is implemented with a
+deterministic trusted-state command center, reason-specific 4090 fail-closed display,
+honest Qwen/GLM activity semantics, previous-response labeling during a newer turn,
+accessible live regions, reduced-motion support, and narrow responsive layout.
+Physical Browser acceptance remains required; Phase 9A remains deferred.

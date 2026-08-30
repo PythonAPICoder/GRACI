@@ -5,6 +5,23 @@ Accepted current G1 governance and stable policy IDs are canonical in
 [`governance/POLICY_INDEX.md`](governance/POLICY_INDEX.md). This document describes
 implemented architecture; code/configuration/tests remain deterministic enforcement.
 
+## Phase 8C trusted reactive command center
+
+`trusted resident snapshot + SSE connection facts -> deterministic semantic copy + bounded motion -> localhost Browser`
+
+Every existing `SystemState` maps to one presentation label and explanation while
+the authoritative state remains visible. Qwen/GLM active treatment requires trusted
+`AgentView.state == active`. RTX 4090 presentation derives only from resident health,
+eligibility, MO2, availability, and assignment facts and distinguishes available,
+in-use, MO2-blocked, unhealthy, policy-ineligible, and unknown/fail-closed. Browser
+code performs no process inspection.
+
+Phase 8B `latest_turn` remains authoritative. A newer resident task marks the retained
+completed response as previous without changing its text or lifetime. Disconnect
+marks the snapshot stale. Reduced-motion and semantic live-region behavior are
+presentation only. PTT and Restart remain the only POST controls; no execution,
+compute, model, memory, remote, cloud, or policy authority was added.
+
 ## Phase 8B resident latest-turn continuity
 
 `completed governed browser turn -> validated TurnResult/AuthoritativeFinalResponse -> fail-open bounded LatestTurnView -> snapshot v2 + latest_turn_updated SSE event -> localhost browser`

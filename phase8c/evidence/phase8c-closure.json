@@ -1,0 +1,35 @@
+{
+  "phase": "8C",
+  "status": "PASS_AUTOMATED_PHYSICAL_QA_PENDING",
+  "starting_commit": "8fde138bbf021310f57b91cf298af6b80f2a2573",
+  "objective": "Trusted reactive presence and an accessible observer command center",
+  "trusted_sources": [
+    "resident snapshot system_state and generated_at",
+    "resident task, compute, agent, review, execution, and latest_turn projections",
+    "resident SSE events and browser connection state",
+    "accepted explicit browser PTT capture state"
+  ],
+  "authority_boundary": {
+    "new_execution_authority": false,
+    "new_routes": false,
+    "new_cloud_or_remote_access": false,
+    "observer_state_can_grant_authority": false
+  },
+  "continuity": {
+    "phase8b_latest_turn_projection_preserved": true,
+    "restart_retains_latest_completed_turn": true,
+    "run_history_reconstruction": false
+  },
+  "verification": {
+    "focused_and_regression_warning_strict": "PASS 60/60",
+    "full_warning_strict_isolated_from_live_resident": "PASS 476/476",
+    "javascript_syntax": "PASS",
+    "tracked_project_python_compilation": "PASS",
+    "json_validation": "PASS 49 files",
+    "git_diff_check": "PASS"
+  },
+  "physical_browser_qa": {
+    "status": "REQUIRED_PRODUCT_OWNER_MANUAL_QA",
+    "performed_by_codex": false
+  }
+}

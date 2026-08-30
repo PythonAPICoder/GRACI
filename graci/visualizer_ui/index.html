@@ -12,7 +12,7 @@
   <main class="command-center">
     <header class="topbar">
       <div class="brand"><span class="brand-mark">G.R.A.C.I.</span><span class="subtitle">LOCAL AUTONOMOUS SYSTEM</span></div>
-      <div class="state-readout"><span class="eyebrow">CURRENT STATE</span><strong id="overall-state">AWAITING DATA</strong></div>
+      <div class="state-readout" role="status" aria-live="polite" aria-atomic="true"><span class="eyebrow">CURRENT STATE</span><strong id="overall-state">AWAITING DATA</strong><small id="state-explanation">Waiting for a trusted resident snapshot.</small></div>
       <div class="header-right">
         <span class="local-first">LOCAL-FIRST</span>
         <span id="connection" class="connection" role="status"><i></i> CONNECTING</span>
@@ -28,17 +28,17 @@
           <strong class="availability">UNKNOWN</strong>
           <dl><div><dt>ENDPOINT</dt><dd data-field="health">UNKNOWN</dd></div><div><dt>MODEL</dt><dd data-field="model">UNASSIGNED</dd></div><div><dt>ROLE</dt><dd data-field="role">AUTHORITY</dd></div></dl>
         </article>
-        <article id="agent-qwen" class="agent-card qwen">
-          <div class="agent-sigil" aria-hidden="true">Q</div><div><span>QWEN</span><strong data-field="model">—</strong><small data-field="activity">INACTIVE</small></div>
+        <article id="agent-qwen" class="agent-card qwen" aria-label="Qwen primary local implementer">
+          <div class="agent-sigil" aria-hidden="true">Q</div><div><span>QWEN · IMPLEMENTER</span><strong data-field="model">—</strong><small data-field="activity">INACTIVE</small></div>
         </article>
         <article id="node-4090" class="node-card optional">
-          <div class="card-top"><span>RTX 4090</span><em>OPTIONAL CAPACITY</em></div>
+          <div class="card-top"><span>RTX 4090</span><em>OPTIONAL CAPACITY / GAMING PRIORITY</em></div>
           <strong class="availability">UNKNOWN</strong>
           <dl><div><dt>ENDPOINT</dt><dd data-field="health">UNKNOWN</dd></div><div><dt>MO2</dt><dd data-field="mo2">UNKNOWN</dd></div><div><dt>ELIGIBILITY</dt><dd data-field="eligibility">UNKNOWN</dd></div></dl>
           <p data-field="reason">AWAITING OBSERVED STATE</p>
         </article>
-        <article id="agent-glm" class="agent-card glm">
-          <div class="agent-sigil" aria-hidden="true">G</div><div><span>GLM</span><strong data-field="model">—</strong><small data-field="activity">INACTIVE</small></div>
+        <article id="agent-glm" class="agent-card glm" aria-label="GLM local reviewer and verifier">
+          <div class="agent-sigil" aria-hidden="true">G</div><div><span>GLM · REVIEWER</span><strong data-field="model">—</strong><small data-field="activity">INACTIVE</small></div>
         </article>
       </aside>
 
@@ -90,9 +90,9 @@
         </button>
         <div class="operator-status" role="status" aria-live="polite"><b id="ptt-status">MICROPHONE OFF</b><span id="ptt-detail">Audio is captured only while held.</span></div>
         <button id="restart-button" class="restart-button" type="button">RESTART GRACI</button>
-        <article class="operator-response" aria-labelledby="latest-turn-label" aria-live="polite">
+        <article class="operator-response" aria-labelledby="latest-turn-label" aria-live="polite" aria-atomic="true">
           <span id="latest-turn-label">LATEST COMPLETED TURN</span>
-          <div class="latest-turn-meta"><b id="latest-turn-status">NONE</b><small id="latest-turn-id">NO RESIDENT RESULT</small><small id="latest-turn-presentation">PRESENTATION N/A</small></div>
+          <div class="latest-turn-meta"><b id="latest-turn-status">NONE</b><small id="latest-turn-currency">NO CURRENT RESPONSE</small><small id="latest-turn-id">NO RESIDENT RESULT</small><small id="latest-turn-presentation">PRESENTATION N/A</small></div>
           <p id="operator-response">No completed resident turn yet.</p>
         </article>
       </div>

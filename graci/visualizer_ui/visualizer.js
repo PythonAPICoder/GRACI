@@ -10,6 +10,21 @@
     "completed":"success", "warning":"warning", "failed":"failure", "speaking":"responding"
   });
   const SAFE_PRESENCE = "warning";
+  const PRESENTATION_BY_STATE = Object.freeze({
+    "idle":["READY","Waiting for an explicit push-to-talk hold."],
+    "listening":["LISTENING","Microphone capture is active for the accepted hold."],
+    "planning":["PROCESSING","A governed turn is being prepared."],
+    "retrieving_memory":["PROCESSING","Bounded governed memory selection is active."],
+    "reasoning":["PROCESSING","A trusted model activity observation is active."],
+    "executing_tool":["WORKING","A governed local operation is active."],
+    "testing":["VERIFYING","Deterministic tests are active."],
+    "reviewing":["REVIEWING","The trusted reviewer observation is active."],
+    "adjudicating":["VERIFYING","Deterministic acceptance is active."],
+    "completed":["COMPLETE","The governed turn completed."],
+    "warning":["DEGRADED","The resident reported a warning."],
+    "failed":["FAILED","The governed turn or resident state failed."],
+    "speaking":["SPEAKING","Owned local speech playback is active."]
+  });
   const presenceFor = (systemState) => PRESENCE_BY_STATE[systemState] || SAFE_PRESENCE;
   const ALL_STATES = Object.freeze(Object.keys(PRESENCE_BY_STATE));
   const ALL_SEVERITIES = ["info","activity","success","warning","error"];
@@ -20,28 +35,35 @@
   const shortId = (value) => value ? String(value).slice(0, 14) : "—";
   const field = (root, name, value) => { const node = root.querySelector(`[data-field="${name}"]`); if (node) node.textContent = text(value); };
   function connection(kind, label) { document.body.dataset.connection = kind; const node=$("connection"); node.className=`connection ${kind}`; node.innerHTML=`<i></i> ${label}`; document.body.classList.toggle("stale", kind === "disconnected"); }
+  const computePresentation = (node) => {
+    if(node.node_id==="4090"&&node.mo2_state==="running")return ["blocked","UNAVAILABLE — BLOCKED — MO2 RUNNING"];
+    if(node.endpoint_health==="unhealthy")return ["failed","UNAVAILABLE — UNHEALTHY"];
+    if(node.node_id==="4090"&&node.eligible!==true)return ["blocked",node.eligible===false?"UNAVAILABLE — POLICY":"UNKNOWN — FAIL CLOSED"];
+    if(node.endpoint_health!=="healthy")return ["unknown","UNKNOWN — FAIL CLOSED"];
+    return ["available",node.availability==="active"?"IN USE":"AVAILABLE / HEALTHY"];
+  };
   function renderNode(id, node) {
-    const root=$(id); if (!node) return; const blocked=node.node_id === "4090" && (node.eligible === false || node.mo2_state === "running");
-    const available=node.endpoint_health === "healthy" && !blocked; root.dataset.status=blocked?"blocked":available?"available":node.endpoint_health === "unhealthy"?"failed":"unknown";
-    root.querySelector(".availability").textContent=blocked?"BLOCKED — MO2 RUNNING":available?"AVAILABLE / HEALTHY":text(node.availability);
+    const root=$(id); if (!node) return; const [status,label]=computePresentation(node); root.dataset.status=status;
+    root.querySelector(".availability").textContent=label;
     field(root,"health",node.endpoint_health); field(root,"model",node.assigned_model,"UNASSIGNED"); field(root,"role",node.assigned_role || node.role); field(root,"mo2",node.mo2_state,"NOT OBSERVED"); field(root,"eligibility",node.eligible===true?"ELIGIBLE":node.eligible===false?"BLOCKED":"UNKNOWN"); field(root,"reason",node.policy_reason,"NO POLICY RESTRICTION");
   }
-  function renderAgent(id, agent) { const root=$(id); if(!agent)return; field(root,"model",agent.model_id); field(root,"activity",agent.activity || agent.review_status || agent.state); root.dataset.status=agent.state; }
+  function renderAgent(id, agent) { const root=$(id); if(!agent)return; field(root,"model",agent.model_id); const observed=agent.state==="active"?(agent.activity||"active"):agent.state; field(root,"activity",observed); root.dataset.status=agent.state; }
   function setStage(name,status,label) { const root=document.querySelector(`[data-stage="${name}"]`); if(!root)return; root.dataset.status=status; root.querySelector("b").textContent=text(label || status); }
   function renderPipeline(s) {
     const active=s.system_state; const memory=s.memory.requested ? (active==="retrieving_memory"?"active":s.memory.supplied_memory_ids.length?"passed":"pending") : "not_applicable";
     const ops=s.execution.operations||[]; const opFailed=ops.some(x=>x.status==="failed"); const opActive=ops.some(x=>x.status==="active");
     setStage("memory",memory); setStage("qwen",s.agents.qwen.state,s.agents.qwen.activity||s.agents.qwen.state); setStage("tools",opFailed?"failed":opActive||active==="executing_tool"?"active":ops.length?"passed":"not_applicable"); setStage("tests",s.execution.tests.status); setStage("review",s.review.reviewer_status); setStage("adjudication",s.review.adjudication_status);
   }
-  function renderLatestTurn(turn) {
+  function renderLatestTurn(turn, newerTurnActive=false) {
     const panel=document.querySelector(".operator-response");
-    if(!turn){panel.dataset.status="none";$("latest-turn-status").textContent="NONE";$("latest-turn-id").textContent="NO RESIDENT RESULT";$("latest-turn-presentation").textContent="PRESENTATION N/A";$("operator-response").textContent="No completed resident turn yet.";return;}
-    panel.dataset.status=turn.governed_status;$("latest-turn-status").textContent=text(turn.governed_status);$("latest-turn-id").textContent=`RUN ${shortId(turn.run_id)} · ${localTime(turn.completed_at)}`;$("latest-turn-presentation").textContent=`PRESENTATION ${text(turn.presentation_outcome)}`;$("operator-response").textContent=turn.response_available?turn.response_text:(turn.failure_reason||"No validated authoritative response is available for this completed turn.");
+    if(!turn){panel.dataset.status="none";$("latest-turn-status").textContent="NONE";$("latest-turn-currency").textContent="NO CURRENT RESPONSE";$("latest-turn-id").textContent="NO RESIDENT RESULT";$("latest-turn-presentation").textContent="PRESENTATION N/A";$("operator-response").textContent="No completed resident turn yet.";return;}
+    panel.dataset.status=turn.governed_status;panel.dataset.currency=newerTurnActive?"previous":"current";$("latest-turn-status").textContent=text(turn.governed_status);$("latest-turn-currency").textContent=newerTurnActive?"PREVIOUS COMPLETED · NEW TURN ACTIVE":"CURRENT COMPLETED RESPONSE";$("latest-turn-id").textContent=`RUN ${shortId(turn.run_id)} · ${localTime(turn.completed_at)}`;$("latest-turn-presentation").textContent=`PRESENTATION ${text(turn.presentation_outcome)}`;$("operator-response").textContent=turn.response_available?turn.response_text:(turn.failure_reason||"No validated authoritative response is available for this completed turn.");
   }
   function renderSnapshot(s) {
-    state.snapshot=s; state.lastSuccess=Date.now(); connection("live","LIVE"); const presence=presenceFor(s.system_state); document.body.dataset.systemState=ALL_STATES.includes(s.system_state)?s.system_state:"warning"; document.body.dataset.presence=presence;
-    $("overall-state").textContent=text(s.system_state,"UNKNOWN"); $("core-state").textContent=text(s.system_state,"UNKNOWN"); $("presence-category").textContent=text(presence); $("schema").textContent=`v${s.schema_version}`; $("snapshot-id").textContent=shortId(s.snapshot_id); $("updated").textContent=localTime(s.generated_at); $("freshness").textContent="LIVE OBSERVED STATE";
-    renderNode("node-3090",s.compute.primary_3090); renderNode("node-4090",s.compute.optional_4090); renderAgent("agent-qwen",s.agents.qwen); renderAgent("agent-glm",s.agents.glm); renderLatestTurn(s.latest_turn); updatePTTAvailability(); $("restart-button").classList.toggle("visible",s.system_state==="failed");
+    state.snapshot=s; state.lastSuccess=Date.now(); connection("live","LIVE"); const trusted=ALL_STATES.includes(s.system_state); const presence=presenceFor(s.system_state); const presentation=PRESENTATION_BY_STATE[s.system_state]||["UNKNOWN","Unrecognized resident state; presentation fails closed."]; document.body.dataset.systemState=trusted?s.system_state:"warning"; document.body.dataset.presence=presence;
+    $("overall-state").textContent=text(s.system_state,"UNKNOWN"); $("state-explanation").textContent=`${presentation[0]} · ${presentation[1]}`; $("core-state").textContent=text(s.system_state,"UNKNOWN"); $("presence-category").textContent=text(presence); $("schema").textContent=`v${s.schema_version}`; $("snapshot-id").textContent=shortId(s.snapshot_id); $("updated").textContent=localTime(s.generated_at); $("freshness").textContent="LIVE OBSERVED STATE";
+    const newerTurnActive=Boolean(s.task.task_id)&&!["completed","failed"].includes(s.system_state); renderNode("node-3090",s.compute.primary_3090); renderNode("node-4090",s.compute.optional_4090); renderAgent("agent-qwen",s.agents.qwen); renderAgent("agent-glm",s.agents.glm); renderLatestTurn(s.latest_turn,newerTurnActive); // Phase 8B continuity: renderLatestTurn(s.latest_turn)
+    updatePTTAvailability(); $("restart-button").classList.toggle("visible",s.system_state==="failed");
     const task=s.task, hasTask=Boolean(task.task_id); $("task-summary").textContent=hasTask?(task.summary||"BOUNDED TASK"):"SYSTEM AT REST"; $("task-id").textContent=shortId(task.task_id); $("task-phase").textContent=text(task.phase,hasTask?text(s.system_state):"IDLE"); $("task-started").textContent=localTime(task.started_at);
     const pct=task.progress_total?Math.min(100,Math.round(task.progress_current/task.progress_total*100)):0; $("task-progress").style.width=`${pct}%`; $("task-status").textContent=task.failure_reason|| (hasTask?`${text(task.final_status)} · ${pct}% observed progress`:"No current task. Monitoring local runtime.");
     const m=s.memory; document.querySelector(".memory-panel").classList.toggle("active",m.requested); $("memory-status").textContent=text(m.selection_status,m.requested?"REQUESTED":"N/A"); $("memory-mode").textContent=text(m.mode); $("memory-keys").textContent=m.relevance_keys.length; $("memory-selected").textContent=m.selected_memory_ids.length; $("memory-supplied").textContent=m.supplied_memory_ids.length; $("memory-context").textContent=Number(m.context_characters).toLocaleString(); $("memory-diag").textContent=`${m.conflict_count} / ${m.corruption_count}`;
