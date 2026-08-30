@@ -192,8 +192,12 @@ class ResidentHost:
         except Exception:
             primary = HardwareTelemetryView(
                 TelemetryState.UNAVAILABLE, reason="local_telemetry_collection_failed")
-        composition.runtime_observer.publish_hardware_telemetry(
-            primary, collector.optional_unavailable())
+        try:
+            optional = collector.sample_optional()
+        except Exception:
+            optional = HardwareTelemetryView(
+                TelemetryState.UNAVAILABLE, reason="remote_telemetry_collection_failed")
+        composition.runtime_observer.publish_hardware_telemetry(primary, optional)
 
 
 def _atomic_json(path: Path, value: dict[str, Any]) -> None:

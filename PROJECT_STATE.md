@@ -25,14 +25,33 @@ Phase 6B — COMPLETE; Phase 7 — COMPLETE; Phase 8A — COMPLETE; Phase 8B —
   `GetSystemTimes` CPU counters and `GlobalMemoryStatusEx` RAM counters. Available
   fields are GPU utilization, VRAM used/total, GPU temperature, CPU utilization after
   the initial counter sample, and RAM used/total. CPU temperature is not observed.
-- No authorized bounded read-only path to the optional RTX 4090 exists. Its telemetry
-  remains explicitly unavailable with no values or decorative history. A future
-  source must be narrowly authenticated/read-only and emit the same bounded contract;
-  a broad remote command channel is not acceptable.
+- A standalone, zero-pip-dependency RTX 4090 agent now supplies the authorized
+  bounded read-only path: persistent direct NVML, native Windows CPU/RAM counters,
+  a three-second cache, below-normal process priority, and fixed schema-v1 GET
+  `/health` and `/telemetry`. CPU temperature remains explicitly unobserved. There is
+  no affinity dependency and no repeated `nvidia-smi` subprocess.
+- Production defaults bind `192.168.0.101:8767`. The application allowlist and
+  packaged private-profile firewall rule constrain the LAN peer to the 3090 at
+  `192.168.0.100`. Explicit scheduled-task lifecycle scripts are packaged but were
+  not run; the 4090 is not deployed or enabled by this repository change.
+- The 3090 decoder enforces an exact 16-KiB-bounded schema, node/GPU identity,
+  timestamp and numeric bounds, and distinct timeout/unreachable/malformed/schema/
+  identity failures. It has no write or generic control surface.
 - The browser treats telemetry as fresh for ten seconds relative to the trusted
   snapshot timestamp. Stale values are labeled and suppressed rather than silently
   reused. Telemetry is presentation-only: publishing it does not mutate endpoint
   health, MO2 state, routing, workload placement, or `eligible`.
+- Unavailable copy is now rendered outside GPU/CPU gauge circles. The nine compact
+  operator controls occupy one row at 3440×1440 without wrappers contributing
+  phantom grid columns; the accepted central presence is untouched.
+- A local 3090 development-host harness measured 24.24 MiB working set, 14.60 MiB
+  private memory, no measurable CPU time across the bounded idle/request window,
+  and 0.739 ms mean / 2.965 ms maximum latency for 100 cached responses. The target
+  14900K/RTX 4090 resource, power, and thermal impact is not yet verified.
+- Focused warning-strict verification passes 31/31 and the complete suite passes
+  509/509. Python, JavaScript, tracked JSON, deployment PowerShell parsing, and diff
+  validation pass. Real 3440×1440 browser QA recorded no overflow, control collision,
+  or console warning/error.
 - This is not Phase 8D. No health reducer, degraded/recovering state machine,
   authoritative 4090 policy, trusted runtime-context injection, alert manager, cloud
   telemetry, remote shell, arbitrary process endpoint, or new model authority exists.

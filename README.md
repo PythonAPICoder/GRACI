@@ -23,19 +23,22 @@ claim, PTT/barge-in, compact pipeline, and latest-turn footer remain unchanged.
 Snapshot schema v3 adds bounded, immutable, presentation-only telemetry to each
 compute node. The resident samples the local RTX 3090 every two seconds using one
 fixed, timeout-bounded `nvidia-smi` query plus read-only Windows `GetSystemTimes` and
-`GlobalMemoryStatusEx` counters. This currently exposes GPU utilization, VRAM used
-and total, GPU temperature, CPU utilization after the first counter delta, and RAM
-used and total. There is no reliable native CPU-temperature source, so it remains
-`NOT OBSERVED`.
+`GlobalMemoryStatusEx` counters. The optional RTX 4090 now has a separately packaged,
+read-only Python telemetry agent in `telemetry_agent/`. The agent uses persistent
+direct NVML and the same bounded Windows APIs, samples every three seconds at
+below-normal priority, and serves only a cached versioned document from fixed
+`GET /health` and `GET /telemetry` routes. CPU temperature remains `NOT OBSERVED`.
 
-No authorized read-only RTX 4090 telemetry source exists in this phase. Its matching
-panel therefore reports telemetry unavailable and exposes no fabricated values.
-Observed timestamps are rendered as live for at most ten seconds relative to the
-trusted snapshot; older measurements are explicitly stale and their values are
-suppressed. Telemetry publication changes neither endpoint health nor compute
-eligibility. Phase 8D remains responsible for health reduction, MO2/policy
-evaluation, and authoritative optional-node eligibility. No remote shell, cloud
-telemetry, or execution authority was added.
+The 4090 service binds `192.168.0.101:8767`; both its application allowlist and the
+packaged firewall rule restrict the LAN client to the 3090 at `192.168.0.100`.
+Installation, firewall creation, and startup are explicit future operator actions;
+this repository change deploys or enables nothing on the 4090. The strict 3090 client
+distinguishes fresh, stale, unreachable, timeout, malformed, schema-mismatch, and
+node/GPU identity-mismatch states. Telemetry publication changes neither endpoint
+health nor compute eligibility. Phase 8D remains responsible for health reduction,
+MO2/policy evaluation, and authoritative optional-node eligibility. No remote shell,
+generic RPC, cloud telemetry, execution, filesystem, process, model, or configuration
+authority was added.
 
 ## Phase 8B resident latest-turn continuity
 

@@ -1,8 +1,8 @@
 """Bounded, read-only local hardware observations for the resident visualizer.
 
-This module never influences routing or eligibility.  The local 3090 is sampled from
-the fixed ``nvidia-smi`` query plus Windows native CPU/RAM counters.  No authorized
-read-only source exists for the optional 4090, so it remains explicitly unavailable.
+This module never influences routing or eligibility. The local 3090 is sampled from
+the fixed ``nvidia-smi`` query plus Windows native CPU/RAM counters. The optional
+4090 observation comes only from the fixed, read-only telemetry client.
 """
 
 from __future__ import annotations
@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Callable
 
 from .visualizer import HardwareTelemetryView, TelemetryState
+from .remote_telemetry import Remote4090TelemetryClient
 
 
 TELEMETRY_INTERVAL_SECONDS = 2.0
@@ -28,10 +29,12 @@ class LocalHardwareTelemetryCollector:
     """Collect presentation-only facts without adding control or network authority."""
 
     def __init__(self, *, runner: Callable[..., subprocess.CompletedProcess[str]] | None = None,
-                 clock: Callable[[], datetime] | None = None):
+                 clock: Callable[[], datetime] | None = None,
+                 optional_client: Remote4090TelemetryClient | None = None):
         self._runner = runner or subprocess.run
         self._clock = clock or (lambda: datetime.now(timezone.utc))
         self._previous_cpu: tuple[int, int, int] | None = None
+        self._optional_client = optional_client or Remote4090TelemetryClient()
 
     def sample_primary(self) -> HardwareTelemetryView:
         observed_at = self._clock()
@@ -61,6 +64,10 @@ class LocalHardwareTelemetryCollector:
         return HardwareTelemetryView(
             TelemetryState.UNAVAILABLE,
             reason="no_authorized_read_only_4090_telemetry_source")
+
+    def sample_optional(self) -> HardwareTelemetryView:
+        """Read display-only 4090 telemetry; never return policy authority."""
+        return self._optional_client.sample()
 
     def _sample_3090_gpu(self) -> tuple[dict[str, float | int | None], str | None]:
         executable = Path(os.environ.get("WINDIR", r"C:\Windows")) / "System32" / "nvidia-smi.exe"

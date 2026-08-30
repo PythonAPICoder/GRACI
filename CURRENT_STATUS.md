@@ -5,6 +5,44 @@ Accepted current G1 governance is canonical in
 [`governance/POLICY_INDEX.md`](governance/POLICY_INDEX.md). This file reports
 implementation status and evidence; it does not independently grant authority.
 
+## Phase 8C-V optional 4090 telemetry repair — IMPLEMENTED, NOT DEPLOYED
+
+A lightweight read-only Windows agent is packaged for the optional 4090 node. It
+uses direct NVML plus `GetSystemTimes`/`GlobalMemoryStatusEx`, samples into a cache
+every three seconds, requests below-normal process priority, and exposes only fixed
+GET `/health` and `/telemetry` routes on `192.168.0.101:8767`. CPU temperature is
+truthfully unobserved. There is no affinity dependency, repeated `nvidia-smi`, write
+route, remote command, generic RPC, cloud dependency, or policy authority.
+
+The 3090 resident client is fixed, timeout- and size-bounded, schema/identity strict,
+and fail-closed across stale, unreachable, timeout, malformed, schema mismatch, and
+identity mismatch states. Its projection is display-only and cannot modify optional
+node health, MO2/llama policy, routing, or eligibility. The local 3090 telemetry path
+is retained.
+
+The symmetric HUD now keeps unavailability copy outside circular gauges, improves
+telemetry instrument hierarchy, and lays out PTT, microphone, GRACI state, model,
+activity, UI Sounds, Reduced Motion, Restart, and End Session as one non-overlapping
+row at 3440×1440. The accepted central presence, browser playback ownership,
+analyser, PTT/barge-in, pipeline, and footer behavior are unchanged.
+
+Source, fixed defaults, explicit install/start/stop/status/remove scripts, firewall
+rule, deployment QA, update, and rollback guidance are under `telemetry_agent/`.
+Nothing was copied to, installed on, or enabled on the 4090; target resource and
+thermal impact therefore remain unverified pending separately approved deployment.
+An equivalent local loopback harness on the 3090 development host measured 24.24 MiB
+working set, 14.60 MiB private memory, no measurable CPU time over a 6-second idle
+window plus 100 cached requests, 0.739 ms mean and 2.965 ms maximum request latency.
+This verifies the server/cache shape only; it is not a 14900K/RTX 4090 thermal or
+power measurement.
+
+Focused telemetry/client/HUD/resident warning-strict verification passes 31/31;
+the complete warning-strict suite passes 509/509 with zero failures and errors.
+Python compilation, JavaScript syntax, 50 tracked JSON documents, five deployment
+PowerShell parsers, and `git diff --check` pass. A real 3440×1440 browser render had
+no document overflow, no pairwise control overlap, no console warning/error, fresh
+3090 telemetry, and explicit unavailable 4090 telemetry.
+
 ## Phase 8B resident latest-turn continuity — COMPLETE IN REPOSITORY
 
 The resident visualizer now projects one bounded latest completed browser turn in

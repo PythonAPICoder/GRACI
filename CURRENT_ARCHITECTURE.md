@@ -5,6 +5,33 @@ Accepted current G1 governance and stable policy IDs are canonical in
 [`governance/POLICY_INDEX.md`](governance/POLICY_INDEX.md). This document describes
 implemented architecture; code/configuration/tests remain deterministic enforcement.
 
+## Phase 8C-V bounded optional-node telemetry
+
+`4090 direct NVML + Windows read-only counters -> 3-second cache -> fixed GET /telemetry -> strict 3090 decoder -> presentation-only HardwareTelemetryView`
+
+The optional node package is independent of the GRACI resident and has no third-party
+Python dependency. It opens NVML once, selects an exact RTX 4090 identity, and reads
+GPU utilization, VRAM bytes, and temperature without a subprocess. Native Windows
+kernel counters supply CPU utilization and RAM bytes. CPU temperature is explicitly
+unobserved. One mostly sleeping sampler owns sensor work; request threads return only
+the bounded cached schema-v1 JSON. The process requests below-normal priority and
+uses no affinity or hard-coded CPU IDs.
+
+The production listener is fixed to `192.168.0.101:8767`. Its only routes are GET
+`/health` and GET `/telemetry`; query parameters and all writes fail closed. A fixed
+application client allowlist and packaged private-profile firewall rule admit only
+the 3090 (`192.168.0.100`) across the LAN. There is no shell, generic RPC, arbitrary
+filesystem/process/model/configuration surface, Internet, cloud, secret, or remote
+deployment mechanism. Packaged scheduled-task and firewall scripts require explicit
+future operator execution and were not run as part of implementation.
+
+The resident's strict one-second client accepts exact keys, schema version, node ID,
+RTX 4090 GPU identity, bounded numbers, aware timestamps, and at most 16 KiB. It
+distinguishes timeout, unreachable, malformed, schema mismatch, identity mismatch,
+stale, and fresh observations. These values flow only to the existing visualizer
+observer. Existing 4090 endpoint health, MO2 state, llama policy, and eligibility
+remain sourced and reduced exactly as before; telemetry cannot authorize workload.
+
 ## Phase 8C trusted reactive command center
 
 `trusted resident snapshot + SSE connection facts -> deterministic semantic copy + bounded motion -> localhost Browser`

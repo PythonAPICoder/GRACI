@@ -75,6 +75,14 @@ class TelemetryContractTests(unittest.TestCase):
         self.assertEqual(telemetry.reason,
                          "no_authorized_read_only_4090_telemetry_source")
 
+    def test_optional_client_is_observer_only_and_injectable(self):
+        expected = HardwareTelemetryView(
+            TelemetryState.OBSERVED, NOW, "test-agent", gpu_utilization_percent=3)
+        class Client:
+            def sample(self): return expected
+        collector = LocalHardwareTelemetryCollector(optional_client=Client())
+        self.assertIs(collector.sample_optional(), expected)
+
     def test_publication_does_not_change_health_or_eligibility(self):
         provider = VisualizerStateProvider()
         observer = VisualizerRuntimeObserver(provider)
@@ -118,6 +126,9 @@ class TelemetryPresentationTests(unittest.TestCase):
                        'class="pipeline-section"', 'latest-turn-footer'):
             self.assertIn(marker, self.html)
         self.assertIn("grid-template-columns:480px minmax(0,1fr) 480px", self.css)
+        self.assertIn(".toggle-compact,.compact-actions{display:contents}", self.css)
+        self.assertIn("data-metric=\"gpu-state\"", self.html)
+        self.assertIn("data-metric=\"cpu-state\"", self.html)
 
     def test_fresh_stale_unknown_and_real_value_rendering_are_explicit(self):
         for marker in (
@@ -134,6 +145,8 @@ class TelemetryPresentationTests(unittest.TestCase):
             self.js.index("function renderTelemetry"):
             self.js.index("function renderNode")]
         self.assertNotIn("Math.random", telemetry_renderer)
+        self.assertIn('metric(root,"gpu-util",gpu===null?"—"', telemetry_renderer)
+        self.assertIn('metric(root,"gpu-state",gpu===null?"NOT OBSERVED"', telemetry_renderer)
 
     def test_existing_analyser_ptt_and_accessibility_paths_remain_single_source(self):
         for marker in ("createMediaElementSource", "createAnalyser",

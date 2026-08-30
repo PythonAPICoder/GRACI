@@ -17,7 +17,7 @@ from graci.operator_cli import OperatorComposition
 from graci.resident_host import (OWNER, ResidentAlreadyRunning, ResidentHost,
                                  ResidentOwnership, read_valid_record,
                                  resident_is_active)
-from graci.visualizer import SystemState
+from graci.visualizer import HardwareTelemetryView, SystemState
 from graci.visualizer_backend import VisualizerServer, VisualizerStateProvider
 from graci.visualizer_runtime import VisualizerRuntimeObserver
 
@@ -39,6 +39,11 @@ class Coordinator:
 class FailingServer:
     def start(self): raise OSError("port unavailable")
     def stop(self): raise AssertionError("unstarted server must not be stopped")
+
+
+class FakeTelemetry:
+    def sample_primary(self): return HardwareTelemetryView()
+    def sample_optional(self): return HardwareTelemetryView()
 
 
 class ResidentHostTests(unittest.TestCase):
@@ -87,7 +92,8 @@ class ResidentHostTests(unittest.TestCase):
         coordinator = Coordinator()
         composition = OperatorComposition(coordinator, provider, observer, None, server)
         owner = ResidentOwnership(self.runtime, "c" * 32)
-        host = ResidentHost(owner, lambda **kwargs: composition, poll_seconds=0.01)
+        host = ResidentHost(owner, lambda **kwargs: composition, poll_seconds=0.01,
+                            telemetry_factory=FakeTelemetry)
         outcome = []
         thread = threading.Thread(target=lambda: outcome.append(host.run()))
         thread.start()
@@ -113,7 +119,8 @@ class ResidentHostTests(unittest.TestCase):
         composition = OperatorComposition(Coordinator(), provider, observer, None, FailingServer())
         owner = ResidentOwnership(self.runtime, "d" * 32)
         with self.assertRaisesRegex(OSError, "port unavailable"):
-            ResidentHost(owner, lambda **kwargs: composition).run()
+            ResidentHost(owner, lambda **kwargs: composition,
+                         telemetry_factory=FakeTelemetry).run()
         self.assertFalse(resident_is_active(self.runtime))
         self.assertFalse(owner.state_path.exists())
 

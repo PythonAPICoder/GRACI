@@ -1,0 +1,14 @@
+{
+  "allowed_clients": [
+    "127.0.0.1",
+    "192.168.0.100",
+    "192.168.0.101",
+    "::1"
+  ],
+  "bind_address": "192.168.0.101",
+  "expected_gpu_fragment": "RTX 4090",
+  "node_id": "4090",
+  "port": 8767,
+  "sample_interval_seconds": 3.0,
+  "schema_version": 1
+}
