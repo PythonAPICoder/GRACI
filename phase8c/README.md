@@ -21,6 +21,23 @@ distinguishes in-use, healthy/available, MO2-blocked, unhealthy, other policy
 ineligibility, and unknown/fail-closed using server-projected compute facts only.
 Browser JavaScript does not inspect processes.
 
+Physical QA confirmed that the resident does not currently project an authoritative
+3090 health observation. The 3090 therefore says `HEALTH NOT OBSERVED` when endpoint
+health is unknown; it does not infer health from a successful earlier Qwen turn. This
+presentation-only distinction does not change the optional 4090's fail-closed policy.
+
+## Reactive-presence audit
+
+Comparison with the Phase 8C starting commit classifies the implementation as **B:
+mostly reused pre-existing animation machinery while adding trusted state mapping and
+presentation**. The existing core already provided idle orbit/breathing, listening
+ripple, faster planning/reasoning motion, Qwen reasoning activity, violet GLM review,
+speaking pulse, one-shot completion pulse, warning/failure treatments, and CSS state
+transitions. Phase 8C retained those intentionally subtle animations and added
+deterministic semantic explanations, stricter trusted agent-active display, and
+accessibility and responsive refinements. Reduced-motion continues to remove all
+animation and transition. No additional animation redesign was warranted.
+
 ## Latest response, latency perception, and accessibility
 
 Phase 8B resident `latest_turn` remains the sole source of completed response text.
@@ -54,3 +71,20 @@ The Product Owner should verify page load/reload; idle; mouse and Spacebar holds
 listening, processing, and speaking transitions; response readability and second-turn
 replacement; multi-tab/reload and Restart continuity; reduced motion where practical;
 3090/4090 labels; and MO2 blocking only when it can be tested without disruption.
+
+## Phase 8D handoff — System Health & Trusted Runtime Context
+
+Phase 8C does **not** implement startup health checks, periodic health collection,
+monitoring loops, or new system/network authority. Phase 8D will own authoritative,
+timestamped observations for resident readiness; trusted local date/time/timezone;
+3090 node, llama.cpp, and Qwen health; GLM availability; 4090 reachability; MO2 state;
+4090 eligibility; 4090 endpoint/model health when policy permits; STT and TTS
+readiness; freshness and staleness; degraded, unavailable, recovering, and recovered
+transitions; bounded state-change alerts; and bounded trusted conversational system
+context.
+
+Physical QA identified two inputs for that phase rather than Phase 8C failures:
+
+- GRACI cannot yet reliably answer current 4090-status questions from authoritative
+  resident system state.
+- GRACI cannot yet answer current date/time questions from trusted runtime context.

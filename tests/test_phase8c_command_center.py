@@ -51,6 +51,14 @@ class TrustedPresentationTests(unittest.TestCase):
         self.assertLess(unhealthy, eligibility)
         self.assertNotIn("ModOrganizer.exe", self.js)
 
+    def test_3090_unknown_health_is_not_described_as_fail_closed(self):
+        primary = ('node.node_id==="3090"&&node.endpoint_health!=="healthy"'
+                   ')return ["unknown","HEALTH NOT OBSERVED"]')
+        self.assertIn(primary, self.js)
+        self.assertLess(self.js.index(primary), self.js.index(
+            'if(node.endpoint_health!=="healthy")return '
+            '["unknown","UNKNOWN — FAIL CLOSED"]'))
+
     def test_latest_completed_response_currency_is_truthful(self):
         self.assertIn("renderLatestTurn(turn, newerTurnActive=false)", self.js)
         self.assertIn("PREVIOUS COMPLETED · NEW TURN ACTIVE", self.js)
@@ -92,8 +100,11 @@ class Phase8CEvidenceTests(unittest.TestCase):
                          "8fde138bbf021310f57b91cf298af6b80f2a2573")
         self.assertFalse(evidence["authority_boundary"]["new_execution_authority"])
         self.assertFalse(evidence["authority_boundary"]["new_routes"])
+        self.assertEqual(evidence["reactive_presence_audit"]["classification"], "B")
+        self.assertFalse(evidence["phase8d_handoff"]["implemented_in_phase8c"])
+        self.assertEqual(len(evidence["phase8d_handoff"]["physical_qa_capability_gaps"]), 2)
         self.assertEqual(evidence["physical_browser_qa"]["status"],
-                         "REQUIRED_PRODUCT_OWNER_MANUAL_QA")
+                         "PRODUCT_OWNER_FINDINGS_REPAIRED_REVIEW_PENDING")
 
 
 if __name__ == "__main__":

@@ -39,6 +39,7 @@
     if(node.node_id==="4090"&&node.mo2_state==="running")return ["blocked","UNAVAILABLE — BLOCKED — MO2 RUNNING"];
     if(node.endpoint_health==="unhealthy")return ["failed","UNAVAILABLE — UNHEALTHY"];
     if(node.node_id==="4090"&&node.eligible!==true)return ["blocked",node.eligible===false?"UNAVAILABLE — POLICY":"UNKNOWN — FAIL CLOSED"];
+    if(node.node_id==="3090"&&node.endpoint_health!=="healthy")return ["unknown","HEALTH NOT OBSERVED"];
     if(node.endpoint_health!=="healthy")return ["unknown","UNKNOWN — FAIL CLOSED"];
     return ["available",node.availability==="active"?"IN USE":"AVAILABLE / HEALTHY"];
   };
