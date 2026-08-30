@@ -17,7 +17,7 @@ from .availability import Mo2State
 from .registry import GLM_MODEL_ID, QWEN_MODEL_ID, HealthState, NodeRole
 
 
-SNAPSHOT_SCHEMA_VERSION = 2
+SNAPSHOT_SCHEMA_VERSION = 3
 EVENT_SCHEMA_VERSION = 1
 RECENT_EVENT_LIMIT = 100
 TASK_SUMMARY_LIMIT = 240
@@ -52,6 +52,12 @@ class ActivityState(str, Enum):
     ACTIVE = "active"
     COMPLETED = "completed"
     FAILED = "failed"
+    UNKNOWN = "unknown"
+
+
+class TelemetryState(str, Enum):
+    OBSERVED = "observed"
+    UNAVAILABLE = "unavailable"
     UNKNOWN = "unknown"
 
 
@@ -320,6 +326,57 @@ class LatestTurnView:
 
 
 @dataclass(frozen=True)
+class HardwareTelemetryView:
+    state: TelemetryState = TelemetryState.UNAVAILABLE
+    observed_at: datetime | None = None
+    source: str | None = None
+    gpu_utilization_percent: float | None = None
+    vram_used_mib: int | None = None
+    vram_total_mib: int | None = None
+    gpu_temperature_c: float | None = None
+    cpu_utilization_percent: float | None = None
+    cpu_temperature_c: float | None = None
+    ram_used_mib: int | None = None
+    ram_total_mib: int | None = None
+    reason: str | None = None
+
+    def __post_init__(self) -> None:
+        _enum(self.state, TelemetryState, "telemetry state")
+        if self.observed_at is not None:
+            _aware(self.observed_at, "telemetry observed_at")
+        object.__setattr__(self, "source", _bounded(
+            self.source, 80, "telemetry source"))
+        object.__setattr__(self, "reason", _bounded(
+            self.reason, ERROR_SUMMARY_LIMIT, "telemetry reason"))
+        for name in ("gpu_utilization_percent", "cpu_utilization_percent"):
+            value = getattr(self, name)
+            if value is not None and (type(value) not in {int, float} or value < 0 or value > 100):
+                raise ValueError(f"{name} must be between 0 and 100")
+        for name in ("gpu_temperature_c", "cpu_temperature_c"):
+            value = getattr(self, name)
+            if value is not None and (type(value) not in {int, float} or value < -20 or value > 150):
+                raise ValueError(f"{name} is outside the bounded display range")
+        for name in ("vram_used_mib", "vram_total_mib", "ram_used_mib", "ram_total_mib"):
+            value = getattr(self, name)
+            if value is not None and (type(value) is not int or value < 0):
+                raise ValueError(f"{name} must be a non-negative integer")
+        for used_name, total_name in (("vram_used_mib", "vram_total_mib"),
+                                      ("ram_used_mib", "ram_total_mib")):
+            used, total = getattr(self, used_name), getattr(self, total_name)
+            if used is not None and total is not None and (total == 0 or used > total):
+                raise ValueError(f"{used_name} cannot exceed {total_name}")
+        measurements = (self.gpu_utilization_percent, self.vram_used_mib,
+                        self.vram_total_mib, self.gpu_temperature_c,
+                        self.cpu_utilization_percent, self.cpu_temperature_c,
+                        self.ram_used_mib, self.ram_total_mib)
+        if self.state is TelemetryState.OBSERVED and (self.observed_at is None or
+                                                       not any(x is not None for x in measurements)):
+            raise ValueError("observed telemetry requires a timestamp and measurement")
+        if self.state is not TelemetryState.OBSERVED and any(x is not None for x in measurements):
+            raise ValueError("unobserved telemetry cannot expose measurements")
+
+
+@dataclass(frozen=True)
 class ComputeNodeView:
     node_id: str
     role: NodeRole
@@ -330,6 +387,7 @@ class ComputeNodeView:
     policy_reason: str | None
     assigned_model: str | None = None
     assigned_role: str | None = None
+    telemetry: HardwareTelemetryView = HardwareTelemetryView()
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "node_id", _bounded(self.node_id, 40, "node_id", allow_none=False))
@@ -341,6 +399,8 @@ class ComputeNodeView:
         object.__setattr__(self, "policy_reason", _bounded(self.policy_reason, ERROR_SUMMARY_LIMIT, "policy reason"))
         object.__setattr__(self, "assigned_model", _bounded(self.assigned_model, DISPLAY_LABEL_LIMIT, "assigned model"))
         object.__setattr__(self, "assigned_role", _bounded(self.assigned_role, 80, "assigned role"))
+        if not isinstance(self.telemetry, HardwareTelemetryView):
+            raise ValueError("node telemetry must be a HardwareTelemetryView")
         if self.node_id == "3090" and self.role is not NodeRole.PRIMARY:
             raise ValueError("3090 must be represented as primary")
         if self.node_id == "4090" and self.role is not NodeRole.OPTIONAL:

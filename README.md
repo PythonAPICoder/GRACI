@@ -10,6 +10,33 @@
 This is the current product-owner canonical identity definition. It supersedes the
 former expansion without rewriting historical project records.
 
+## Symmetric hardware telemetry HUD
+
+The Phase 8C-V command center now places matching hardware HUDs around the accepted
+reactive presence: `RTX 3090 telemetry | GRACI presence | RTX 4090 telemetry`.
+The former permanent right-side status rail is removed; its trusted GRACI state,
+active-model/activity, UI Sounds, and Reduced Motion presentation is consolidated
+with PTT, microphone state, Restart GRACI, and End Session in one compact operator
+row. The accepted orb, analyser spokes, browser-owned Kokoro playback, playback
+claim, PTT/barge-in, compact pipeline, and latest-turn footer remain unchanged.
+
+Snapshot schema v3 adds bounded, immutable, presentation-only telemetry to each
+compute node. The resident samples the local RTX 3090 every two seconds using one
+fixed, timeout-bounded `nvidia-smi` query plus read-only Windows `GetSystemTimes` and
+`GlobalMemoryStatusEx` counters. This currently exposes GPU utilization, VRAM used
+and total, GPU temperature, CPU utilization after the first counter delta, and RAM
+used and total. There is no reliable native CPU-temperature source, so it remains
+`NOT OBSERVED`.
+
+No authorized read-only RTX 4090 telemetry source exists in this phase. Its matching
+panel therefore reports telemetry unavailable and exposes no fabricated values.
+Observed timestamps are rendered as live for at most ten seconds relative to the
+trusted snapshot; older measurements are explicitly stale and their values are
+suppressed. Telemetry publication changes neither endpoint health nor compute
+eligibility. Phase 8D remains responsible for health reduction, MO2/policy
+evaluation, and authoritative optional-node eligibility. No remote shell, cloud
+telemetry, or execution authority was added.
+
 ## Phase 8B resident latest-turn continuity
 
 **Phase 8B — COMPLETE IN REPOSITORY.** Snapshot schema v2 now carries one

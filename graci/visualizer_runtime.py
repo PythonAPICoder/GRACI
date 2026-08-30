@@ -14,7 +14,7 @@ from .registry import GLM_MODEL_ID, QWEN_MODEL_ID, HealthState, NodeRole
 from .visualizer import (
     ActivityState, AgentView, AgentsView, ComputeNodeView, ComputeView,
     EventMetadata, EventSeverity, EventType, ExecutionView, MemoryMode,
-    LatestTurnView, MemoryView, OperationCategory, OperationView, PresentationOutcome,
+    HardwareTelemetryView, LatestTurnView, MemoryView, OperationCategory, OperationView, PresentationOutcome,
     RecentEventBuffer, ReviewView,
     SystemState, TaskView, TestView, TrustedRuntimeState, VisualizerEvent,
     WorkflowStatus, default_compute, inactive_agents, project_snapshot,
@@ -74,6 +74,16 @@ class VisualizerRuntimeObserver:
         """Publish current trusted state without manufacturing a runtime event."""
         with self._lock:
             self._publish_snapshot(source_id)
+
+    def publish_hardware_telemetry(self, primary: HardwareTelemetryView,
+                                   optional: HardwareTelemetryView) -> None:
+        """Publish read-only measurements without changing health or eligibility."""
+        with self._lock:
+            self.compute = replace(
+                self.compute,
+                primary_3090=replace(self.compute.primary_3090, telemetry=primary),
+                optional_4090=replace(self.compute.optional_4090, telemetry=optional))
+            self._publish_snapshot("hardware-telemetry")
 
     def reset_transient(self) -> None:
         """Clear runtime projection only; durable run records remain untouched."""

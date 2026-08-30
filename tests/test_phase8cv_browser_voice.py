@@ -142,11 +142,14 @@ class BrowserContractTests(unittest.TestCase):
 
     def test_physical_qa_layout_hierarchy_is_compact_and_centered(self):
         for marker in ('class="graci-presence"', 'class="presence-circuitry"',
-                       'status-rail"', 'class="compact-actions"',
+                       'id="node-3090" class="telemetry-panel telemetry-primary"',
+                       'id="node-4090" class="telemetry-panel telemetry-optional"',
+                       'class="status-compact"', 'class="compact-actions"',
                        'latest-turn-footer"', 'id="end-session"'):
             self.assertIn(marker, self.html)
-        for marker in ("grid-template-columns:minmax(0,1fr) 360px",
-                       "width:min(1070px", ".detail-rail.status-rail",
+        self.assertNotIn('class="detail-rail status-rail"', self.html)
+        for marker in ("grid-template-columns:480px minmax(0,1fr) 480px",
+                       "width:min(1070px", ".telemetry-panel{",
                        ".lower-grid{display:none}", ".pipeline{height:58px;display:grid"):
             self.assertIn(marker, self.css)
 

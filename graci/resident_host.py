@@ -14,7 +14,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
 
+from .hardware_telemetry import (TELEMETRY_INTERVAL_SECONDS,
+                                 LocalHardwareTelemetryCollector)
 from .operator_cli import OperatorComposition, build_operator_composition
+from .visualizer import HardwareTelemetryView, TelemetryState
 
 STATE_SCHEMA_VERSION = 1
 OWNER = "GRACI_RESIDENT_HOST"
@@ -132,6 +135,7 @@ class ResidentHost:
     ownership: ResidentOwnership
     composition_factory: Callable[..., OperatorComposition] = build_operator_composition
     poll_seconds: float = DEFAULT_POLL_SECONDS
+    telemetry_factory: Callable[[], LocalHardwareTelemetryCollector] = LocalHardwareTelemetryCollector
 
     def run(self) -> int:
         """Own the accepted runtime and observer server; submit no work."""
@@ -156,12 +160,17 @@ class ResidentHost:
             composition = self.composition_factory(visualizer=True, browser_operator=True)
             if composition.server is None or composition.runtime_observer is None:
                 raise RuntimeError("resident composition requires the accepted visualizer observer")
-            composition.runtime_observer.publish_current("resident-startup")
+            telemetry = self.telemetry_factory()
+            self._publish_telemetry(composition, telemetry)
+            last_telemetry = time.monotonic()
             composition.server.start()
             server_started = True
             self.ownership.publish(port=composition.server.bound_port)
             while not stopping and not self.ownership.stop_requested():
                 time.sleep(self.poll_seconds)
+                if time.monotonic() - last_telemetry >= TELEMETRY_INTERVAL_SECONDS:
+                    self._publish_telemetry(composition, telemetry)
+                    last_telemetry = time.monotonic()
             return 0
         finally:
             if server_started and composition is not None and composition.server is not None:
@@ -174,6 +183,17 @@ class ResidentHost:
                     signal.signal(number, handler)
                 except (OSError, ValueError):
                     pass
+
+    @staticmethod
+    def _publish_telemetry(composition: OperatorComposition,
+                           collector: LocalHardwareTelemetryCollector) -> None:
+        try:
+            primary = collector.sample_primary()
+        except Exception:
+            primary = HardwareTelemetryView(
+                TelemetryState.UNAVAILABLE, reason="local_telemetry_collection_failed")
+        composition.runtime_observer.publish_hardware_telemetry(
+            primary, collector.optional_unavailable())
 
 
 def _atomic_json(path: Path, value: dict[str, Any]) -> None:

@@ -8,6 +8,35 @@ current-state and historical evidence and do not grant runtime authority.
 Current accepted build: Phase 5 — COMPLETE; Phase 6 — COMPLETE; Phase 6A — COMPLETE;
 Phase 6B — COMPLETE; Phase 7 — COMPLETE; Phase 8A — COMPLETE; Phase 8B — COMPLETE.
 
+## Phase 8C-V symmetric hardware telemetry HUD
+
+- The accepted browser voice presence remains the center of a symmetric
+  `3090 telemetry | GRACI presence | 4090 telemetry` workspace. Matching transparent
+  hardware panels replace the dedicated right status rail, whose trusted compact
+  fields now share the operator row with PTT/microphone, UI Sounds, Reduced Motion,
+  Restart GRACI, and End Session. Pipeline and latest-turn footer geometry remain
+  compact.
+- Snapshot schema v3 adds a frozen `HardwareTelemetryView` per compute node with an
+  explicit observed/unavailable/unknown state, UTC observation time, bounded source
+  and reason, and bounded optional numeric measurements. An observed sample requires
+  a timestamp and at least one measurement; unobserved states cannot carry values.
+- The resident polls the authoritative local RTX 3090 every two seconds using a fixed
+  `nvidia-smi.exe` field query with a two-second timeout and no shell, plus Windows
+  `GetSystemTimes` CPU counters and `GlobalMemoryStatusEx` RAM counters. Available
+  fields are GPU utilization, VRAM used/total, GPU temperature, CPU utilization after
+  the initial counter sample, and RAM used/total. CPU temperature is not observed.
+- No authorized bounded read-only path to the optional RTX 4090 exists. Its telemetry
+  remains explicitly unavailable with no values or decorative history. A future
+  source must be narrowly authenticated/read-only and emit the same bounded contract;
+  a broad remote command channel is not acceptable.
+- The browser treats telemetry as fresh for ten seconds relative to the trusted
+  snapshot timestamp. Stale values are labeled and suppressed rather than silently
+  reused. Telemetry is presentation-only: publishing it does not mutate endpoint
+  health, MO2 state, routing, workload placement, or `eligible`.
+- This is not Phase 8D. No health reducer, degraded/recovering state machine,
+  authoritative 4090 policy, trusted runtime-context injection, alert manager, cloud
+  telemetry, remote shell, arbitrary process endpoint, or new model authority exists.
+
 ## Phase 8B resident latest-turn continuity
 
 - Snapshot schema v2 adds one frozen, bounded `LatestTurnView`, sourced only from an
