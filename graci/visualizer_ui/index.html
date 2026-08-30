@@ -103,9 +103,13 @@
               <radialGradient id="cloudGlow"><stop stop-color="#35dfff" stop-opacity=".28"/><stop offset=".45" stop-color="#0879be" stop-opacity=".1"/><stop offset="1" stop-color="#001226" stop-opacity="0"/></radialGradient>
               <linearGradient id="newRim" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#caffff"/><stop offset=".28" stop-color="#00f2ff"/><stop offset=".7" stop-color="#087fff"/><stop offset="1" stop-color="#743dff"/></linearGradient>
               <pattern id="newHexMesh" width="31" height="54" patternUnits="userSpaceOnUse"><path d="M15.5 1l14.5 8v18l-14.5 8L1 27V9zM15.5 35L30 43v18l-14.5 8L1 61V43z" fill="none" stroke="#24d7ff" stroke-opacity=".12" stroke-width="1.2"/></pattern>
+              <radialGradient id="hexSurfaceFalloff" cx="35%" cy="27%" r="78%"><stop offset="0" stop-color="#fff" stop-opacity=".32"/><stop offset=".38" stop-color="#fff" stop-opacity=".82"/><stop offset=".72" stop-color="#fff" stop-opacity=".96"/><stop offset="1" stop-color="#fff" stop-opacity=".18"/></radialGradient>
+              <radialGradient id="hexRimFalloff"><stop offset=".52" stop-color="#000"/><stop offset=".78" stop-color="#fff" stop-opacity=".18"/><stop offset=".92" stop-color="#fff"/><stop offset="1" stop-color="#000"/></radialGradient>
               <filter id="presenceBloom" x="-70%" y="-70%" width="240%" height="240%"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
               <filter id="cloudBlur" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="18"/></filter>
               <clipPath id="sphereClip"><circle cx="500" cy="500" r="254"/></clipPath>
+              <mask id="hexSurfaceMask"><circle cx="500" cy="500" r="254" fill="url(#hexSurfaceFalloff)"/></mask>
+              <mask id="hexRimMask"><circle cx="500" cy="500" r="254" fill="url(#hexRimFalloff)"/></mask>
             </defs>
             <circle class="presence-aura" cx="500" cy="500" r="496" fill="url(#newAura)"/>
             <g class="hud-rings">
@@ -120,13 +124,23 @@
               <circle class="hud-ring hud-calibration" cx="500" cy="500" r="334"/>
               <circle class="hud-ring hud-inner" cx="500" cy="500" r="298"/>
             </g>
+            <g id="calibration-ticks" class="calibration-ticks" aria-hidden="true"></g>
+            <g id="secondary-radial" class="secondary-radial" aria-hidden="true"></g>
+            <g class="hud-structural-arcs" aria-hidden="true">
+              <path d="M237 291a336 336 0 0 1 184-117"/><path d="M579 174a336 336 0 0 1 184 117"/>
+              <path d="M763 709a336 336 0 0 1-184 117"/><path d="M421 826a336 336 0 0 1-184-117"/>
+            </g>
             <g id="speech-radial" class="speech-radial" aria-hidden="true"></g>
             <g class="presence-orb" filter="url(#presenceBloom)">
               <circle class="orb-aura" cx="500" cy="500" r="290" fill="url(#orbAtmosphere)"/>
               <circle class="orb-secondary-glow" cx="500" cy="500" r="273"/>
               <circle class="orb-sphere" cx="500" cy="500" r="260" fill="url(#newSphere)"/>
               <g class="orb-clouds" clip-path="url(#sphereClip)" filter="url(#cloudBlur)"><ellipse cx="402" cy="372" rx="166" ry="104" fill="url(#cloudGlow)"/><ellipse cx="604" cy="438" rx="142" ry="88" fill="url(#cloudGlow)"/><ellipse cx="455" cy="582" rx="180" ry="92" fill="url(#cloudGlow)"/></g>
-              <circle class="orb-hex" cx="500" cy="500" r="254" fill="url(#newHexMesh)"/>
+              <circle class="orb-hex" cx="500" cy="500" r="254" fill="url(#newHexMesh)" mask="url(#hexSurfaceMask)"/>
+              <circle class="orb-hex-rim" cx="500" cy="500" r="254" fill="url(#newHexMesh)" mask="url(#hexRimMask)"/>
+              <g class="orb-hex-highlights" clip-path="url(#sphereClip)" aria-hidden="true">
+                <path d="M372 341l15-9 15 9v18l-15 9-15-9zM662 394l15-9 15 9v18l-15 9-15-9zM318 530l15-9 15 9v18l-15 9-15-9zM611 617l15-9 15 9v18l-15 9-15-9zM444 690l15-9 15 9v18l-15 9-15-9z"/>
+              </g>
               <g clip-path="url(#sphereClip)"><ellipse class="orb-depth" cx="548" cy="556" rx="232" ry="244"/><path class="orb-highlight" d="M283 468c30-145 145-224 274-208 89 11 160 62 202 139-70-70-164-96-265-72-89 21-158 72-211 141z"/><path class="orb-horizon" d="M246 516c84 50 169 74 254 74s170-24 254-74"/></g>
               <g class="orb-electric" aria-hidden="true"><path d="M292 388a244 244 0 0 1 139-117"/><path d="M621 283a240 240 0 0 1 120 154"/><path d="M752 550a252 252 0 0 1-101 156"/><path class="violet-arc" d="M355 722a250 250 0 0 1-86-119"/></g>
               <g class="orb-sparks" aria-hidden="true"><circle cx="321" cy="326" r="4"/><circle class="white" cx="690" cy="350" r="5"/><circle cx="724" cy="570" r="3.5"/><circle class="violet" cx="361" cy="707" r="3"/><circle class="white" cx="260" cy="520" r="2.5"/></g>
@@ -145,7 +159,7 @@
         <div class="status-title">GRACI STATUS</div>
         <section class="rail-block"><span>CURRENT STATE</span><strong id="status-state">AWAITING DATA</strong><p><i class="status-dot"></i><b id="status-output">Browser voice standby</b></p></section>
         <section class="rail-block"><span>ACTIVE MODEL</span><strong id="status-model">NO ACTIVE MODEL</strong><p id="status-role">Trusted resident state</p></section>
-        <section class="rail-block activity-block"><span>ACTIVITY</span><p id="status-activity">Waiting for trusted resident state.</p><div id="status-waveform" class="status-waveform" aria-hidden="true"></div></section>
+        <section class="rail-block activity-block"><span id="status-activity-label">ACTIVITY</span><p id="status-activity">Waiting for trusted resident state.</p><div id="status-waveform" class="status-waveform" aria-hidden="true"></div></section>
         <section class="rail-toggle"><span>UI SOUNDS</span><b id="status-sounds">ON</b></section>
         <section class="rail-toggle"><span>REDUCED MOTION</span><b id="motion-setting">OFF</b></section>
         <section class="rail-block last-update"><span>LAST UPDATE</span><time id="status-updated">NO UPDATE</time></section>

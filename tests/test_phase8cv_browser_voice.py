@@ -172,6 +172,11 @@ class BrowserContractTests(unittest.TestCase):
     def test_radial_circuit_and_state_mapping_remain_truthful(self):
         self.assertIn("for(let i=0;i<64;i++)", self.js)
         self.assertIn('id="speech-radial"', self.html)
+        self.assertIn('id="secondary-radial"', self.html)
+        self.assertIn('id="calibration-ticks"', self.html)
+        self.assertIn('class="hud-structural-arcs"', self.html)
+        self.assertIn("for(let i=0;i<96;i++)", self.js)
+        self.assertIn("for(let i=0;i<120;i++)", self.js)
         self.assertIn("circuit-primary", self.html)
         self.assertIn("circuit-packets", self.html)
         for marker in ('body[data-active-agent="qwen"] .circuit-packets',
@@ -180,6 +185,34 @@ class BrowserContractTests(unittest.TestCase):
                        "transform:scaleY(.82)", "var(--bar,0)*.5"):
             self.assertIn(marker, self.css)
         self.assertIn('document.body.dataset.activeAgent=activeAgent', self.js)
+
+    def test_nucleus_is_layered_and_audio_modulation_stays_bounded(self):
+        for marker in ('id="hexSurfaceMask"', 'id="hexRimMask"',
+                       'class="orb-hex-rim"', 'class="orb-hex-highlights"'):
+            self.assertIn(marker, self.html)
+        for marker in ("var(--voice-energy)*.025", "var(--voice-energy)*.22",
+                       "var(--voice-energy)*1.8px"):
+            self.assertIn(marker, self.css)
+        self.assertEqual(self.js.count("createAnalyser()"), 1)
+
+    def test_status_gadget_uses_existing_analyser_and_is_semantically_bounded(self):
+        self.assertIn('id="status-activity-label"', self.html)
+        self.assertIn('document.querySelectorAll("#status-waveform i")', self.js)
+        self.assertIn('data[bin]/255)*1.55', self.js)
+        self.assertIn('bar.style.setProperty("--live","0")', self.js)
+        for label in ("VOICE OUTPUT", "PROCESSING ACTIVITY", "REVIEW ACTIVITY",
+                      "LISTENING"):
+            self.assertIn(label, self.js)
+        for marker in ('body[data-system-state="speaking"] .status-waveform i',
+                       'var(--live,0)*34',
+                       'body[data-active-agent="qwen"]:not([data-system-state="speaking"])',
+                       'body[data-active-agent="glm"]:not([data-system-state="speaking"])',
+                       'body[data-system-state="listening"] .status-waveform i'):
+            self.assertIn(marker, self.css)
+        self.assertIn('.status-waveform i{display:block;width:3px;min-height:3px;height:3px',
+                      self.css)
+        self.assertNotIn('height:calc(var(--wave)*1px)', self.css)
+        self.assertNotIn('var(--voice-energy)*38', self.css)
 
     def test_compact_controls_are_presentation_only(self):
         self.assertIn('id="ptt-button"', self.html)
