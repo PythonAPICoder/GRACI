@@ -11,7 +11,7 @@
   <div class="ambient" aria-hidden="true"></div>
   <main class="command-center">
     <header class="topbar">
-      <div class="brand"><span class="brand-mark">G.R.A.C.I.</span><span class="subtitle">LOCAL AUTONOMOUS SYSTEM</span></div>
+      <div class="brand"><span class="brand-mark">G.R.A.C.I.</span><span class="pronunciation">GRAY-see</span><span class="subtitle">AUTONOMOUS ASSISTANT</span></div>
       <div class="state-readout" role="status" aria-live="polite" aria-atomic="true"><span class="eyebrow">CURRENT STATE</span><strong id="overall-state">AWAITING DATA</strong><small id="state-explanation">Waiting for a trusted resident snapshot.</small></div>
       <div class="header-right">
         <span class="local-first">LOCAL-FIRST</span>
@@ -21,8 +21,9 @@
     </header>
 
     <section class="workspace">
-      <aside class="left-rail" aria-label="Compute and agents">
-        <div class="section-heading"><span>01</span> COMPUTE / AGENTS</div>
+      <aside class="left-rail status-rail" aria-label="Trusted local status">
+        <div class="section-heading"><span>01</span> LOCAL STATUS</div>
+        <div class="status-summary"><span>CURRENT STATE</span><strong id="rail-state">AWAITING DATA</strong><small id="rail-activity">Waiting for trusted resident state.</small><time id="rail-updated">NO UPDATE</time></div>
         <article id="node-3090" class="node-card primary">
           <div class="card-top"><span>RTX 3090</span><em>PRIMARY / AUTHORITY</em></div>
           <strong class="availability">UNKNOWN</strong>
@@ -44,6 +45,12 @@
 
       <section class="core-stage" aria-label="GRACI computational core">
         <div class="core-grid" aria-hidden="true"></div>
+        <svg class="circuit-board" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <g class="circuit-traces"><path d="M0 150H180l70 70h170l85-85h150l90 90h190l80-80h185"/><path d="M40 640h150l70-70h145l90 90h185l75-75h170l65 65h210"/><path d="M140 0v120l80 80v115l-70 70v160l90 90V800"/><path d="M1040 0v135l-75 75v130l90 90v155l-85 85v130"/><path d="M0 390h230l65-65h135M1200 405H970l-70-70H770"/></g>
+          <g class="circuit-pulses"><path d="M0 150H180l70 70h170l85-85h150"/><path d="M1200 650H990l-65-65H755"/><path d="M1040 0v135l-75 75v130"/></g>
+          <g class="circuit-nodes"><circle cx="250" cy="220" r="5"/><circle cx="505" cy="135" r="5"/><circle cx="755" cy="225" r="5"/><circle cx="260" cy="570" r="5"/><circle cx="495" cy="660" r="5"/><circle cx="925" cy="585" r="5"/><circle cx="295" cy="325" r="4"/><circle cx="900" cy="335" r="4"/></g>
+        </svg>
+        <div class="presence-visual">
         <svg class="core" viewBox="0 0 640 640" role="img" aria-labelledby="core-title core-desc">
           <title id="core-title">G.R.A.C.I. system core</title><desc id="core-desc">Abstract network visualization reflecting the current observed system state.</desc>
           <defs><radialGradient id="coreGlow"><stop offset="0" stop-color="currentColor" stop-opacity=".4"/><stop offset=".55" stop-color="currentColor" stop-opacity=".09"/><stop offset="1" stop-color="currentColor" stop-opacity="0"/></radialGradient></defs>
@@ -59,12 +66,12 @@
           </g>
           <g class="inner"><polygon points="320,190 430,255 430,385 320,450 210,385 210,255"/><circle cx="320" cy="320" r="88"/><circle cx="320" cy="320" r="48"/></g>
           <g class="pulse-paths"><path class="memory-path" d="M75 320H210"/><path class="tool-path" d="M430 320H568"/><path class="review-path" d="M320 190V76"/></g>
-        </svg>
+        </svg></div>
         <div class="core-label" role="status" aria-live="polite"><span>GRACI PRESENCE</span><strong id="core-state">IDLE</strong><b id="presence-category">RESTING</b><small id="freshness">NO SNAPSHOT</small></div>
         <div class="state-index" aria-label="System telemetry"><span>SCHEMA <b id="schema">—</b></span><span>SNAPSHOT <b id="snapshot-id">—</b></span><span>UPDATED <b id="updated">—</b></span></div>
       </section>
 
-      <aside class="right-rail" aria-label="Current activity">
+      <aside class="right-rail detail-rail" aria-label="Current activity">
         <div class="section-heading"><span>02</span> CURRENT ACTIVITY</div>
         <article class="task-panel">
           <span class="eyebrow">ACTIVE TASK</span><h2 id="task-summary">SYSTEM AT REST</h2>
@@ -90,13 +97,7 @@
           <span class="mic-icon" aria-hidden="true">●</span><strong>HOLD TO TALK</strong><small>OR HOLD SPACEBAR</small>
         </button>
         <div class="operator-status" role="status" aria-live="polite"><b id="ptt-status">MICROPHONE OFF</b><span id="ptt-detail">Audio is captured only while held.</span></div>
-        <button id="restart-button" class="restart-button" type="button">RESTART GRACI</button>
-        <button id="ui-sounds" class="sound-button" type="button" aria-pressed="true">UI SOUNDS · ON</button>
-        <article class="operator-response" aria-labelledby="latest-turn-label" aria-live="polite" aria-atomic="true">
-          <span id="latest-turn-label">LATEST COMPLETED TURN</span>
-          <div class="latest-turn-meta"><b id="latest-turn-status">NONE</b><small id="latest-turn-currency">NO CURRENT RESPONSE</small><small id="latest-turn-id">NO RESIDENT RESULT</small><small id="latest-turn-presentation">PRESENTATION N/A</small></div>
-          <p id="operator-response">No completed resident turn yet.</p>
-        </article>
+        <div class="compact-actions"><button id="restart-button" class="restart-button visible" type="button">RESTART</button><button id="end-session" class="end-session-button" type="button">END SESSION</button><button id="ui-sounds" class="sound-button" type="button" aria-pressed="true">🔊 ON</button></div>
       </div>
     </section>
 
@@ -106,6 +107,12 @@
         <div data-stage="memory"><i>01</i><span>MEMORY</span><b>N/A</b></div><em></em><div data-stage="qwen"><i>02</i><span>QWEN</span><b>INACTIVE</b></div><em></em><div data-stage="tools"><i>03</i><span>TOOLS</span><b>N/A</b></div><em></em><div data-stage="tests"><i>04</i><span>TESTS</span><b>N/A</b></div><em></em><div data-stage="review"><i>05</i><span>GLM REVIEW</span><b>N/A</b></div><em></em><div data-stage="adjudication"><i>06</i><span>ADJUDICATION</span><b>N/A</b></div>
       </div>
     </section>
+
+    <article class="operator-response latest-turn-footer" aria-labelledby="latest-turn-label" aria-live="polite" aria-atomic="true">
+      <span id="latest-turn-label">LATEST COMPLETED TURN</span>
+      <div class="latest-turn-meta"><b id="latest-turn-status">NONE</b><small id="latest-turn-currency">NO CURRENT RESPONSE</small><small id="latest-turn-id">NO RESIDENT RESULT</small><small id="latest-turn-presentation">PRESENTATION N/A</small></div>
+      <p id="operator-response">No completed resident turn yet.</p>
+    </article>
 
     <section class="lower-grid">
       <div class="operations-panel"><div class="section-heading"><span>04</span> RECENT OPERATIONS</div><div id="operations" class="operations"><p class="empty">No execution operations observed.</p></div></div>

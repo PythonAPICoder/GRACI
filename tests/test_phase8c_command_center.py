@@ -84,8 +84,9 @@ class TrustedPresentationTests(unittest.TestCase):
         self.assertIn("finishPTT(generation)", self.js)
 
     def test_no_authority_surface_or_fictional_activity_was_added(self):
-        self.assertEqual(len(re.findall(r"<button\b", self.html)), 3)
+        self.assertEqual(len(re.findall(r"<button\b", self.html)), 4)
         self.assertIn('id="ui-sounds"', self.html)
+        self.assertIn('id="end-session"', self.html)
         combined = (self.html + self.js).lower()
         for forbidden in ("fake progress", "token stream", "model selector",
                           "4090 override", "wake word", "speechsynthesis"):

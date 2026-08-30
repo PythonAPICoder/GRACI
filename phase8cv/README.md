@@ -34,6 +34,14 @@ Reduced-motion mode disables deformation and traveling activity while retaining 
 geometry, and state colors. No cloud service, model authority, compute policy, health
 inference, wake word, VAD, hidden progress, or Phase 8D behavior is added.
 
+The final command-center layout uses a dominant, mathematically centered orb/radial
+assembly over a live SVG circuit field. A compact right status rail, single-row PTT
+and presentation controls, condensed six-stage pipeline, and latest-turn footer reclaim
+the 3440x1440 workspace for GRACI's presence. End Session is browser-presentation-only:
+it cancels transient media/capture, closes the page's observer connection, and grants no
+resident or execution authority. Responsive breakpoints stack status and controls while
+keeping the orb and its 64-spoke analyser ring centered together.
+
 Automated coverage is in `tests/test_phase8cv_browser_voice.py`; browser autoplay,
 audio audibility, physical barge-in latency, tab racing, and visible amplitude response
 still require the physical QA procedure recorded in the completion report.

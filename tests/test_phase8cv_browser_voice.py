@@ -140,6 +140,34 @@ class BrowserContractTests(unittest.TestCase):
             self.assertIn(marker, self.js + self.css)
         self.assertIn("circuit-drift", self.css)
 
+    def test_physical_qa_layout_hierarchy_is_compact_and_centered(self):
+        for marker in ('class="presence-visual"', 'class="circuit-board"',
+                       'status-rail"', 'class="compact-actions"',
+                       'latest-turn-footer"', 'id="end-session"'):
+            self.assertIn(marker, self.html)
+        for marker in ("grid-template-columns:minmax(0,1fr) 310px",
+                       "transform:translate(-50%,-50%)", "width:min(79vh,1050px)",
+                       ".lower-grid{display:none}", ".pipeline{height:38px}"):
+            self.assertIn(marker, self.css)
+
+    def test_radial_circuit_and_state_mapping_remain_truthful(self):
+        self.assertIn("for(let i=0;i<64;i++)", self.js)
+        self.assertIn('id="speech-radial"', self.html)
+        self.assertIn("circuit-traces", self.html)
+        self.assertIn("circuit-pulses", self.html)
+        for marker in ("body[data-system-state=reasoning] .circuit-board",
+                       "body[data-system-state=reviewing] .circuit-board",
+                       "animation-direction:reverse", "@keyframes circuit-pulse"):
+            self.assertIn(marker, self.css)
+
+    def test_compact_controls_are_presentation_only(self):
+        self.assertIn('id="ptt-button"', self.html)
+        self.assertIn('id="restart-button"', self.html)
+        self.assertIn('id="ui-sounds"', self.html)
+        self.assertIn("endPresentationSession", self.js)
+        self.assertIn('stopBrowserPlayback("session_ended")', self.js)
+        self.assertNotIn('/end-session', self.js)
+
     def test_autoplay_and_interruptions_are_truthful(self):
         for marker in ("NotAllowedError", "autoplay_rejected", 'speechAck("started")',
                        'speechAck("completed")', 'speechAck("cancelled"',

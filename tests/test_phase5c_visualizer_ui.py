@@ -53,7 +53,7 @@ class StaticContractTests(unittest.TestCase):
         for forbidden in ("http://","https://","@import","googleapis","analytics","task-entry","prompt-entry","model selector","approve-button","reject-button","memory_content","chain_of_thought","stdout","stderr"):
             self.assertNotIn(forbidden.lower(),combined.lower())
         self.assertNotRegex(self.html,r"<(?:form|input|textarea|select)\b")
-        self.assertEqual(len(re.findall(r"<button\b", self.html)), 3)
+        self.assertEqual(len(re.findall(r"<button\b", self.html)), 4)
         self.assertIn('id="restart-button"', self.html)
         self.assertIn('id="ptt-button"', self.html)
 
