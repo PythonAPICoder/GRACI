@@ -68,9 +68,9 @@ class StaticContractTests(unittest.TestCase):
         for marker in ('id="node-3090"','id="node-4090"','id="agent-qwen"','id="agent-glm"','id="review-panel"','id="adjudication-panel"','data-field="mo2"'):
             self.assertIn(marker,self.html)
         for stage in ("memory","qwen","tools","tests","review","adjudication"): self.assertIn(f'data-stage="{stage}"',self.html)
-        for marker in ('class="graci-presence"','class="presence-system"','class="orb-sphere"','class="orb-hex"','class="orb-energy-rim"','class="orb-aura"','class="orb-inner-rim"','class="hud-ring hud-outer"','class="hud-ring hud-index"','id="newSphere"','id="newHexMesh"','class="orb-wordmark"'):
+        for marker in ('class="graci-presence"','class="presence-system"','class="orb-sphere"','class="orb-hex"','class="orb-clouds"','class="orb-electric"','class="orb-energy-rim"','class="orb-aura"','class="orb-inner-rim"','class="hud-ring hud-outer"','class="hud-ring hud-micro"','class="hud-ring hud-index"','id="newSphere"','id="newHexMesh"','class="orb-wordmark"'):
             self.assertIn(marker,self.html)
-        for marker in ("var(--bar,0)*.75","var(--voice-energy)*38","width:min(1020px"):
+        for marker in ("var(--bar,0)*.5","var(--voice-energy)*38","width:min(1070px"):
             self.assertIn(marker,self.css)
         self.assertIn("prefers-reduced-motion:reduce",self.css)
 

@@ -146,7 +146,7 @@ class BrowserContractTests(unittest.TestCase):
                        'latest-turn-footer"', 'id="end-session"'):
             self.assertIn(marker, self.html)
         for marker in ("grid-template-columns:minmax(0,1fr) 360px",
-                       "width:min(1020px", ".detail-rail.status-rail",
+                       "width:min(1070px", ".detail-rail.status-rail",
                        ".lower-grid{display:none}", ".pipeline{height:58px;display:grid"):
             self.assertIn(marker, self.css)
 
@@ -160,10 +160,13 @@ class BrowserContractTests(unittest.TestCase):
                        'class="circuit-layer circuit-primary"',
                        'class="circuit-layer circuit-secondary"',
                        'class="circuit-layer circuit-detail"',
+                       'class="circuit-layer circuit-underlay"',
+                       'class="circuit-layer circuit-micro"',
+                       'class="circuit-glints"',
                        'class="circuit-packets"', 'class="signal-nodes"',
                        'class="indicator"'):
             self.assertIn(marker, self.html)
-        self.assertIn('r="480"', self.html)
+        self.assertIn('r="490"', self.html)
         self.assertIn('r="260"', self.html)
 
     def test_radial_circuit_and_state_mapping_remain_truthful(self):
@@ -174,7 +177,7 @@ class BrowserContractTests(unittest.TestCase):
         for marker in ('body[data-active-agent="qwen"] .circuit-packets',
                        'body[data-active-agent="glm"] .circuit-packets',
                        "animation-direction:reverse", "@keyframes circuit-pulse",
-                       "transform:scaleY(.82)", "var(--bar,0)*.75"):
+                       "transform:scaleY(.82)", "var(--bar,0)*.5"):
             self.assertIn(marker, self.css)
         self.assertIn('document.body.dataset.activeAgent=activeAgent', self.js)
 
