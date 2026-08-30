@@ -1,11 +1,9 @@
 # Current GRACI Architecture
 
-Proposed G1 governance and stable proposed policy IDs pending Product Owner
-acceptance are in
+Accepted current G1 governance and stable policy IDs are canonical in
 [`governance/CURRENT_POLICY.md`](governance/CURRENT_POLICY.md) and
-[`governance/POLICY_INDEX.md`](governance/POLICY_INDEX.md). They are not yet accepted
-policy. This document describes implemented architecture; code/configuration/tests
-remain deterministic enforcement.
+[`governance/POLICY_INDEX.md`](governance/POLICY_INDEX.md). This document describes
+implemented architecture; code/configuration/tests remain deterministic enforcement.
 
 ## Phase 8B resident latest-turn continuity
 

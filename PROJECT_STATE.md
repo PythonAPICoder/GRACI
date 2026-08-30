@@ -1,10 +1,9 @@
 # GRACI Project State
 
-Proposed G1 governance pending Product Owner acceptance is maintained separately in
+Accepted current G1 governance is canonical in
 [`governance/CURRENT_POLICY.md`](governance/CURRENT_POLICY.md) and
-[`governance/POLICY_INDEX.md`](governance/POLICY_INDEX.md). It is not yet accepted
-policy. Entries here preserve current-state and historical evidence and do not grant
-runtime authority.
+[`governance/POLICY_INDEX.md`](governance/POLICY_INDEX.md). Entries here preserve
+current-state and historical evidence and do not grant runtime authority.
 
 Current accepted build: Phase 5 — COMPLETE; Phase 6 — COMPLETE; Phase 6A — COMPLETE;
 Phase 6B — COMPLETE; Phase 7 — COMPLETE; Phase 8A — COMPLETE; Phase 8B — COMPLETE.

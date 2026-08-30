@@ -62,16 +62,16 @@ class GovernanceTests(unittest.TestCase):
         self.assertIn("future capability, not a", current)
         self.assertNotIn(".obsidian", "\n".join(self.documents))
 
-    def test_proposed_status_is_distinct_from_behavior_and_future_capability(self):
+    def test_current_status_is_distinct_from_behavior_and_future_capability(self):
         current = self.documents["CURRENT_POLICY.md"]
         index = self.documents["POLICY_INDEX.md"]
         change = self.documents["CHANGE_PROCESS.md"]
-        self.assertIn("Status: **PROPOSED — pending Product Owner acceptance**", current)
-        self.assertIn("Status: **PROPOSED — pending Product Owner acceptance**", change)
-        self.assertIn("`PROPOSED / IMPLEMENTED BEHAVIOR`", index)
-        self.assertIn("`PROPOSED / FUTURE CAPABILITY`", index)
-        self.assertNotIn("currently accepted governance", current)
-        self.assertNotRegex(index, r"\| (?:CURRENT|CURRENT / FUTURE CAPABILITY) \|")
+        self.assertIn("Status: **CURRENT — accepted by the Product Owner**", current)
+        self.assertIn("Status: **CURRENT — accepted by the Product Owner**", change)
+        self.assertIn("`CURRENT / IMPLEMENTED BEHAVIOR`", index)
+        self.assertIn("`CURRENT / FUTURE CAPABILITY`", index)
+        self.assertNotIn("PROPOSED", "\n".join(self.documents))
+        self.assertNotIn("pending Product Owner acceptance", "\n".join(self.documents))
 
     def test_reviewed_authorization_safety_rules_are_explicit(self):
         current = self.documents["CURRENT_POLICY.md"]
@@ -81,6 +81,8 @@ class GovernanceTests(unittest.TestCase):
             "project completion or closure for permission",
             "must be established explicitly by the Product Owner",
             "the grant is inactive and",
+            "ASK PRODUCT OWNER IF NONE",
+            "accepted current governance for a **future capability**",
             "requires explicit Product Owner approval through the governance change process",
             "Every promotion or deployment of a self-developed change to G.R.A.C.I. requires",
             "this policy creates no such delegation",

@@ -1,6 +1,6 @@
 # G.R.A.C.I. Current Policy
 
-Status: **PROPOSED — pending Product Owner acceptance**
+Status: **CURRENT — accepted by the Product Owner**
 
 Authority: **Product Owner**
 
@@ -8,9 +8,8 @@ Policy records: [Policy Index](POLICY_INDEX.md)
 
 Change control: [Governance Change Process](CHANGE_PROCESS.md)
 
-This document proposes G.R.A.C.I.'s canonical governance. It becomes accepted and
-effective only through explicit Product Owner acceptance. Once accepted, it
-supersedes contradictory current-state descriptions, but does not rewrite historical evidence.
+This document states G.R.A.C.I.'s accepted canonical governance. It supersedes
+contradictory current-state descriptions, but does not rewrite historical evidence.
 G.R.A.C.I. is the local autonomous system; its models and other AI components are
 subordinate implementation or advisory components. The Product Owner is the final
 human authority.
@@ -63,13 +62,13 @@ work.
 When locally blocked with no valid grant, G.R.A.C.I. must stop, explain the local
 block, and ask the Product Owner for permission. The intended future flow is:
 
-`LOCAL ATTEMPT -> LOCAL REPAIR -> LOCAL REVIEW -> BLOCKED -> CHECK EXTERNAL PERMISSION -> ASK USER IF NONE -> BOUNDED EXTERNAL ASSISTANCE IF APPROVED -> LOCAL VALIDATION -> CONTINUE OR FAIL`
+`LOCAL ATTEMPT -> LOCAL REPAIR -> LOCAL REVIEW -> BLOCKED -> CHECK EXTERNAL PERMISSION -> ASK PRODUCT OWNER IF NONE -> BOUNDED EXTERNAL ASSISTANCE IF APPROVED -> LOCAL VALIDATION -> CONTINUE OR FAIL`
 
 Even with permission, send only the minimum bounded, preferably sanitized context.
 Never send credentials or secrets, unrelated memory, or an entire repository unless
 genuinely required and within scope. External responses remain advisory until local
 validation and cannot bypass governance, testing, review, or acceptance. This is
-current policy for a **future capability**; G1 adds no cloud runtime path. See
+accepted current governance for a **future capability**; G1 adds no cloud runtime path. See
 `EXTERNAL-001` and `EXTERNAL-002`.
 
 ## Local-first policy

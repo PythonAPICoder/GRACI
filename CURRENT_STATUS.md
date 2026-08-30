@@ -1,10 +1,9 @@
 # Current GRACI Status
 
-Proposed G1 governance pending Product Owner acceptance is in
+Accepted current G1 governance is canonical in
 [`governance/CURRENT_POLICY.md`](governance/CURRENT_POLICY.md) and
-[`governance/POLICY_INDEX.md`](governance/POLICY_INDEX.md). It is not yet accepted
-policy. This file reports implementation status and evidence; it does not
-independently grant authority.
+[`governance/POLICY_INDEX.md`](governance/POLICY_INDEX.md). This file reports
+implementation status and evidence; it does not independently grant authority.
 
 ## Phase 8B resident latest-turn continuity — COMPLETE IN REPOSITORY
 
