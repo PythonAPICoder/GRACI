@@ -141,38 +141,40 @@ class BrowserContractTests(unittest.TestCase):
         self.assertIn("circuit-drift", self.css)
 
     def test_physical_qa_layout_hierarchy_is_compact_and_centered(self):
-        for marker in ('class="presence-visual"', 'class="circuit-board"',
+        for marker in ('class="graci-presence"', 'class="presence-circuitry"',
                        'status-rail"', 'class="compact-actions"',
                        'latest-turn-footer"', 'id="end-session"'):
             self.assertIn(marker, self.html)
         for marker in ("grid-template-columns:minmax(0,1fr) 360px",
-                       "width:min(1080px,99%)", ".detail-rail.status-rail",
+                       "width:min(1020px", ".detail-rail.status-rail",
                        ".lower-grid{display:none}", ".pipeline{height:58px;display:grid"):
             self.assertIn(marker, self.css)
 
     def test_approved_branding_orb_and_dense_environment_contract(self):
         self.assertNotIn("GRAY-see", self.html)
-        for marker in ('class="orb-atmosphere"', 'class="orb-inner-rim"',
-                       'class="orb-horizon"', 'id="rimGradient"'):
+        for marker in ('class="presence-system"', 'class="orb-aura"',
+                       'class="orb-sphere"', 'class="orb-inner-rim"',
+                       'class="orb-horizon"', 'id="newRim"'):
             self.assertIn(marker, self.html)
-        structural = self.html.split('<g class="circuit-traces structural">', 1)[1].split("</g>", 1)[0]
-        branches = self.html.split('<g class="circuit-traces branches">', 1)[1].split("</g>", 1)[0]
-        nodes = self.html.split('<g class="circuit-nodes">', 1)[1].split("</g>", 1)[0]
-        pulses = self.html.split('<g class="circuit-pulses">', 1)[1].split("</g>", 1)[0]
-        self.assertGreaterEqual(structural.count("<path"), 30)
-        self.assertGreaterEqual(branches.count("<path"), 12)
-        self.assertGreaterEqual(nodes.count("<circle"), 30)
-        self.assertGreaterEqual(pulses.count("<path"), 8)
+        for marker in ('class="circuit-layer circuit-depth"',
+                       'class="circuit-layer circuit-primary"',
+                       'class="circuit-layer circuit-secondary"',
+                       'class="circuit-layer circuit-detail"',
+                       'class="circuit-packets"', 'class="signal-nodes"',
+                       'class="indicator"'):
+            self.assertIn(marker, self.html)
+        self.assertIn('r="480"', self.html)
+        self.assertIn('r="260"', self.html)
 
     def test_radial_circuit_and_state_mapping_remain_truthful(self):
         self.assertIn("for(let i=0;i<64;i++)", self.js)
         self.assertIn('id="speech-radial"', self.html)
-        self.assertIn("circuit-traces", self.html)
-        self.assertIn("circuit-pulses", self.html)
-        for marker in ('body[data-active-agent="qwen"] .circuit-pulses',
-                       'body[data-active-agent="glm"] .circuit-pulses',
+        self.assertIn("circuit-primary", self.html)
+        self.assertIn("circuit-packets", self.html)
+        for marker in ('body[data-active-agent="qwen"] .circuit-packets',
+                       'body[data-active-agent="glm"] .circuit-packets',
                        "animation-direction:reverse", "@keyframes circuit-pulse",
-                       "transform:scaleY(.56)", "var(--bar,0)*2.35"):
+                       "transform:scaleY(.82)", "var(--bar,0)*.75"):
             self.assertIn(marker, self.css)
         self.assertIn('document.body.dataset.activeAgent=activeAgent', self.js)
 
