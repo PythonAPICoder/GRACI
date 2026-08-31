@@ -173,8 +173,8 @@ class BrowserContractTests(unittest.TestCase):
         self.assertIn('r="260"', self.html)
 
     def test_radial_circuit_and_state_mapping_remain_truthful(self):
-        self.assertIn("for(let i=0;i<64;i++)", self.js)
         self.assertIn('id="speech-radial"', self.html)
+        self.assertIn('id="speech-energy-ring"', self.html)
         self.assertIn('id="secondary-radial"', self.html)
         self.assertIn('id="calibration-ticks"', self.html)
         self.assertIn('class="hud-structural-arcs"', self.html)
@@ -185,12 +185,54 @@ class BrowserContractTests(unittest.TestCase):
         for marker in ('body[data-circuit-mode="qwen"] .circuit-packet',
                        'body[data-circuit-mode="glm"] .circuit-packet',
                        "animation-name:circuit-packet-reverse",
-                       "@keyframes circuit-packet-forward",
-                       "transform:scaleY(.82)", "var(--bar,0)*.5"):
+                       "@keyframes circuit-packet-forward"):
             self.assertIn(marker, self.css)
         self.assertIn('document.body.dataset.activeAgent=activeAgent', self.js)
         self.assertIn('document.body.dataset.circuitMode=circuitPresentationMode(s)',
                       self.js)
+
+    def test_outer_speech_ring_is_complete_uniform_and_bounded(self):
+        self.assertEqual(self.html.count('id="speech-energy-ring"'), 1)
+        self.assertIn(
+            '<circle id="speech-energy-ring" class="speech-energy-ring" '
+            'cx="500" cy="500" r="414"/>', self.html)
+        self.assertIn(
+            'class="orb-inner-rim" cx="500" cy="500" r="247"', self.html)
+        self.assertIn(
+            'class="orb-energy-rim" cx="500" cy="500" r="260" '
+            'stroke="url(#newRim)"', self.html)
+        for marker in (
+                '.speech-energy-ring{--speech-ring-core-feather:.65px;',
+                'blur(var(--speech-ring-core-feather))',
+                '--speech-ring-tight-bloom:3px',
+                'fill:none;stroke:currentColor;',
+                'stroke-width:5.4px;opacity:.16;',
+                'body[data-system-state="speaking"] .speech-energy-ring',
+                'stroke-width:calc(5.4px + var(--voice-energy,0)*12.6px)',
+                'opacity:calc(.16 + var(--voice-energy,0)*.8)',
+                '--speech-ring-tight-bloom:3px',
+                '--speech-ring-broad-bloom:5px',
+                'calc(3px + var(--voice-energy,0)*7px)',
+                'calc(5px + var(--voice-energy,0)*23px)'):
+            self.assertIn(marker, self.css)
+        ring_css = self.css[self.css.index('.speech-energy-ring{'):
+                            self.css.index('\n', self.css.index('.speech-energy-ring{'))]
+        for forbidden in ('stroke-dasharray', 'animation:', 'rotate(', 'scaleY('):
+            self.assertNotIn(forbidden, ring_css)
+        self.assertLessEqual(.16 + .8, 1)
+        self.assertEqual(5.4 + 12.6, 18)
+        self.assertEqual(3 + 7, 10)
+        self.assertEqual(5 + 23, 28)
+        self.assertIn(
+            'previous*.72+raw*.75', self.js)
+        self.assertIn(
+            'setProperty("--voice-energy",energy.toFixed(3))', self.js)
+        self.assertIn(
+            'setProperty("--voice-energy","0")', self.js)
+        self.assertNotIn('for(let i=0;i<64;i++)', self.js)
+        self.assertNotIn('document.querySelectorAll("#speech-radial line")', self.js)
+        self.assertNotIn('.speech-radial line', self.css)
+        self.assertNotIn('--bar', self.js + self.css)
 
     def test_nucleus_is_layered_and_audio_modulation_stays_bounded(self):
         for marker in ('id="hexSurfaceMask"', 'id="hexRimMask"',

@@ -79,7 +79,7 @@ class StaticContractTests(unittest.TestCase):
         for stage in ("memory","qwen","tools","tests","review","adjudication"): self.assertIn(f'data-stage="{stage}"',self.html)
         for marker in ('class="graci-presence"','class="presence-system"','class="orb-sphere"','class="orb-hex"','class="orb-clouds"','class="orb-electric"','class="orb-energy-rim"','class="orb-aura"','class="orb-inner-rim"','class="hud-ring hud-outer"','class="hud-ring hud-micro"','class="hud-ring hud-index"','id="newSphere"','id="newHexMesh"','class="orb-wordmark"'):
             self.assertIn(marker,self.html)
-        for marker in ("var(--bar,0)*.5","var(--live,0)*34","width:min(1070px"):
+        for marker in ("var(--voice-energy,0)*.8","var(--live,0)*34","width:min(1070px"):
             self.assertIn(marker,self.css)
         self.assertIn("prefers-reduced-motion:reduce",self.css)
 

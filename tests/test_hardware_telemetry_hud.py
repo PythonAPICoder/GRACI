@@ -184,8 +184,8 @@ class TelemetryPresentationTests(unittest.TestCase):
 
     def test_existing_analyser_ptt_and_accessibility_paths_remain_single_source(self):
         for marker in ("createMediaElementSource", "createAnalyser",
-                       "getByteFrequencyData", "for(let i=0;i<64;i++)",
-                       'id="speech-radial"', 'id="ptt-button"',
+                       "getByteFrequencyData", 'id="speech-energy-ring"',
+                       "--voice-energy", 'id="ptt-button"',
                        "prefers-reduced-motion"):
             self.assertIn(marker, self.js + self.html + self.css)
         self.assertEqual(self.js.count("createAnalyser()"), 1)
