@@ -87,6 +87,14 @@
             <g class="circuit-packet packet-4"><path class="packet-trail packet-trail-far" pathLength="100" d="M1600 146h-192l-39 39h-164l-62 62H980"/><path class="packet-trail packet-trail-near" pathLength="100" d="M1600 146h-192l-39 39h-164l-62 62H980"/><path class="packet-head" pathLength="100" d="M1600 146h-192l-39 39h-164l-62 62H980"/></g>
             <g class="circuit-packet packet-5"><path class="packet-trail packet-trail-far" pathLength="100" d="M1600 474h-208l-31-31h-166l-54 54H980"/><path class="packet-trail packet-trail-near" pathLength="100" d="M1600 474h-208l-31-31h-166l-54 54H980"/><path class="packet-head" pathLength="100" d="M1600 474h-208l-31-31h-166l-54 54H980"/></g>
             <g class="circuit-packet packet-6"><path class="packet-trail packet-trail-far" pathLength="100" d="M1600 806h-216l-36-36h-171l-64-64H976"/><path class="packet-trail packet-trail-near" pathLength="100" d="M1600 806h-216l-36-36h-171l-64-64H976"/><path class="packet-head" pathLength="100" d="M1600 806h-216l-36-36h-171l-64-64H976"/></g>
+            <g class="circuit-packet packet-7"><path class="packet-trail packet-trail-far" pathLength="100" d="M520 0v52l34 34v98l45 45"/><path class="packet-trail packet-trail-near" pathLength="100" d="M520 0v52l34 34v98l45 45"/><path class="packet-head" pathLength="100" d="M520 0v52l34 34v98l45 45"/></g>
+            <g class="circuit-packet packet-8"><path class="packet-trail packet-trail-far" pathLength="100" d="M1082 0v62l-38 38v102l-43 43"/><path class="packet-trail packet-trail-near" pathLength="100" d="M1082 0v62l-38 38v102l-43 43"/><path class="packet-head" pathLength="100" d="M1082 0v62l-38 38v102l-43 43"/></g>
+            <g class="circuit-packet packet-9"><path class="packet-trail packet-trail-far" pathLength="100" d="M536 900v-64l37-37v-96l48-48"/><path class="packet-trail packet-trail-near" pathLength="100" d="M536 900v-64l37-37v-96l48-48"/><path class="packet-head" pathLength="100" d="M536 900v-64l37-37v-96l48-48"/></g>
+            <g class="circuit-packet packet-10"><path class="packet-trail packet-trail-far" pathLength="100" d="M1064 900v-72l-34-34v-91l-44-44"/><path class="packet-trail packet-trail-near" pathLength="100" d="M1064 900v-72l-34-34v-91l-44-44"/><path class="packet-head" pathLength="100" d="M1064 900v-72l-34-34v-91l-44-44"/></g>
+            <g class="circuit-packet packet-11"><path class="packet-trail packet-trail-far" pathLength="100" d="M112 0v94l34 34v128l61 61"/><path class="packet-trail packet-trail-near" pathLength="100" d="M112 0v94l34 34v128l61 61"/><path class="packet-head" pathLength="100" d="M112 0v94l34 34v128l61 61"/></g>
+            <g class="circuit-packet packet-12"><path class="packet-trail packet-trail-far" pathLength="100" d="M1488 0v116l-38 38v142l-58 58"/><path class="packet-trail packet-trail-near" pathLength="100" d="M1488 0v116l-38 38v142l-58 58"/><path class="packet-head" pathLength="100" d="M1488 0v116l-38 38v142l-58 58"/></g>
+            <g class="circuit-packet packet-13"><path class="packet-trail packet-trail-far" pathLength="100" d="M168 900v-98l46-46v-112l70-70"/><path class="packet-trail packet-trail-near" pathLength="100" d="M168 900v-98l46-46v-112l70-70"/><path class="packet-head" pathLength="100" d="M168 900v-98l46-46v-112l70-70"/></g>
+            <g class="circuit-packet packet-14"><path class="packet-trail packet-trail-far" pathLength="100" d="M1434 900v-112l-39-39v-126l-72-72"/><path class="packet-trail packet-trail-near" pathLength="100" d="M1434 900v-112l-39-39v-126l-72-72"/><path class="packet-head" pathLength="100" d="M1434 900v-112l-39-39v-126l-72-72"/></g>
           </g>
           <g class="signal-nodes" filter="url(#nodeBloom)">
             <circle cx="178" cy="124" r="3"/><circle class="medium" cx="366" cy="155" r="6"/><circle cx="127" cy="301" r="3"/><circle class="medium" cx="233" cy="379" r="5"/><circle cx="164" cy="584" r="3"/><circle class="medium" cx="400" cy="584" r="6"/><circle cx="259" cy="745" r="3"/><circle class="indicator" cx="451" cy="719" r="4"/><circle cx="492" cy="72" r="3"/><circle cx="487" cy="826" r="3"/>
@@ -224,6 +232,13 @@
       <div class="events-panel"><div class="events-head"><div class="section-heading"><span>05</span> LIVE EVENT STREAM</div><span id="event-count">0 / 100</span></div><div id="events" class="events" aria-live="polite"><p class="empty">Waiting for trusted local events…</p></div></div>
     </section>
   </main>
+  <section id="processing-audio-test-panel" class="processing-audio-test-panel" aria-label="Bounded processing audio diagnostics" hidden>
+    <strong>PROCESSING AUDIO QA</strong>
+    <button type="button" data-processing-audio-test="ui-confirmation">TEST CONFIRMATION</button>
+    <button type="button" data-processing-audio-test="qwen">TEST QWEN</button>
+    <button type="button" data-processing-audio-test="glm">TEST GLM</button>
+    <button id="thinking-pulse-audition" type="button">AUDITION DATA CHATTER · DIAGNOSTIC</button>
+  </section>
   <script src="/visualizer.js" defer></script>
 </body>
 </html>

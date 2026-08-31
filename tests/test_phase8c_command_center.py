@@ -84,7 +84,36 @@ class TrustedPresentationTests(unittest.TestCase):
         self.assertIn("finishPTT(generation)", self.js)
 
     def test_no_authority_surface_or_fictional_activity_was_added(self):
-        self.assertEqual(len(re.findall(r"<button\b", self.html)), 4)
+        qa_panel = re.search(
+            r'<section id="processing-audio-test-panel"([^>]*)>(.*?)</section>',
+            self.html,
+            re.S,
+        )
+        self.assertIsNotNone(qa_panel)
+        self.assertRegex(qa_panel.group(1), r"\bhidden\b")
+        qa_modes = re.findall(
+            r'<button\b[^>]*\bdata-processing-audio-test="([^"]+)"',
+            qa_panel.group(2),
+        )
+        self.assertEqual(qa_modes, ["ui-confirmation", "qwen", "glm"])
+        normal_html = self.html[:qa_panel.start()] + self.html[qa_panel.end():]
+        self.assertEqual(
+            set(re.findall(r'<button\b[^>]*\bid="([^"]+)"', normal_html)),
+            {"ptt-button", "ui-sounds", "restart-button", "end-session"},
+        )
+        self.assertEqual(len(re.findall(r"<button\b", normal_html)), 4)
+        self.assertIn(
+            'const processingAudioDiagnosticsEnabled = '
+            'window.location.hash==="#processing-audio-diagnostics";',
+            self.js,
+        )
+        self.assertIn(
+            "function installProcessingAudioDiagnostics(){"
+            "if(!processingAudioDiagnosticsEnabled)return;",
+            self.js,
+        )
+        self.assertIn('panel.hidden=false', self.js)
+        self.assertIn('.processing-audio-test-panel[hidden]{display:none}', self.css)
         self.assertIn('id="ui-sounds"', self.html)
         self.assertIn('id="end-session"', self.html)
         combined = (self.html + self.js).lower()

@@ -45,7 +45,37 @@ class PresenceSourceTests(unittest.TestCase):
     def test_presence_panels_have_only_the_later_explicit_ptt_control(self):
         combined = (self.html + self.css + self.js).lower()
         self.assertNotRegex(self.html, r"<(?:form|input|textarea|select)\b")
-        self.assertEqual(len(re.findall(r"<button\b", self.html)), 4)
+        qa_panel = re.search(
+            r'<section id="processing-audio-test-panel"([^>]*)>(.*?)</section>',
+            self.html,
+            re.S,
+        )
+        self.assertIsNotNone(qa_panel)
+        self.assertRegex(qa_panel.group(1), r"\bhidden\b")
+        self.assertEqual(
+            re.findall(
+                r'<button\b[^>]*\bdata-processing-audio-test="([^"]+)"',
+                qa_panel.group(2),
+            ),
+            ["ui-confirmation", "qwen", "glm"],
+        )
+        normal_html = self.html[:qa_panel.start()] + self.html[qa_panel.end():]
+        self.assertEqual(
+            set(re.findall(r'<button\b[^>]*\bid="([^"]+)"', normal_html)),
+            {"ptt-button", "ui-sounds", "restart-button", "end-session"},
+        )
+        self.assertEqual(len(re.findall(r"<button\b", normal_html)), 4)
+        self.assertIn(
+            'const processingAudioDiagnosticsEnabled = '
+            'window.location.hash==="#processing-audio-diagnostics";',
+            self.js,
+        )
+        self.assertIn(
+            "function installProcessingAudioDiagnostics(){"
+            "if(!processingAudioDiagnosticsEnabled)return;",
+            self.js,
+        )
+        self.assertIn('.processing-audio-test-panel[hidden]{display:none}', self.css)
         self.assertIn('id="restart-button"', self.html)
         self.assertIn('id="ptt-button"', self.html)
         presentation = combined.replace("http://www.w3.org/2000/svg", "")

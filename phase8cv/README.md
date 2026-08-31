@@ -20,19 +20,41 @@ GRACI terminate the claim and return the lifecycle to idle. Multiple tabs may ra
 but only one claim succeeds; refresh cannot reclaim an accepted or terminal artifact.
 If no eligible browser claims an artifact, presentation fails explicitly by timeout.
 
-The heard signal follows `HTMLAudioElement -> MediaElementAudioSourceNode ->
+The heard speech signal follows `HTMLAudioElement -> MediaElementAudioSourceNode ->
 AnalyserNode -> destination`. Smoothed, bounded FFT energy drives the central orb and
-64 radial bars only while playback is active. Idle/listening retain calmer static
-identity; trusted Qwen processing uses stronger cyan phase activity; trusted GLM
-review uses violet counter-oriented activity. A lightweight CSS circuit field remains
-decorative and communicates only the trusted high-level state.
+64 radial bars only while speech playback is active. The approved production Thinking
+Pulse remains inside the existing browser presentation layer: it reuses the owned UI
+sound `AudioContext` and oscillator/gain/stereo-panner builder, while the speech media
+element and analyser path remain unchanged and separate. It adds no audio-file,
+network, synthesis-service, or second analyser path.
 
-Sparse Web Audio chirps are scheduled only for trusted active Qwen/GLM observations.
-They stop immediately for PTT capture, speech playback, hidden tabs, state exit, or a
-disabled `UI SOUNDS` toggle. That presentation-only preference is stored locally.
-Reduced-motion mode disables deformation and traveling activity while retaining text,
-geometry, and state colors. No cloud service, model authority, compute policy, health
-inference, wake word, VAD, hidden progress, or Phase 8D behavior is added.
+## Thinking Pulse — approved Data Chatter profile
+
+Product Owner-selected Candidate 1, **Data Chatter**, is generated dynamically while a
+trusted active Qwen or GLM observation is in planning, memory retrieval, reasoning,
+tool execution, testing, review, or adjudication. A deterministic per-task generator
+schedules irregular clusters of clicks, pips, short sweeps, and occasional dual-tone
+events. Each generated event is the single source for both its Web Audio micro-cue and
+one existing SVG circuit route, so sound, color, intensity, direction, and packet
+launch share the same dispatch boundary. Production mode pauses and hides the old
+infinite packet loops; only event-driven packet heads and trails run, without changing
+the approved circuit paths or their geometry. Qwen keeps the broader cyan-to-warm
+forward palette, while GLM keeps its violet-biased reverse direction.
+
+The scheduler starts only with a live resident, an eligible push-to-talk phase, no
+claimed speech playback, and a trusted active model. Trusted listening, speaking,
+completion, failure, and idle events stop it immediately; PTT capture, browser speech,
+a hidden or closed page, disconnect, and End Session also cancel its timer, active
+oscillators, generator state, and packet visuals. `UI SOUNDS` controls the audible
+layer without granting runtime authority. Reduced-motion mode suppresses traveling
+packets while retaining the bounded audio presentation and textual state.
+
+Data Chatter is bounded to 20–116 ms events, 1,250–6,100 Hz base frequencies,
+10,500 Hz maximum rendered frequency, gain 0.10–0.25, pan within +/-0.18, one pending
+scheduler timer, no more than six concurrent cues, no more than two oscillator voices
+per event, and the 14 existing circuit routes. Diagnostic history remains capped at 96
+entries. No cloud service, model authority, compute policy, health inference, wake
+word, VAD, hidden progress, or Phase 8D behavior is added.
 
 The final command-center layout uses a dominant, mathematically centered orb/radial
 assembly over a live SVG circuit field. A compact right status rail, single-row PTT
