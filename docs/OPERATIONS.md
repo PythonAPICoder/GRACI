@@ -15,10 +15,38 @@
 | Optional 4090 model router | `http://192.168.0.101:8080/v1` | Optional capacity only; never a baseline dependency |
 | Optional 4090 MO2 status | `http://192.168.0.101:8765/graci/v1/mo2` | Exact read-only `ModOrganizer.exe` state used by fail-closed eligibility policy |
 | Optional 4090 telemetry | `http://192.168.0.101:8767` | Fixed read-only `/health` and `/telemetry`; presentation only |
+| 4090 administrative path | WinRM from `192.168.0.100` to `192.168.0.101` | Dedicated `VR-Gamer\GRACI_Remote`; PowerShell management path, never runtime authority by itself |
 
 Shared storage exists between the machines as optional infrastructure. It is not
 authoritative GRACI storage and must not become a dependency without a clear,
 separately reviewed benefit. The repository on the 3090 remains authoritative.
+
+## 4090 PowerShell remoting
+
+The Product Owner established one-way certificate-authenticated WinRM from the
+controlling 3090 to `VR-Gamer` with dedicated account
+`VR-Gamer\GRACI_Remote`. Use:
+
+```powershell
+$session = .\ops\new-4090-certificate-session.ps1
+Invoke-Command -Session $session -ScriptBlock { <remote command> }
+Remove-PSSession $session
+```
+
+Run `.\ops\status-4090-certificate-trust.ps1` to verify local certificate validity,
+remote identity/elevation, HTTPS listener, mapping, and firewall restriction. It
+fails closed when the trust is missing, ambiguous, invalid, unreachable, or within
+the minimum validity window. The current client certificate expires on 2028-09-02
+and must be rotated beforehand.
+
+Do not hard-code or log the account password. Routine use requires no password. The
+password-authenticated HTTP route is retained only as a Product Owner-controlled
+break-glass recovery path; it is not the standard automation path.
+
+Before optional 4090 workload or mutation, verify exact `ModOrganizer.exe` absence.
+Uncertainty fails closed. Remoting connectivity and account privilege do not grant
+task authority, override MO2 priority, or make the 4090 required. A future
+certificate lifecycle is recorded under `GRACI-GAP-004` and [`ACC-0005`](acceptance/ACC-0005-4090-certificate-remoting.md).
 
 ## Startup ownership
 
@@ -158,6 +186,33 @@ The Product Owner accepted Phase 8D after reviewing this evidence. The separatel
 authorized optional 4090 llama.cpp upgrade must preserve 3090 sufficiency,
 optional-node gating, MO2 gaming priority, and its own deployment/rollback and
 acceptance boundaries.
+
+## Optional 4090 router upgrade — 2026-09-02 CDT
+
+The authorized procedure used the standard WinRM path above. Direct evidence found
+root task `\llama.cpp 4090 Router` running as `SYSTEM` and launching
+`C:\llama.cpp\launch\Router-4090.cmd`. Official b10675 (commit `90c26fcd4`) was
+staged with archive SHA-256
+`38c23100c05d74ee9893d6875bf0ac4ce69a3fbb9a7fdfc195a71e3f4c2829bd` and executable
+SHA-256 `5d73e21913c14ba4e94e8e5657d56cfcec4c55d7f91c75be1aff9f731c64bc8b`.
+
+An isolated loopback task listed both models and completed Qwen inference before
+deployment. The old directory was preserved at
+`C:\llama.cpp\bin-b10516-pre-b10675-20260902`. A real rollback restored b10516 and
+router readiness before b10675 was re-promoted. Final LAN tests from the 3090 made
+Qwen and GLM each return `READY` with fingerprint `b10675-90c26fcd4`; MO2 remained
+`NOT_RUNNING`, telemetry remained ready, and the inbound router rule remained
+limited to `192.168.0.100`. See [`ACC-0004`](acceptance/ACC-0004-4090-llama-upgrade.md).
+
+A separately approved controlled restart advanced the 4090 boot time to
+`2026-09-02T00:33:15.5000000-05:00`. WinRM and all three GRACI endpoints recovered;
+the production task ran after boot, exactly one root router returned, the b10675
+hash and restricted firewall rule remained unchanged, and both approved models
+again returned `READY`. The automated restart result is `PASS`.
+
+On 2026-09-02, the Product Owner accepted the b10675 upgrade and confirmed gaming
+impact as verified. The separate one-way certificate-remoting capability was also
+Product Owner accepted after its certificate-only restart validation passed.
 
 ## Telemetry deployment versus acceptance
 

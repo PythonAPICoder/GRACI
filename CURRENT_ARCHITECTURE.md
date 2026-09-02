@@ -139,6 +139,14 @@ client treats timeout, staleness, malformed data, schema/identity mismatch, and
 unreachability as unavailable. Local 3090 telemetry is separately collected for the
 HUD.
 
+The 3090 also has one-way certificate-authenticated WinRM over HTTPS to the 4090,
+mapped to dedicated identity `VR-Gamer\GRACI_Remote` and firewalled to the 3090.
+The non-exportable client key lives in the 3090 current-user certificate store;
+routine sessions require no password. The password route is break-glass recovery
+only. This is an operator/deployment mechanism, not an ordinary model tool or source
+of runtime authority. Optional workload and mutation still require current task
+authority and exact MO2 gating; the 3090 remains independently sufficient.
+
 ## Storage and authority boundaries
 
 The repository, run records, and governed memory remain canonical on the 3090.
@@ -161,8 +169,9 @@ the blocked build as a recoverable backup. A repeat full cold start then sustain
 both launcher success, one resident instance, browser/health response, primary
 router/model readiness, and lifecycle heartbeats through five minutes.
 
-The Product Owner accepted Phase 8D after that passing repeat. The optional 4090
-llama.cpp upgrade is separate authorized work and is not a required 3090 baseline
-dependency. Its implementation must preserve optional-node gating, MO2 gaming
-priority, security enforcement, rollback, and independent acceptance evidence. See
-[`docs/KNOWN_ISSUES.md`](docs/KNOWN_ISSUES.md).
+The Product Owner accepted Phase 8D after that passing repeat. The separate optional
+4090 upgrade has since deployed official b10675, passed real Qwen and GLM inference,
+passed an exercised rollback/re-promotion cycle, and passed a controlled restart
+without changing its task, models, firewall, or MO2 gate. The Product Owner accepted
+the upgrade and verified gaming impact. See
+[`ACC-0004`](docs/acceptance/ACC-0004-4090-llama-upgrade.md).

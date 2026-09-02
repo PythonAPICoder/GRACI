@@ -127,13 +127,30 @@ that every earlier manual scenario was included in that acceptance, including al
 multi-tab/race, autoplay, reboot, and CLI physical microphone cases. Do not infer
 failure; record explicit evidence if those scenarios become acceptance requirements.
 
-## GRACI-GAP-003 — Optional 4090 llama.cpp upgrade pending
+## GRACI-GAP-003 — Optional 4090 llama.cpp upgrade
 
-**Status: AUTHORIZED / IN PROGRESS**
+**Status: CLOSED / PRODUCT OWNER ACCEPTED**
 
-The Product Owner authorized bounded inspection, upgrade, deployment, rollback
-verification, and acceptance work for the optional 4090 llama.cpp runtime. The 4090
-remains optional and must never become a baseline dependency. Current build/version,
-Windows trust posture, model/flag compatibility, deployment method, rollback, and
-gaming/MO2 protections must be reconstructed before mutation. Acceptance still
-requires explicit evidence and cannot be inferred from deployment or tests.
+Official b10675 is deployed at the existing pinned path. Both approved models passed
+real inference from the 3090, the old b10516 directory remains recoverable, and an
+actual rollback-to-old/readiness/re-promote/readiness cycle passed. MO2 remained
+exactly `NOT_RUNNING`; the 4090 remains optional and the port-8080 firewall remains
+restricted to the 3090. See [`ACC-0004`](acceptance/ACC-0004-4090-llama-upgrade.md).
+Controlled restart validation passed with task, hash, firewall, MO2, telemetry, and
+both model requests correct after the new boot. The Product Owner explicitly
+accepted the upgrade and confirmed gaming-impact acceptance as verified on
+2026-09-02.
+
+## GRACI-GAP-004 — Non-interactive 4090 remoting credential lifecycle
+
+**Status: CLOSED / PRODUCT OWNER ACCEPTED / ROTATION REQUIRED BEFORE EXPIRY**
+
+One-way certificate-authenticated WinRM is deployed and passed positive identity,
+elevation, file-transfer, unmapped-certificate rejection, and controlled-restart
+tests. Routine sessions no longer require or store the account password. The
+non-exportable client certificate expires on 2028-09-02; the status diagnostic
+fails closed within a configurable minimum-validity window. Certificate rotation
+must be completed before expiry. A future change of the 3090 Windows execution
+identity requires explicit key reprovisioning because the private key is scoped to
+the current user. Connectivity remains technical capability, not blanket authority.
+See [`ACC-0005`](acceptance/ACC-0005-4090-certificate-remoting.md).

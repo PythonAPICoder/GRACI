@@ -81,8 +81,13 @@ continued resident liveness or browser/runtime readiness after its launcher exit
   is test-verified and direct normal-context execution is verified; a restricted-token
   live acceptance check remains optional evidence. See `GRACI-ISSUE-002`.
 - Telemetry 1.0.1 full reboot/resource/Product Owner acceptance is incomplete.
-- The Product Owner-directed optional 4090 llama.cpp upgrade is separate follow-on
-  work and is not yet authorized for inspection, implementation, or deployment.
+- The optional 4090 now runs official llama.cpp b10675. Live Qwen/GLM inference and
+  an exercised b10516 rollback/re-promotion cycle passed. A controlled restart also
+  passed; the Product Owner accepted the upgrade and verified gaming impact.
+- One-way certificate-authenticated HTTPS WinRM from the 3090 to the 4090 is
+  deployed. Passwordless command execution, file transfer, rejection of an unmapped
+  certificate, and reconnect after a controlled restart passed. The Product Owner
+  accepted the capability.
 - The accepted UI baseline does not by itself prove every earlier manual multi-tab,
   autoplay, race, reboot, or CLI microphone scenario.
 
@@ -127,8 +132,12 @@ readiness was `ready` afterward. The durable record is
 
 Phase 8D is **PROMOTED, DEPLOYED, AUTOMATED COLD-START VALIDATED, AND PRODUCT OWNER
 ACCEPTED**. The separate bounded 4090 llama.cpp inspection, upgrade, deployment,
-rollback verification, and acceptance procedure is now authorized. No later
-development objective is authorized.
+rollback verification, and live acceptance procedure is complete at the machine
+level: official b10675 is deployed, both approved models returned `READY`, and the
+old build was restored successfully before final re-promotion. A new boot preserved
+the task, hash, firewall, MO2/telemetry readiness, and both model responses. Product
+Owner acceptance is recorded for both the upgrade and one-way certificate remoting;
+no later development objective is authorized.
 
 The future product direction is selective governed composition: use routing, review,
 memory, optional compute, recovery, and verification when the task, policy, latency,

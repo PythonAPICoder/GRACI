@@ -75,9 +75,15 @@ the still-enforced `VerifiedAndReputableDesktop` policy. Repeat evidence run
 `1df4990ca2ed4dbb87f3f4478027fcf0` passed all sustained checkpoints through five
 minutes. The Product Owner accepted Phase 8D on 2026-09-01.
 
-The currently authorized objective is the separate bounded optional 4090 llama.cpp
-inspection, upgrade, deployment, rollback verification, and acceptance procedure.
-Preserve 3090 sufficiency, optional-node gating, MO2 gaming priority, and all current
-security boundaries. No objective after that work is authorized. See
+The separate optional 4090 llama.cpp procedure deployed official b10675 and passed
+real Qwen/GLM inference plus an exercised b10516 rollback/re-promotion cycle.
+It also passed a controlled restart with both models ready after the new boot. The
+Product Owner accepted the upgrade, verified gaming impact, and accepted the
+one-way certificate-remoting capability. Use certificate-authenticated HTTPS WinRM
+from the controlling 3090 to `VR-Gamer` through
+`ops/new-4090-certificate-session.ps1`; dedicated identity
+`VR-Gamer\GRACI_Remote` and its password route are break-glass only. Never store its
+password in source, logs, or prompts. Preserve 3090 sufficiency, exact MO2 gating,
+gaming priority, and all security boundaries. No later objective is authorized. See
 [`docs/KNOWN_ISSUES.md`](docs/KNOWN_ISSUES.md) and
-[`ACC-0003`](docs/acceptance/ACC-0003-phase8d-cold-start.md).
+[`ACC-0004`](docs/acceptance/ACC-0004-4090-llama-upgrade.md).

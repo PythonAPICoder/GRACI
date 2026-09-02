@@ -9,7 +9,8 @@
 |---|---|---|
 | Development-process handoff and durable memory foundation | **COMPLETE / PRODUCT OWNER ACCEPTED** | A fresh Codex session reconstructed the current product state from the repository alone; the temporary bootstrap package was then authorized for removal |
 | Phase 8D — System Health & Trusted Runtime Context | **COMPLETE / PROMOTED / DEPLOYED / PRODUCT OWNER ACCEPTED** | Commit `a0a61b7` is on `origin/main`; an authorized reputable-build repair preserved Code Integrity, repeat run `1df4990ca2ed4dbb87f3f4478027fcf0` passed through five minutes, and the Product Owner accepted the phase |
-| Optional 4090 llama.cpp upgrade | **AUTHORIZED / IN PROGRESS** | Bounded inspection, compatible upgrade, deployment, rollback verification, and acceptance procedure are authorized; 3090 sufficiency and MO2 priority remain mandatory |
+| Optional 4090 llama.cpp upgrade | **COMPLETE / PRODUCT OWNER ACCEPTED** | Official b10675 is deployed; both models passed after a new boot, b10516 rollback was exercised, gaming impact is verified, and 3090 sufficiency plus MO2 priority remain intact |
+| One-way 3090-to-4090 certificate remoting | **COMPLETE / PRODUCT OWNER ACCEPTED** | Passwordless HTTPS WinRM maps only the 3090 client certificate to `GRACI_Remote`; password access is break-glass only |
 | Objective after 4090 upgrade | **NOT AUTHORIZED** | Requires a new Product Owner decision after the authorized 4090 handoff |
 | Ordinary runtime capability selection | **PRODUCT DIRECTION** | Eventually choose routing, review, memory, optional compute, recovery, and verification according to task/policy/latency/resources rather than invoking all subsystems on every turn |
 | Wake word, VAD authority, always listening, autonomous follow-up | **DEFERRED / UNAUTHORIZED** | Requires separate Product Owner decision and governed implementation |
@@ -52,6 +53,7 @@ router/model inventory, and lifecycle heartbeats remained valid at the sustained
 120, and 300 second checkpoints. The automated summary is `PASS`.
 
 Phase 8D is deployed, automated cold-start validated, and Product Owner accepted.
-`GRACI-ISSUE-001` is closed. The separately bounded 4090 llama.cpp inspection,
-upgrade, deployment, rollback verification, and acceptance procedure is now the
-authorized objective. No objective after it is authorized.
+`GRACI-ISSUE-001` is closed. The separately bounded 4090 llama.cpp procedure is
+deployed and live validated as recorded in [`ACC-0004`](acceptance/ACC-0004-4090-llama-upgrade.md).
+The 4090 upgrade and one-way certificate remoting are Product Owner accepted. No
+objective after them is authorized.
