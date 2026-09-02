@@ -2,16 +2,15 @@
 
 > Classification: current implementation, deployment, acceptance, and issue status
 > Authority: descriptive; canonical policy remains under `governance/`
-> Verified against: promoted Phase 8D commit `a0a61b7298d3c85cec054cd11ca827842f2776dd`
+> Verified against: accepted Phase 8E Stage 1 commit `023a5ff9c78b549ac9d5d80ac3a3f1b92048ca12`
 > Last verified: 2026-09-02
 
 ## Product and repository baseline
 
-- Local `main` is at development-process commit
-  `08b2ffdc5c4530d652cde5ee4d2c428f6979f9eb`; `origin/main` remains at accepted
-  4090 upgrade and certificate-remoting commit
-  `e412d1c18a2726edda2838362807428b7f7d17ee`. The Phase 8E Stage 1 worktree is
-  detached at `08b2ffd`; promoted Phase 8D commit `a0a61b7` is in its history.
+- Accepted Phase 8E Stage 1 implementation commit
+  `023a5ff9c78b549ac9d5d80ac3a3f1b92048ca12` was fast-forwarded to local `main`
+  and `origin/main` on 2026-09-02. It was built from development-process commit
+  `08b2ffd`; promoted Phase 8D commit `a0a61b7` remains in its history.
 - Canonical identity: **G.R.A.C.I. = General Reasoning And Conversational
   Intelligence**.
 - **Autonomous Assistant** is an approved subtitle/tagline, not acronym text.

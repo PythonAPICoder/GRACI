@@ -31,9 +31,9 @@ record to the named focused evidence.
 
 ## Promotion and Stage 2 authorization
 
-On 2026-09-02, the Product Owner approved all remaining Stage 1 steps, including
-recording this acceptance, committing the verified candidate, and pushing its
-fast-forward promotion to `main`.
+On 2026-09-02, the Product Owner approved all remaining Stage 1 steps. The accepted
+implementation was committed as `023a5ff9c78b549ac9d5d80ac3a3f1b92048ca12`,
+fast-forwarded to local `main`, and pushed to `origin/main`.
 
 The Product Owner also authorized all Stage 2 work within the accepted Phase 8E
 design. Stage 2 may inspect the local Windows security capabilities, record the

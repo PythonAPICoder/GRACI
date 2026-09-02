@@ -2,8 +2,8 @@
 
 > Classification: current authorization and sequencing view
 > Authority: Product Owner direction; entries do not authorize work unless explicitly marked authorized
-> Verified against: promoted Phase 8D commit `a0a61b7298d3c85cec054cd11ca827842f2776dd`
-> Last verified: 2026-09-01
+> Verified against: accepted Phase 8E Stage 1 commit `023a5ff9c78b549ac9d5d80ac3a3f1b92048ca12`
+> Last verified: 2026-09-02
 
 | Objective | State | Meaning |
 |---|---|---|
@@ -12,7 +12,7 @@
 | Optional 4090 llama.cpp upgrade | **COMPLETE / PRODUCT OWNER ACCEPTED** | Official b10675 is deployed; both models passed after a new boot, b10516 rollback was exercised, gaming impact is verified, and 3090 sufficiency plus MO2 priority remain intact |
 | One-way 3090-to-4090 certificate remoting | **COMPLETE / PRODUCT OWNER ACCEPTED** | Passwordless HTTPS WinRM maps only the 3090 client certificate to `GRACI_Remote`; password access is break-glass only |
 | 4090 telemetry 1.0.1 acceptance closure | **COMPLETE / PRODUCT OWNER ACCEPTED** | Controlled boot startup, one-process/resource behavior, fresh telemetry, and HUD reacquisition passed in `ACC-0006` and the Product Owner accepted the bounded capability |
-| Phase 8E: Read-only Obsidian knowledge and governance review | **DESIGN AND STAGE 1 PRODUCT OWNER ACCEPTED / STAGE 2 AUTHORIZED** | The [accepted design](PHASE_8E_OBSIDIAN_DESIGN.md) uses a generated one-way local projection. The separate [`phase8e`](../phase8e/README.md) package implements the accepted fixture-only exporter foundation. Stage 2 may now implement and verify the synthetic local Windows viewer boundary; Obsidian, real data, deployment, and Stages 3 through 5 remain unauthorized |
+| Phase 8E: Read-only Obsidian knowledge and governance review | **DESIGN AND STAGE 1 PRODUCT OWNER ACCEPTED / STAGE 2 AUTHORIZED** | Accepted Stage 1 commit `023a5ff` is on `origin/main`. The [accepted design](PHASE_8E_OBSIDIAN_DESIGN.md) uses a generated one-way local projection. Stage 2 may now implement and verify the synthetic local Windows viewer boundary; Obsidian, real data, deployment, and Stages 3 through 5 remain unauthorized |
 | Phase 9: Permission-gated internet research, tool, and MCP qualification | **REQUIRED PRODUCT OBJECTIVE / IMPLEMENTATION NOT AUTHORIZED** | For a knowledge gap, ask to search the internet and return a sourced answer; for a missing tool or MCP, create or locate candidates, evaluate them in a sandbox, and require separate Product Owner approval before production installation and use |
 | Phase 10: Governed document ingestion, RAG, and corrective learning | **REQUIRED PRODUCT OBJECTIVE / IMPLEMENTATION NOT AUTHORIZED** | Safely ingest approved documents including PDFs, retrieve relevant local knowledge with source traceability, and record confirmed mistakes, corrections, and lessons without allowing memory to grant authority or silently change GRACI |
 | Phase 11: Scheduled Product Owner-authorized proactive work | **REQUIRED PRODUCT OBJECTIVE / IMPLEMENTATION NOT AUTHORIZED** | Run explicitly approved recurring tasks, such as a daily résumé-based job search, without requiring a new prompt each day while remaining inside the approved schedule, information, actions, privacy, and notification boundaries |

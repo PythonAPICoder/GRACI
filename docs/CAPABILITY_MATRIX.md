@@ -2,8 +2,8 @@
 
 > Classification: current implementation/integration/deployment/acceptance map
 > Authority: descriptive current state; does not grant runtime or development authority
-> Verified against: promoted Phase 8D commit `a0a61b7298d3c85cec054cd11ca827842f2776dd`
-> Last verified: 2026-09-01
+> Verified against: accepted Phase 8E Stage 1 commit `023a5ff9c78b549ac9d5d80ac3a3f1b92048ca12`
+> Last verified: 2026-09-02
 
 The columns are deliberately independent. **Implemented** does not mean used by the
 ordinary runtime; **tested** does not mean deployed; **deployed** does not mean
