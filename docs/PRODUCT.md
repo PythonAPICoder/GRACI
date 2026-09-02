@@ -2,7 +2,7 @@
 
 > Classification: current product identity and direction
 > Authority: accepted Product Owner decisions, bounded by canonical governance
-> Verified against: Phase 8D implementation worktree based on `959347207ecbfa252ca801ca85b76d355fc4dde2`
+> Verified against: promoted Phase 8D commit `a0a61b7298d3c85cec054cd11ca827842f2776dd`
 > Last verified: 2026-09-01
 
 ## Identity
@@ -57,6 +57,8 @@ historical qualification evidence remains unchanged.
 
 The development-process handoff and durable repository-memory foundation are Product
 Owner accepted. The temporary bootstrap migration package has been removed. Phase 8D
-System Health & Trusted Runtime Context is implemented and test-verified in the
-current worktree. It is not deployed or Product Owner accepted, and its cold-start
-acceptance gate remains open; see [`ROADMAP.md`](ROADMAP.md).
+System Health & Trusted Runtime Context is promoted and deployed at `a0a61b7`. Its
+controlled cold-start validation failed because the active Windows Code Integrity
+policy blocked an unsigned 3090 llama.cpp dependency. It is not cold-start or
+Product Owner accepted, and no security-policy repair is authorized; see
+[`ROADMAP.md`](ROADMAP.md).

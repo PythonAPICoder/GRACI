@@ -2,7 +2,7 @@
 
 > Classification: current topology, procedures, and time-stamped operational evidence
 > Authority: descriptive; live state must be rechecked before an operational action
-> Verified against: Phase 8D implementation worktree based on `959347207ecbfa252ca801ca85b76d355fc4dde2`
+> Verified against: promoted Phase 8D commit `a0a61b7298d3c85cec054cd11ca827842f2776dd`
 > Last verified: 2026-09-01
 
 ## Stable topology
@@ -86,6 +86,35 @@ Invoke-RestMethod http://192.168.0.101:8767/telemetry
   loaded. Its nonzero exit truthfully reflected resident runtime absence.
 
 These are time-stamped observations, not guarantees of later state.
+
+## Controlled Phase 8D cold-start — 2026-09-01 CDT
+
+The Product Owner authorized promotion/deployment and a separate controlled
+cold-start procedure. Commit `a0a61b7` was pushed to `origin/main`. Before shutdown,
+the promoted resident reached `ready` with the owned resident, browser endpoint,
+router, model inventory, local speech assets, and lifecycle heartbeat observed.
+
+After full shutdown and a new Windows boot, a temporary limited current-user
+collector sampled at 0, 15, 30, 60, 120, and 300 seconds. It was removed after
+completion; its ignored raw evidence remains under `.runtime/cold-start-acceptance/`.
+The resident task succeeded, one owned resident process remained stable, the health
+and browser endpoints stayed responsive, and heartbeats continued after the launcher
+exited.
+
+The 3090 router task returned `1` and port `8080` stayed closed. Code Integrity
+events `3033` and `3077` identified unsigned
+`E:\llama.cpp\bin\llama-server-impl.dll` as violating the active
+`VerifiedAndReputableDesktop` policy. A read-only signature audit reported the
+sampled llama.cpp executable and dependencies `NotSigned`; a version-only launch
+reproduced `STATUS_SYSTEM_INTEGRITY_POLICY_VIOLATION`. Phase 8D therefore reported
+the runtime `unavailable` while truthfully preserving the resident/browser-ready
+facts.
+
+Do not disable Code Integrity, Smart App Control, or related trust enforcement as an
+operational workaround. Repair requires explicit Product Owner security direction
+and a reviewed trusted/signed/reputable router artifact or signing/trust path. See
+[`ACC-0003`](acceptance/ACC-0003-phase8d-cold-start.md) and
+[`GRACI-ISSUE-001`](KNOWN_ISSUES.md#graci-issue-001--cold-startruntime-readiness-failure).
 
 ## Telemetry deployment versus acceptance
 

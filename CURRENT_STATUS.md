@@ -2,13 +2,13 @@
 
 > Classification: current implementation, deployment, acceptance, and issue status
 > Authority: descriptive; canonical policy remains under `governance/`
-> Verified against: Phase 8D implementation worktree based on `959347207ecbfa252ca801ca85b76d355fc4dde2`
+> Verified against: promoted Phase 8D commit `a0a61b7298d3c85cec054cd11ca827842f2776dd`
 > Last verified: 2026-09-01
 
 ## Product and repository baseline
 
-- Branch/commit verified before Phase 8D changes: local `main` and `origin/main` at
-  `959347207ecbfa252ca801ca85b76d355fc4dde2`.
+- Local `main` and `origin/main` are promoted through Phase 8D commit
+  `a0a61b7298d3c85cec054cd11ca827842f2776dd`.
 - Canonical identity: **G.R.A.C.I. = General Reasoning And Conversational
   Intelligence**.
 - **Autonomous Assistant** is an approved subtitle/tagline, not acronym text.
@@ -67,10 +67,13 @@ continued resident liveness or browser/runtime readiness after its launcher exit
 
 ## Open reliability and acceptance items
 
-- **Cold-start/runtime-readiness defect: OPEN.** The Product Owner observed a failed
-  browser/runtime path after Windows cold startup that GRACI Restart recovered. It
-  remains open until deliberately reproduced/repaired or proven resolved with
-  evidence and Product Owner review.
+- **Cold-start/runtime-readiness defect: OPEN / REPRODUCED.** The controlled Phase 8D
+  cold-start run reproduced an unavailable required runtime. The resident process
+  and browser remained alive for five minutes, but the primary 3090 router task
+  returned `1`. Windows Code Integrity blocked unsigned
+  `E:\llama.cpp\bin\llama-server-impl.dll` under the enforced
+  `VerifiedAndReputableDesktop` policy. No security setting was changed and no repair
+  is authorized. See `GRACI-ISSUE-001` and `ACC-0003`.
 - **Startup-status diagnostic defect: REPAIRED IN CURRENT IMPLEMENTATION.** Restricted
   task-enumeration access can no longer be collapsed into task absence. The repair
   is test-verified and direct normal-context execution is verified; a restricted-token
@@ -87,13 +90,11 @@ The durable repository-memory/documentation foundation passed a fresh-session
 reconstruction test and is **PRODUCT OWNER ACCEPTED**. Its temporary bootstrap
 migration package has been removed.
 
-Phase 8D System Health & Trusted Runtime Context is **IMPLEMENTED AND
-DETERMINISTICALLY VERIFIED IN THE CURRENT WORKTREE**. It adds typed component and
+Phase 8D System Health & Trusted Runtime Context is **PROMOTED AND DEPLOYED AT
+`a0a61b7`**. It adds typed component and
 startup-stage observations, freshness/recovery reduction, actual loopback runtime
 probing, trusted local time/context injection, visualizer health projection, repaired
-startup diagnostics, and a bounded resident lifecycle ledger. No service was
-installed, started, stopped, restarted, deployed, or reboot-tested during
-implementation.
+startup diagnostics, and a bounded resident lifecycle ledger.
 
 Verification evidence: the canonical warning-strict suite passed all 567 tests on
 2026-09-01, focused Phase 8D/startup/resident suites passed, PowerShell diagnostic
@@ -101,10 +102,20 @@ scripts parsed successfully, documentation links resolved, and `git diff --check
 passed. Test-created synthetic `runs/` records were identified against a pre-test
 snapshot and removed; pre-existing run records were preserved.
 
-Phase 8D is **NOT DEPLOYED, PROMOTED, OR PRODUCT OWNER ACCEPTED**. The current live
-resident remains absent with stale state, while the router is healthy. Controlled
-cold-start/reboot evidence and explicit Product Owner disposition remain required;
-no later development objective is authorized.
+After promotion, the resident was launched and reached sustained `ready` state. A
+separately authorized full shutdown/cold-start procedure then sampled the new boot
+through five minutes. The resident task succeeded, one owned resident instance
+remained alive, the health/browser endpoints stayed responsive, and lifecycle
+heartbeats continued after the launcher exited. The 3090 router task returned `1`,
+the endpoint never became reachable, and overall readiness correctly remained
+`unavailable`. Code Integrity events `3033`/`3077` and a separate version-only probe
+established `STATUS_SYSTEM_INTEGRITY_POLICY_VIOLATION` for the unsigned llama.cpp
+dependency. The durable record is
+[`ACC-0003-phase8d-cold-start.md`](docs/acceptance/ACC-0003-phase8d-cold-start.md).
+
+Phase 8D is **DEPLOYED BUT NOT COLD-START OR PRODUCT OWNER ACCEPTED**. Repair requires
+a Product Owner security decision and a repeated controlled cold-start procedure.
+No later development objective is authorized.
 
 The future product direction is selective governed composition: use routing, review,
 memory, optional compute, recovery, and verification when the task, policy, latency,

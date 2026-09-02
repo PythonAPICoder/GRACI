@@ -2,7 +2,7 @@
 
 > Classification: mandatory session entry point
 > Authority: workflow guidance; canonical policy remains under `governance/`
-> Verified against: Phase 8D implementation worktree based on `959347207ecbfa252ca801ca85b76d355fc4dde2`
+> Verified against: promoted Phase 8D commit `a0a61b7298d3c85cec054cd11ca827842f2776dd`
 > Last verified: 2026-09-01
 
 Work from the repository root, `E:\GRACI`. Before changing anything, inspect the
@@ -66,8 +66,11 @@ not delete unrelated Product Owner data.
 ## Current handoff boundary
 
 The durable repository-memory and development-process foundation is Product Owner
-accepted. Phase 8D System Health & Trusted Runtime Context was authorized on
-2026-09-01 and is implemented and deterministically verified in the current
-worktree. It has not been deployed, cold-start accepted, Product Owner accepted, or
-promoted. The open cold-start runtime-readiness defect remains tracked in
-[`docs/KNOWN_ISSUES.md`](docs/KNOWN_ISSUES.md). No later objective is authorized.
+accepted. Phase 8D System Health & Trusted Runtime Context is promoted and deployed
+at `a0a61b7`, but its controlled cold-start validation failed because Windows Code
+Integrity blocked an unsigned 3090 llama.cpp dependency. The resident process and
+browser remained ready; the required primary router did not start. Phase 8D is not
+cold-start or Product Owner accepted. Repair requires a separate Product Owner
+security decision; no Code Integrity policy change or later objective is authorized.
+See [`docs/KNOWN_ISSUES.md`](docs/KNOWN_ISSUES.md) and
+[`ACC-0003`](docs/acceptance/ACC-0003-phase8d-cold-start.md).

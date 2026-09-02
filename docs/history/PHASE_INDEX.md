@@ -2,7 +2,7 @@
 
 > Classification: historical navigation
 > Authority: links to historical records; not current authorization or status
-> Verified against: Phase 8D implementation worktree based on `959347207ecbfa252ca801ca85b76d355fc4dde2`
+> Verified against: promoted Phase 8D commit `a0a61b7298d3c85cec054cd11ca827842f2776dd`
 > Last verified: 2026-09-01
 
 Phase records describe the repository at their historical point. Later work may
@@ -21,7 +21,7 @@ details without making the original record false.
 | Phase 7 | Explicit turn composition, CLI integration, and closure: [`7`](../../phase7/README.md), [`7A`](../../phase7a/README.md), [`7B`](../../phase7b/README.md), [`7C`](../../phase7c/README.md) |
 | Phase 8A–8C | Observer presence, resident continuity, and reactive command center: [`8A`](../../phase8a/README.md), [`8B`](../../phase8b/README.md), [`8C`](../../phase8c/README.md) |
 | Phase 8C-V | Browser playback, Data Chatter, and the then-current 64-bar/right-rail design: [`8C-V`](../../phase8cv/README.md). Later commits culminated in the accepted continuous-ring/symmetric-HUD baseline. |
-| Phase 8D | **Implemented and deterministic verification passed in the current worktree; deployment, cold-start evidence, promotion, and Product Owner acceptance remain pending.** See [`ROADMAP.md`](../ROADMAP.md). |
+| Phase 8D | **Promoted and deployed at `a0a61b7`; controlled cold-start validation failed because Code Integrity blocked the primary 3090 router. Product Owner acceptance remains pending.** See [`ACC-0003`](../acceptance/ACC-0003-phase8d-cold-start.md) and [`ROADMAP.md`](../ROADMAP.md). |
 
 Versioned evidence remains alongside each phase. It should be interpreted within the
 scope and date/commit of its phase, never as a substitute for current documents.

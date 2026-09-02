@@ -2,7 +2,7 @@
 
 > Classification: current accepted Product Owner decision register
 > Authority: accepted Product Owner decisions; canonical policy remains under `governance/`
-> Verified against: Phase 8D implementation worktree based on `959347207ecbfa252ca801ca85b76d355fc4dde2`
+> Verified against: promoted Phase 8D commit `a0a61b7298d3c85cec054cd11ca827842f2776dd`
 > Last verified: 2026-09-01
 
 Only decisions with durable value beyond an implementation detail belong here.
@@ -19,6 +19,7 @@ consequences require more space.
 | PO-DEC-006 | The ChatGPT bootstrap package was temporary **CONTEXT ONLY** migration material. Remove it after the durable repository-memory foundation passes its fresh-session reconstruction test and is accepted. | [`ACC-0002`](../acceptance/ACC-0002-memory-foundation.md), [`LEGACY_DOCUMENTS.md`](../history/LEGACY_DOCUMENTS.md) |
 | PO-DEC-007 | The durable repository-memory/documentation foundation is accepted after a fresh Codex session reconstructed GRACI's current state using only the repository. This acceptance does not authorize Phase 8D. | [`ACC-0002`](../acceptance/ACC-0002-memory-foundation.md), [`ROADMAP.md`](../ROADMAP.md) |
 | PO-DEC-008 | Phase 8D System Health & Trusted Runtime Context is authorized within the bounded read-only scope documented in the roadmap. Implementation does not authorize deployment, reboot testing, issue closure, Product Owner acceptance, autonomous repair, new routing, cloud use, wake/VAD, or always-listening behavior. | [`ROADMAP.md`](../ROADMAP.md), [`KNOWN_ISSUES.md`](../KNOWN_ISSUES.md) |
+| PO-DEC-009 | Promote/deploy the verified Phase 8D implementation and execute a separate controlled cold-start acceptance procedure. This authorizes the named promotion, deployment, and evidence run; it does not authorize weakening Code Integrity, trusting unsigned code, autonomous repair, issue closure, or Product Owner acceptance by implication. | [`ACC-0003`](../acceptance/ACC-0003-phase8d-cold-start.md), [`ROADMAP.md`](../ROADMAP.md) |
 
 The accepted UI baseline is an acceptance event rather than a general architecture
 decision; see [`ACC-0001`](../acceptance/ACC-0001-phase8-ui-baseline.md). The

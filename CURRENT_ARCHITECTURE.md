@@ -2,7 +2,7 @@
 
 > Classification: current descriptive architecture
 > Authority: implementation description; canonical policy remains under `governance/`
-> Verified against: Phase 8D implementation worktree based on `959347207ecbfa252ca801ca85b76d355fc4dde2`
+> Verified against: promoted Phase 8D commit `a0a61b7298d3c85cec054cd11ca827842f2776dd`
 > Last verified: 2026-09-01
 
 Accepted policy is canonical in
@@ -152,9 +152,11 @@ must never be parsed to grant runtime capability.
 
 ## Remaining architectural and acceptance gap
 
-Phase 8D is implemented and test-verified but is not deployed or Product Owner
-accepted. The prior startup-status false-negative is repaired in the current
-implementation. The cold-start/runtime-readiness defect remains open until a
-controlled Windows cold start proves sustained resident/browser readiness after the
-launcher exits and receives explicit Product Owner disposition. See
+Phase 8D is promoted and deployed but is not cold-start or Product Owner accepted.
+The prior startup-status false-negative is repaired. A controlled cold start proved
+sustained resident-process and browser readiness after the launcher exited, while
+the complete runtime correctly remained unavailable because Windows Code Integrity
+blocked an unsigned required 3090 llama.cpp dependency. Repair now crosses a
+security/trust boundary and requires explicit Product Owner direction, followed by a
+passing repeat cold-start procedure and Product Owner disposition. See
 [`docs/KNOWN_ISSUES.md`](docs/KNOWN_ISSUES.md).
