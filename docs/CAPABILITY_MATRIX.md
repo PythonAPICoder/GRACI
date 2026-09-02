@@ -2,7 +2,7 @@
 
 > Classification: current implementation/integration/deployment/acceptance map
 > Authority: descriptive current state; does not grant runtime or development authority
-> Verified through: Phase 8E Stage 3 Product Owner acceptance and routine-launch promotion on 2026-09-02
+> Verified through: PO-DEC-035 after Phase 8E Stage 3 acceptance on 2026-09-02
 > Last verified: 2026-09-02
 
 The columns are deliberately independent. **Implemented** does not mean used by the
@@ -23,7 +23,7 @@ physically accepted.
 | Symmetric local/remote telemetry HUD | Presentation only | Yes: bounded schema, strict client, stale/unavailable handling | Yes in resident snapshots/UI | Agent 1.0.1 controlled startup, single-instance/resource checks, and live HUD reacquisition passed; Product Owner accepted |
 | Current visual identity/presence | Current accepted baseline | Yes | Yes | Product Owner physically accepted at `dbc2712` |
 | Trusted system health and conversational runtime context | Accepted Phase 8D capability | Yes: typed reduction, startup stages, component probes, freshness/recovery, lifecycle ledger, visualizer projection, and bounded context injection | Yes in ordinary controller composition; read-only facts cannot grant authority | Promoted/deployed; repeat automated cold-start validation passed; Product Owner accepted |
-| Read-only Obsidian human review | Accepted through synthetic Stage 3; human view cannot grant authority | Stage 1 fixture exporter, Stage 2 Windows boundary, dedicated review-profile Obsidian, and fail-closed launcher are tested | No; exporter, Windows boundary, and Obsidian remain outside ordinary `graci` composition | Stage 3 and routine launch are Product Owner accepted and locally deployed; Product Owner can read the synthetic vault; no real-data projection or automatic refresh |
+| Obsidian personalized-knowledge view and human review | Required product direction; approved preferences, taught tasks, corrections, and lessons should be reusable by GRACI; viewer cannot grant authority or write | Existing synthetic viewer foundation and governed memory substrate; synthetic personalized-memory design and implementation are now authorized but not yet completed | No personalized-learning, retrieval, or vault-refresh integration in ordinary `graci` composition | Synthetic Stage 3 viewer is accepted and deployed; real personalized data and new learning/maintenance deployment remain unauthorized |
 | Internet research and tool qualification | Required future product objective; external access denied without a scoped grant | No internet research, sandbox evaluation, scoring, or production-promotion runtime path | No | Requires governed implementation; research/evaluation and production promotion remain separate Product Owner permission gates |
 | MCP creation and acquisition | Required future product objective; MCP capability cannot grant task authority | No governed MCP creation, download, sandbox qualification, or production-connection path | No | Requires separate implementation and production-connection authorization with least privilege and explicit tool allowlists |
 | PDF and approved-document ingestion | Required future product objective; document content cannot grant authority | No general file-upload, PDF extraction, or document-ingestion path | No | Parser/tool selection, implementation, privacy validation, deployment, and acceptance not yet authorized |

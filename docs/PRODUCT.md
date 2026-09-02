@@ -2,8 +2,8 @@
 
 > Classification: current product identity and direction
 > Authority: accepted Product Owner decisions, bounded by canonical governance
-> Verified against: promoted Phase 8D commit `a0a61b7298d3c85cec054cd11ca827842f2776dd`
-> Last verified: 2026-09-01
+> Verified through: PO-DEC-035 after Phase 8E Stage 3 acceptance on 2026-09-02
+> Last verified: 2026-09-02
 
 ## Identity
 
@@ -29,17 +29,28 @@ direction does not require every turn to invoke routing, review, memory, optiona
 compute, repair, and verification indiscriminately, and it does not authorize a
 runtime redesign by itself.
 
-Two future product capabilities are required. First, Obsidian will provide the
-Product Owner a read-only human review interface over GRACI's canonical governance,
-rules, decisions, current information, acceptance evidence, and appropriately
-bounded memory views without becoming a source of truth or runtime dependency.
-Second, when approved local capabilities cannot complete an authorized task, GRACI
+The central purpose of the accepted Obsidian design is to make GRACI's long-term
+knowledge readable to the Product Owner and useful to GRACI. That knowledge includes
+the Product Owner's preferences, working methods, task procedures taught directly or
+learned through approved and verified work, confirmed corrections, and lessons,
+alongside governance, decisions, status, and
+acceptance evidence. A new or changed durable memory requires explicit current
+Product Owner approval, including a direct verbal or PTT instruction to remember it.
+Once approved, GRACI should retrieve and use that knowledge during later relevant
+work without requiring the Product Owner to teach it again. A separate maintainer
+updates the readable vault while the Obsidian viewer remains read-only. Vault text
+cannot grant permissions, change governance, or silently authorize tools, code, or
+actions. Ordinary learning, retrieval, and real-data vault refresh are not yet
+implemented.
+
+Another future product capability is permission-gated internet research. When
+approved local capabilities cannot complete an authorized task, GRACI
 will support permission-gated internet research. A knowledge gap will produce a
 sourced, locally reviewed answer; a missing tool will enter isolated tool
 qualification. GRACI will normally compare about three credible candidates, test and
 grade them, and seek separate Product Owner approval before installing or using a
 selected tool in production. These are required product objectives, not current
-implementation or runtime authority.
+runtime authority.
 
 GRACI must also be able to create bounded Model Context Protocol (MCP) integrations
 or, with applicable permission, locate and qualify existing MCPs through the same

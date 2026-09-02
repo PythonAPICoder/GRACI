@@ -41,8 +41,8 @@ code, configuration, tests, and time-stamped live evidence and report the confli
 
 ## Design proposals
 
-- [Phase 8E read-only Obsidian knowledge and governance review](PHASE_8E_OBSIDIAN_DESIGN.md)
-  is the Product Owner-accepted design. Its fixture-only Stage 1 implementation is
+- [Phase 8E Obsidian knowledge and governance review foundation](PHASE_8E_OBSIDIAN_DESIGN.md)
+  is the Product Owner-accepted security foundation. Its fixture-only Stage 1 implementation is
   documented in the [Phase 8E Stage 1 record](../phase8e/README.md) and accepted in
   [ACC-0007](acceptance/ACC-0007-phase8e-stage1.md). Stage 2 local Windows boundary
   work is accepted in [ACC-0008](acceptance/ACC-0008-phase8e-stage2-windows.md)
@@ -52,7 +52,10 @@ code, configuration, tests, and time-stamped live evidence and report the confli
   [dedicated review-profile candidate](PHASE_8E_STAGE3_DEDICATED_OBSIDIAN_PLAN.md)
   then passed its synthetic test. Stage 3 acceptance and routine-launch promotion
   are recorded in [ACC-0009](acceptance/ACC-0009-phase8e-stage3-obsidian.md). Real
-  data, automatic refresh, and later stages remain separately controlled.
+  `PO-DEC-034` clarifies the central future purpose: approved personal preferences,
+  working methods, taught tasks, corrections, and lessons must be readable in the
+  vault and reusable by G.R.A.C.I. Real personal data, learning and retrieval,
+  automatic refresh, and later stages remain separately controlled.
 
 ## Governance
 

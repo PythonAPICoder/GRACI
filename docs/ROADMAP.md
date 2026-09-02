@@ -2,7 +2,7 @@
 
 > Classification: current authorization and sequencing view
 > Authority: Product Owner direction; entries do not authorize work unless explicitly marked authorized
-> Verified through: Phase 8E Stage 3 Product Owner acceptance and routine-launch promotion on 2026-09-02
+> Verified through: PO-DEC-035 after Phase 8E Stage 3 acceptance on 2026-09-02
 > Last verified: 2026-09-02
 
 | Objective | State | Meaning |
@@ -12,7 +12,7 @@
 | Optional 4090 llama.cpp upgrade | **COMPLETE / PRODUCT OWNER ACCEPTED** | Official b10675 is deployed; both models passed after a new boot, b10516 rollback was exercised, gaming impact is verified, and 3090 sufficiency plus MO2 priority remain intact |
 | One-way 3090-to-4090 certificate remoting | **COMPLETE / PRODUCT OWNER ACCEPTED** | Passwordless HTTPS WinRM maps only the 3090 client certificate to `GRACI_Remote`; password access is break-glass only |
 | 4090 telemetry 1.0.1 acceptance closure | **COMPLETE / PRODUCT OWNER ACCEPTED** | Controlled boot startup, one-process/resource behavior, fresh telemetry, and HUD reacquisition passed in `ACC-0006` and the Product Owner accepted the bounded capability |
-| Phase 8E: Read-only Obsidian knowledge and governance review | **STAGES 1 THROUGH 3 PRODUCT OWNER ACCEPTED / ROUTINE SYNTHETIC LAUNCH DEPLOYED** | The [accepted design](PHASE_8E_OBSIDIAN_DESIGN.md) uses a generated one-way local projection. Stage 2 is accepted in [ACC-0008](acceptance/ACC-0008-phase8e-stage2-windows.md); dedicated Obsidian and routine launch are accepted in [ACC-0009](acceptance/ACC-0009-phase8e-stage3-obsidian.md). Real data and automatic refresh remain unauthorized |
+| Phase 8E: Obsidian personalized knowledge and human review | **STAGES 1 THROUGH 3 ACCEPTED / SYNTHETIC PERSONALIZED-MEMORY FOUNDATION AUTHORIZED** | The accepted synthetic viewer remains a secure foundation. `PO-DEC-034` establishes its central purpose: approved preferences, working methods, taught tasks, corrections, and lessons must become readable in Obsidian and reusable by GRACI. `PO-DEC-035` authorizes separate synthetic-only design and implementation; real personal data and deployment remain unauthorized |
 | Phase 9: Permission-gated internet research, tool, and MCP qualification | **REQUIRED PRODUCT OBJECTIVE / IMPLEMENTATION NOT AUTHORIZED** | For a knowledge gap, ask to search the internet and return a sourced answer; for a missing tool or MCP, create or locate candidates, evaluate them in a sandbox, and require separate Product Owner approval before production installation and use |
 | Phase 10: Governed document ingestion, RAG, and corrective learning | **REQUIRED PRODUCT OBJECTIVE / IMPLEMENTATION NOT AUTHORIZED** | Safely ingest approved documents including PDFs, retrieve relevant local knowledge with source traceability, and record confirmed mistakes, corrections, and lessons without allowing memory to grant authority or silently change GRACI |
 | Phase 11: Scheduled Product Owner-authorized proactive work | **REQUIRED PRODUCT OBJECTIVE / IMPLEMENTATION NOT AUTHORIZED** | Run explicitly approved recurring tasks, such as a daily résumé-based job search, without requiring a new prompt each day while remaining inside the approved schedule, information, actions, privacy, and notification boundaries |
@@ -23,7 +23,7 @@
 | Phase 16: Safe browser and desktop action | **REQUIRED PRODUCT OBJECTIVE / IMPLEMENTATION NOT AUTHORIZED** | Let GRACI navigate approved websites and applications, prepare forms and actions, show previews, request confirmation for consequential steps, and retain evidence and recovery options |
 | Phase 17: Multimodal understanding and media workflows | **REQUIRED PRODUCT OBJECTIVE / IMPLEMENTATION NOT AUTHORIZED** | Understand and create approved images, scans, charts, audio, and video through governed local capabilities or qualified tools while preserving privacy, provenance, and human-quality output |
 | Phase 18: Resilience, backup, recovery, and measurable improvement | **REQUIRED PRODUCT OBJECTIVE / IMPLEMENTATION NOT AUTHORIZED** | Protect memory, governance, schedules, tools, and configuration with tested recovery, then measure task outcomes and use accepted evidence to improve future recommendations and workflows |
-| Next decision gate | **NO LATER OBJECTIVE AUTHORIZED** | Stage 3 is accepted. Real data, automatic refresh, runtime integration, Stage 4, and later objectives require a separate Product Owner decision |
+| Next decision gate | **PERSONALIZED-MEMORY SYNTHETIC FOUNDATION AUTHORIZED** | PO-DEC-035 authorizes the separate design and synthetic implementation task. Real personal data, deployment, automatic refresh, production promotion, Stage 4, and later objectives require another Product Owner decision |
 | Ordinary runtime capability selection | **PRODUCT DIRECTION** | Eventually choose routing, review, memory, optional compute, recovery, and verification according to task/policy/latency/resources rather than invoking all subsystems on every turn |
 | Wake word, VAD authority, always listening, or unscheduled autonomous follow-up | **DEFERRED / UNAUTHORIZED** | Scheduled work is limited to Phase 11 standing grants; these broader interaction and autonomy modes require separate Product Owner decisions and governed implementation |
 | External/cloud runtime assistance | **FUTURE GOVERNED CAPABILITY** | Denied by default; no runtime path exists |
@@ -74,20 +74,23 @@ that bounded capability on 2026-09-02. At that closure boundary, no later
 implementation objective was authorized. The separate current Phase 8E Stage 1
 authorization is recorded below.
 
-## Phase 8E required scope: Read-only Obsidian human review
+## Phase 8E required scope: Obsidian personalized knowledge and human review
 
-The Product Owner requires an Obsidian interface for human review of GRACI's
-important information. The intended view includes canonical governance, rules,
-decisions, current status, roadmap, acceptance records, and clearly labelled bounded
-views of governed memory, RAG sources, and accepted corrective lessons where
-appropriate.
+The Product Owner requires Obsidian to be the readable home for GRACI's approved
+long-term knowledge about the Product Owner: preferences, working methods, taught
+task procedures, corrections, and lessons. GRACI must be able to retrieve and use
+that approved knowledge during later relevant work. The view also includes
+governance, rules, decisions, current status, roadmap, acceptance records, and
+clearly labelled bounded views of governed memory and RAG sources where appropriate.
 
-Obsidian must remain a read-only human interface and optional to GRACI's runtime.
-The authoritative repository Markdown and canonical structured memory remain the
-sources of truth. The interface must not create competing authoritative copies,
-write back to governed data, parse Markdown to grant authority, or become required
-for GRACI to operate. Detailed design, implementation, testing, deployment, and
-acceptance require separate Product Owner authorization.
+The Obsidian application remains a read-only human interface. That restriction does
+not make GRACI's approved knowledge static: a separate maintainer must update the
+vault after approved memories change. Canonical structured memory remains the
+runtime source, and Obsidian is its readable view. Adding or changing durable
+knowledge requires explicit current Product Owner approval. Once approved, later
+in-scope retrieval does not require the Product Owner to repeat the lesson. Neither
+memory nor vault text can grant permission, change governance, expand task scope, or
+silently authorize a new tool or executable procedure.
 
 The Product Owner accepted the design choices and the Stage 1 fixture-only
 implementation. The [`phase8e`](../phase8e/README.md) package now provides the typed
@@ -116,6 +119,11 @@ block, configuration, and Product Owner read-access tests. The Product Owner acc
 Stage 3 and authorized routine launch, commit, and push. The launcher was promoted
 and passed under the real review token. Real data, automatic refresh, runtime
 integration, and later stages remain unauthorized.
+
+PO-DEC-034 clarifies that the accepted Stage 1 through Stage 3 work is a secure
+viewer foundation, not the completed product outcome. Personalized-memory capture,
+ordinary retrieval, taught-task recall, and GRACI-maintained vault updates require a
+new bounded design and separate implementation authorization.
 
 ## Phase 9 required scope: Internet research, tools, and MCPs
 

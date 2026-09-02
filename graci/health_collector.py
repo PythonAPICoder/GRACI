@@ -17,8 +17,9 @@ from typing import Callable
 
 from .availability import Mo2State, check_4090_mo2_status, evaluate_4090_eligibility
 from .registry import (
-    GLM_MODEL_ID, OPTIONAL_ENDPOINT_ID, PRIMARY_ENDPOINT_ID, QWEN_MODEL_ID,
-    HealthState, apply_health_result, build_phase3a_registry,
+    GLM_MODEL_ID, OPTIONAL_ENDPOINT_ID, OPTIONAL_NODE_ID, PRIMARY_ENDPOINT_ID,
+    PRIMARY_NODE_ID, QWEN_MODEL_ID, HealthState, apply_health_result,
+    build_phase3a_registry,
     check_openai_models_endpoint,
 )
 from .runtime_context import (
@@ -239,12 +240,16 @@ class RuntimeHealthCollector:
             else ComponentState.UNAVAILABLE,
             observed_at, primary_result.reason,
             StartupStage.RUNTIME_READY if primary_result.state is HealthState.HEALTHY else None,
-            (("http_status", primary_result.http_status),),
+            (("endpoint_id", PRIMARY_ENDPOINT_ID),
+             ("http_status", primary_result.http_status),
+             ("node_id", PRIMARY_NODE_ID)),
         ))
         components.append(self._model_component(
-            "qwen_model", QWEN_MODEL_ID, True, observed_models, primary_states, observed_at))
+            "qwen_model", QWEN_MODEL_ID, True, observed_models, primary_states, observed_at,
+            node_id=PRIMARY_NODE_ID, endpoint_id=PRIMARY_ENDPOINT_ID))
         components.append(self._model_component(
-            "glm_model", GLM_MODEL_ID, False, observed_models, primary_states, observed_at))
+            "glm_model", GLM_MODEL_ID, False, observed_models, primary_states, observed_at,
+            node_id=PRIMARY_NODE_ID, endpoint_id=PRIMARY_ENDPOINT_ID))
 
         registry = registry.with_endpoint(apply_health_result(
             registry.endpoints[OPTIONAL_ENDPOINT_ID], optional_result))
@@ -254,14 +259,20 @@ class RuntimeHealthCollector:
             else ComponentState.UNAVAILABLE,
             observed_at, optional_result.reason,
             StartupStage.RUNTIME_READY if optional_result.state is HealthState.HEALTHY else None,
-            (("models_observed", len(optional_result.observed_models)),),
+            (("endpoint_id", OPTIONAL_ENDPOINT_ID),
+             ("glm_available", GLM_MODEL_ID in optional_result.observed_models),
+             ("models_observed", len(optional_result.observed_models)),
+             ("node_id", OPTIONAL_NODE_ID),
+             ("qwen_available", QWEN_MODEL_ID in optional_result.observed_models)),
         ))
         mo2_state = (ComponentState.READY if mo2.state is Mo2State.NOT_RUNNING else
                      ComponentState.BLOCKED if mo2.state is Mo2State.RUNNING else
                      ComponentState.UNKNOWN)
         components.append(ComponentReadiness(
             "optional_4090_mo2", False, mo2_state, observed_at, mo2.reason_code,
-            facts=(("state", mo2.state.value),),
+            facts=(("ai_use_permitted_when", Mo2State.NOT_RUNNING.value),
+                   ("ai_use_blocked_when", Mo2State.RUNNING.value),
+                   ("state", mo2.state.value)),
         ))
         eligibility = evaluate_4090_eligibility(registry, QWEN_MODEL_ID, mo2)
         components.append(ComponentReadiness(
@@ -321,14 +332,17 @@ class RuntimeHealthCollector:
     @staticmethod
     def _model_component(component_id: str, model_id: str, required: bool,
                          observed: set[str], model_states: dict[str, str],
-                         at: datetime) -> ComponentReadiness:
+                         at: datetime, *, node_id: str,
+                         endpoint_id: str) -> ComponentReadiness:
         available = model_id in observed
         return ComponentReadiness(
             component_id, required,
             ComponentState.READY if available else ComponentState.UNAVAILABLE,
             at, "model_reported_by_router" if available else "model_absent_from_router",
-            facts=(("load_state", model_states.get(model_id, "unknown")),
-                   ("model_id", model_id)),
+            facts=(("endpoint_id", endpoint_id),
+                   ("load_state", model_states.get(model_id, "unknown")),
+                   ("model_id", model_id),
+                   ("node_id", node_id)),
         )
 
     def _stt_resources(self, at: datetime) -> ComponentReadiness:

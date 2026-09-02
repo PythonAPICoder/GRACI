@@ -2,7 +2,7 @@
 
 > Classification: current issue and unresolved-evidence register
 > Authority: descriptive Product Owner/runtime record; issue closure requires evidence
-> Verified through: Phase 8E Stage 3 Product Owner acceptance and routine-launch promotion
+> Verified through: PO-DEC-035 after Phase 8E Stage 3 acceptance
 > Last verified: 2026-09-02
 
 ## GRACI-ISSUE-001 — Cold-start/runtime-readiness failure
@@ -198,3 +198,21 @@ was contained by its viewer-only outbound block. The Product Owner account retai
 read access. The Product Owner accepted Stage 3, and routine launcher promotion
 passed under the real review token. Real data and automatic refresh remain
 unauthorized. See [`ACC-0009`](acceptance/ACC-0009-phase8e-stage3-obsidian.md).
+
+## GRACI-GAP-007: personalized learning is not connected to Obsidian or ordinary runtime
+
+**Status: OPEN / SYNTHETIC DESIGN AND IMPLEMENTATION AUTHORIZED**
+
+The accepted synthetic Obsidian viewer does not yet fulfill the Product Owner's
+central goal for the vault. G.R.A.C.I. cannot yet capture an approved preference,
+working method, taught or learned task procedure, correction, or lesson through an
+ordinary conversation, retrieve it automatically during later relevant work, or
+publish it into the readable vault.
+
+Closure requires a bounded design for proposing and approving durable memories,
+ordinary source-traceable retrieval, correction and deletion, taught-task safety,
+and maintainer-only vault refresh. The design must keep displayed notes from
+granting authority and must preserve explicit approval for new or changed durable
+knowledge. `PO-DEC-034` establishes the outcome, and `PO-DEC-035` authorizes the
+separate synthetic-only design and implementation task. Real personal data,
+deployment, automatic updates, and acceptance remain unauthorized.

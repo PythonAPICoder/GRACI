@@ -223,6 +223,19 @@ permissions, or production code; those changes retain their separate governance 
 promotion requirements. No automatic corrective-learning loop is currently
 implemented. See `MEMORY-003`.
 
+The required personalized-learning capability must let the Product Owner teach
+G.R.A.C.I. preferences, working methods, repeatable task procedures, corrections,
+and lessons. A new or changed durable memory requires explicit current Product
+Owner approval. A spoken instruction submitted through the explicit PTT boundary,
+such as a direct request to remember a stated fact or procedure, may provide that
+approval for the named memory. G.R.A.C.I. may also propose a new procedure or lesson
+after completing and verifying approved work, but it must ask before saving it as
+durable knowledge. Once accepted, G.R.A.C.I. may retrieve and use the
+memory in later in-scope work without asking the Product Owner to repeat it. Memory
+remains traceable, reviewable, correctable, and removable. It cannot grant a new
+permission, change governance, expand task scope, install a tool, promote code, or
+silently teach G.R.A.C.I. an unverified executable action. See `MEMORY-005`.
+
 For a schedule-scoped job search, an approved résumé may be processed locally and
 only the minimum necessary derived search terms may be disclosed externally. The
 schedule may search public listings, deduplicate and rank matches, and produce a
@@ -233,15 +246,25 @@ authorizes the named action.
 
 ## Read-only human review
 
-The required future Obsidian capability is a human review interface, not a second
-memory, policy, or authority system. It may display canonical repository Markdown
-and clearly labelled bounded projections of structured memory, but it must not write
-back to governed sources, create competing authoritative copies, parse displayed
-Markdown to grant runtime capability, or become necessary for G.R.A.C.I. to operate.
-The interface must make source, classification, freshness, and derived-versus-
-canonical status clear enough for Product Owner review. This is accepted governance
-for a required **future capability**, not a claim that the interface exists. See
-`HUMANVIEW-001`.
+The accepted Obsidian design is a human review interface, not a second memory,
+policy, or authority system. It may display canonical repository Markdown and
+clearly labelled bounded projections of structured memory, but the viewer must not
+write back to governed sources, create competing authoritative copies, parse
+displayed Markdown to grant runtime capability, or become necessary for G.R.A.C.I.
+to operate. The interface must make source, classification, freshness, and
+derived-versus-canonical status clear enough for Product Owner review. The accepted
+synthetic viewer implementation does not authorize real data. See `HUMANVIEW-001`.
+
+The Obsidian vault is also the Product Owner's human-readable view of G.R.A.C.I.'s
+approved long-term knowledge: preferences, working methods, learned task procedures,
+corrections, and lessons. G.R.A.C.I. should maintain that view when it can do so
+safely. Creating or changing canonical personalized memory follows `MEMORY-005`;
+after that memory is approved, G.R.A.C.I. may generate and promote the corresponding
+derived vault update. The viewer identity remains read-only because a separate
+maintainer performs the update. One memory or refresh approval is not standing,
+automatic, or scheduled write permission. Displayed vault text cannot grant
+authority, and no ordinary runtime learning or refresh integration is currently
+implemented or authorized. See `HUMANVIEW-002`.
 
 ## Self-development and self-modification
 

@@ -2,7 +2,7 @@
 
 > Classification: current implementation, deployment, acceptance, and issue status
 > Authority: descriptive; canonical policy remains under `governance/`
-> Verified through: Phase 8E Stage 3 Product Owner acceptance and routine-launch promotion on 2026-09-02
+> Verified through: PO-DEC-035 after Phase 8E Stage 3 acceptance on 2026-09-02
 > Last verified: 2026-09-02
 
 ## Product and repository baseline
@@ -151,7 +151,13 @@ returned HTTP 200. The Product Owner accepted Stage 3 and authorized routine lau
 commit, and push. Promotion passed under the actual review token, the exact launcher
 and qualification record are deployed, no non-loopback connection was observed, and
 the resident page remained HTTP 200. Real data and automatic refresh remain
-unauthorized. See [`ACC-0009`](docs/acceptance/ACC-0009-phase8e-stage3-obsidian.md).
+unauthorized. The Product Owner subsequently directed that G.R.A.C.I. should
+learn and later reuse approved personal preferences, working methods, taught task
+procedures, corrections, and lessons, with Obsidian serving as their readable view.
+Adding or changing a memory requires explicit current verbal or PTT approval. That
+direction is recorded in `PO-DEC-034`; no real personalized-memory capture,
+retrieval, or vault-maintenance integration is implemented or authorized. See
+[`ACC-0009`](docs/acceptance/ACC-0009-phase8e-stage3-obsidian.md).
 
 The durable repository-memory/documentation foundation passed a fresh-session
 reconstruction test and is **PRODUCT OWNER ACCEPTED**. Its temporary bootstrap
@@ -162,6 +168,14 @@ Phase 8D System Health & Trusted Runtime Context is **PROMOTED AND DEPLOYED AT
 startup-stage observations, freshness/recovery reduction, actual loopback runtime
 probing, trusted local time/context injection, visualizer health projection, repaired
 startup diagnostics, and a bounded resident lifecycle ledger.
+
+The 4090 status-answer correction is deployed in the running resident. It labels
+Qwen and GLM load state as primary 3090 facts, reports each model's 4090 endpoint
+availability separately, and states the MO2 rule explicitly: MO2 absent permits
+optional AI use when the other checks pass, while MO2 running blocks it. The full
+warning-strict suite passed all 610 tests during the authorized stop/test/restart
+procedure. The restarted resident reached ready state, and its live snapshot showed
+both 4090 models available, MO2 `NOT_RUNNING`, and eligibility `true`.
 
 Verification evidence: the canonical warning-strict suite passed all 567 tests on
 2026-09-01, focused Phase 8D/startup/resident suites passed, PowerShell diagnostic

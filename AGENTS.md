@@ -2,7 +2,7 @@
 
 > Classification: mandatory session entry point
 > Authority: workflow guidance; canonical policy remains under `governance/`
-> Verified through: Phase 8E Stage 3 Product Owner acceptance and routine-launch promotion on 2026-09-02
+> Verified through: PO-DEC-035 after Phase 8E Stage 3 acceptance on 2026-09-02
 > Last verified: 2026-09-02
 
 Work from the repository root, `E:\GRACI`. Before changing anything, inspect the
@@ -142,3 +142,28 @@ the real review token with zero observed non-loopback connections. This acceptan
 does not authorize real data, automatic refresh, runtime integration, Stage 4, or
 any BitLocker change. See [`ACC-0009`](docs/acceptance/ACC-0009-phase8e-stage3-obsidian.md),
 `PO-DEC-033`, and the Stage 3 evidence.
+
+The Product Owner then established `PO-DEC-034`: G.R.A.C.I. should eventually
+learn and reuse approved personal preferences, working methods, taught task
+procedures, corrections, and lessons, with Obsidian as their readable human view.
+Adding or changing durable knowledge requires explicit current verbal or PTT
+approval. Once accepted, later in-scope retrieval does not require repetition. The
+viewer must remain read-only, and displayed notes cannot grant permission or change
+governance. This is future product and governance direction only; it does not
+authorize current real-data learning, retrieval or refresh integration, deployment,
+commit, or push.
+
+The 4090 conversational-context repair is deployed in the running resident. It
+labels primary Qwen/GLM facts as 3090 observations, reports Qwen and GLM
+availability separately for the 4090, and tells the reasoning model that MO2 absent
+permits optional AI use while MO2 running blocks it. The full warning-strict suite
+passed all 610 tests during an authorized stop/test/restart procedure. The restarted
+resident reached ready state, and its live snapshot showed both 4090 models
+available, MO2 absent, and the 4090 eligible.
+
+PO-DEC-035 also authorizes a separate Codex task for the synthetic-only personalized
+memory and Obsidian integration foundation described by PO-DEC-034. That task may
+design and implement proposal, approval, later retrieval, correction, deletion,
+audit, rollback, and vault-projection behavior using synthetic data. It may not use
+real personal data, deploy the new capability, enable automatic refresh, use
+external/cloud assistance, change BitLocker, commit, or push.

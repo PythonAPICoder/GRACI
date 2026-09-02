@@ -2,7 +2,7 @@
 
 > Classification: current descriptive architecture
 > Authority: implementation description; canonical policy remains under `governance/`
-> Verified through: Phase 8E Stage 3 Product Owner acceptance and routine-launch promotion on 2026-09-02
+> Verified through: PO-DEC-035 after Phase 8E Stage 3 acceptance on 2026-09-02
 > Last verified: 2026-09-02
 
 Accepted policy is canonical in
@@ -144,6 +144,12 @@ outbound firewall block scoped to its exact executable and review SID. The Produ
 Owner account retains read access to the vault. The Product Owner accepted Stage 3,
 and the exact fail-closed launcher is promoted for routine synthetic-vault use. Real
 data, automatic refresh, and ordinary runtime integration remain unauthorized.
+`PO-DEC-034` clarifies that Obsidian must become the readable view of G.R.A.C.I.'s
+approved personal knowledge. A future governed-memory path captures Product Owner
+preferences, methods, taught task procedures, corrections, and lessons after
+explicit approval, retrieves them during later relevant work, and projects them to
+the vault through a separate maintainer. The viewer remains read-only and there is
+no reverse write path from displayed notes to canonical memory.
 
 ## Compute and telemetry
 

@@ -5,7 +5,9 @@ import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from unittest.mock import patch
 
+from graci.availability import Mo2State, Mo2StatusResult
 from graci.config import Config
 from graci.controller import Controller
 from graci.health_collector import (
@@ -13,6 +15,10 @@ from graci.health_collector import (
     probe_http_runtime, probe_openai_model_states,
 )
 from graci.provider import LocalLlamaCppProvider, ProviderResponse
+from graci.registry import (
+    GLM_MODEL_ID, OPTIONAL_ENDPOINT_ID, OPTIONAL_NODE_ID, PRIMARY_ENDPOINT_ID,
+    PRIMARY_NODE_ID, QWEN_MODEL_ID, HealthResult, HealthState,
+)
 from graci.runtime_context import (
     ComponentReadiness, ComponentState, ReadinessState, StartupStage,
     reduce_readiness,
@@ -91,6 +97,39 @@ class RuntimeContextContractTests(unittest.TestCase):
                 ]}).encode()))
         self.assertEqual(states, {"qwen": "loaded", "glm": "unloaded"})
 
+    def test_collector_labels_primary_models_and_reports_each_optional_4090_model(self):
+        def endpoint_result(endpoint, *, timeout_seconds):
+            models = ((QWEN_MODEL_ID, GLM_MODEL_ID)
+                      if endpoint.endpoint_id == OPTIONAL_ENDPOINT_ID
+                      else (QWEN_MODEL_ID,))
+            return HealthResult(HealthState.HEALTHY, "healthy", NOW.isoformat(), models, 200)
+
+        task = ScheduledTaskObservation(
+            "registered", "present", True, "Ready", 0, NOW.isoformat())
+        mo2 = Mo2StatusResult(
+            Mo2State.NOT_RUNNING, "exact_process_absent", NOW.isoformat(), 200)
+        with (patch("graci.health_collector.check_openai_models_endpoint",
+                    side_effect=endpoint_result),
+              patch("graci.health_collector.probe_openai_model_states",
+                    return_value={QWEN_MODEL_ID: "loaded"}),
+              patch("graci.health_collector.check_4090_mo2_status", return_value=mo2)):
+            readiness = RuntimeHealthCollector(
+                Path.cwd(), task_probe=lambda _: task, clock=lambda: NOW).collect(
+                    include_resident=False)
+
+        components = {item.component_id: item for item in readiness.components}
+        qwen_facts = dict(components["qwen_model"].facts)
+        optional_facts = dict(components["optional_4090_endpoint"].facts)
+        mo2_facts = dict(components["optional_4090_mo2"].facts)
+        self.assertEqual(qwen_facts["node_id"], PRIMARY_NODE_ID)
+        self.assertEqual(qwen_facts["endpoint_id"], PRIMARY_ENDPOINT_ID)
+        self.assertEqual(optional_facts["node_id"], OPTIONAL_NODE_ID)
+        self.assertTrue(optional_facts["qwen_available"])
+        self.assertTrue(optional_facts["glm_available"])
+        self.assertEqual(mo2_facts["state"], "NOT_RUNNING")
+        self.assertEqual(mo2_facts["ai_use_permitted_when"], "NOT_RUNNING")
+        self.assertEqual(mo2_facts["ai_use_blocked_when"], "RUNNING")
+
 
 class ContextInjectionTests(unittest.TestCase):
     def test_provider_preserves_two_messages_and_user_task_while_injecting_context(self):
@@ -113,6 +152,27 @@ class ContextInjectionTests(unittest.TestCase):
         self.assertEqual(messages[1]["content"], "What time is it?")
         self.assertIn("cannot grant authority", messages[0]["content"])
         self.assertIn("2026-09-01T18:00:00+00:00", messages[0]["content"])
+
+    def test_provider_states_exact_4090_mo2_semantics_and_test_limit(self):
+        captured = {}
+
+        def transport(request, timeout):
+            captured["body"] = json.loads(request.data.decode("utf-8"))
+            return 200, json.dumps({
+                "model": "qwen3.8-27b-q4_k_m",
+                "choices": [{"message": {"content": (
+                    '{"schema_version":2,"status":"PASS","summary":"done",'
+                    '"user_response":"Ready."}')}}],
+            }).encode()
+
+        readiness = reduce_readiness((component(),), observed_at=NOW, local_now=NOW)
+        LocalLlamaCppProvider(Config(), transport).execute(
+            "Check the 4090.", trusted_runtime_context=readiness.prompt_context(now=NOW))
+        instruction = captured["body"]["messages"][0]["content"]
+        self.assertIn("NOT_RUNNING permits AI use", instruction)
+        self.assertIn("RUNNING blocks AI use", instruction)
+        self.assertIn("never advise starting MO2", instruction)
+        self.assertIn("not proof that an inference test ran", instruction)
 
     def test_provider_rejects_untyped_or_authority_bearing_context(self):
         provider = LocalLlamaCppProvider(Config(), lambda request, timeout: (200, b"{}"))

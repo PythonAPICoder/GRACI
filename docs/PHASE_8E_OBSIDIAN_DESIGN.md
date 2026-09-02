@@ -1,10 +1,14 @@
-# Phase 8E design: read-only Obsidian knowledge and governance review
+# Phase 8E design: Obsidian knowledge and governance review foundation
 
 > Classification: Product Owner-authorized design proposal
 > Authority: advisory design; canonical policy remains under `governance/`
 > Designed against: local `main` commit `08b2ffdc5c4530d652cde5ee4d2c428f6979f9eb`
 > Prepared: 2026-09-02
 > Status: PRODUCT OWNER-ACCEPTED DESIGN; STAGES 1-3 PRODUCT OWNER ACCEPTED; STAGES 4-5 NOT AUTHORIZED
+
+PO-DEC-035 authorizes a separate follow-on design and synthetic-only implementation
+for the personalized-memory outcome established by PO-DEC-034. It does not authorize
+real personal data, deployment, automatic updates, commit, push, or Stages 4-5.
 
 ## Purpose and fixed boundaries
 
@@ -14,8 +18,15 @@ and canonical governed memory keep their existing roles and authority. Obsidian 
 an optional human review application that GRACI can lose without losing runtime
 function, policy, memory, evidence, or recovery capability.
 
-This proposal applies `HUMANVIEW-001`, `AUTH-002`, `MEMORY-001`, `MEMORY-002`, and
-`MEMORY-003`. It does not change those policies. In particular:
+PO-DEC-034 clarifies the central product goal after the accepted Stage 3 foundation:
+the vault must show GRACI's approved long-term knowledge about the Product Owner,
+including preferences, working methods, taught task procedures, corrections, and
+lessons, and GRACI must reuse that knowledge in later relevant work. The current
+read-only synthetic viewer is a security foundation, not the completed learning
+system. Runtime memory capture and retrieval require a separately authorized design.
+
+This proposal applies `HUMANVIEW-001`, `HUMANVIEW-002`, `AUTH-002`, `MEMORY-001`,
+`MEMORY-002`, `MEMORY-003`, and `MEMORY-005`. In particular:
 
 - Markdown displayed by the review interface cannot grant a capability or
   permission.
@@ -29,6 +40,9 @@ This proposal applies `HUMANVIEW-001`, `AUTH-002`, `MEMORY-001`, `MEMORY-002`, a
   storage, network access, and cloud services are not required.
 - No watcher, scheduler, automatic memory write, external access, plugin, or
   background synchronization is introduced by Phase 8E.
+- A future G.R.A.C.I. maintainer may replace the derived projection after the
+  underlying personal memory is explicitly approved. The viewer stays read-only,
+  and the approval does not permit unrelated source writeback or automatic refresh.
 
 ## Design baseline findings
 
@@ -292,10 +306,14 @@ BitLocker as a prerequisite without authorizing real data or a later Phase 8E st
 
 ### Refresh
 
-The initial refresh is an explicit local Product Owner or operator action. It takes
-an exact local Git commit, catalog version, memory-view mode, and optional approved
-memory IDs. It makes no network request and performs no model call. Automatic
-watching and scheduled refresh are out of scope.
+Each personalized-memory change requires explicit current Product Owner approval. A
+direct verbal or PTT request to remember a stated preference, method, task procedure,
+correction, or lesson may approve that exact memory. After the canonical memory is
+accepted, a future G.R.A.C.I. maintainer may include it in a bounded vault refresh
+without asking the Product Owner to repeat the lesson. The refresh still uses an
+exact local Git commit, catalog version, memory-view mode, and approved memory IDs.
+One approval does not permit unrelated memory changes or become standing automatic
+write permission. The refresh makes no network request and performs no model call.
 
 The exporter performs these steps:
 
@@ -527,6 +545,11 @@ within this design.
    generation, deployment, commit, push, and Product Owner acceptance unauthorized.
 
 Stage 2 and Stage 3 are now Product Owner accepted. PO-DEC-033 authorized routine
-launch, commit, and push for the exact dedicated Obsidian configuration. Separate
-decisions are still required for real-data source and memory selection, the first
-real-data projection, automatic refresh, runtime integration, and Stages 4 and 5.
+launch, commit, and push for the exact dedicated Obsidian configuration. PO-DEC-034
+records the required product outcome: approved personal knowledge must be readable
+in Obsidian and reusable by G.R.A.C.I. Adding or changing a durable memory requires
+explicit current Product Owner approval; later in-scope retrieval and projection of
+that accepted memory do not require the lesson to be repeated. Separate decisions
+are still required for personalized-memory design, real-data source selection, the
+first real-data projection, automatic refresh, runtime integration, and Stages 4
+and 5.

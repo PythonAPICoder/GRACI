@@ -101,3 +101,15 @@ unchanged. Real-data generation and automatic refresh remain separately controll
 See the
 [dedicated plan](../docs/PHASE_8E_STAGE3_DEDICATED_OBSIDIAN_PLAN.md) and
 [acceptance record](../docs/acceptance/ACC-0009-phase8e-stage3-obsidian.md).
+
+PO-DEC-034 clarifies the central product purpose. G.R.A.C.I. must eventually learn
+and reuse Product Owner-approved preferences, working methods, taught task
+procedures, corrections, and lessons, and show that knowledge in the readable
+Obsidian vault. The viewer remains read-only; a separate maintainer projects
+accepted canonical memory into it. This direction does not authorize current real
+personal data, ordinary learning or retrieval, vault-refresh integration, or
+automatic updates.
+
+PO-DEC-035 authorizes a separate Codex task to design and implement that foundation
+with synthetic data only. Real personal information, deployment, automatic updates,
+commit, and push remain outside that task's authority.
