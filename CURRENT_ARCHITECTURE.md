@@ -111,13 +111,20 @@ The repository also implements:
 - `Phase3DDistributedRouter`: optional 4090 routing/failover with health, freshness,
   model identity, and exact MO2 gating; and
 - Phase 4 governed persistent memory: canonical local JSON, writes, selection,
-  supersession, conflict handling, and bounded untrusted execution context.
+  supersession, conflict handling, and bounded untrusted execution context; and
+- a separate Phase 8E Stage 1 fixture-only projection exporter with a typed source
+  catalog, exact local Git-commit and exact-ID synthetic-memory reads, deterministic
+  safe Markdown, complete hash manifests, immutable generation promotion, and
+  read-only tamper verification.
 
-These capabilities are tested and historically accepted within their specialized
-flows. The ordinary CLI/resident composition does not currently instantiate the
-Phase 3B workflow, memory governance, autonomous repair loop, or distributed router.
-Future composition should select capabilities according to task, policy, latency,
-resources, and verification needs rather than call every subsystem unconditionally.
+The earlier specialized capabilities are tested and historically accepted within
+their recorded flows. Phase 8E Stage 1 has automated fixture evidence and Product
+Owner acceptance; it is not deployed. The ordinary CLI/resident composition does
+not currently instantiate the Phase 3B workflow, memory governance, autonomous
+repair loop, or distributed router. It does not import the Phase 8E exporter, and no
+runtime path reads projection outputs. Future composition should select capabilities
+according to task, policy, latency, resources, and verification needs rather than
+call every subsystem unconditionally.
 
 ## Compute and telemetry
 

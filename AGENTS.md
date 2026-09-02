@@ -94,6 +94,16 @@ from the controlling 3090 to `VR-Gamer` through
 `ops/new-4090-certificate-session.ps1`; dedicated identity
 `VR-Gamer\GRACI_Remote` and its password route are break-glass only. Never store its
 password in source, logs, or prompts. Preserve 3090 sufficiency, exact MO2 gating,
-gaming priority, and all security boundaries. No later objective is authorized. See
+gaming priority, and all security boundaries. At that acceptance boundary, no later
+objective was authorized. See
 [`docs/KNOWN_ISSUES.md`](docs/KNOWN_ISSUES.md) and
 [`ACC-0004`](docs/acceptance/ACC-0004-4090-llama-upgrade.md).
+
+The Product Owner subsequently accepted the Phase 8E read-only Obsidian review
+design and the Stage 1 fixture-only implementation. Stage 1 may be committed and
+pushed to `main`. The Product Owner also authorized Stage 2 local Windows inspection,
+exact control selection, boundary implementation, rollback, and synthetic
+verification. Stage 2 does not authorize Obsidian installation or configuration,
+real-memory access, real-data generation, network or firewall changes, deployment,
+automatic refresh, resident changes, or Stage 3 and later work. See
+[`ACC-0007`](docs/acceptance/ACC-0007-phase8e-stage1.md).

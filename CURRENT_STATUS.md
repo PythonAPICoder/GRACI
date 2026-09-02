@@ -7,9 +7,11 @@
 
 ## Product and repository baseline
 
-- Local `main` and `origin/main` are at accepted 4090 upgrade and certificate-remoting
-  commit `e412d1c18a2726edda2838362807428b7f7d17ee`; promoted Phase 8D implementation
-  commit `a0a61b7298d3c85cec054cd11ca827842f2776dd` is in that history.
+- Local `main` is at development-process commit
+  `08b2ffdc5c4530d652cde5ee4d2c428f6979f9eb`; `origin/main` remains at accepted
+  4090 upgrade and certificate-remoting commit
+  `e412d1c18a2726edda2838362807428b7f7d17ee`. The Phase 8E Stage 1 worktree is
+  detached at `08b2ffd`; promoted Phase 8D commit `a0a61b7` is in its history.
 - Canonical identity: **G.R.A.C.I. = General Reasoning And Conversational
   Intelligence**.
 - **Autonomous Assistant** is an approved subtitle/tagline, not acronym text.
@@ -101,6 +103,17 @@ See [`docs/KNOWN_ISSUES.md`](docs/KNOWN_ISSUES.md).
 
 ## Current development state
 
+The Product Owner accepted the Phase 8E read-only review design and its fixture-only
+Stage 1 implementation. The separate `phase8e` package now implements
+the typed source catalog, exact local Git-commit projection, exact-ID synthetic
+memory privacy modes, deterministic active-content neutralization, complete source
+and output hashing, immutable generation promotion, source-race checks, and tamper
+verification. Focused tests pass. Ordinary GRACI runtime does not import the
+exporter. Stage 1 is not deployed and has not used real data. The Product Owner
+authorized Stage 2 local Windows viewer-boundary implementation and synthetic
+verification. Obsidian, real memory, real-data generation, deployment, network
+changes, and Stage 3 or later work remain unperformed and unauthorized.
+
 The durable repository-memory/documentation foundation passed a fresh-session
 reconstruction test and is **PRODUCT OWNER ACCEPTED**. Its temporary bootstrap
 migration package has been removed.
@@ -142,8 +155,10 @@ rollback verification, and live acceptance procedure is complete at the machine
 level: official b10675 is deployed, both approved models returned `READY`, and the
 old build was restored successfully before final re-promotion. A new boot preserved
 the task, hash, firewall, MO2/telemetry readiness, and both model responses. Product
-Owner acceptance is recorded for both the upgrade and one-way certificate remoting;
-no later development objective is authorized.
+Owner acceptance is recorded for both the upgrade and one-way certificate remoting.
+Phase 8E Stage 1 is Product Owner accepted, and Stage 2 local Windows boundary work
+with synthetic data is authorized. Stage 3 and all later objectives remain
+unauthorized.
 
 The future product direction is selective governed composition: use routing, review,
 memory, optional compute, recovery, and verification when the task, policy, latency,

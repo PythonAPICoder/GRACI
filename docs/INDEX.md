@@ -39,6 +39,15 @@ code, configuration, tests, and time-stamped live evidence and report the confli
 - [Decision index](decisions/DECISION_INDEX.md)
 - [Acceptance index](acceptance/ACCEPTANCE_INDEX.md)
 
+## Design proposals
+
+- [Phase 8E read-only Obsidian knowledge and governance review](PHASE_8E_OBSIDIAN_DESIGN.md)
+  is the Product Owner-accepted design. Its fixture-only Stage 1 implementation is
+  documented in the [Phase 8E Stage 1 record](../phase8e/README.md) and accepted in
+  [ACC-0007](acceptance/ACC-0007-phase8e-stage1.md). Stage 2 local Windows boundary
+  work is authorized; Obsidian, real data, deployment, and later stages remain
+  separately controlled.
+
 ## Governance
 
 - [Current policy](../governance/CURRENT_POLICY.md)

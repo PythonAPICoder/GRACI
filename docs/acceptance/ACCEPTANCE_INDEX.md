@@ -20,6 +20,7 @@ Acceptance states must remain distinct:
 | [`ACC-0004-4090-llama-upgrade.md`](ACC-0004-4090-llama-upgrade.md) | Optional 4090 llama.cpp b10675 inspection, deployment, live rollback, restart, two-model, and gaming-impact validation | **PRODUCT OWNER ACCEPTED** |
 | [`ACC-0005-4090-certificate-remoting.md`](ACC-0005-4090-certificate-remoting.md) | One-way certificate-authenticated WinRM from the 3090 to the 4090 | **PRODUCT OWNER ACCEPTED** |
 | [`ACC-0006-4090-telemetry.md`](ACC-0006-4090-telemetry.md) | Telemetry 1.0.1 controlled startup, resources, single instance, and HUD reacquisition | **PRODUCT OWNER ACCEPTED** |
+| [`ACC-0007-phase8e-stage1.md`](ACC-0007-phase8e-stage1.md) | Phase 8E Stage 1 fixture-only projection foundation and bounded Stage 2 authorization | **PRODUCT OWNER ACCEPTED** |
 | [`PHASE_INDEX.md`](../history/PHASE_INDEX.md) and phase evidence | Historical phase-specific implementation and acceptance | **HISTORICAL; SCOPE VARIES BY RECORD** |
 
 No acceptance may be widened by implication. Automated tests do not establish
