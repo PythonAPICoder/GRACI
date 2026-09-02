@@ -19,6 +19,7 @@ from typing import Any, Callable, Mapping
 
 SCHEMA_VERSION = 1
 GOVERNANCE_SCHEMA_VERSION = 2
+PERSONALIZED_SCHEMA_VERSION = 3
 MAX_CONTENT_BYTES = 16_384
 MAX_ENUMERATION_LIMIT = 1000
 DEFAULT_ENUMERATION_LIMIT = 100
@@ -26,6 +27,7 @@ _FIELDS = {"schema_version", "memory_id", "created_at", "updated_at", "scope",
            "memory_type", "content", "provenance", "status", "version"}
 _GOVERNANCE_FIELDS = _FIELDS | {"relevance_key", "expires_at",
                                 "supersedes_memory_id"}
+_PERSONALIZED_FIELDS = _GOVERNANCE_FIELDS | {"personalized_kind", "approval"}
 _UUID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
 _SCOPE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
 _SECRET_PATTERNS = (
@@ -76,6 +78,20 @@ class ProvenanceOrigin(str, Enum):
     RUNTIME = "runtime_observation"
     MODEL = "model_generated"
     IMPORTED = "imported_external"
+
+
+class PersonalizedKind(str, Enum):
+    PREFERENCE = "preference"
+    WORKING_METHOD = "working_method"
+    TASK_PROCEDURE = "task_procedure"
+    CORRECTION = "correction"
+    LESSON = "lesson"
+
+
+_APPROVAL_FIELDS = {
+    "approval_id", "proposal_id", "authority", "channel", "source_turn_id",
+    "approved_at", "proposal_digest",
+}
 
 
 @dataclass(frozen=True)
@@ -163,6 +179,31 @@ def _validate_provenance(value: Any) -> dict[str, str | None]:
     return {"origin": origin, "source_ref": source}
 
 
+def _validate_approval(value: Any) -> dict[str, str]:
+    if not isinstance(value, dict) or set(value) != _APPROVAL_FIELDS:
+        raise MemoryValidationError("approval fields do not match the strict contract")
+    approval_id = validate_memory_id(value["approval_id"])
+    proposal_id = validate_memory_id(value["proposal_id"])
+    source_turn_id = validate_memory_id(value["source_turn_id"])
+    if value["authority"] != "product_owner":
+        raise MemoryValidationError("personalized memory requires Product Owner authority")
+    if value["channel"] not in {"typed_turn", "ptt_release"}:
+        raise MemoryValidationError("approval channel must be typed_turn or ptt_release")
+    _parse_timestamp(value["approved_at"], "approved_at")
+    digest = value["proposal_digest"]
+    if not isinstance(digest, str) or not re.fullmatch(r"[0-9a-f]{64}", digest):
+        raise MemoryValidationError("approval proposal_digest must be a SHA-256 digest")
+    return {
+        "approval_id": approval_id,
+        "proposal_id": proposal_id,
+        "authority": "product_owner",
+        "channel": value["channel"],
+        "source_turn_id": source_turn_id,
+        "approved_at": value["approved_at"],
+        "proposal_digest": digest,
+    }
+
+
 def _reject_obvious_secrets(content: str) -> None:
     if any(pattern.search(content) for pattern in _SECRET_PATTERNS):
         raise MemoryValidationError("content matches bounded secret-material policy")
@@ -173,13 +214,15 @@ def validate_record(record: Mapping[str, Any]) -> dict[str, Any]:
     schema_version = record.get("schema_version") if isinstance(record, Mapping) else None
     expected_fields = (_FIELDS if schema_version == SCHEMA_VERSION else
                        _GOVERNANCE_FIELDS if schema_version == GOVERNANCE_SCHEMA_VERSION else
+                       _PERSONALIZED_FIELDS if schema_version == PERSONALIZED_SCHEMA_VERSION else
                        _FIELDS)
     if not isinstance(record, Mapping) or set(record) != expected_fields:
         missing = sorted(expected_fields - set(record)) if isinstance(record, Mapping) else sorted(expected_fields)
         extra = sorted(set(record) - expected_fields) if isinstance(record, Mapping) else []
         raise MemoryValidationError(f"record fields mismatch; missing={missing}, extra={extra}")
     if (type(record["schema_version"]) is not int or
-            record["schema_version"] not in (SCHEMA_VERSION, GOVERNANCE_SCHEMA_VERSION)):
+            record["schema_version"] not in (SCHEMA_VERSION, GOVERNANCE_SCHEMA_VERSION,
+                                               PERSONALIZED_SCHEMA_VERSION)):
         raise MemoryValidationError(f"unsupported schema_version: {record['schema_version']!r}")
     memory_id = validate_memory_id(record["memory_id"])
     created = _parse_timestamp(record["created_at"], "created_at")
@@ -207,7 +250,8 @@ def validate_record(record: Mapping[str, Any]) -> dict[str, Any]:
         "status": _enum(record["status"], MemoryStatus, "status"),
         "version": record["version"],
     }
-    if record["schema_version"] == GOVERNANCE_SCHEMA_VERSION:
+    if record["schema_version"] in (GOVERNANCE_SCHEMA_VERSION,
+                                     PERSONALIZED_SCHEMA_VERSION):
         # Imported lazily to keep the Phase 4A substrate independent of governance.
         from .memory_governance import validate_relevance_key
         canonical["relevance_key"] = validate_relevance_key(record["relevance_key"])
@@ -220,6 +264,14 @@ def validate_record(record: Mapping[str, Any]) -> dict[str, Any]:
                                                 if supersedes is not None else None)
         if canonical["supersedes_memory_id"] == memory_id:
             raise MemoryValidationError("a memory cannot supersede itself")
+    if record["schema_version"] == PERSONALIZED_SCHEMA_VERSION:
+        canonical["personalized_kind"] = _enum(
+            record["personalized_kind"], PersonalizedKind, "personalized_kind"
+        )
+        canonical["approval"] = _validate_approval(record["approval"])
+        approved = _parse_timestamp(canonical["approval"]["approved_at"], "approved_at")
+        if approved > created:
+            raise MemoryValidationError("approved_at cannot follow memory creation")
     return canonical
 
 
@@ -236,11 +288,19 @@ class MemoryStore:
     def new_record(self, *, scope: Mapping[str, Any], memory_type: str, content: str,
                    provenance: Mapping[str, Any], memory_id: str | None = None,
                    relevance_key: str | None = None, expires_at: str | None = None,
-                   supersedes_memory_id: str | None = None) -> dict[str, Any]:
+                   supersedes_memory_id: str | None = None,
+                   personalized_kind: str | None = None,
+                   approval: Mapping[str, Any] | None = None) -> dict[str, Any]:
         stamp = _stamp(self.clock())
+        if (personalized_kind is None) != (approval is None):
+            raise MemoryValidationError(
+                "personalized_kind and approval must be supplied together"
+            )
         record = {
-            "schema_version": (GOVERNANCE_SCHEMA_VERSION if relevance_key is not None
-                               else SCHEMA_VERSION),
+            "schema_version": (PERSONALIZED_SCHEMA_VERSION
+                               if personalized_kind is not None else
+                               GOVERNANCE_SCHEMA_VERSION if relevance_key is not None else
+                               SCHEMA_VERSION),
             "memory_id": memory_id or str(uuid.uuid4()),
             "created_at": stamp, "updated_at": stamp, "scope": dict(scope),
             "memory_type": memory_type, "content": content,
@@ -250,10 +310,17 @@ class MemoryStore:
         if relevance_key is not None:
             record.update({"relevance_key": relevance_key, "expires_at": expires_at,
                            "supersedes_memory_id": supersedes_memory_id})
+        if personalized_kind is not None and approval is not None:
+            record.update({"personalized_kind": personalized_kind,
+                           "approval": dict(approval)})
         return validate_record(record)
 
     def create(self, record: Mapping[str, Any]) -> dict[str, Any]:
         canonical = validate_record(record)
+        if canonical["schema_version"] == PERSONALIZED_SCHEMA_VERSION:
+            raise MemoryValidationError(
+                "personalized schema-v3 records require the exact-approval repository"
+            )
         path = self._path(canonical["memory_id"])
         try:
             self.root.mkdir(parents=True, exist_ok=True)
@@ -279,6 +346,10 @@ class MemoryStore:
     def update(self, memory_id: str, *, content: str | None = None,
                status: str | None = None) -> dict[str, Any]:
         current = self.get(memory_id)
+        if current["schema_version"] == PERSONALIZED_SCHEMA_VERSION:
+            raise MemoryValidationError(
+                "generic updates cannot change personalized schema-v3 records"
+            )
         updated = dict(current)
         if content is not None:
             updated["content"] = content

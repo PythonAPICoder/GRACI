@@ -2,7 +2,7 @@
 
 > Classification: current implementation, deployment, acceptance, and issue status
 > Authority: descriptive; canonical policy remains under `governance/`
-> Verified through: PO-DEC-035 after Phase 8E Stage 3 acceptance on 2026-09-02
+> Verified through: PO-DEC-036 on 2026-09-02
 > Last verified: 2026-09-02
 
 ## Product and repository baseline
@@ -158,6 +158,17 @@ Adding or changing a memory requires explicit current verbal or PTT approval. Th
 direction is recorded in `PO-DEC-034`; no real personalized-memory capture,
 retrieval, or vault-maintenance integration is implemented or authorized. See
 [`ACC-0009`](docs/acceptance/ACC-0009-phase8e-stage3-obsidian.md).
+
+The separate PO-DEC-035 task produced a synthetic-only implementation foundation.
+It adds exact proposal digests, typed-turn and PTT approval attestations,
+schema-v3 approval provenance, immutable state and audit generations, scoped
+retrieval, correction, retirement, conflict and stale-state handling, hash-bound
+rollback, and an exact-generation Phase 8E projection adapter. The Product Owner
+accepted the synthetic foundation under PO-DEC-036 and authorized its commit and
+push. It remains outside ordinary runtime composition, has used no real personal
+data, and is not deployed or automatically refreshed. See
+[`ACC-0010`](docs/acceptance/ACC-0010-phase8e-personalized-memory.md) and
+[`PERSONALIZED_MEMORY_FOUNDATION.md`](docs/PERSONALIZED_MEMORY_FOUNDATION.md).
 
 The durable repository-memory/documentation foundation passed a fresh-session
 reconstruction test and is **PRODUCT OWNER ACCEPTED**. Its temporary bootstrap

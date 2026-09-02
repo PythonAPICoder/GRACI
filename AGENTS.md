@@ -2,7 +2,7 @@
 
 > Classification: mandatory session entry point
 > Authority: workflow guidance; canonical policy remains under `governance/`
-> Verified through: PO-DEC-035 after Phase 8E Stage 3 acceptance on 2026-09-02
+> Verified through: PO-DEC-036 on 2026-09-02
 > Last verified: 2026-09-02
 
 Work from the repository root, `E:\GRACI`. Before changing anything, inspect the
@@ -161,9 +161,16 @@ passed all 610 tests during an authorized stop/test/restart procedure. The resta
 resident reached ready state, and its live snapshot showed both 4090 models
 available, MO2 absent, and the 4090 eligible.
 
-PO-DEC-035 also authorizes a separate Codex task for the synthetic-only personalized
-memory and Obsidian integration foundation described by PO-DEC-034. That task may
-design and implement proposal, approval, later retrieval, correction, deletion,
-audit, rollback, and vault-projection behavior using synthetic data. It may not use
-real personal data, deploy the new capability, enable automatic refresh, use
-external/cloud assistance, change BitLocker, commit, or push.
+PO-DEC-035 authorized a separate Codex task for the synthetic-only personalized
+memory and Obsidian integration foundation described by PO-DEC-034. The completed
+foundation implements proposal, exact approval, later retrieval, correction,
+retirement, audit, rollback, and exact-generation vault-projection behavior using
+synthetic data.
+
+The Product Owner accepted that foundation under PO-DEC-036 and authorized its
+commit and push to `main`. It remains outside ordinary runtime composition and has
+not been deployed. This acceptance does not authorize real personal data, ordinary
+runtime integration, automatic vault refresh, automatic updates, external/cloud
+assistance, BitLocker changes, or Phase 8F implementation. See
+[`ACC-0010`](docs/acceptance/ACC-0010-phase8e-personalized-memory.md) and
+[`PERSONALIZED_MEMORY_FOUNDATION.md`](docs/PERSONALIZED_MEMORY_FOUNDATION.md).

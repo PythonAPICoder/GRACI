@@ -549,7 +549,9 @@ launch, commit, and push for the exact dedicated Obsidian configuration. PO-DEC-
 records the required product outcome: approved personal knowledge must be readable
 in Obsidian and reusable by G.R.A.C.I. Adding or changing a durable memory requires
 explicit current Product Owner approval; later in-scope retrieval and projection of
-that accepted memory do not require the lesson to be repeated. Separate decisions
-are still required for personalized-memory design, real-data source selection, the
+that accepted memory do not require the lesson to be repeated. The PO-DEC-035
+synthetic foundation was accepted under PO-DEC-036 for commit and
+push. Separate decisions are still required for real-data source selection, the
 first real-data projection, automatic refresh, runtime integration, and Stages 4
-and 5.
+and 5. See [`ACC-0010`](acceptance/ACC-0010-phase8e-personalized-memory.md) and
+[`PERSONALIZED_MEMORY_FOUNDATION.md`](PERSONALIZED_MEMORY_FOUNDATION.md).

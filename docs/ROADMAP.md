@@ -2,7 +2,7 @@
 
 > Classification: current authorization and sequencing view
 > Authority: Product Owner direction; entries do not authorize work unless explicitly marked authorized
-> Verified through: PO-DEC-035 after Phase 8E Stage 3 acceptance on 2026-09-02
+> Verified through: PO-DEC-036 on 2026-09-02
 > Last verified: 2026-09-02
 
 | Objective | State | Meaning |
@@ -12,7 +12,7 @@
 | Optional 4090 llama.cpp upgrade | **COMPLETE / PRODUCT OWNER ACCEPTED** | Official b10675 is deployed; both models passed after a new boot, b10516 rollback was exercised, gaming impact is verified, and 3090 sufficiency plus MO2 priority remain intact |
 | One-way 3090-to-4090 certificate remoting | **COMPLETE / PRODUCT OWNER ACCEPTED** | Passwordless HTTPS WinRM maps only the 3090 client certificate to `GRACI_Remote`; password access is break-glass only |
 | 4090 telemetry 1.0.1 acceptance closure | **COMPLETE / PRODUCT OWNER ACCEPTED** | Controlled boot startup, one-process/resource behavior, fresh telemetry, and HUD reacquisition passed in `ACC-0006` and the Product Owner accepted the bounded capability |
-| Phase 8E: Obsidian personalized knowledge and human review | **STAGES 1 THROUGH 3 ACCEPTED / SYNTHETIC PERSONALIZED-MEMORY FOUNDATION AUTHORIZED** | The accepted synthetic viewer remains a secure foundation. `PO-DEC-034` establishes its central purpose: approved preferences, working methods, taught tasks, corrections, and lessons must become readable in Obsidian and reusable by GRACI. `PO-DEC-035` authorizes separate synthetic-only design and implementation; real personal data and deployment remain unauthorized |
+| Phase 8E: Obsidian personalized knowledge and human review | **STAGES 1 THROUGH 3 AND SYNTHETIC PERSONALIZED-MEMORY FOUNDATION ACCEPTED** | The accepted synthetic viewer and separate PO-DEC-035 foundation cover exact approval, lifecycle, retrieval, audit, rollback, and manual projection with synthetic fixtures only. The personalized-memory foundation is not deployed and real personal data remains unauthorized |
 | Phase 9: Permission-gated internet research, tool, and MCP qualification | **REQUIRED PRODUCT OBJECTIVE / IMPLEMENTATION NOT AUTHORIZED** | For a knowledge gap, ask to search the internet and return a sourced answer; for a missing tool or MCP, create or locate candidates, evaluate them in a sandbox, and require separate Product Owner approval before production installation and use |
 | Phase 10: Governed document ingestion, RAG, and corrective learning | **REQUIRED PRODUCT OBJECTIVE / IMPLEMENTATION NOT AUTHORIZED** | Safely ingest approved documents including PDFs, retrieve relevant local knowledge with source traceability, and record confirmed mistakes, corrections, and lessons without allowing memory to grant authority or silently change GRACI |
 | Phase 11: Scheduled Product Owner-authorized proactive work | **REQUIRED PRODUCT OBJECTIVE / IMPLEMENTATION NOT AUTHORIZED** | Run explicitly approved recurring tasks, such as a daily résumé-based job search, without requiring a new prompt each day while remaining inside the approved schedule, information, actions, privacy, and notification boundaries |
@@ -23,7 +23,7 @@
 | Phase 16: Safe browser and desktop action | **REQUIRED PRODUCT OBJECTIVE / IMPLEMENTATION NOT AUTHORIZED** | Let GRACI navigate approved websites and applications, prepare forms and actions, show previews, request confirmation for consequential steps, and retain evidence and recovery options |
 | Phase 17: Multimodal understanding and media workflows | **REQUIRED PRODUCT OBJECTIVE / IMPLEMENTATION NOT AUTHORIZED** | Understand and create approved images, scans, charts, audio, and video through governed local capabilities or qualified tools while preserving privacy, provenance, and human-quality output |
 | Phase 18: Resilience, backup, recovery, and measurable improvement | **REQUIRED PRODUCT OBJECTIVE / IMPLEMENTATION NOT AUTHORIZED** | Protect memory, governance, schedules, tools, and configuration with tested recovery, then measure task outcomes and use accepted evidence to improve future recommendations and workflows |
-| Next decision gate | **PERSONALIZED-MEMORY SYNTHETIC FOUNDATION AUTHORIZED** | PO-DEC-035 authorizes the separate design and synthetic implementation task. Real personal data, deployment, automatic refresh, production promotion, Stage 4, and later objectives require another Product Owner decision |
+| Next decision gate | **SELECT AND AUTHORIZE THE NEXT BOUNDED OBJECTIVE** | Phase 8E synthetic personalized memory is accepted for repository preservation. Real personal data, ordinary runtime integration, deployment, automatic refresh, Phase 8F implementation, and later objectives require another Product Owner decision |
 | Ordinary runtime capability selection | **PRODUCT DIRECTION** | Eventually choose routing, review, memory, optional compute, recovery, and verification according to task/policy/latency/resources rather than invoking all subsystems on every turn |
 | Wake word, VAD authority, always listening, or unscheduled autonomous follow-up | **DEFERRED / UNAUTHORIZED** | Scheduled work is limited to Phase 11 standing grants; these broader interaction and autonomy modes require separate Product Owner decisions and governed implementation |
 | External/cloud runtime assistance | **FUTURE GOVERNED CAPABILITY** | Denied by default; no runtime path exists |
@@ -121,9 +121,11 @@ and passed under the real review token. Real data, automatic refresh, runtime
 integration, and later stages remain unauthorized.
 
 PO-DEC-034 clarifies that the accepted Stage 1 through Stage 3 work is a secure
-viewer foundation, not the completed product outcome. Personalized-memory capture,
-ordinary retrieval, taught-task recall, and GRACI-maintained vault updates require a
-new bounded design and separate implementation authorization.
+viewer foundation, not the completed product outcome. PO-DEC-035 authorized the
+synthetic personalized-memory design and implementation, and PO-DEC-036 accepts
+that bounded foundation for commit and push. Personalized-memory capture with real
+data, ordinary retrieval, taught-task recall in production, deployment, and
+GRACI-maintained vault updates remain separate decisions.
 
 ## Phase 9 required scope: Internet research, tools, and MCPs
 

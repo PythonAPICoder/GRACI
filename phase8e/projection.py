@@ -24,9 +24,9 @@ from types import MappingProxyType
 from typing import Any, Callable, Mapping, Sequence
 
 
-EXPORTER_VERSION = "1.0.0-stage1"
+EXPORTER_VERSION = "1.1.0-personalized-synthetic"
 MANIFEST_SCHEMA_VERSION = 1
-CATALOG_VERSION = 1
+CATALOG_VERSION = 2
 MAX_REPOSITORY_SOURCE_BYTES = 1_048_576
 MAX_MEMORY_SOURCE_BYTES = 65_536
 MAX_GENERATED_FILE_BYTES = 2_097_152
@@ -57,6 +57,11 @@ _MEMORY_BASE_FIELDS = {
 }
 _MEMORY_V2_FIELDS = _MEMORY_BASE_FIELDS | {
     "relevance_key", "expires_at", "supersedes_memory_id",
+}
+_MEMORY_V3_FIELDS = _MEMORY_V2_FIELDS | {"personalized_kind", "approval"}
+_MEMORY_APPROVAL_FIELDS = {
+    "approval_id", "proposal_id", "authority", "channel", "source_turn_id",
+    "approved_at", "proposal_digest",
 }
 _RESERVED_WINDOWS_NAMES = {
     "CON", "PRN", "AUX", "NUL", "CLOCK$",
@@ -276,6 +281,8 @@ INITIAL_REPOSITORY_CATALOG: tuple[RepositorySource, ...] = (
             (5, "4090-certificate-remoting"),
             (6, "4090-telemetry"),
             (7, "phase8e-stage1"),
+            (8, "phase8e-stage2-windows"),
+            (9, "phase8e-stage3-obsidian"),
         )
     ),
     RepositorySource("docs/history/PHASE_INDEX.md", "history/phase-index.md",
@@ -318,7 +325,9 @@ def _validate_memory_record(value: Any) -> dict[str, Any]:
     schema = value.get("schema_version")
     if type(schema) is not int:
         raise _MemoryRecordError("unsupported or malformed memory schema")
-    fields = _MEMORY_BASE_FIELDS if schema == 1 else _MEMORY_V2_FIELDS if schema == 2 else None
+    fields = (_MEMORY_BASE_FIELDS if schema == 1 else
+              _MEMORY_V2_FIELDS if schema == 2 else
+              _MEMORY_V3_FIELDS if schema == 3 else None)
     if fields is None or set(value) != fields:
         raise _MemoryRecordError("unsupported or malformed memory schema")
     memory_id = _validate_memory_id(value["memory_id"])
@@ -378,6 +387,34 @@ def _validate_memory_record(value: Any) -> dict[str, Any]:
         supersedes = value["supersedes_memory_id"]
         if supersedes is not None and _validate_memory_id(supersedes) == memory_id:
             raise _MemoryRecordError("memory cannot supersede itself")
+    if schema == 3:
+        relevance_key = value["relevance_key"]
+        if (not isinstance(relevance_key, str) or not 1 <= len(relevance_key) <= 128 or
+                not _MEMORY_RELEVANCE_KEY.fullmatch(relevance_key)):
+            raise _MemoryRecordError("invalid memory relevance key")
+        if value["expires_at"] is not None:
+            _memory_timestamp(value["expires_at"], "expires_at")
+        supersedes = value["supersedes_memory_id"]
+        if supersedes is not None and _validate_memory_id(supersedes) == memory_id:
+            raise _MemoryRecordError("memory cannot supersede itself")
+        if value["personalized_kind"] not in {
+                "preference", "working_method", "task_procedure", "correction", "lesson"}:
+            raise _MemoryRecordError("invalid personalized memory kind")
+        approval = value["approval"]
+        if not isinstance(approval, dict) or set(approval) != _MEMORY_APPROVAL_FIELDS:
+            raise _MemoryRecordError("invalid personalized memory approval")
+        for field in ("approval_id", "proposal_id", "source_turn_id"):
+            _validate_memory_id(approval[field])
+        if approval["authority"] != "product_owner":
+            raise _MemoryRecordError("invalid personalized memory approval authority")
+        if approval["channel"] not in {"typed_turn", "ptt_release"}:
+            raise _MemoryRecordError("invalid personalized memory approval channel")
+        approved = _memory_timestamp(approval["approved_at"], "approved_at")
+        if approved > created:
+            raise _MemoryRecordError("personalized memory approval follows creation")
+        if (not isinstance(approval["proposal_digest"], str) or
+                not re.fullmatch(r"[0-9a-f]{64}", approval["proposal_digest"])):
+            raise _MemoryRecordError("invalid personalized memory approval digest")
     return value
 
 
@@ -949,7 +986,7 @@ class ProjectionExporter:
         unsupported = False
         try:
             decoded = json.loads(raw.decode("utf-8"))
-            if not isinstance(decoded, dict) or decoded.get("schema_version") not in (1, 2):
+            if not isinstance(decoded, dict) or decoded.get("schema_version") not in (1, 2, 3):
                 unsupported = True
                 raise _MemoryRecordError("unsupported schema")
             record = _validate_memory_record(decoded)
@@ -968,6 +1005,7 @@ class ProjectionExporter:
                 "memory_id", "schema_version", "scope", "memory_type", "status", "version",
                 "created_at", "updated_at", "relevance_key", "expires_at",
                 "supersedes_memory_id",
+                "personalized_kind", "approval",
             )
             for field in ordered_fields:
                 if field in record:

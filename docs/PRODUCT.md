@@ -2,7 +2,7 @@
 
 > Classification: current product identity and direction
 > Authority: accepted Product Owner decisions, bounded by canonical governance
-> Verified through: PO-DEC-035 after Phase 8E Stage 3 acceptance on 2026-09-02
+> Verified through: PO-DEC-036 on 2026-09-02
 > Last verified: 2026-09-02
 
 ## Identity
@@ -40,8 +40,10 @@ Once approved, GRACI should retrieve and use that knowledge during later relevan
 work without requiring the Product Owner to teach it again. A separate maintainer
 updates the readable vault while the Obsidian viewer remains read-only. Vault text
 cannot grant permissions, change governance, or silently authorize tools, code, or
-actions. Ordinary learning, retrieval, and real-data vault refresh are not yet
-implemented.
+actions. The Product Owner-accepted synthetic-only foundation exercises approval,
+lifecycle, retrieval, and exact-generation projection outside ordinary composition.
+Ordinary learning, real personal data, and vault refresh are not implemented or
+deployed.
 
 Another future product capability is permission-gated internet research. When
 approved local capabilities cannot complete an authorized task, GRACI

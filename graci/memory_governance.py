@@ -15,6 +15,7 @@ from typing import Any, Mapping, Sequence
 from .memory import (CorruptionDiagnostic, MemoryCollisionError, MemoryNotFoundError,
                      MemoryStatus, MemoryStorageError, MemoryStore, MemoryType,
                      MemoryValidationError, ProvenanceOrigin, ScopeKind,
+                     GOVERNANCE_SCHEMA_VERSION, PERSONALIZED_SCHEMA_VERSION,
                      _parse_timestamp, _validate_scope, validate_memory_id)
 
 
@@ -148,8 +149,10 @@ class MemoryGovernance:
             if replacement:
                 supersedes = validate_memory_id(request["supersedes_memory_id"])
                 prior = self.store.get(supersedes)
-                if prior.get("schema_version") != 2:
-                    raise MemoryValidationError("only governed schema-v2 records can be superseded")
+                if prior.get("schema_version") != GOVERNANCE_SCHEMA_VERSION:
+                    raise MemoryValidationError(
+                        "generic replacement cannot change personalized schema-v3 memory"
+                    )
                 if prior["status"] not in (MemoryStatus.ACTIVE.value,
                                            MemoryStatus.SUPERSEDED.value):
                     raise MemoryValidationError("superseded record must be active")
@@ -237,7 +240,8 @@ class MemoryGovernance:
         eligible: list[tuple[int, dict[str, Any], str]] = []
         for record in listing.records:
             key = record.get("relevance_key")
-            if record.get("schema_version") != 2:
+            if record.get("schema_version") not in (
+                    GOVERNANCE_SCHEMA_VERSION, PERSONALIZED_SCHEMA_VERSION):
                 exclusions.append(ExclusionDiagnostic(record["memory_id"],
                                                        "NO_RELEVANCE_METADATA"))
                 continue

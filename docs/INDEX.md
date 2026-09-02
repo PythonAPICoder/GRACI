@@ -38,9 +38,14 @@ code, configuration, tests, and time-stamped live evidence and report the confli
 - [Development process](DEVELOPMENT.md)
 - [Decision index](decisions/DECISION_INDEX.md)
 - [Acceptance index](acceptance/ACCEPTANCE_INDEX.md)
+- [Phase 8E personalized-memory acceptance](acceptance/ACC-0010-phase8e-personalized-memory.md)
 
 ## Design proposals
 
+- [Synthetic personalized-memory foundation](PERSONALIZED_MEMORY_FOUNDATION.md)
+  describes the Product Owner-accepted proposal, exact approval, lifecycle, scoped
+  retrieval, audit, rollback, and manual Phase 8E projection foundation. It uses
+  synthetic fixtures only and is not deployed.
 - [Phase 8E Obsidian knowledge and governance review foundation](PHASE_8E_OBSIDIAN_DESIGN.md)
   is the Product Owner-accepted security foundation. Its fixture-only Stage 1 implementation is
   documented in the [Phase 8E Stage 1 record](../phase8e/README.md) and accepted in
@@ -51,7 +56,7 @@ code, configuration, tests, and time-stamped live evidence and report the confli
   the existing per-user candidate failed closed and rollback passed. The
   [dedicated review-profile candidate](PHASE_8E_STAGE3_DEDICATED_OBSIDIAN_PLAN.md)
   then passed its synthetic test. Stage 3 acceptance and routine-launch promotion
-  are recorded in [ACC-0009](acceptance/ACC-0009-phase8e-stage3-obsidian.md). Real
+  are recorded in [ACC-0009](acceptance/ACC-0009-phase8e-stage3-obsidian.md).
   `PO-DEC-034` clarifies the central future purpose: approved personal preferences,
   working methods, taught tasks, corrections, and lessons must be readable in the
   vault and reusable by G.R.A.C.I. Real personal data, learning and retrieval,

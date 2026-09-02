@@ -2,7 +2,7 @@
 
 > Classification: current issue and unresolved-evidence register
 > Authority: descriptive Product Owner/runtime record; issue closure requires evidence
-> Verified through: PO-DEC-035 after Phase 8E Stage 3 acceptance
+> Verified through: PO-DEC-036
 > Last verified: 2026-09-02
 
 ## GRACI-ISSUE-001 — Cold-start/runtime-readiness failure
@@ -201,7 +201,7 @@ unauthorized. See [`ACC-0009`](acceptance/ACC-0009-phase8e-stage3-obsidian.md).
 
 ## GRACI-GAP-007: personalized learning is not connected to Obsidian or ordinary runtime
 
-**Status: OPEN / SYNTHETIC DESIGN AND IMPLEMENTATION AUTHORIZED**
+**Status: OPEN / SYNTHETIC FOUNDATION ACCEPTED / NOT DEPLOYED**
 
 The accepted synthetic Obsidian viewer does not yet fulfill the Product Owner's
 central goal for the vault. G.R.A.C.I. cannot yet capture an approved preference,
@@ -215,4 +215,14 @@ and maintainer-only vault refresh. The design must keep displayed notes from
 granting authority and must preserve explicit approval for new or changed durable
 knowledge. `PO-DEC-034` establishes the outcome, and `PO-DEC-035` authorizes the
 separate synthetic-only design and implementation task. Real personal data,
-deployment, automatic updates, and acceptance remain unauthorized.
+deployment, and automatic updates remain unauthorized.
+
+The accepted foundation implements the bounded synthetic lifecycle and
+manual projection adapter described in
+[`PERSONALIZED_MEMORY_FOUNDATION.md`](PERSONALIZED_MEMORY_FOUNDATION.md). Focused
+tests cover no-write-without-approval, exact approval, scope, provenance,
+correction, retirement, conflict, stale state, injection isolation, failed-write
+preservation, audited rollback, and deterministic projection. The Product Owner
+accepted the synthetic foundation under PO-DEC-036 and authorized its commit and
+push. The gap remains open because no trusted ordinary-turn adapter, real-data
+boundary, runtime retrieval, maintainer command, or real vault refresh exists.

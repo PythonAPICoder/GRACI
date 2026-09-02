@@ -110,6 +110,26 @@ accepted canonical memory into it. This direction does not authorize current rea
 personal data, ordinary learning or retrieval, vault-refresh integration, or
 automatic updates.
 
-PO-DEC-035 authorizes a separate Codex task to design and implement that foundation
+PO-DEC-035 authorized a separate Codex task to design and implement that foundation
 with synthetic data only. Real personal information, deployment, automatic updates,
-commit, and push remain outside that task's authority.
+commit, and push remained outside that task's original authority. PO-DEC-036 later
+accepted the synthetic foundation and authorized commit and push only.
+
+## Accepted synthetic personalized-memory foundation
+
+The authorized separate task provides the Product Owner-accepted foundation in
+[`graci/personalized_memory.py`](../graci/personalized_memory.py) and
+[`personalized_projection.py`](personalized_projection.py). It requires an exact
+synthetic-only marker, separates proposals from canonical writes, binds approved
+records to exact typed-turn or PTT attestations, preserves correction and retirement
+history in immutable audited generations, fails closed on conflicts and stale
+state, and builds a manual request for one exact projection generation.
+
+The existing exporter now validates personalized schema version 3 and renders its
+kind and approval provenance as untrusted context. The initial repository catalog
+also includes the accepted Stage 2 and Stage 3 records.
+
+This foundation does not refresh the deployed vault, finalize ACLs, launch Obsidian,
+connect to the ordinary runtime, or permit real data. See
+[`ACC-0010`](../docs/acceptance/ACC-0010-phase8e-personalized-memory.md) and
+[`PERSONALIZED_MEMORY_FOUNDATION.md`](../docs/PERSONALIZED_MEMORY_FOUNDATION.md).

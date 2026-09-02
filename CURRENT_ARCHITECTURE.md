@@ -2,7 +2,7 @@
 
 > Classification: current descriptive architecture
 > Authority: implementation description; canonical policy remains under `governance/`
-> Verified through: PO-DEC-035 after Phase 8E Stage 3 acceptance on 2026-09-02
+> Verified through: PO-DEC-036 on 2026-09-02
 > Last verified: 2026-09-02
 
 Accepted policy is canonical in
@@ -112,6 +112,11 @@ The repository also implements:
   model identity, and exact MO2 gating; and
 - Phase 4 governed persistent memory: canonical local JSON, writes, selection,
   supersession, conflict handling, and bounded untrusted execution context; and
+- a separate Product Owner-accepted synthetic-only personalized-memory foundation
+  with exact proposal digests, typed-turn or PTT approval attestations,
+  schema-v3 approval provenance, immutable state generations, audited correction
+  and retirement, scoped retrieval, hash-bound rollback, and no ordinary runtime
+  import; and
 - a separate Phase 8E Stage 1 fixture-only projection exporter with a typed source
   catalog, exact local Git-commit and exact-ID synthetic-memory reads, deterministic
   safe Markdown, complete hash manifests, immutable generation promotion, and
@@ -125,7 +130,8 @@ their recorded flows. Phase 8E Stage 1 has automated fixture evidence and Produc
 Owner acceptance; it is not deployed. The ordinary CLI/resident composition does
 not currently instantiate the Phase 3B workflow, memory governance, autonomous
 repair loop, or distributed router. It does not import the Phase 8E exporter, and no
-runtime path reads projection outputs. Future composition should select capabilities
+runtime path reads projection outputs. It also does not import the personalized
+memory foundation. Future composition should select capabilities
 according to task, policy, latency, resources, and verification needs rather than
 call every subsystem unconditionally.
 
