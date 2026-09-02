@@ -11,6 +11,7 @@ from typing import Any
 from .availability import Mo2State
 from .observation import ObservationKind, RuntimeObservation
 from .registry import GLM_MODEL_ID, QWEN_MODEL_ID, HealthState, NodeRole
+from .runtime_context import ComponentState, ReadinessState, RuntimeReadiness
 from .visualizer import (
     ActivityState, AgentView, AgentsView, ComputeNodeView, ComputeView,
     EventMetadata, EventSeverity, EventType, ExecutionView, MemoryMode,
@@ -57,6 +58,7 @@ class VisualizerRuntimeObserver:
         self.execution = ExecutionView()
         self.review = ReviewView()
         self.latest_turn: LatestTurnView | None = None
+        self.readiness: RuntimeReadiness | None = None
         self.terminal: str | None = None
         self.tests_failed = False
         self._lock = threading.RLock()
@@ -85,12 +87,36 @@ class VisualizerRuntimeObserver:
                 optional_4090=replace(self.compute.optional_4090, telemetry=optional))
             self._publish_snapshot("hardware-telemetry")
 
+    def publish_readiness(self, readiness: RuntimeReadiness) -> None:
+        """Publish typed read-only health and emit only bounded state transitions."""
+        if not isinstance(readiness, RuntimeReadiness):
+            raise TypeError("readiness must be a RuntimeReadiness")
+        with self._lock:
+            prior = self.readiness.state if self.readiness is not None else None
+            self.readiness = readiness
+            self._apply_readiness_compute(readiness)
+            if prior is not readiness.state:
+                severity = (EventSeverity.SUCCESS if readiness.state in
+                            {ReadinessState.READY, ReadinessState.RECOVERING}
+                            else EventSeverity.ERROR if readiness.state is ReadinessState.UNAVAILABLE
+                            else EventSeverity.WARNING)
+                self._publish_event(VisualizerEvent(
+                    uuid.uuid4().hex, datetime.now(timezone.utc),
+                    EventType.READINESS_CHANGED, severity, "runtime-health",
+                    f"runtime readiness changed to {readiness.state.value}",
+                    metadata=EventMetadata((("state", readiness.state.value),
+                                            ("previous", prior.value if prior else None))),
+                ))
+            self._publish_snapshot("runtime-health")
+
     def reset_transient(self) -> None:
         """Clear runtime projection only; durable run records remain untouched."""
         with self._lock:
             self.state = SystemState.IDLE
             self.task = TaskView()
             self.compute = default_compute()
+            if self.readiness is not None:
+                self._apply_readiness_compute(self.readiness)
             self.agents = inactive_agents()
             self.memory = MemoryView()
             self.execution = ExecutionView()
@@ -192,10 +218,46 @@ class VisualizerRuntimeObserver:
         source = TrustedRuntimeState(
             self.state, self.task, self.compute, self.agents, self.memory,
             self.execution, self.review, self.tests_failed, self.terminal,
-            self.latest_turn)
+            self.latest_turn, self.readiness)
         snapshot = project_snapshot(source, snapshot_id=f"{source_id}:{uuid.uuid4().hex}",
                                     generated_at=datetime.now(timezone.utc), events=self.events)
         self.provider.publish_snapshot(snapshot)
+
+    def _apply_readiness_compute(self, readiness: RuntimeReadiness) -> None:
+        components = {item.component_id: item for item in readiness.components}
+        primary = components.get("router_endpoint")
+        qwen = components.get("qwen_model")
+        optional = components.get("optional_4090_endpoint")
+        mo2 = components.get("optional_4090_mo2")
+        eligibility = components.get("optional_4090_eligibility")
+        primary_health = (HealthState.HEALTHY if primary and primary.state is ComponentState.READY
+                          else HealthState.UNHEALTHY if primary else HealthState.UNKNOWN)
+        optional_health = (HealthState.HEALTHY if optional and optional.state is ComponentState.READY
+                           else HealthState.UNHEALTHY if optional else HealthState.UNKNOWN)
+        mo2_value = dict(mo2.facts).get("state") if mo2 else None
+        try:
+            mo2_state = Mo2State(mo2_value) if isinstance(mo2_value, str) else None
+        except ValueError:
+            mo2_state = None
+        eligible = dict(eligibility.facts).get("eligible") if eligibility else None
+        self.compute = replace(
+            self.compute,
+            primary_3090=replace(self.compute.primary_3090,
+                                 availability=(ActivityState.ACTIVE if primary_health is HealthState.HEALTHY
+                                               else ActivityState.FAILED),
+                                 endpoint_health=primary_health,
+                                 eligible=(primary_health is HealthState.HEALTHY and qwen is not None
+                                           and qwen.state is ComponentState.READY)),
+            optional_4090=replace(self.compute.optional_4090,
+                                  availability=(ActivityState.INACTIVE if mo2_state is Mo2State.RUNNING
+                                                else ActivityState.ACTIVE
+                                                if optional_health is HealthState.HEALTHY
+                                                else ActivityState.FAILED),
+                                  endpoint_health=optional_health,
+                                  eligible=eligible if type(eligible) is bool else None,
+                                  mo2_state=mo2_state,
+                                  policy_reason=eligibility.reason if eligibility else "not_checked"),
+        )
 
     def _apply(self, item: RuntimeObservation, facts: dict[str, Any]) -> None:
         kind, at = item.kind, item.timestamp

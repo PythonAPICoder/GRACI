@@ -20,6 +20,7 @@ from graci.visualizer_backend import (
     API_VERSION, BASE_PATH, DEFAULT_HOST, DEFAULT_PORT, MAX_LIVE_CLIENTS,
     MAX_REQUEST_TARGET, VisualizerServer, VisualizerStateProvider,
 )
+from graci.runtime_context import ComponentReadiness, ComponentState, reduce_readiness
 
 NOW = datetime(2026, 8, 27, 20, 0, tzinfo=timezone.utc)
 
@@ -105,6 +106,37 @@ class HealthSnapshotTests(ServerCase):
         self.assertEqual(int(headers["Content-Length"]), len(serialize_visualizer(snapshot).encode()))
         with self.assertRaises(FrozenInstanceError):
             snapshot.snapshot_id = "changed"
+
+    def test_health_reports_fresh_runtime_readiness_and_degrades_stale_evidence(self):
+        observed = datetime.now(timezone.utc)
+        component = ComponentReadiness(
+            "trusted_clock", True, ComponentState.READY, observed, "clock_observed")
+        readiness = reduce_readiness((component,), observed_at=observed,
+                                     local_now=observed, fresh_seconds=5)
+        source = TrustedRuntimeState(
+            SystemState.IDLE, TaskView(), default_compute(), inactive_agents(),
+            MemoryView(), ExecutionView(), ReviewView(), readiness=readiness)
+        self.provider.publish_snapshot(project_snapshot(
+            source, snapshot_id="fresh-health", generated_at=datetime.now(timezone.utc)))
+        _, _, body = self.request("GET", f"{BASE_PATH}/health")
+        health = json.loads(body)
+        self.assertEqual(health["runtime_readiness"], "ready")
+        self.assertTrue(health["runtime_fresh"])
+
+        stale_at = datetime.now(timezone.utc) - timedelta(minutes=1)
+        stale_component = ComponentReadiness(
+            "trusted_clock", True, ComponentState.READY, stale_at, "clock_observed")
+        stale = reduce_readiness((stale_component,), observed_at=stale_at,
+                                 local_now=stale_at, fresh_seconds=5)
+        stale_source = TrustedRuntimeState(
+            SystemState.IDLE, TaskView(), default_compute(), inactive_agents(),
+            MemoryView(), ExecutionView(), ReviewView(), readiness=stale)
+        self.provider.publish_snapshot(project_snapshot(
+            stale_source, snapshot_id="stale-health", generated_at=datetime.now(timezone.utc)))
+        _, _, body = self.request("GET", f"{BASE_PATH}/health")
+        health = json.loads(body)
+        self.assertEqual(health["runtime_readiness"], "degraded")
+        self.assertFalse(health["runtime_fresh"])
 
     def test_concurrent_snapshot_publication_never_partially_serializes(self):
         failures = []

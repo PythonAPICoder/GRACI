@@ -2,7 +2,7 @@
 
 > Classification: current product identity and direction
 > Authority: accepted Product Owner decisions, bounded by canonical governance
-> Verified at commit: `dbc27123e0ab25a22ac1128677d2cd385de7d662`
+> Verified against: Phase 8D implementation worktree based on `959347207ecbfa252ca801ca85b76d355fc4dde2`
 > Last verified: 2026-09-01
 
 ## Identity
@@ -57,5 +57,6 @@ historical qualification evidence remains unchanged.
 
 The development-process handoff and durable repository-memory foundation are Product
 Owner accepted. The temporary bootstrap migration package has been removed. Phase 8D
-has not begun. System Health & Trusted Runtime Context is the leading proposed next
-objective only; see [`ROADMAP.md`](ROADMAP.md).
+System Health & Trusted Runtime Context is implemented and test-verified in the
+current worktree. It is not deployed or Product Owner accepted, and its cold-start
+acceptance gate remains open; see [`ROADMAP.md`](ROADMAP.md).

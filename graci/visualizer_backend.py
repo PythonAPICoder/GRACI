@@ -222,10 +222,25 @@ class _Handler(BaseHTTPRequestHandler):
             self._error(HTTPStatus.BAD_REQUEST, "request_body_rejected", "request bodies are not accepted")
             return
         if path == f"{BASE_PATH}/health":
-            now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            current = datetime.now(timezone.utc)
+            now = current.isoformat().replace("+00:00", "Z")
+            snapshot = self.app.provider.snapshot()
+            readiness = snapshot.readiness if snapshot is not None else None
+            readiness_fresh = readiness is not None and current <= readiness.fresh_until
+            readiness_state = (readiness.state.value if readiness_fresh else
+                               "degraded" if readiness is not None else "unknown")
             self._json({"api_version": API_VERSION, "event_schema_version": EVENT_SCHEMA_VERSION,
-                        "generated_at": now, "service_status": "ok",
-                        "snapshot_available": self.app.provider.snapshot() is not None,
+                        "generated_at": now,
+                        "service_status": readiness_state,
+                        "runtime_readiness": readiness_state,
+                        "runtime_fresh": readiness_fresh,
+                        "runtime_observed_at": (readiness.observed_at.astimezone(timezone.utc)
+                                                .isoformat().replace("+00:00", "Z")
+                                                if readiness is not None else None),
+                        "runtime_fresh_until": (readiness.fresh_until.astimezone(timezone.utc)
+                                                .isoformat().replace("+00:00", "Z")
+                                                if readiness is not None else None),
+                        "snapshot_available": snapshot is not None,
                         "snapshot_schema_version": SNAPSHOT_SCHEMA_VERSION}, head_only)
         elif path == f"{BASE_PATH}/snapshot":
             snapshot = self.app.provider.snapshot()

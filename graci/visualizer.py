@@ -15,9 +15,10 @@ from typing import Any
 
 from .availability import Mo2State
 from .registry import GLM_MODEL_ID, QWEN_MODEL_ID, HealthState, NodeRole
+from .runtime_context import RuntimeReadiness
 
 
-SNAPSHOT_SCHEMA_VERSION = 3
+SNAPSHOT_SCHEMA_VERSION = 4
 EVENT_SCHEMA_VERSION = 1
 RECENT_EVENT_LIMIT = 100
 TASK_SUMMARY_LIMIT = 240
@@ -107,6 +108,7 @@ class EventSeverity(str, Enum):
 
 class EventType(str, Enum):
     SYSTEM_READY = "system_ready"
+    READINESS_CHANGED = "readiness_changed"
     SYSTEM_IDLE = "system_idle"
     VOICE_LISTENING = "voice_listening"
     VOICE_SPEAKING = "voice_speaking"
@@ -570,6 +572,7 @@ class VisualizerSnapshot:
     review: ReviewView
     latest_turn: LatestTurnView | None = None
     recent_events: tuple[VisualizerEvent, ...] = ()
+    readiness: RuntimeReadiness | None = None
     schema_version: int = SNAPSHOT_SCHEMA_VERSION
 
     def __post_init__(self) -> None:
@@ -583,6 +586,11 @@ class VisualizerSnapshot:
             raise ValueError("snapshot cannot contain future events")
         if self.latest_turn is not None and self.latest_turn.completed_at > self.generated_at:
             raise ValueError("snapshot cannot contain a future latest turn")
+        if self.readiness is not None:
+            if not isinstance(self.readiness, RuntimeReadiness):
+                raise ValueError("readiness must be a RuntimeReadiness")
+            if self.readiness.observed_at > self.generated_at:
+                raise ValueError("snapshot cannot contain future readiness")
 
 
 @dataclass(frozen=True)
@@ -599,6 +607,7 @@ class TrustedRuntimeState:
     deterministic_tests_failed: bool = False
     deterministic_terminal_status: str | None = None
     latest_turn: LatestTurnView | None = None
+    readiness: RuntimeReadiness | None = None
 
     def __post_init__(self) -> None:
         _enum(self.controller_state, SystemState, "controller_state")
@@ -606,6 +615,8 @@ class TrustedRuntimeState:
             raise ValueError("deterministic_tests_failed must be boolean")
         if self.deterministic_terminal_status not in {None, "PASS", "COMPLETED", "FAIL"}:
             raise ValueError("deterministic_terminal_status is not recognized")
+        if self.readiness is not None and not isinstance(self.readiness, RuntimeReadiness):
+            raise ValueError("readiness must be a RuntimeReadiness")
 
 
 def derive_system_state(source: TrustedRuntimeState) -> SystemState:
@@ -630,7 +641,7 @@ def project_snapshot(source: TrustedRuntimeState, *, snapshot_id: str,
         system_state=derive_system_state(source), task=source.task,
         compute=source.compute, agents=source.agents, memory=source.memory,
         execution=source.execution, review=source.review, latest_turn=source.latest_turn,
-        recent_events=() if events is None else events.events)
+        recent_events=() if events is None else events.events, readiness=source.readiness)
 
 
 def _json_value(value: Any) -> Any:

@@ -2,7 +2,7 @@
 
 > Classification: current implementation/integration/deployment/acceptance map
 > Authority: descriptive current state; does not grant runtime or development authority
-> Verified at commit: `dbc27123e0ab25a22ac1128677d2cd385de7d662`
+> Verified against: Phase 8D implementation worktree based on `959347207ecbfa252ca801ca85b76d355fc4dde2`
 > Last verified: 2026-09-01
 
 The columns are deliberately independent. **Implemented** does not mean used by the
@@ -21,7 +21,7 @@ physically accepted.
 | Observer visualizer and resident turn continuity | Current | Yes: loopback backend, SSE/snapshot, latest turn, explicit controls | Yes in resident composition | Scheduled task installed; resident was not running at the 2026-09-01 observation |
 | Symmetric local/remote telemetry HUD | Presentation only | Yes: bounded schema, strict client, stale/unavailable handling | Yes in resident snapshots/UI | Telemetry agent 1.0.1 deployment confirmed; full reboot/resource/Product Owner acceptance not established |
 | Current visual identity/presence | Current accepted baseline | Yes | Yes | Product Owner physically accepted at `dbc2712` |
-| Trusted system health and conversational runtime context | Leading proposed objective | **No Phase 8D implementation** | No | Not begun and not authorized |
+| Trusted system health and conversational runtime context | Authorized bounded Phase 8D scope | Yes: typed reduction, startup stages, component probes, freshness/recovery, lifecycle ledger, visualizer projection, and bounded context injection | Yes in ordinary controller composition; read-only facts cannot grant authority | Not deployed or Product Owner accepted; cold-start acceptance remains open |
 | External/cloud AI assistance | Denied by default; governed future capability | No cloud runtime path | No | Requires a current scoped Product Owner grant and future governed implementation |
 
 See [`CURRENT_ARCHITECTURE.md`](../CURRENT_ARCHITECTURE.md) for composition and

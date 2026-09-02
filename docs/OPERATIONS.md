@@ -2,7 +2,7 @@
 
 > Classification: current topology, procedures, and time-stamped operational evidence
 > Authority: descriptive; live state must be rechecked before an operational action
-> Verified at commit: `dbc27123e0ab25a22ac1128677d2cd385de7d662`
+> Verified against: Phase 8D implementation worktree based on `959347207ecbfa252ca801ca85b76d355fc4dde2`
 > Last verified: 2026-09-01
 
 ## Stable topology
@@ -44,10 +44,16 @@ readiness. Registration, launcher result, owned-process liveness, and runtime
 readiness are separate facts.
 
 The current [`status-graci-login-tasks.ps1`](../ops/status-graci-login-tasks.ps1)
-suppresses `Get-ScheduledTask` access errors. In a restricted caller context this can
-return null and incorrectly print `not installed` when the actual state is `access
-denied / unknown`. Until repaired, do not treat that message as proof of absence
-unless task enumeration access was established.
+uses exact Task Scheduler root paths and terminating lookup errors. It separately
+reports `missing`, `access denied / unknown`, `registered`, and `launcher succeeded`.
+It then delegates to component diagnostics that distinguish an owned process from an
+actual healthy endpoint. A nonzero exit means one or more required facts were not
+established; it must not be rewritten as task absence.
+
+The resident runtime also retains bounded lifecycle evidence at
+`.runtime/resident-host/lifecycle.jsonl`. This file is diagnostic evidence only and
+contains startup/readiness/heartbeat/terminal facts, not prompts, transcripts,
+credentials, authority, or model output.
 
 Useful read-only checks are:
 
@@ -74,6 +80,10 @@ Invoke-RestMethod http://192.168.0.101:8767/telemetry
 - The MO2 service reported exact process absent / `NOT_RUNNING`.
 - Telemetry `/health` and `/telemetry` were live with schema 2, agent 1.0.1, fresh
   observations, RTX 4090 identity, and below-normal effective priority.
+- After the Phase 8D diagnostic repair, a direct read-only invocation correctly
+  reported both exact root tasks registered and launcher-succeeded, the resident
+  stopped with stale state, and the owned router process/endpoint healthy with Qwen
+  loaded. Its nonzero exit truthfully reflected resident runtime absence.
 
 These are time-stamped observations, not guarantees of later state.
 

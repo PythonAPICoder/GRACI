@@ -2,7 +2,7 @@
 
 > Classification: mandatory session entry point
 > Authority: workflow guidance; canonical policy remains under `governance/`
-> Verified at commit: `dbc27123e0ab25a22ac1128677d2cd385de7d662`
+> Verified against: Phase 8D implementation worktree based on `959347207ecbfa252ca801ca85b76d355fc4dde2`
 > Last verified: 2026-09-01
 
 Work from the repository root, `E:\GRACI`. Before changing anything, inspect the
@@ -66,7 +66,8 @@ not delete unrelated Product Owner data.
 ## Current handoff boundary
 
 The durable repository-memory and development-process foundation is Product Owner
-accepted. Phase 8D has not begun. System Health & Trusted Runtime Context is the
-leading proposed next objective, not authorization to implement it. The open
-cold-start runtime-readiness defect is tracked in
-[`docs/KNOWN_ISSUES.md`](docs/KNOWN_ISSUES.md).
+accepted. Phase 8D System Health & Trusted Runtime Context was authorized on
+2026-09-01 and is implemented and deterministically verified in the current
+worktree. It has not been deployed, cold-start accepted, Product Owner accepted, or
+promoted. The open cold-start runtime-readiness defect remains tracked in
+[`docs/KNOWN_ISSUES.md`](docs/KNOWN_ISSUES.md). No later objective is authorized.

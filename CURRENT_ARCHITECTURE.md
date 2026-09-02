@@ -2,7 +2,7 @@
 
 > Classification: current descriptive architecture
 > Authority: implementation description; canonical policy remains under `governance/`
-> Verified at commit: `dbc27123e0ab25a22ac1128677d2cd385de7d662`
+> Verified against: Phase 8D implementation worktree based on `959347207ecbfa252ca801ca85b76d355fc4dde2`
 > Last verified: 2026-09-01
 
 Accepted policy is canonical in
@@ -20,6 +20,14 @@ The normal typed CLI and resident/browser path is:
 using the fixed `Config`: local endpoint `http://127.0.0.1:8080/v1`, Qwen model
 `qwen3.8-27b-q4_k_m`, and local 3090 identity. The model reasons on behalf of GRACI;
 it is not the product identity.
+
+The composition also owns a Phase 8D `RuntimeHealthService`. Immediately before a
+governed model request, the controller takes one bounded trusted-context snapshot.
+The provider appends those typed, timestamped facts to the system message while
+preserving the user's task unchanged. The context explicitly cannot grant authority,
+override governance, authorize actions, or replace the task. It is stored with the
+run record as evidence; provider-context failure degrades to no context and does not
+silently create authority.
 
 Strict result schema v2 separates internal `summary` from `user_response`. Only a
 validated nonblank PASS `user_response` can become the immutable
@@ -48,6 +56,15 @@ The resident composes:
 - a loopback visualizer, latest-turn projection, SSE stream, browser PTT operator,
   and bounded Restart callback.
 
+The resident additionally samples system health at a bounded interval. The fixed
+read-only collector observes the exact startup tasks, task launcher results, owned
+resident process, actual resident health endpoint, 3090 router and model inventory,
+Qwen/GLM load state, optional 4090 endpoint/MO2/eligibility, local STT/TTS assets,
+and the timezone-aware OS clock. Required component facts reduce to
+`ready/degraded/unavailable/recovering`; stale observations degrade rather than being
+presented as current. Optional 4090 failure remains visible without making it a 3090
+baseline dependency.
+
 The visualizer serves only three packaged static resources and fixed API routes. Its
 POST allowlist is PTT begin/chunk/finish/cancel, Restart, speech claim, and speech
 lifecycle. Speech audio is fetched through an opaque artifact ID plus independent
@@ -74,8 +91,15 @@ The resident task owns the startup launcher, not the continuing child lifetime. 
 successful task result means the launcher observed a matching resident during its
 bounded startup wait and exited successfully; it does not establish that the resident
 remained alive or that the visualizer/browser path remained ready. The current status
-script also does not distinguish task absence from task-enumeration access denial.
-These are known diagnostic/readiness limitations, not alternate runtime authority.
+script now distinguishes task absence from task-enumeration access denial, task
+registration, launcher success, owned-process liveness, and actual loopback runtime
+response. These observations remain facts, not alternate runtime authority.
+
+The resident writes a bounded JSONL lifecycle ledger at
+`.runtime/resident-host/lifecycle.jsonl`. It records starting, publication,
+readiness transitions, periodic heartbeats, clean stops, bounded exception evidence,
+and detection that a prior lifecycle ended without a terminal event. This improves
+later diagnosis but cannot guarantee a root cause after abrupt OS or hardware loss.
 
 ## Specialized capabilities not in every ordinary turn
 
@@ -126,11 +150,11 @@ No cloud AI runtime path exists. External assistance requires an active scoped g
 and future governed implementation. Free-form Markdown is human documentation and
 must never be parsed to grant runtime capability.
 
-## Known architectural gap
+## Remaining architectural and acceptance gap
 
-Phase 8D health reduction and trusted runtime context are not implemented. Current
-observer/telemetry facts do not yet form an authoritative general runtime-readiness
-model for conversation. Task registration, launcher success, process liveness, and
-endpoint readiness are not yet reduced into distinct trusted states. The related
-cold-start/runtime-readiness and startup-status diagnostic defects remain open; see
+Phase 8D is implemented and test-verified but is not deployed or Product Owner
+accepted. The prior startup-status false-negative is repaired in the current
+implementation. The cold-start/runtime-readiness defect remains open until a
+controlled Windows cold start proves sustained resident/browser readiness after the
+launcher exits and receives explicit Product Owner disposition. See
 [`docs/KNOWN_ISSUES.md`](docs/KNOWN_ISSUES.md).

@@ -16,6 +16,9 @@ from typing import Any, Callable
 
 from .hardware_telemetry import (TELEMETRY_INTERVAL_SECONDS,
                                  LocalHardwareTelemetryCollector)
+from .health_collector import (
+    HEALTH_INTERVAL_SECONDS, LIFECYCLE_HEARTBEAT_SECONDS, ResidentLifecycleLedger,
+)
 from .operator_cli import OperatorComposition, build_operator_composition
 from .visualizer import HardwareTelemetryView, TelemetryState
 
@@ -143,6 +146,9 @@ class ResidentHost:
         composition: OperatorComposition | None = None
         server_started = False
         stopping = False
+        ledger = ResidentLifecycleLedger(self.ownership.runtime_directory / "lifecycle.jsonl")
+        self._lifecycle(ledger, "begin", self.ownership.instance_id)
+        terminal_event = "resident_stopped"
 
         def request_stop(*_: object) -> None:
             nonlocal stopping
@@ -163,20 +169,52 @@ class ResidentHost:
             telemetry = self.telemetry_factory()
             self._publish_telemetry(composition, telemetry)
             last_telemetry = time.monotonic()
+            last_health = time.monotonic()
+            last_heartbeat = time.monotonic()
+            self._publish_health(composition, ledger, self.ownership.instance_id,
+                                 resident_endpoint_url=None)
             composition.server.start()
             server_started = True
             self.ownership.publish(port=composition.server.bound_port)
+            self._lifecycle(ledger, "append", self.ownership.instance_id,
+                            "launcher_published")
+            resident_url = (f"http://127.0.0.1:{composition.server.bound_port}"
+                            "/graci/visualizer/v1/health")
+            self._publish_health(composition, ledger, self.ownership.instance_id,
+                                 resident_endpoint_url=resident_url)
             while not stopping and not self.ownership.stop_requested():
                 time.sleep(self.poll_seconds)
                 if time.monotonic() - last_telemetry >= TELEMETRY_INTERVAL_SECONDS:
                     self._publish_telemetry(composition, telemetry)
                     last_telemetry = time.monotonic()
+                if time.monotonic() - last_health >= HEALTH_INTERVAL_SECONDS:
+                    self._publish_health(composition, ledger, self.ownership.instance_id,
+                                         resident_endpoint_url=resident_url)
+                    last_health = time.monotonic()
+                if time.monotonic() - last_heartbeat >= LIFECYCLE_HEARTBEAT_SECONDS:
+                    latest = (composition.health_service.latest()
+                              if composition.health_service is not None else None)
+                    self._lifecycle(ledger, "append", self.ownership.instance_id,
+                                    "resident_heartbeat", readiness=latest)
+                    last_heartbeat = time.monotonic()
             return 0
+        except Exception as exc:
+            terminal_event = "resident_failed"
+            self._lifecycle(ledger, "append", self.ownership.instance_id,
+                            terminal_event,
+                            reason=f"{type(exc).__name__}:{exc}")
+            raise
         finally:
             if server_started and composition is not None and composition.server is not None:
                 composition.server.stop()
             if composition is not None and composition.browser_ptt is not None:
                 composition.browser_ptt.close()
+            if terminal_event == "resident_stopped":
+                latest = (composition.health_service.latest()
+                          if composition is not None and composition.health_service is not None
+                          else None)
+                self._lifecycle(ledger, "append", self.ownership.instance_id,
+                                terminal_event, readiness=latest)
             self.ownership.release()
             for number, handler in previous.items():
                 try:
@@ -198,6 +236,38 @@ class ResidentHost:
             optional = HardwareTelemetryView(
                 TelemetryState.UNAVAILABLE, reason="remote_telemetry_collection_failed")
         composition.runtime_observer.publish_hardware_telemetry(primary, optional)
+
+    @staticmethod
+    def _publish_health(composition: OperatorComposition, ledger: ResidentLifecycleLedger,
+                        instance_id: str,
+                        *, resident_endpoint_url: str | None) -> None:
+        if composition.runtime_observer is None:
+            return
+        if composition.health_service is None:
+            composition.runtime_observer.publish_current("resident")
+            return
+        previous = composition.health_service.latest()
+        try:
+            readiness = composition.health_service.sample(
+                include_resident=True, resident_endpoint_url=resident_endpoint_url)
+        except Exception as exc:
+            ResidentHost._lifecycle(
+                ledger, "append", instance_id, "readiness_changed",
+                reason=f"health_collection_failed:{type(exc).__name__}")
+            return
+        composition.runtime_observer.publish_readiness(readiness)
+        if previous is None or previous.state is not readiness.state:
+            ResidentHost._lifecycle(
+                ledger, "append", instance_id,
+                "readiness_changed", readiness=readiness)
+
+    @staticmethod
+    def _lifecycle(ledger: ResidentLifecycleLedger, method: str, *args: object,
+                   **kwargs: object) -> None:
+        try:
+            getattr(ledger, method)(*args, **kwargs)
+        except (OSError, ValueError):
+            pass
 
 
 def _atomic_json(path: Path, value: dict[str, Any]) -> None:

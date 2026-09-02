@@ -60,9 +60,20 @@ class WindowsLoginStartupTests(unittest.TestCase):
 
     def test_status_reports_task_installation_and_runtime_health_separately(self):
         status = source("status-graci-login-tasks.ps1")
-        self.assertIn("get-scheduledtask -taskname", status)
+        self.assertIn("get-scheduledtask -taskpath '\\' -taskname", status)
+        self.assertIn("-erroraction stop", status)
+        self.assertIn("access denied / unknown", status)
+        self.assertIn("launcher succeeded", status)
+        self.assertNotIn("get-scheduledtask -taskname $name -erroraction silentlycontinue", status)
         self.assertIn("status-graci-resident.ps1", status)
         self.assertIn("status-3090-llama-router.ps1", status)
+
+    def test_resident_status_distinguishes_process_liveness_and_runtime_readiness(self):
+        status = source("status-graci-resident.ps1")
+        self.assertIn("resident process alive", status)
+        self.assertIn("/graci/visualizer/v1/health", status)
+        self.assertIn("resident runtime ready", status)
+        self.assertIn("runtime is not ready", status)
 
     def test_startup_scripts_have_no_governed_run_or_microphone_authority(self):
         names = ("start-3090-llama-router.ps1", "install-3090-llama-router-task.ps1",

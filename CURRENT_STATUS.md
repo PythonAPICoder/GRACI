@@ -2,13 +2,13 @@
 
 > Classification: current implementation, deployment, acceptance, and issue status
 > Authority: descriptive; canonical policy remains under `governance/`
-> Verified at commit: `dbc27123e0ab25a22ac1128677d2cd385de7d662`
+> Verified against: Phase 8D implementation worktree based on `959347207ecbfa252ca801ca85b76d355fc4dde2`
 > Last verified: 2026-09-01
 
 ## Product and repository baseline
 
-- Branch/commit verified: `main` at
-  `dbc27123e0ab25a22ac1128677d2cd385de7d662`.
+- Branch/commit verified before Phase 8D changes: local `main` and `origin/main` at
+  `959347207ecbfa252ca801ca85b76d355fc4dde2`.
 - Canonical identity: **G.R.A.C.I. = General Reasoning And Conversational
   Intelligence**.
 - **Autonomous Assistant** is an approved subtitle/tagline, not acronym text.
@@ -71,8 +71,10 @@ continued resident liveness or browser/runtime readiness after its launcher exit
   browser/runtime path after Windows cold startup that GRACI Restart recovered. It
   remains open until deliberately reproduced/repaired or proven resolved with
   evidence and Product Owner review.
-- **Startup-status diagnostic defect: OPEN.** Restricted task-enumeration access can
-  be misreported as task absence; see `GRACI-ISSUE-002`.
+- **Startup-status diagnostic defect: REPAIRED IN CURRENT IMPLEMENTATION.** Restricted
+  task-enumeration access can no longer be collapsed into task absence. The repair
+  is test-verified and direct normal-context execution is verified; a restricted-token
+  live acceptance check remains optional evidence. See `GRACI-ISSUE-002`.
 - Telemetry 1.0.1 full reboot/resource/Product Owner acceptance is incomplete.
 - The accepted UI baseline does not by itself prove every earlier manual multi-tab,
   autoplay, race, reboot, or CLI microphone scenario.
@@ -83,9 +85,26 @@ See [`docs/KNOWN_ISSUES.md`](docs/KNOWN_ISSUES.md).
 
 The durable repository-memory/documentation foundation passed a fresh-session
 reconstruction test and is **PRODUCT OWNER ACCEPTED**. Its temporary bootstrap
-migration package has been removed. Phase 8D has **not begun**. System Health &
-Trusted Runtime Context is the leading proposed next objective only and is not
-authorized for implementation.
+migration package has been removed.
+
+Phase 8D System Health & Trusted Runtime Context is **IMPLEMENTED AND
+DETERMINISTICALLY VERIFIED IN THE CURRENT WORKTREE**. It adds typed component and
+startup-stage observations, freshness/recovery reduction, actual loopback runtime
+probing, trusted local time/context injection, visualizer health projection, repaired
+startup diagnostics, and a bounded resident lifecycle ledger. No service was
+installed, started, stopped, restarted, deployed, or reboot-tested during
+implementation.
+
+Verification evidence: the canonical warning-strict suite passed all 567 tests on
+2026-09-01, focused Phase 8D/startup/resident suites passed, PowerShell diagnostic
+scripts parsed successfully, documentation links resolved, and `git diff --check`
+passed. Test-created synthetic `runs/` records were identified against a pre-test
+snapshot and removed; pre-existing run records were preserved.
+
+Phase 8D is **NOT DEPLOYED, PROMOTED, OR PRODUCT OWNER ACCEPTED**. The current live
+resident remains absent with stale state, while the router is healthy. Controlled
+cold-start/reboot evidence and explicit Product Owner disposition remain required;
+no later development objective is authorized.
 
 The future product direction is selective governed composition: use routing, review,
 memory, optional compute, recovery, and verification when the task, policy, latency,

@@ -9,6 +9,7 @@ from typing import Any, Callable
 from .audio_capture import WindowsWaveInCapture
 from .browser_ptt import BrowserPTTOperator
 from .controller import Controller
+from .health_collector import RuntimeHealthCollector, RuntimeHealthService
 from .browser_playback import BrowserPlaybackBroker
 from .playback import PlaybackConfig, SubprocessWavePlayback
 from .push_to_talk import PushToTalkController
@@ -49,6 +50,7 @@ class OperatorComposition:
     browser_ptt: BrowserPTTOperator | None = None
     restart_runtime: Callable[[], None] | None = None
     browser_playback: BrowserPlaybackBroker | None = None
+    health_service: RuntimeHealthService | None = None
 
 
 def build_operator_composition(repository_root: Path | None = None, *,
@@ -56,6 +58,7 @@ def build_operator_composition(repository_root: Path | None = None, *,
                                browser_operator: bool = False) -> OperatorComposition:
     """Compose accepted local components without adding another runtime authority."""
     root = repository_root or Path(__file__).resolve().parents[1]
+    health_service = RuntimeHealthService(RuntimeHealthCollector(root))
     provider = VisualizerStateProvider() if visualizer else None
     runtime_observer = VisualizerRuntimeObserver(provider) if provider is not None else None
     voice_observer = (VisualizerVoiceObserver(runtime_observer)
@@ -82,7 +85,9 @@ def build_operator_composition(repository_root: Path | None = None, *,
         WindowsWaveInCapture(), stt, lifecycle=lifecycle,
         interrupt_speaking=presentation.interrupt_playback)
     coordinator = ExplicitTurnCoordinator(
-        Controller(observer=runtime_observer), push_to_talk=push_to_talk,
+        Controller(observer=runtime_observer,
+                   runtime_context_provider=health_service.prompt_context),
+        push_to_talk=push_to_talk,
         final_response_constructor=GovernedSummaryResponseConstructor(),
         speech_presentation=presentation,
     )
@@ -107,7 +112,7 @@ def build_operator_composition(repository_root: Path | None = None, *,
                                restart_runtime=restart_runtime)
               if provider is not None else None)
     return OperatorComposition(coordinator, provider, runtime_observer, lifecycle, server,
-                               browser_ptt, restart_runtime, browser_playback)
+                               browser_ptt, restart_runtime, browser_playback, health_service)
 
 
 def build_operator_coordinator(repository_root: Path | None = None) -> ExplicitTurnCoordinator:

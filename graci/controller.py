@@ -5,15 +5,17 @@ import os
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from .config import Config
 from .observation import ObservationKind, observe
 from .provider import LocalLlamaCppProvider, ProviderError
+from .runtime_context import validate_prompt_context
 from .validation import ValidationError, validate_model_result
 
 
 MAX_MODEL_GENERATION_ATTEMPTS = 2
+RUN_RECORD_SCHEMA_VERSION = 2
 
 
 def _timestamp() -> str:
@@ -22,16 +24,29 @@ def _timestamp() -> str:
 
 class Controller:
     def __init__(self, config: Config | None = None, provider: Any = None,
-                 observer: Any = None):
+                 observer: Any = None,
+                 runtime_context_provider: Callable[[], dict[str, Any] | None] | None = None):
         self.config = config or Config()
         self.provider = provider or LocalLlamaCppProvider(self.config)
         self.observer = observer
+        self.runtime_context_provider = runtime_context_provider
 
     def run(self, task: str) -> dict[str, Any]:
         if not isinstance(task, str) or not task.strip():
             raise ValueError("task must be a non-empty string")
+        trusted_context = None
+        context_status = "not_configured"
+        if self.runtime_context_provider is not None:
+            try:
+                candidate = self.runtime_context_provider()
+                if candidate is not None:
+                    candidate = validate_prompt_context(candidate)
+                trusted_context = candidate
+                context_status = "available" if candidate is not None else "unavailable"
+            except Exception:
+                context_status = "unavailable"
         record: dict[str, Any] = {
-            "schema_version": 1,
+            "schema_version": RUN_RECORD_SCHEMA_VERSION,
             "run_id": str(uuid.uuid4()),
             "submitted_task": task,
             "started_at": _timestamp(),
@@ -47,6 +62,8 @@ class Controller:
             "provider_response_model": None,
             "validated_model_result": None,
             "model_generation_attempts": [],
+            "trusted_runtime_context_status": context_status,
+            "trusted_runtime_context": trusted_context,
             "errors": [],
         }
         observe(self.observer, ObservationKind.TASK_STARTED, record["run_id"],
@@ -67,8 +84,10 @@ class Controller:
                     "outcome": "PENDING",
                 }
                 record["model_generation_attempts"].append(attempt)
-                response = (self.provider.execute(task) if correction is None else
-                            self.provider.execute(task, correction=correction))
+                request_context = ({"trusted_runtime_context": trusted_context}
+                                   if trusted_context is not None else {})
+                response = (self.provider.execute(task, **request_context) if correction is None else
+                            self.provider.execute(task, correction=correction, **request_context))
                 observe(self.observer, ObservationKind.MODEL_COMPLETED, record["run_id"],
                         role="implementer", model=self.config.model, node=self.config.node,
                         attempt=attempt_number, success=True)

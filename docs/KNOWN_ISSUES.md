@@ -2,7 +2,7 @@
 
 > Classification: current issue and unresolved-evidence register
 > Authority: descriptive Product Owner/runtime record; issue closure requires evidence
-> Verified at commit: `dbc27123e0ab25a22ac1128677d2cd385de7d662`
+> Verified against: Phase 8D implementation worktree based on `959347207ecbfa252ca801ca85b76d355fc4dde2`
 > Last verified: 2026-09-01
 
 ## GRACI-ISSUE-001 — Cold-start/runtime-readiness failure
@@ -41,9 +41,14 @@ restart; enough lifecycle evidence to determine a later resident exit when
 reasonably possible; repair evidence if reproduced; regression coverage where
 feasible; and explicit Product Owner disposition.
 
+**Phase 8D implementation note:** the current worktree now provides the required
+typed distinctions, actual resident endpoint probe, freshness/recovery state,
+visualizer projection, trusted context, and bounded lifecycle ledger. This
+instrumentation does not itself reproduce, repair, or close the cold-start defect.
+
 ## GRACI-ISSUE-002 — Startup status can misreport access denial as absence
 
-**Status: OPEN**
+**Status: REPAIRED IN CURRENT IMPLEMENTATION; RESTRICTED-CONTEXT LIVE ACCEPTANCE NOT RECORDED**
 
 [`ops/status-graci-login-tasks.ps1`](../ops/status-graci-login-tasks.ps1) calls
 `Get-ScheduledTask` with access errors suppressed and interprets a null result as
@@ -52,10 +57,12 @@ both exact task lookups returned `Access denied`, while the script reported both
 not installed. Direct Windows enumeration then confirmed both tasks present at the
 Task Scheduler root.
 
-This is a diagnostic defect, not evidence of task-registration loss. Until repaired,
-the script's `not installed` result is authoritative only when enumeration access is
-known to have succeeded. Phase 8D planning must distinguish missing from access
-denied/unknown and preserve the evidence behind that classification.
+This was a diagnostic defect, not evidence of task-registration loss. The current
+script uses exact root-path lookups with terminating errors and separately reports
+`missing`, `access denied / unknown`, `registered`, and `launcher succeeded`.
+Static regression tests cover the classification contract. Direct execution on
+2026-09-01 correctly reported both exact tasks registered and launcher-succeeded;
+the restricted-token error branch has not been physically re-run after repair.
 
 ## GRACI-GAP-001 — Telemetry 1.0.1 acceptance incomplete
 
