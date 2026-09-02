@@ -7,7 +7,7 @@
 
 ## GRACI-ISSUE-001 — Cold-start/runtime-readiness failure
 
-**Status: OPEN / REPRODUCED / ROOT CAUSE IDENTIFIED**
+**Status: CLOSED / REPAIRED / PRODUCT OWNER ACCEPTED**
 
 The Product Owner observed a real cold-start failure:
 
@@ -17,8 +17,8 @@ The Product Owner observed a real cold-start failure:
 4. Pressing **GRACI Restart** restored operation.
 
 The defect was reproduced during the Product Owner-authorized Phase 8D controlled
-cold-start procedure. It remains open pending a security-approved repair, a passing
-repeat procedure, and explicit Product Owner disposition.
+cold-start procedure. Its technical repair and repeated automated procedure are
+complete, and the Product Owner accepted Phase 8D on 2026-09-01.
 
 Earlier supporting observation: on 2026-09-01 direct Windows enumeration confirmed
 the exact root task `\GRACI Resident Host` installed, enabled, `Ready`, and reporting
@@ -47,27 +47,50 @@ the enforced `VerifiedAndReputableDesktop` policy
 `0xC0E90002` (`STATUS_SYSTEM_INTEGRITY_POLICY_VIOLATION`). The controlled evidence is
 summarized in [`ACC-0003`](acceptance/ACC-0003-phase8d-cold-start.md).
 
+The Product Owner authorized a security-preserving repair. Official llama.cpp b9637
+CUDA 13.3 archives matched the SHA-256 digests published by the upstream release.
+The executable and sampled llama.cpp DLLs remain `NotSigned`, but the unchanged
+active `VerifiedAndReputableDesktop` policy permitted the exact candidate. This is
+live allowability evidence under the active verification/reputation enforcement,
+not a code-signing claim. The candidate supported every pinned GRACI router flag and
+passed an isolated router, two-model inventory, and OpenAI-compatible request smoke
+test while spawning Qwen with the pinned `--n-gpu-layers all` setting. The production
+`llama-server.exe` hash is
+`06444801bb1dc38a848bb5a527728c4ea14ad2aa45ce7e81a29a5fb5d2560eaf`.
+No Code Integrity, Smart App Control, signing, trust, or allowlist setting changed.
+
+Repeat controlled run `1df4990ca2ed4dbb87f3f4478027fcf0` followed the new boot at
+`2026-09-02T02:56:45.5000000Z`. At the sustained 60, 120, and 300 second checkpoints:
+
+- both exact scheduled tasks were registered, enabled, `Ready`, and returned `0`
+  after the new boot;
+- one owned resident instance remained alive with no terminal lifecycle event;
+- resident health was fresh and `ready`, and browser identity remained valid;
+- the primary router responded with both approved models; and
+- lifecycle heartbeats continued after the resident launcher exited.
+
+The automated summary is `PASS`; the temporary collector task completed with result
+`0` and was removed. The Product Owner subsequently accepted Phase 8D.
+
 **Historical workaround:** the Product Owner previously observed **GRACI Restart**
 recover operation. It was not reattempted after the enforced Code Integrity failure
-and must not be assumed effective against the current blocker.
+and must not be credited as evidence for the subsequent repair or passing repeat.
 
-**Closure evidence required:** controlled startup/reboot procedure; a timeline that
+**Closure evidence:** the repeated procedure now supplies the controlled startup
+timeline that
 distinguishes task missing, task access denied/unknown, task registered, launcher
 succeeded, owned process alive, and runtime ready; actual service/process/endpoint
 behavior rather than task registration or exit code alone; sustained resident and
 browser readiness after the launcher exits; browser-path result before manual
 restart; enough lifecycle evidence to determine a later resident exit when
-reasonably possible; security-approved repair evidence; regression coverage where
-feasible; a repeated passing cold-start procedure; and explicit Product Owner
-disposition.
+reasonably possible; security-approved repair evidence; and a repeated passing
+cold-start procedure. Explicit Product Owner acceptance completed closure.
 
 **Phase 8D implementation note:** promoted commit `a0a61b7` provides the required
 typed distinctions, actual resident endpoint probe, freshness/recovery state,
 visualizer projection, trusted context, and bounded lifecycle ledger. This
-instrumentation exposed and preserved the failure but does not repair or close it.
-No Code Integrity, Smart App Control, signing, trust, or allowlist setting was
-changed. Selecting a trusted/signed/reputable llama.cpp artifact or an explicitly
-reviewed signing/trust path is a Product Owner security decision.
+instrumentation exposed and preserved the first failure and verified the repeated
+repair outcome; it did not grant repair or acceptance authority.
 
 ## GRACI-ISSUE-002 — Startup status can misreport access denial as absence
 
@@ -103,3 +126,14 @@ The current UI baseline is physically accepted. Existing records do not establis
 that every earlier manual scenario was included in that acceptance, including all
 multi-tab/race, autoplay, reboot, and CLI physical microphone cases. Do not infer
 failure; record explicit evidence if those scenarios become acceptance requirements.
+
+## GRACI-GAP-003 — Optional 4090 llama.cpp upgrade pending
+
+**Status: AUTHORIZED / IN PROGRESS**
+
+The Product Owner authorized bounded inspection, upgrade, deployment, rollback
+verification, and acceptance work for the optional 4090 llama.cpp runtime. The 4090
+remains optional and must never become a baseline dependency. Current build/version,
+Windows trust posture, model/flag compatibility, deployment method, rollback, and
+gaming/MO2 protections must be reconstructed before mutation. Acceptance still
+requires explicit evidence and cannot be inferred from deployment or tests.

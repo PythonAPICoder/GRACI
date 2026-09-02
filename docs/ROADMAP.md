@@ -8,8 +8,9 @@
 | Objective | State | Meaning |
 |---|---|---|
 | Development-process handoff and durable memory foundation | **COMPLETE / PRODUCT OWNER ACCEPTED** | A fresh Codex session reconstructed the current product state from the repository alone; the temporary bootstrap package was then authorized for removal |
-| Phase 8D — System Health & Trusted Runtime Context | **PROMOTED / DEPLOYED; COLD-START VALIDATION FAILED; ACCEPTANCE PENDING** | Commit `a0a61b7` is on `origin/main`; the resident/browser remained ready after cold start, but Code Integrity blocked the unsigned required 3090 router dependency |
-| Next major objective | **NOT AUTHORIZED** | Requires a new Product Owner decision after Phase 8D handoff |
+| Phase 8D — System Health & Trusted Runtime Context | **COMPLETE / PROMOTED / DEPLOYED / PRODUCT OWNER ACCEPTED** | Commit `a0a61b7` is on `origin/main`; an authorized reputable-build repair preserved Code Integrity, repeat run `1df4990ca2ed4dbb87f3f4478027fcf0` passed through five minutes, and the Product Owner accepted the phase |
+| Optional 4090 llama.cpp upgrade | **AUTHORIZED / IN PROGRESS** | Bounded inspection, compatible upgrade, deployment, rollback verification, and acceptance procedure are authorized; 3090 sufficiency and MO2 priority remain mandatory |
+| Objective after 4090 upgrade | **NOT AUTHORIZED** | Requires a new Product Owner decision after the authorized 4090 handoff |
 | Ordinary runtime capability selection | **PRODUCT DIRECTION** | Eventually choose routing, review, memory, optional compute, recovery, and verification according to task/policy/latency/resources rather than invoking all subsystems on every turn |
 | Wake word, VAD authority, always listening, autonomous follow-up | **DEFERRED / UNAUTHORIZED** | Requires separate Product Owner decision and governed implementation |
 | External/cloud runtime assistance | **FUTURE GOVERNED CAPABILITY** | Denied by default; no runtime path exists |
@@ -36,15 +37,21 @@ registration or exit code. The implementation adds no repair, routing, microphon
 cloud, or autonomous execution authority.
 
 The controlled cold-start procedure is recorded in
-[`ACC-0003`](acceptance/ACC-0003-phase8d-cold-start.md). It verified sustained
-resident-process, browser, endpoint, and lifecycle readiness after the resident
-launcher exited. Overall validation still failed: Windows Code Integrity blocked
-unsigned `llama-server-impl.dll`, the required 3090 router task returned `1`, and
-runtime readiness correctly remained `unavailable`.
+[`ACC-0003`](acceptance/ACC-0003-phase8d-cold-start.md). The first run preserved the
+resident/browser success but failed overall when Windows Code Integrity blocked
+unsigned b10516 router code. The Product Owner then authorized a security-preserving
+repair. Official-release b9637 matched its published SHA-256 digest, passed the
+unchanged active reputation policy, supported every pinned GRACI flag, and completed
+an isolated CUDA-build router/model request using the pinned `--n-gpu-layers all`
+setting before deployment. No Code Integrity, Smart App Control, signing, trust, or
+allowlist setting was changed.
 
-Phase 8D is deployed but not cold-start or Product Owner accepted. The next decision
-is a security boundary choice for a trusted/signed/reputable llama.cpp artifact or
-an explicitly reviewed signing/trust path. Weakening Code Integrity is not authorized
-by implication. After repair, cold-start validation and explicit Product Owner
-disposition remain required. `GRACI-ISSUE-001` stays open; no later objective is
-authorized.
+Repeat run `1df4990ca2ed4dbb87f3f4478027fcf0` followed a full shutdown and new boot.
+Both launchers returned `0`; one resident instance, browser/health endpoint, primary
+router/model inventory, and lifecycle heartbeats remained valid at the sustained 60,
+120, and 300 second checkpoints. The automated summary is `PASS`.
+
+Phase 8D is deployed, automated cold-start validated, and Product Owner accepted.
+`GRACI-ISSUE-001` is closed. The separately bounded 4090 llama.cpp inspection,
+upgrade, deployment, rollback verification, and acceptance procedure is now the
+authorized objective. No objective after it is authorized.

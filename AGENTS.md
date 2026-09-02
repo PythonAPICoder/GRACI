@@ -67,10 +67,17 @@ not delete unrelated Product Owner data.
 
 The durable repository-memory and development-process foundation is Product Owner
 accepted. Phase 8D System Health & Trusted Runtime Context is promoted and deployed
-at `a0a61b7`, but its controlled cold-start validation failed because Windows Code
-Integrity blocked an unsigned 3090 llama.cpp dependency. The resident process and
-browser remained ready; the required primary router did not start. Phase 8D is not
-cold-start or Product Owner accepted. Repair requires a separate Product Owner
-security decision; no Code Integrity policy change or later objective is authorized.
-See [`docs/KNOWN_ISSUES.md`](docs/KNOWN_ISSUES.md) and
+at `a0a61b7`. After the first controlled cold-start run exposed a Code Integrity
+block in llama.cpp b10516, the Product Owner authorized a security-preserving router
+repair and repeat procedure. The 3090 now runs official-release b9637, whose
+published archive digest was verified and whose unchanged executable is permitted by
+the still-enforced `VerifiedAndReputableDesktop` policy. Repeat evidence run
+`1df4990ca2ed4dbb87f3f4478027fcf0` passed all sustained checkpoints through five
+minutes. The Product Owner accepted Phase 8D on 2026-09-01.
+
+The currently authorized objective is the separate bounded optional 4090 llama.cpp
+inspection, upgrade, deployment, rollback verification, and acceptance procedure.
+Preserve 3090 sufficiency, optional-node gating, MO2 gaming priority, and all current
+security boundaries. No objective after that work is authorized. See
+[`docs/KNOWN_ISSUES.md`](docs/KNOWN_ISSUES.md) and
 [`ACC-0003`](docs/acceptance/ACC-0003-phase8d-cold-start.md).

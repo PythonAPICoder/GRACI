@@ -152,11 +152,17 @@ must never be parsed to grant runtime capability.
 
 ## Remaining architectural and acceptance gap
 
-Phase 8D is promoted and deployed but is not cold-start or Product Owner accepted.
-The prior startup-status false-negative is repaired. A controlled cold start proved
-sustained resident-process and browser readiness after the launcher exited, while
-the complete runtime correctly remained unavailable because Windows Code Integrity
-blocked an unsigned required 3090 llama.cpp dependency. Repair now crosses a
-security/trust boundary and requires explicit Product Owner direction, followed by a
-passing repeat cold-start procedure and Product Owner disposition. See
+Phase 8D is promoted and deployed. The prior startup-status false-negative is
+repaired. The first controlled cold start proved sustained resident-process and
+browser readiness after the launcher exited but exposed a Code Integrity block in
+3090 llama.cpp b10516. The Product Owner-authorized repair preserved the enforced
+policy, installed official-release b9637 at the pinned production path, and retained
+the blocked build as a recoverable backup. A repeat full cold start then sustained
+both launcher success, one resident instance, browser/health response, primary
+router/model readiness, and lifecycle heartbeats through five minutes.
+
+The Product Owner accepted Phase 8D after that passing repeat. The optional 4090
+llama.cpp upgrade is separate authorized work and is not a required 3090 baseline
+dependency. Its implementation must preserve optional-node gating, MO2 gaming
+priority, security enforcement, rollback, and independent acceptance evidence. See
 [`docs/KNOWN_ISSUES.md`](docs/KNOWN_ISSUES.md).

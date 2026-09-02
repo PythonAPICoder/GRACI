@@ -110,11 +110,54 @@ reproduced `STATUS_SYSTEM_INTEGRITY_POLICY_VIOLATION`. Phase 8D therefore report
 the runtime `unavailable` while truthfully preserving the resident/browser-ready
 facts.
 
-Do not disable Code Integrity, Smart App Control, or related trust enforcement as an
-operational workaround. Repair requires explicit Product Owner security direction
-and a reviewed trusted/signed/reputable router artifact or signing/trust path. See
+Code Integrity, Smart App Control, and related trust enforcement were not disabled as
+an operational workaround. At that point repair required explicit Product Owner
+security direction and a reviewed trusted/signed/reputable router artifact or
+signing/trust path. The authorized outcome is recorded below. See
 [`ACC-0003`](acceptance/ACC-0003-phase8d-cold-start.md) and
 [`GRACI-ISSUE-001`](KNOWN_ISSUES.md#graci-issue-001--cold-startruntime-readiness-failure).
+
+## 3090 router repair and repeated cold start — 2026-09-01 CDT
+
+The Product Owner authorized a security-preserving router repair and repeated
+controlled procedure. Official llama.cpp b9637 CUDA 13.3 archives were downloaded
+from the [upstream release](https://github.com/ggml-org/llama.cpp/releases/tag/b9637)
+and matched these published SHA-256 digests:
+
+- router archive:
+  `8667e76077b40db57fc680577c6d8b48b8aa3f58e34fc23a70bcc668a69c97e9`;
+- NVIDIA runtime archive:
+  `1462a050eb4c684921ba51dcc4cc488a036674c3e73e9945ee705b854808d03e`.
+
+GitHub's attestation API had no provenance record for this older artifact, so no
+attestation claim is made. The executable is not Authenticode-signed, but the active
+`VerifiedAndReputableDesktop` policy permitted the exact candidate. Because the
+llama.cpp files are unsigned, this is live allowability evidence under the active
+verification/reputation enforcement, not a code-signing claim. It launched without
+Code Integrity events, supported every pinned GRACI flag, listed both approved
+models, spawned Qwen with the pinned `--n-gpu-layers all` setting, and served an
+isolated OpenAI-compatible request. The production server hash is
+`06444801bb1dc38a848bb5a527728c4ea14ad2aa45ce7e81a29a5fb5d2560eaf`.
+
+The b9637 files were installed at the existing pinned `E:\llama.cpp\bin` path. The
+blocked b10516 directory was moved intact to
+`E:\llama.cpp\bin-b10516-ci-blocked-20260902`; ignored before/after manifests remain
+under `.runtime/router-repair/deployment-manifests/`. No task action or security
+policy changed.
+
+Repeat run `1df4990ca2ed4dbb87f3f4478027fcf0` booted at
+`2026-09-02T02:56:45.5000000Z` and sampled at 0, 15, 30, 60, 120, and 300 seconds.
+Both startup tasks returned `0` after that boot. One resident instance, browser and
+health endpoints, both primary-router model IDs, and lifecycle heartbeats remained
+valid through the final sample. Its summary is `PASS`; the temporary collector task
+returned `0` and was removed. No llama.cpp Code Integrity block event was present
+after the repeated boot. Raw ignored evidence remains under
+`.runtime/cold-start-acceptance/1df4990ca2ed4dbb87f3f4478027fcf0/`.
+
+The Product Owner accepted Phase 8D after reviewing this evidence. The separately
+authorized optional 4090 llama.cpp upgrade must preserve 3090 sufficiency,
+optional-node gating, MO2 gaming priority, and its own deployment/rollback and
+acceptance boundaries.
 
 ## Telemetry deployment versus acceptance
 

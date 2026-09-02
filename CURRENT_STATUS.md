@@ -7,8 +7,9 @@
 
 ## Product and repository baseline
 
-- Local `main` and `origin/main` are promoted through Phase 8D commit
-  `a0a61b7298d3c85cec054cd11ca827842f2776dd`.
+- Local `main` and `origin/main` are at documentation-reconciliation commit
+  `930c1ff901a814a968b40e65ba030ab7b724b99e`; promoted Phase 8D implementation
+  commit `a0a61b7298d3c85cec054cd11ca827842f2776dd` is in that history.
 - Canonical identity: **G.R.A.C.I. = General Reasoning And Conversational
   Intelligence**.
 - **Autonomous Assistant** is an approved subtitle/tagline, not acronym text.
@@ -67,18 +68,21 @@ continued resident liveness or browser/runtime readiness after its launcher exit
 
 ## Open reliability and acceptance items
 
-- **Cold-start/runtime-readiness defect: OPEN / REPRODUCED.** The controlled Phase 8D
-  cold-start run reproduced an unavailable required runtime. The resident process
-  and browser remained alive for five minutes, but the primary 3090 router task
-  returned `1`. Windows Code Integrity blocked unsigned
-  `E:\llama.cpp\bin\llama-server-impl.dll` under the enforced
-  `VerifiedAndReputableDesktop` policy. No security setting was changed and no repair
-  is authorized. See `GRACI-ISSUE-001` and `ACC-0003`.
+- **Cold-start/runtime-readiness defect: REPAIRED / AUTOMATED REPEAT PASS / PRODUCT
+  OWNER DISPOSITION PENDING.** The first controlled run reproduced an unavailable
+  required runtime because Code Integrity blocked llama.cpp b10516. The authorized
+  repair deployed official-release b9637 without changing the enforced
+  `VerifiedAndReputableDesktop` policy. Repeat run
+  `1df4990ca2ed4dbb87f3f4478027fcf0` passed launcher, process, browser, endpoint,
+  model, and heartbeat checks through five minutes. See `GRACI-ISSUE-001` and
+  `ACC-0003`.
 - **Startup-status diagnostic defect: REPAIRED IN CURRENT IMPLEMENTATION.** Restricted
   task-enumeration access can no longer be collapsed into task absence. The repair
   is test-verified and direct normal-context execution is verified; a restricted-token
   live acceptance check remains optional evidence. See `GRACI-ISSUE-002`.
 - Telemetry 1.0.1 full reboot/resource/Product Owner acceptance is incomplete.
+- The Product Owner-directed optional 4090 llama.cpp upgrade is separate follow-on
+  work and is not yet authorized for inspection, implementation, or deployment.
 - The accepted UI baseline does not by itself prove every earlier manual multi-tab,
   autoplay, race, reboot, or CLI microphone scenario.
 
@@ -102,20 +106,29 @@ scripts parsed successfully, documentation links resolved, and `git diff --check
 passed. Test-created synthetic `runs/` records were identified against a pre-test
 snapshot and removed; pre-existing run records were preserved.
 
-After promotion, the resident was launched and reached sustained `ready` state. A
-separately authorized full shutdown/cold-start procedure then sampled the new boot
-through five minutes. The resident task succeeded, one owned resident instance
-remained alive, the health/browser endpoints stayed responsive, and lifecycle
-heartbeats continued after the launcher exited. The 3090 router task returned `1`,
-the endpoint never became reachable, and overall readiness correctly remained
-`unavailable`. Code Integrity events `3033`/`3077` and a separate version-only probe
-established `STATUS_SYSTEM_INTEGRITY_POLICY_VIOLATION` for the unsigned llama.cpp
-dependency. The durable record is
+After promotion, the resident was launched and reached sustained `ready` state. The
+first separately authorized full shutdown/cold-start run kept the resident/browser
+ready but exposed `STATUS_SYSTEM_INTEGRITY_POLICY_VIOLATION` in the required b10516
+3090 router. The Product Owner then authorized a security-preserving repair. The
+official b9637 CUDA 13.3 release archives matched their published SHA-256 digests;
+the candidate supported all pinned router flags, passed the unchanged active Code
+Integrity policy, and completed an isolated CUDA-build router/model request using
+the pinned `--n-gpu-layers all` setting before deployment.
+The blocked b10516 directory remains preserved at
+`E:\llama.cpp\bin-b10516-ci-blocked-20260902` for recovery.
+
+Repeat evidence run `1df4990ca2ed4dbb87f3f4478027fcf0` followed a full shutdown
+and new boot at `2026-09-02T02:56:45.5000000Z`. Both scheduled launchers returned
+`0`; one owned resident instance, browser/health path, primary router/model inventory,
+and lifecycle heartbeats remained valid at 60, 120, and 300 seconds. The automated
+summary is `PASS`, the temporary collector task was removed, and live Phase 8D
+readiness was `ready` afterward. The durable record is
 [`ACC-0003-phase8d-cold-start.md`](docs/acceptance/ACC-0003-phase8d-cold-start.md).
 
-Phase 8D is **DEPLOYED BUT NOT COLD-START OR PRODUCT OWNER ACCEPTED**. Repair requires
-a Product Owner security decision and a repeated controlled cold-start procedure.
-No later development objective is authorized.
+Phase 8D is **PROMOTED, DEPLOYED, AUTOMATED COLD-START VALIDATED, AND PRODUCT OWNER
+ACCEPTED**. The separate bounded 4090 llama.cpp inspection, upgrade, deployment,
+rollback verification, and acceptance procedure is now authorized. No later
+development objective is authorized.
 
 The future product direction is selective governed composition: use routing, review,
 memory, optional compute, recovery, and verification when the task, policy, latency,

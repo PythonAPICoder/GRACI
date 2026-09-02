@@ -58,7 +58,12 @@ historical qualification evidence remains unchanged.
 The development-process handoff and durable repository-memory foundation are Product
 Owner accepted. The temporary bootstrap migration package has been removed. Phase 8D
 System Health & Trusted Runtime Context is promoted and deployed at `a0a61b7`. Its
-controlled cold-start validation failed because the active Windows Code Integrity
-policy blocked an unsigned 3090 llama.cpp dependency. It is not cold-start or
-Product Owner accepted, and no security-policy repair is authorized; see
-[`ROADMAP.md`](ROADMAP.md).
+first controlled cold-start validation exposed an active Windows Code Integrity
+block in the 3090 llama.cpp build. An explicitly authorized security-preserving
+replacement and repeat procedure now provide a passing five-minute automated
+cold-start record without weakening Code Integrity. The Product Owner explicitly
+accepted Phase 8D on 2026-09-01.
+
+The Product Owner separately authorized bounded inspection, upgrade, deployment,
+rollback verification, and acceptance work for the optional 4090 llama.cpp runtime;
+see [`ROADMAP.md`](ROADMAP.md).
