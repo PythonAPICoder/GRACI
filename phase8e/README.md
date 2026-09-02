@@ -63,9 +63,41 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\ops\verify-phase8e-rev
 The finalizer is exact-pointer and containment bounded. A generation remains closed
 to the viewer until finalization succeeds. Technical evidence is recorded in
 [`ACC-0008`](../docs/acceptance/ACC-0008-phase8e-stage2-windows.md). Stage 2 is
-Product Owner accepted, but no application is qualified or launchable.
+Product Owner accepted. Application qualification is separately controlled below.
 
 The Product Owner accepts unencrypted local storage as a physical-security risk
 and prohibits installing, enabling, configuring, or deploying BitLocker on either
 system. This removes BitLocker as a Phase 8E prerequisite but does not authorize
 real-memory access, real-data generation, or any later-stage work.
+
+## Stage 3 candidate test
+
+The Product Owner authorized a narrow synthetic test of the existing per-user
+Obsidian executable. The review account received temporary read-and-execute access
+to only the Obsidian installation tree and a temporary outbound firewall block
+scoped to that account. It read the synthetic projection and remained unable to
+change it, but Obsidian did not remain running or register the synthetic vault.
+
+The test failed closed and rollback passed. The original Obsidian permissions were
+restored, the firewall rule and test-created review-profile state were removed, and
+the executable remained unchanged. That original candidate is not qualified.
+See [the Stage 3 test plan](../docs/PHASE_8E_STAGE3_OBSIDIAN_TEST_PLAN.md) and
+[machine-readable evidence](evidence/stage3-obsidian-test-20260902.json).
+
+## Stage 3 dedicated candidate
+
+The Product Owner then authorized a separate copy of the same verified application
+tree under the review profile. The dedicated executable retained its expected hash
+and valid signature. It started under the real review token, registered the
+synthetic projection as its vault, read all 25 notes, and remained unable to change
+the immutable generation. Its exact viewer-only outbound rule blocked update checks.
+The Product Owner account retained read access and its existing Obsidian installation
+and settings remained unchanged.
+
+The Product Owner accepted Stage 3 and authorized routine launch, commit, and push.
+The exact fail-closed launcher was promoted and passed under the real review token;
+no non-loopback connection was observed and the Product Owner's Obsidian remained
+unchanged. Real-data generation and automatic refresh remain separately controlled.
+See the
+[dedicated plan](../docs/PHASE_8E_STAGE3_DEDICATED_OBSIDIAN_PLAN.md) and
+[acceptance record](../docs/acceptance/ACC-0009-phase8e-stage3-obsidian.md).

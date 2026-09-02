@@ -25,7 +25,8 @@ class Phase8EStage2BoundaryTests(unittest.TestCase):
 
     @unittest.skipUnless(sys.platform == "win32", "PowerShell parsing is Windows-only")
     def test_stage2_powershell_files_parse(self):
-        scripts = sorted(OPS.glob("*phase8e*.ps1"))
+        scripts = sorted(path for path in OPS.glob("*phase8e*.ps1")
+                         if "obsidian" not in path.name)
         self.assertGreaterEqual(len(scripts), 7)
         for path in scripts:
             literal = str(path).replace("'", "''")
@@ -49,15 +50,20 @@ class Phase8EStage2BoundaryTests(unittest.TestCase):
         for collection in ("Exe", "Msi", "Script", "Dll"):
             self.assertIn(f'Type = "{collection}"', common)
 
-    def test_launcher_has_no_launch_path_before_stage3_qualification(self):
+    def test_launcher_requires_exact_stage3_qualification(self):
         launcher = (OPS / "open-phase8e-review.ps1").read_text("utf-8")
-        self.assertNotIn("Start-Process", launcher)
-        self.assertGreaterEqual(launcher.count('throw "APPLICATION_NOT_QUALIFIED"'), 2)
+        self.assertIn("Start-Process", launcher)
+        self.assertIn('throw "APPLICATION_NOT_QUALIFIED"', launcher)
+        self.assertIn('authority -ne "PO-DEC-033"', launcher)
+        self.assertIn("VIEWER_IDENTITY_REQUIRED", launcher)
         self.assertIn("manifest_sha256", launcher)
         self.assertIn("UNMANIFESTED_OUTPUT", launcher)
 
     def test_no_stage2_script_changes_network_or_installs_obsidian(self):
-        combined = "\n".join(path.read_text("utf-8") for path in OPS.glob("*phase8e*.ps1"))
+        combined = "\n".join(
+            path.read_text("utf-8") for path in OPS.glob("*phase8e*.ps1")
+            if "obsidian" not in path.name and path.name != "open-phase8e-review.ps1"
+        )
         forbidden = ("New-NetFirewallRule", "Set-NetFirewallRule", "Remove-NetFirewallRule",
                      "winget", "choco", "Install-Package", "obsidian.exe")
         for token in forbidden:

@@ -73,12 +73,132 @@ foreach ($file in Get-ChildItem -LiteralPath $generation -File -Recurse) {
     if (-not $expected.Contains($relative)) { throw "UNMANIFESTED_OUTPUT" }
 }
 if ($VerifyOnly) {
-    [pscustomobject]@{ passed = $true; generation_id = $pointer.generation_id; application_launched = $false } |
-        ConvertTo-Json -Compress | Write-Output
+    $qualification = "C:\ProgramData\GRACI\Phase8E\qualified-application.json"
+    if (-not (Test-Path -LiteralPath $qualification -PathType Leaf)) {
+        [pscustomobject]@{
+            passed = $true
+            generation_id = $pointer.generation_id
+            application_qualified = $false
+            application_launched = $false
+        } | ConvertTo-Json -Compress | Write-Output
+        exit 0
+    }
+}
+$qualification = "C:\ProgramData\GRACI\Phase8E\qualified-application.json"
+if (-not (Test-Path -LiteralPath $qualification -PathType Leaf)) { throw "APPLICATION_NOT_QUALIFIED" }
+$qualified = Get-Content -Raw -LiteralPath $qualification | ConvertFrom-Json
+$applicationPath = "C:\Users\GRACI_Review\AppData\Local\Programs\Obsidian\Obsidian.exe"
+$applicationRoot = Split-Path -Parent $applicationPath
+$viewerConfigRoot = "C:\Users\GRACI_Review\AppData\Roaming\obsidian"
+$vaultConfigRoot = Join-Path $root ".obsidian"
+$expectedHash = "c01bbd79583037639f5422396cddb457ef48e89e159ca50a8492bbd1f1f10775"
+$expectedSigner = "CN=Dynalist Inc, O=Dynalist Inc, L=Oakville, S=Ontario, C=CA"
+$expectedThumbprint = "20B5809A5B1C52EB05EC7672673920913E0ED26D"
+$firewallRuleName = "GRACI-Phase8E-Stage3-Obsidian-Dedicated-Viewer-Block"
+$expectedLocalUser = "D:(A;;CC;;;$($viewerSid.Value))"
+if ($qualified.schema_version -ne 1 -or $qualified.authority -ne "PO-DEC-033" -or
+        $qualified.viewer_sid -ne $viewerSid.Value -or
+        $qualified.application_path -ne $applicationPath -or
+        $qualified.application_sha256 -ne $expectedHash -or
+        $qualified.application_version -ne "1.13.4" -or
+        $qualified.signature_status -ne "Valid" -or
+        $qualified.signer_subject -ne $expectedSigner -or
+        $qualified.signer_thumbprint -ne $expectedThumbprint -or
+        $qualified.firewall_rule_name -ne $firewallRuleName -or
+        $qualified.firewall_local_user -ne $expectedLocalUser -or
+        $qualified.vault_path -ne $root -or
+        $qualified.viewer_config_root -ne $viewerConfigRoot -or
+        $qualified.product_owner_accepted -ne $true -or
+        $qualified.routine_launch_authorized -ne $true -or
+        $qualified.real_data_authorized -ne $false -or
+        $qualified.community_plugins_allowed -ne $false) {
+    throw "QUALIFICATION_RECORD_INVALID"
+}
+foreach ($path in @($applicationRoot, $applicationPath, $viewerConfigRoot, $vaultConfigRoot)) {
+    if (-not (Test-Path -LiteralPath $path)) { throw "QUALIFIED_PATH_MISSING" }
+    if ((Get-Item -LiteralPath $path -Force).Attributes -band [IO.FileAttributes]::ReparsePoint) {
+        throw "QUALIFIED_PATH_REPARSE_REJECTED"
+    }
+}
+if (@(Get-ChildItem -LiteralPath $applicationRoot -Force -Recurse | Where-Object {
+        $_.Attributes -band [IO.FileAttributes]::ReparsePoint
+    }).Count -ne 0) { throw "QUALIFIED_APPLICATION_REPARSE_REJECTED" }
+$application = Get-Item -LiteralPath $applicationPath
+$signature = Get-AuthenticodeSignature -LiteralPath $applicationPath
+if ((Get-FileHash -Algorithm SHA256 -LiteralPath $applicationPath).Hash.ToLowerInvariant() -ne $expectedHash -or
+        $application.VersionInfo.FileVersion -ne "1.13.4" -or
+        $signature.Status -ne "Valid" -or
+        $signature.SignerCertificate.Subject -ne $expectedSigner -or
+        $signature.SignerCertificate.Thumbprint -ne $expectedThumbprint) {
+    throw "QUALIFIED_APPLICATION_CHANGED"
+}
+$firewall = Get-NetFirewallRule -Name $firewallRuleName -ErrorAction Stop
+$applicationFilter = $firewall | Get-NetFirewallApplicationFilter
+$securityFilter = $firewall | Get-NetFirewallSecurityFilter
+if ($firewall.Direction -ne "Outbound" -or $firewall.Action -ne "Block" -or
+        $firewall.Enabled -ne "True" -or $applicationFilter.Program -ne $applicationPath -or
+        $securityFilter.LocalUser -ne $expectedLocalUser) { throw "QUALIFIED_FIREWALL_INVALID" }
+$obsidianConfigPath = Join-Path $viewerConfigRoot "obsidian.json"
+if (-not (Test-Path -LiteralPath $obsidianConfigPath -PathType Leaf)) { throw "OBSIDIAN_CONFIGURATION_MISSING" }
+$configBytes = [IO.File]::ReadAllBytes($obsidianConfigPath)
+if ($configBytes.Length -ge 3 -and $configBytes[0] -eq 0xef -and
+        $configBytes[1] -eq 0xbb -and $configBytes[2] -eq 0xbf) {
+    throw "OBSIDIAN_CONFIGURATION_ENCODING_INVALID"
+}
+$obsidianConfig = Get-Content -Raw -LiteralPath $obsidianConfigPath | ConvertFrom-Json
+$registeredVaults = @($obsidianConfig.vaults.PSObject.Properties | ForEach-Object Value | Where-Object {
+    $_.path -and [IO.Path]::GetFullPath([string]$_.path).TrimEnd('\') -eq $root
+})
+if ($registeredVaults.Count -ne 1) { throw "OBSIDIAN_VAULT_REGISTRATION_INVALID" }
+$corePluginsPath = Join-Path $vaultConfigRoot "core-plugins.json"
+if (-not (Test-Path -LiteralPath $corePluginsPath -PathType Leaf)) { throw "CORE_PLUGIN_POLICY_MISSING" }
+$corePlugins = Get-Content -Raw -LiteralPath $corePluginsPath | ConvertFrom-Json
+foreach ($plugin in @("audio-recorder", "bases", "canvas", "daily-notes", "file-recovery",
+        "markdown-importer", "note-composer", "publish", "sync", "templates", "webviewer")) {
+    $property = $corePlugins.PSObject.Properties[$plugin]
+    if ($null -eq $property -or $property.Value -ne $false) { throw "CORE_PLUGIN_POLICY_INVALID" }
+}
+$communityPluginsPath = Join-Path $vaultConfigRoot "community-plugins.json"
+if (Test-Path -LiteralPath $communityPluginsPath -PathType Leaf) {
+    if ([IO.File]::ReadAllText($communityPluginsPath).Trim() -ne "[]") {
+        throw "COMMUNITY_PLUGIN_LIST_INVALID"
+    }
+}
+$pluginsRoot = Join-Path $vaultConfigRoot "plugins"
+if (Test-Path -LiteralPath $pluginsRoot) {
+    if ((Get-Item -LiteralPath $pluginsRoot -Force).Attributes -band [IO.FileAttributes]::ReparsePoint -or
+            @(Get-ChildItem -LiteralPath $pluginsRoot -Force).Count -ne 0) {
+        throw "COMMUNITY_PLUGIN_DIRECTORY_INVALID"
+    }
+}
+if ($VerifyOnly) {
+    [pscustomobject]@{
+        passed = $true
+        generation_id = $pointer.generation_id
+        application_qualified = $true
+        application_launched = $false
+    } | ConvertTo-Json -Compress | Write-Output
     exit 0
 }
 $activeSid = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value
 if ($activeSid -ne $viewerSid.Value) { throw "VIEWER_IDENTITY_REQUIRED" }
-$qualification = "C:\ProgramData\GRACI\Phase8E\qualified-application.json"
-if (-not (Test-Path -LiteralPath $qualification -PathType Leaf)) { throw "APPLICATION_NOT_QUALIFIED" }
-throw "APPLICATION_NOT_QUALIFIED"
+$viewerProfileRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $viewerConfigRoot))
+$env:USERPROFILE = $viewerProfileRoot
+$env:APPDATA = Split-Path -Parent $viewerConfigRoot
+$env:LOCALAPPDATA = Join-Path $viewerProfileRoot "AppData\Local"
+$process = Start-Process -FilePath $applicationPath -ArgumentList @(
+    "--disable-gpu",
+    "--disable-background-networking",
+    "--disable-component-update",
+    "--disable-default-apps",
+    "--user-data-dir=$viewerConfigRoot",
+    $root
+) -PassThru
+[pscustomobject]@{
+    passed = $true
+    generation_id = $pointer.generation_id
+    application_qualified = $true
+    application_launched = $true
+    process_id = $process.Id
+} | ConvertTo-Json -Compress | Write-Output
+exit 0

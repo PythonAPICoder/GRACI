@@ -2,7 +2,7 @@
 
 > Classification: current implementation, deployment, acceptance, and issue status
 > Authority: descriptive; canonical policy remains under `governance/`
-> Verified through: Phase 8E Stage 2 Product Owner acceptance on 2026-09-02
+> Verified through: Phase 8E Stage 3 Product Owner acceptance and routine-launch promotion on 2026-09-02
 > Last verified: 2026-09-02
 
 ## Product and repository baseline
@@ -109,9 +109,10 @@ memory privacy modes, deterministic active-content neutralization, complete sour
 and output hashing, immutable generation promotion, source-race checks, and tamper
 verification. Focused tests pass. Ordinary GRACI runtime does not import the
 exporter. Stage 1 is not deployed and has not used real data. The Product Owner
-authorized Stage 2 local Windows viewer-boundary implementation and synthetic
-verification. Obsidian, real memory, real-data generation, deployment, network
-changes, and Stage 3 or later work remain unperformed and unauthorized.
+authorized and accepted Stage 2 local Windows viewer-boundary implementation and
+synthetic verification. Stage 3 is now accepted, and its dedicated Obsidian copy and
+routine fail-closed launcher are locally deployed. Real memory, real-data generation,
+automatic refresh, runtime integration, and later work remain unauthorized.
 
 The authorized Stage 2 technical procedure is now implemented and locally applied.
 Actual viewer-token tests passed source and staging denial, projection read-only
@@ -125,6 +126,32 @@ accepted Stage 2 and authorized its commit and push to `main` on 2026-09-02.
 Obsidian is already installed but, according to the Product Owner, has never been
 used. Stage 2 did not inspect, open, configure, or qualify it. See
 [`ACC-0008`](docs/acceptance/ACC-0008-phase8e-stage2-windows.md).
+
+The Product Owner then authorized a narrow Stage 3 candidate test using that exact
+Obsidian executable, a review-SID-only outbound firewall block, and synthetic data.
+The review token could read the program and synthetic projection but could not
+change the projection. Obsidian did not remain running or register the synthetic
+vault, so the candidate failed qualification. Rollback restored the original
+Obsidian-folder permissions, removed the temporary firewall rule and review-profile
+state, and left the Product Owner's installation unchanged. Stage 2 and the resident
+GRACI page remained healthy. A separate review-account installation or further
+diagnosis required separate authorization. See
+[`Stage 3 test evidence`](phase8e/evidence/stage3-obsidian-test-20260902.json).
+
+The Product Owner then authorized a separate local copy for `GRACI_Review` while
+preserving the Product Owner account's vault access. The exact verified application
+tree was copied into the review profile. Under the real review token, Obsidian
+started, registered `E:\GRACI-Review-Projection`, read all 25 synthetic notes, and
+could not change the immutable generation. The exact viewer-only firewall rule
+blocked its update checks. A JSON encoding warning was corrected, and the complete
+retest passed without a configuration parse error. The Product Owner account read
+all 25 notes and the vault configuration; its existing Obsidian executable and
+settings remained unchanged. Stage 2 verification passed and the resident page
+returned HTTP 200. The Product Owner accepted Stage 3 and authorized routine launch,
+commit, and push. Promotion passed under the actual review token, the exact launcher
+and qualification record are deployed, no non-loopback connection was observed, and
+the resident page remained HTTP 200. Real data and automatic refresh remain
+unauthorized. See [`ACC-0009`](docs/acceptance/ACC-0009-phase8e-stage3-obsidian.md).
 
 The durable repository-memory/documentation foundation passed a fresh-session
 reconstruction test and is **PRODUCT OWNER ACCEPTED**. Its temporary bootstrap
@@ -168,8 +195,8 @@ level: official b10675 is deployed, both approved models returned `READY`, and t
 old build was restored successfully before final re-promotion. A new boot preserved
 the task, hash, firewall, MO2/telemetry readiness, and both model responses. Product
 Owner acceptance is recorded for both the upgrade and one-way certificate remoting.
-Phase 8E Stages 1 and 2 are Product Owner accepted. Stage 3 and all later objectives
-remain unauthorized.
+Phase 8E Stages 1 through 3 are Product Owner accepted. Stage 4 and all later Phase
+8E work remain unauthorized.
 
 The future product direction is selective governed composition: use routing, review,
 memory, optional compute, recovery, and verification when the task, policy, latency,

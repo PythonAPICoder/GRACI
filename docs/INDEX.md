@@ -2,8 +2,8 @@
 
 > Classification: current documentation authority and navigation map
 > Authority: accepted Product Owner documentation structure; policy authority remains in `governance/`
-> Verified at commit: `dbc27123e0ab25a22ac1128677d2cd385de7d662`
-> Last verified: 2026-09-01
+> Verified through: Phase 8E Stage 3 Product Owner acceptance and routine-launch promotion
+> Last verified: 2026-09-02
 
 This index is the durable starting point for reconstructing GRACI without
 conversation history.
@@ -47,8 +47,12 @@ code, configuration, tests, and time-stamped live evidence and report the confli
   [ACC-0007](acceptance/ACC-0007-phase8e-stage1.md). Stage 2 local Windows boundary
   work is accepted in [ACC-0008](acceptance/ACC-0008-phase8e-stage2-windows.md)
   and documented in its [exact plan](PHASE_8E_STAGE2_WINDOWS_PLAN.md). Obsidian
-  qualification and configuration, real data, and later stages remain separately
-  controlled.
+  qualification began with a [bounded Stage 3 candidate test](PHASE_8E_STAGE3_OBSIDIAN_TEST_PLAN.md);
+  the existing per-user candidate failed closed and rollback passed. The
+  [dedicated review-profile candidate](PHASE_8E_STAGE3_DEDICATED_OBSIDIAN_PLAN.md)
+  then passed its synthetic test. Stage 3 acceptance and routine-launch promotion
+  are recorded in [ACC-0009](acceptance/ACC-0009-phase8e-stage3-obsidian.md). Real
+  data, automatic refresh, and later stages remain separately controlled.
 
 ## Governance
 
@@ -71,8 +75,8 @@ the canonical policy instead of creating competing rules.
 
 ## Freshness rule
 
-At the start of a task, compare repository HEAD with each relevant current
-document's `Verified at commit` value. If they differ, inspect the intervening diff
+At the start of a task, compare repository HEAD and current authority with each
+relevant document's freshness marker. If they differ, inspect the intervening diff
 before treating the document as current. Live operational facts must include an
 observation time; they are snapshots, not architectural promises.
 

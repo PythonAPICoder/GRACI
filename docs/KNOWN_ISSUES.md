@@ -2,8 +2,8 @@
 
 > Classification: current issue and unresolved-evidence register
 > Authority: descriptive Product Owner/runtime record; issue closure requires evidence
-> Verified against: promoted Phase 8D commit `a0a61b7298d3c85cec054cd11ca827842f2776dd`
-> Last verified: 2026-09-01
+> Verified through: Phase 8E Stage 3 Product Owner acceptance and routine-launch promotion
+> Last verified: 2026-09-02
 
 ## GRACI-ISSUE-001 — Cold-start/runtime-readiness failure
 
@@ -175,3 +175,26 @@ This closes BitLocker as a Phase 8E prerequisite. The BitLocker decision does no
 authorize real governed memory, a real-data projection, Stage 3, or Stage 4. The
 Product Owner separately accepted Stage 2 on 2026-09-02. See
 [`ACC-0008`](acceptance/ACC-0008-phase8e-stage2-windows.md) and `PO-DEC-029`.
+
+## GRACI-GAP-006: existing per-user Obsidian candidate does not run under review identity
+
+**Status: CLOSED BY DEDICATED COPY / ORIGINAL CANDIDATE FAILED CLOSED**
+
+The exact signed per-user Obsidian 1.13.4 executable was temporarily granted
+read-and-execute access to the dedicated review SID and protected by a firewall
+block scoped to that SID. The review token read the executable and synthetic
+projection, projection writes remained denied, and no non-loopback established
+connection was observed. Obsidian did not remain running or register the synthetic
+vault. Local AppLocker, Code Integrity, application-crash, and Windows Error
+Reporting logs identified no policy or crash cause.
+
+Rollback restored the original folder permissions, removed the temporary firewall
+rule and review-profile state, and left that candidate unchanged and unqualified.
+
+The Product Owner then authorized a separate copy under the review profile. The
+exact copied 1.13.4 executable started under the real review token, registered the
+synthetic vault, read all 25 notes, left the protected projection unchanged, and
+was contained by its viewer-only outbound block. The Product Owner account retained
+read access. The Product Owner accepted Stage 3, and routine launcher promotion
+passed under the real review token. Real data and automatic refresh remain
+unauthorized. See [`ACC-0009`](acceptance/ACC-0009-phase8e-stage3-obsidian.md).

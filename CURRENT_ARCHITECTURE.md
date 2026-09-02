@@ -2,7 +2,7 @@
 
 > Classification: current descriptive architecture
 > Authority: implementation description; canonical policy remains under `governance/`
-> Verified through: Phase 8E Stage 2 Product Owner acceptance on 2026-09-02
+> Verified through: Phase 8E Stage 3 Product Owner acceptance and routine-launch promotion on 2026-09-02
 > Last verified: 2026-09-02
 
 Accepted policy is canonical in
@@ -133,9 +133,17 @@ The Product Owner accepted the locally configured Stage 2 boundary with syntheti
 data only. An NTFS same-volume move preserves the staging ACL, so a bounded
 post-promotion finalizer must make the selected generation inherit the projection
 ACL before viewer use. The launcher verifies that state plus every manifest and
-output hash. It cannot launch an application because no application is qualified in
-Stage 2. The Product Owner reports that Obsidian is already installed but unused;
-the existing installation has not been inspected, configured, or qualified.
+output hash. Stage 2 itself did not qualify an application.
+
+The first narrow Stage 3 test temporarily exposed the Product Owner's per-user
+executable to the review SID. That candidate did not remain running and was rolled
+back. A separately authorized exact copy now resides in the review profile. It
+retains the verified hash and signature, runs under the review token, reads the
+synthetic projection, writes only its approved configuration locations, and has an
+outbound firewall block scoped to its exact executable and review SID. The Product
+Owner account retains read access to the vault. The Product Owner accepted Stage 3,
+and the exact fail-closed launcher is promoted for routine synthetic-vault use. Real
+data, automatic refresh, and ordinary runtime integration remain unauthorized.
 
 ## Compute and telemetry
 

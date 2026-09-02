@@ -2,7 +2,7 @@
 
 > Classification: durable acceptance and validation registry
 > Authority: each record is authoritative only for its stated scope
-> Verified through: Phase 8E Stage 2 Product Owner acceptance on 2026-09-02
+> Verified through: Phase 8E Stage 3 Product Owner acceptance on 2026-09-02
 > Last verified: 2026-09-02
 
 Acceptance states must remain distinct:
@@ -22,6 +22,7 @@ Acceptance states must remain distinct:
 | [`ACC-0006-4090-telemetry.md`](ACC-0006-4090-telemetry.md) | Telemetry 1.0.1 controlled startup, resources, single instance, and HUD reacquisition | **PRODUCT OWNER ACCEPTED** |
 | [`ACC-0007-phase8e-stage1.md`](ACC-0007-phase8e-stage1.md) | Phase 8E Stage 1 fixture-only projection foundation and bounded Stage 2 authorization | **PRODUCT OWNER ACCEPTED** |
 | [`ACC-0008-phase8e-stage2-windows.md`](ACC-0008-phase8e-stage2-windows.md) | Phase 8E Stage 2 synthetic Windows viewer boundary, rollback, reapply, and acceptance | **PRODUCT OWNER ACCEPTED** |
+| [`ACC-0009-phase8e-stage3-obsidian.md`](ACC-0009-phase8e-stage3-obsidian.md) | Phase 8E Stage 3 dedicated Obsidian synthetic qualification, routine launch promotion, and acceptance | **PRODUCT OWNER ACCEPTED** |
 | [`PHASE_INDEX.md`](../history/PHASE_INDEX.md) and phase evidence | Historical phase-specific implementation and acceptance | **HISTORICAL; SCOPE VARIES BY RECORD** |
 
 No acceptance may be widened by implication. Automated tests do not establish

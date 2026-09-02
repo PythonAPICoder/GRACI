@@ -2,7 +2,7 @@
 
 > Classification: mandatory session entry point
 > Authority: workflow guidance; canonical policy remains under `governance/`
-> Verified through: Phase 8E Stage 2 Product Owner acceptance on 2026-09-02
+> Verified through: Phase 8E Stage 3 Product Owner acceptance and routine-launch promotion on 2026-09-02
 > Last verified: 2026-09-02
 
 Work from the repository root, `E:\GRACI`. Before changing anything, inspect the
@@ -114,7 +114,31 @@ physical-security risk and directed that BitLocker must not be installed, enable
 configured, or deployed on any drive, folder, or file on either system. This does
 not authorize real data or Stage 3 or Stage 4 work. The Product Owner subsequently
 accepted Stage 2 and authorized its commit and push to `main`. The Product Owner
-reports that Obsidian is already installed but unused; it has not been inspected,
-configured, or qualified for GRACI. Stage 3 and later work remain unauthorized. See
+reports that Obsidian is already installed but unused. At the Stage 2 boundary it
+had not been inspected, configured, or qualified, and Stage 3 remained unauthorized.
+That restriction was later superseded only by PO-DEC-031 and PO-DEC-032. See
 [`ACC-0008`](docs/acceptance/ACC-0008-phase8e-stage2-windows.md), `PO-DEC-029`, and
 `PO-DEC-030`.
+
+The Product Owner then authorized a narrow Stage 3 test of the exact existing
+per-user Obsidian executable using synthetic data, exact review-SID read-and-execute
+access, and a review-SID-only outbound firewall block. The review token read the
+program and projection, and projection writes remained denied, but Obsidian did not
+remain running or register the synthetic vault. The test failed closed and rollback
+restored the original Obsidian permissions, firewall state, and review profile.
+No application was qualified by that attempt. See
+[`PHASE_8E_STAGE3_OBSIDIAN_TEST_PLAN.md`](docs/PHASE_8E_STAGE3_OBSIDIAN_TEST_PLAN.md)
+and `PO-DEC-031`.
+
+The Product Owner then authorized a separate local Obsidian copy for `GRACI_Review`
+while preserving the Product Owner account's read access. The exact verified copy
+is installed under the review profile and passed the real-token synthetic test: 25
+notes readable, immutable generation write denied, vault registered, protected files
+unchanged, and viewer-only outbound update attempts blocked. The Product Owner's
+existing Obsidian installation and settings remained unchanged; Stage 2 verification
+and resident HTTP health passed. The Product Owner accepted Stage 3 and authorized
+routine launch, commit, and push. The exact launcher was promoted and passed under
+the real review token with zero observed non-loopback connections. This acceptance
+does not authorize real data, automatic refresh, runtime integration, Stage 4, or
+any BitLocker change. See [`ACC-0009`](docs/acceptance/ACC-0009-phase8e-stage3-obsidian.md),
+`PO-DEC-033`, and the Stage 3 evidence.

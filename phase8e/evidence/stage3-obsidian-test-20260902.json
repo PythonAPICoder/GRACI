@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-09-02T15:00:57.9032774-05:00",
+  "state": "TEST_FAILED_CLOSED_ROLLBACK_VERIFIED",
+  "authority": "PO-DEC-031",
+  "candidate": {
+    "path": "C:\\Users\\Steve\\AppData\\Local\\Programs\\Obsidian\\Obsidian.exe",
+    "shell_version": "1.13.4",
+    "sha256": "c01bbd79583037639f5422396cddb457ef48e89e159ca50a8492bbd1f1f10775",
+    "signature": "Valid",
+    "signer": "CN=Dynalist Inc, O=Dynalist Inc, L=Oakville, S=Ontario, C=CA",
+    "signer_thumbprint": "20B5809A5B1C52EB05EC7672673920913E0ED26D"
+  },
+  "test": {
+    "viewer_sid": "S-1-5-21-80404339-2367555055-2558411261-1007",
+    "generation_id": "8e000002-0000-4000-8000-000000002001",
+    "projection_readable": true,
+    "projection_write_denied": true,
+    "projection_unchanged": true,
+    "non_loopback_established_connections": 0,
+    "obsidian_process_observed": false,
+    "synthetic_vault_registered": false,
+    "passed": false,
+    "policy_or_crash_event_found": false
+  },
+  "rollback": {
+    "passed": true,
+    "obsidian_acl_restored": true,
+    "viewer_obsidian_ace_count": 0,
+    "firewall_rule_present": false,
+    "test_profile_artifacts_present": 0,
+    "obsidian_process_count": 0,
+    "obsidian_hash_unchanged": true,
+    "obsidian_signature_still_valid": true,
+    "stage2_boundary_passed": true,
+    "resident_http_status": 200,
+    "independent_rollback_verification_passed": true
+  },
+  "authority_boundary": {
+    "candidate_qualified": false,
+    "routine_launch_authorized": false,
+    "separate_installation_or_copy_authorized": false,
+    "real_data_authorized": false,
+    "bitlocker_changes_authorized": false
+  }
+}

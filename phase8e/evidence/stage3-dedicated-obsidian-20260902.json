@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-09-02T15:15:52.6537101-05:00",
+  "state": "DEDICATED_CANDIDATE_SYNTHETIC_TEST_PASSED",
+  "authority": "PO-DEC-032",
+  "application": {
+    "source_path": "C:\\Users\\Steve\\AppData\\Local\\Programs\\Obsidian\\Obsidian.exe",
+    "destination_path": "C:\\Users\\GRACI_Review\\AppData\\Local\\Programs\\Obsidian\\Obsidian.exe",
+    "shell_version": "1.13.4",
+    "sha256": "c01bbd79583037639f5422396cddb457ef48e89e159ca50a8492bbd1f1f10775",
+    "signature": "Valid",
+    "signer": "CN=Dynalist Inc, O=Dynalist Inc, L=Oakville, S=Ontario, C=CA"
+  },
+  "test": {
+    "viewer_sid": "S-1-5-21-80404339-2367555055-2558411261-1007",
+    "vault_path": "E:\\GRACI-Review-Projection",
+    "generation_id": "8e000002-0000-4000-8000-000000002001",
+    "markdown_file_count": 25,
+    "projection_readable": true,
+    "projection_write_denied": true,
+    "protected_projection_unchanged": true,
+    "obsidian_process_observed": true,
+    "synthetic_vault_registered": true,
+    "configuration_encoding": "UTF-8 without BOM",
+    "configuration_parse_error": false,
+    "non_loopback_established_connections": 0,
+    "passed": true
+  },
+  "network_control": {
+    "rule_name": "GRACI-Phase8E-Stage3-Obsidian-Dedicated-Viewer-Block",
+    "direction": "Outbound",
+    "action": "Block",
+    "viewer_only": true,
+    "update_requests_blocked": true
+  },
+  "product_owner": {
+    "synthetic_notes_read": 25,
+    "vault_settings_readable": true,
+    "existing_obsidian_hash_unchanged": true,
+    "existing_obsidian_settings_timestamp_unchanged": true
+  },
+  "regression": {
+    "stage2_boundary_passed": true,
+    "resident_http_status": 200,
+    "obsidian_process_count_after_test": 0
+  },
+  "authority_boundary": {
+    "dedicated_candidate_synthetically_qualified": true,
+    "product_owner_accepted": false,
+    "routine_launcher_promoted": false,
+    "real_data_authorized": false,
+    "automatic_refresh_authorized": false,
+    "bitlocker_changes_authorized": false,
+    "commit_or_push_authorized": false
+  }
+}

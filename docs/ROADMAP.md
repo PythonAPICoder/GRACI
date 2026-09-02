@@ -2,7 +2,7 @@
 
 > Classification: current authorization and sequencing view
 > Authority: Product Owner direction; entries do not authorize work unless explicitly marked authorized
-> Verified through: Phase 8E Stage 2 Product Owner acceptance on 2026-09-02
+> Verified through: Phase 8E Stage 3 Product Owner acceptance and routine-launch promotion on 2026-09-02
 > Last verified: 2026-09-02
 
 | Objective | State | Meaning |
@@ -12,7 +12,7 @@
 | Optional 4090 llama.cpp upgrade | **COMPLETE / PRODUCT OWNER ACCEPTED** | Official b10675 is deployed; both models passed after a new boot, b10516 rollback was exercised, gaming impact is verified, and 3090 sufficiency plus MO2 priority remain intact |
 | One-way 3090-to-4090 certificate remoting | **COMPLETE / PRODUCT OWNER ACCEPTED** | Passwordless HTTPS WinRM maps only the 3090 client certificate to `GRACI_Remote`; password access is break-glass only |
 | 4090 telemetry 1.0.1 acceptance closure | **COMPLETE / PRODUCT OWNER ACCEPTED** | Controlled boot startup, one-process/resource behavior, fresh telemetry, and HUD reacquisition passed in `ACC-0006` and the Product Owner accepted the bounded capability |
-| Phase 8E: Read-only Obsidian knowledge and governance review | **DESIGN, STAGE 1, AND STAGE 2 PRODUCT OWNER ACCEPTED** | The [accepted design](PHASE_8E_OBSIDIAN_DESIGN.md) uses a generated one-way local projection. Stage 1 is on `origin/main`; the synthetic Windows boundary, rollback, reapply, and Product Owner acceptance are recorded in [ACC-0008](acceptance/ACC-0008-phase8e-stage2-windows.md). Obsidian qualification and configuration, real data, and Stages 3 through 5 remain separately controlled |
+| Phase 8E: Read-only Obsidian knowledge and governance review | **STAGES 1 THROUGH 3 PRODUCT OWNER ACCEPTED / ROUTINE SYNTHETIC LAUNCH DEPLOYED** | The [accepted design](PHASE_8E_OBSIDIAN_DESIGN.md) uses a generated one-way local projection. Stage 2 is accepted in [ACC-0008](acceptance/ACC-0008-phase8e-stage2-windows.md); dedicated Obsidian and routine launch are accepted in [ACC-0009](acceptance/ACC-0009-phase8e-stage3-obsidian.md). Real data and automatic refresh remain unauthorized |
 | Phase 9: Permission-gated internet research, tool, and MCP qualification | **REQUIRED PRODUCT OBJECTIVE / IMPLEMENTATION NOT AUTHORIZED** | For a knowledge gap, ask to search the internet and return a sourced answer; for a missing tool or MCP, create or locate candidates, evaluate them in a sandbox, and require separate Product Owner approval before production installation and use |
 | Phase 10: Governed document ingestion, RAG, and corrective learning | **REQUIRED PRODUCT OBJECTIVE / IMPLEMENTATION NOT AUTHORIZED** | Safely ingest approved documents including PDFs, retrieve relevant local knowledge with source traceability, and record confirmed mistakes, corrections, and lessons without allowing memory to grant authority or silently change GRACI |
 | Phase 11: Scheduled Product Owner-authorized proactive work | **REQUIRED PRODUCT OBJECTIVE / IMPLEMENTATION NOT AUTHORIZED** | Run explicitly approved recurring tasks, such as a daily résumé-based job search, without requiring a new prompt each day while remaining inside the approved schedule, information, actions, privacy, and notification boundaries |
@@ -23,7 +23,7 @@
 | Phase 16: Safe browser and desktop action | **REQUIRED PRODUCT OBJECTIVE / IMPLEMENTATION NOT AUTHORIZED** | Let GRACI navigate approved websites and applications, prepare forms and actions, show previews, request confirmation for consequential steps, and retain evidence and recovery options |
 | Phase 17: Multimodal understanding and media workflows | **REQUIRED PRODUCT OBJECTIVE / IMPLEMENTATION NOT AUTHORIZED** | Understand and create approved images, scans, charts, audio, and video through governed local capabilities or qualified tools while preserving privacy, provenance, and human-quality output |
 | Phase 18: Resilience, backup, recovery, and measurable improvement | **REQUIRED PRODUCT OBJECTIVE / IMPLEMENTATION NOT AUTHORIZED** | Protect memory, governance, schedules, tools, and configuration with tested recovery, then measure task outcomes and use accepted evidence to improve future recommendations and workflows |
-| Next decision gate | **PHASE 8E STAGE 3 AUTHORIZATION** | Decide whether to inspect and qualify the existing unused Obsidian installation with synthetic data. Configuration, firewall changes, real data, automatic refresh, runtime integration, and later stages require explicit authorization |
+| Next decision gate | **NO LATER OBJECTIVE AUTHORIZED** | Stage 3 is accepted. Real data, automatic refresh, runtime integration, Stage 4, and later objectives require a separate Product Owner decision |
 | Ordinary runtime capability selection | **PRODUCT DIRECTION** | Eventually choose routing, review, memory, optional compute, recovery, and verification according to task/policy/latency/resources rather than invoking all subsystems on every turn |
 | Wake word, VAD authority, always listening, or unscheduled autonomous follow-up | **DEFERRED / UNAUTHORIZED** | Scheduled work is limited to Phase 11 standing grants; these broader interaction and autonomy modes require separate Product Owner decisions and governed implementation |
 | External/cloud runtime assistance | **FUTURE GOVERNED CAPABILITY** | Denied by default; no runtime path exists |
@@ -95,10 +95,9 @@ catalog, exact local Git-commit reader, exact-ID synthetic memory renderer, comp
 hash manifest, active-content and path controls, immutable generation promotion,
 and tamper verification. Focused deterministic tests cover the approved adversarial
 and failure cases. This implementation is outside ordinary GRACI runtime
-composition and has not installed or configured Obsidian, changed Windows security,
-read real memory, generated a real-data projection, or deployed. The Product Owner
-authorized Stage 2 local Windows boundary work with synthetic data. Stage 3 and
-every later stage remain unauthorized.
+composition. Later, separately authorized Stage 2 and Stage 3 work configured the
+Windows boundary and a dedicated Obsidian copy using synthetic data only. No real
+memory was read and no real-data projection was generated.
 
 That Stage 2 boundary is now locally configured and technically verified with
 synthetic data. The actual standard viewer token passed read-only, source-isolation,
@@ -110,9 +109,13 @@ facts and the acceptance boundary are recorded in
 [`ACC-0008`](acceptance/ACC-0008-phase8e-stage2-windows.md).
 
 The Product Owner accepted Stage 2 and authorized its commit and push to `main` on
-2026-09-02. The Product Owner also reported that Obsidian is already installed but
-has never been used. Inspection, configuration, qualification, firewall changes,
-real data, and Stage 3 remain unauthorized.
+2026-09-02. The first Stage 3 test of the Product Owner's existing per-user Obsidian
+failed closed and rolled back. The Product Owner then authorized a separate local
+copy for `GRACI_Review`. That copy passed its synthetic vault, write-denial, network
+block, configuration, and Product Owner read-access tests. The Product Owner accepted
+Stage 3 and authorized routine launch, commit, and push. The launcher was promoted
+and passed under the real review token. Real data, automatic refresh, runtime
+integration, and later stages remain unauthorized.
 
 ## Phase 9 required scope: Internet research, tools, and MCPs
 

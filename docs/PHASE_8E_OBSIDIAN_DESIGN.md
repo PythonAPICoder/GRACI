@@ -4,7 +4,7 @@
 > Authority: advisory design; canonical policy remains under `governance/`
 > Designed against: local `main` commit `08b2ffdc5c4530d652cde5ee4d2c428f6979f9eb`
 > Prepared: 2026-09-02
-> Status: PRODUCT OWNER-ACCEPTED DESIGN; STAGE 1 PRODUCT OWNER ACCEPTED; STAGE 2 AUTHORIZED; STAGES 3-5 NOT AUTHORIZED
+> Status: PRODUCT OWNER-ACCEPTED DESIGN; STAGES 1-3 PRODUCT OWNER ACCEPTED; STAGES 4-5 NOT AUTHORIZED
 
 ## Purpose and fixed boundaries
 
@@ -450,6 +450,20 @@ the exact executable firewall rule and approved local application settings at th
 stage. No community plugins are included. Reinstallation, production use, and
 future upgrades remain separate decisions.
 
+The first authorized candidate test used the Product Owner's existing per-user
+installation. The review token could read the executable and synthetic projection,
+but Obsidian did not remain running or register the synthetic vault. The test failed
+closed and restored the original permissions and firewall state. This candidate is
+not qualified. The Product Owner then authorized a separate copy in the review
+profile. The exact verified copy passed the real review-token synthetic test,
+including vault registration, note readability, immutable-generation write denial,
+and the viewer-only outbound block. The Product Owner retained read access and its
+existing Obsidian installation and settings were unchanged. Product Owner acceptance,
+routine launch, real data, and later stages remain separate decisions. The Product
+Owner subsequently accepted Stage 3 and authorized routine launch, commit, and push.
+The promoted launcher passed under the real review token. Real data, automatic
+refresh, runtime integration, and Stage 4 remain unauthorized.
+
 ### Stage 4: bounded real-data generation
 
 After the Product Owner approves the exact repository commit, source catalog,
@@ -512,9 +526,7 @@ within this design.
    Obsidian installation, Windows configuration, real-memory access, real-data
    generation, deployment, commit, push, and Product Owner acceptance unauthorized.
 
-Stage 2 authority covers local Windows inspection, exact control selection,
-implementation, rollback, and synthetic verification. Separate decisions are still
-required for the exact Obsidian version and provenance, Obsidian inspection and
-settings, network or firewall changes, real-data source and memory selection, first
-real-data projection, automatic refresh, controlled human acceptance, and Stage 3
-through Stage 5 work.
+Stage 2 and Stage 3 are now Product Owner accepted. PO-DEC-033 authorized routine
+launch, commit, and push for the exact dedicated Obsidian configuration. Separate
+decisions are still required for real-data source and memory selection, the first
+real-data projection, automatic refresh, runtime integration, and Stages 4 and 5.

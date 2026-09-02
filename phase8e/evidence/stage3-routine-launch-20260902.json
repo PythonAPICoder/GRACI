@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-09-02T15:59:33.2040994-05:00",
+  "state": "STAGE3_PRODUCT_OWNER_ACCEPTED_ROUTINE_LAUNCH_PROMOTED",
+  "authority": "PO-DEC-033",
+  "application": {
+    "path": "C:\\Users\\GRACI_Review\\AppData\\Local\\Programs\\Obsidian\\Obsidian.exe",
+    "shell_version": "1.13.4",
+    "sha256": "c01bbd79583037639f5422396cddb457ef48e89e159ca50a8492bbd1f1f10775",
+    "signature": "Valid",
+    "signer": "CN=Dynalist Inc, O=Dynalist Inc, L=Oakville, S=Ontario, C=CA",
+    "signer_thumbprint": "20B5809A5B1C52EB05EC7672673920913E0ED26D"
+  },
+  "routine_launch": {
+    "viewer_sid": "S-1-5-21-80404339-2367555055-2558411261-1007",
+    "vault_path": "E:\\GRACI-Review-Projection",
+    "generation_id": "8e000002-0000-4000-8000-000000002001",
+    "launcher_sha256": "36903148b48038956074439cd9cdc0933024c7024067567b512cc3f7f52b9474",
+    "qualification_record_deployed": true,
+    "core_plugin_policy_applied": true,
+    "community_plugins_absent": true,
+    "non_loopback_established_connections": 0,
+    "resident_http_status": 200,
+    "passed": true
+  },
+  "product_owner": {
+    "stage3_accepted": true,
+    "routine_launch_authorized": true,
+    "commit_and_push_authorized": true,
+    "vault_read_access_preserved": true,
+    "personal_obsidian_changed": false,
+    "personal_obsidian_processes_stopped": false
+  },
+  "authority_boundary": {
+    "synthetic_data_only": true,
+    "real_data_authorized": false,
+    "automatic_refresh_authorized": false,
+    "runtime_integration_authorized": false,
+    "stage4_authorized": false,
+    "bitlocker_changes_authorized": false
+  }
+}
