@@ -29,6 +29,53 @@ direction does not require every turn to invoke routing, review, memory, optiona
 compute, repair, and verification indiscriminately, and it does not authorize a
 runtime redesign by itself.
 
+Two future product capabilities are required. First, Obsidian will provide the
+Product Owner a read-only human review interface over GRACI's canonical governance,
+rules, decisions, current information, acceptance evidence, and appropriately
+bounded memory views without becoming a source of truth or runtime dependency.
+Second, when approved local capabilities cannot complete an authorized task, GRACI
+will support permission-gated internet research. A knowledge gap will produce a
+sourced, locally reviewed answer; a missing tool will enter isolated tool
+qualification. GRACI will normally compare about three credible candidates, test and
+grade them, and seek separate Product Owner approval before installing or using a
+selected tool in production. These are required product objectives, not current
+implementation or runtime authority.
+
+GRACI must also be able to create bounded Model Context Protocol (MCP) integrations
+or, with applicable permission, locate and qualify existing MCPs through the same
+sandboxed tool-adoption process. Production connection remains a separate Product
+Owner decision.
+
+A required local document-ingestion capability will safely extract approved files,
+including PDF résumés, before a local-first RAG capability retrieves relevant
+knowledge with source traceability. Canonical documents and governed memory remain
+distinct from derived indexes. A required corrective-learning loop will record
+confirmed mistakes, Product Owner corrections, jointly verified repairs, and lessons
+learned, then retrieve applicable accepted lessons during similar future work. This
+learning is governed memory and retrieval, not silent model retraining, authority
+expansion, or autonomous self-promotion.
+
+GRACI also requires scheduled proactive work under explicit standing Product Owner
+grants. A named recurring task may run at its approved cadence without a new prompt
+each time, but it cannot broaden its purpose, data use, external access, actions, or
+duration. A daily résumé-based job search may find, deduplicate, rank, and report
+public openings; applying, disclosing the résumé, contacting an employer, creating
+an account, or spending money remains separately permissioned.
+
+All human-facing documents created by GRACI must use natural, audience-appropriate
+professional writing. New prose must avoid em dash punctuation, double-hyphen
+substitutes, canned AI phrasing, repetitive summaries, excessive formatting, vague
+filler, fabricated claims, and false authorship statements. Document workflows must
+also perform the proofreading and format-specific visual or structural checks needed
+for a finished human-quality artifact.
+
+The complete-assistant direction also requires unified planning, a clear permission
+center and approval inbox, secure credential storage, governed everyday-service
+connectors, safe browser and desktop action, multimodal understanding and media
+workflows, tested backup and recovery, and measurable task outcomes. These
+capabilities must make GRACI easier to use without weakening local-first operation,
+Product Owner control, evidence, or rollback.
+
 Interaction is currently explicit: typed input or push-to-talk. PTT release is the
 spoken-turn submission boundary. There is no authorized wake word, VAD authority,
 always-listening mode, or autonomous follow-up.

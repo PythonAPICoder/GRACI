@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 GOVERNANCE = ROOT / "governance"
 INDEX = GOVERNANCE / "POLICY_INDEX.md"
 POLICY_ID = re.compile(
-    r"^(AUTH|AUTONOMY|EXTERNAL|LOCAL|COMPUTE|MODEL|MEMORY|SELFDEV|VOICE|VALIDATION|EVIDENCE)-\d{3}$")
+    r"^(AUTH|AUTONOMY|EXTERNAL|TOOL|LOCAL|COMPUTE|MODEL|MEMORY|HUMANVIEW|SELFDEV|VOICE|DOCSTYLE|VALIDATION|EVIDENCE)-\d{3}$")
 LINK = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
 
 
@@ -60,14 +60,24 @@ class GovernanceTests(unittest.TestCase):
         self.assertEqual(current.count("**External or cloud assistance is denied unless"), 1)
         self.assertIn("Free-form Markdown must never be", current)
         self.assertIn("future capability, not a", current)
+        self.assertIn("Research and sandbox evaluation never authorize production promotion", current)
+        self.assertIn("The required future Obsidian capability is a human review interface", current)
+        self.assertIn("An MCP provides capability, never task authority", current)
+        self.assertIn("embeddings, indexes, chunks, and caches", current)
+        self.assertIn("Corrective learning does not change model weights, policy,", current)
+        self.assertIn("convert one recurring task into general autonomous-follow-up authority", current)
+        self.assertIn("No general document-upload or PDF-ingestion runtime path", current)
+        self.assertIn("does not authorize transmitting the full résumé", current)
+        self.assertIn("must not use the Unicode em dash character", current)
+        self.assertIn("not permission to conceal or misrepresent", current)
         self.assertNotIn(".obsidian", "\n".join(self.documents))
 
     def test_current_status_is_distinct_from_behavior_and_future_capability(self):
         current = self.documents["CURRENT_POLICY.md"]
         index = self.documents["POLICY_INDEX.md"]
         change = self.documents["CHANGE_PROCESS.md"]
-        self.assertIn("Status: **CURRENT — accepted by the Product Owner**", current)
-        self.assertIn("Status: **CURRENT — accepted by the Product Owner**", change)
+        self.assertIn("Status: **CURRENT: accepted by the Product Owner**", current)
+        self.assertIn("Status: **CURRENT: accepted by the Product Owner**", change)
         self.assertIn("`CURRENT / IMPLEMENTED BEHAVIOR`", index)
         self.assertIn("`CURRENT / FUTURE CAPABILITY`", index)
         self.assertNotIn("PROPOSED", "\n".join(self.documents))

@@ -50,6 +50,16 @@ foundation; do not restore it as current authority.
 - Use `rg` for repository search and `apply_patch` for hand edits.
 - Do not install dependencies, deploy, commit, push, or alter running services unless
   the active Product Owner request explicitly authorizes that action.
+- Proactively surface material recommendations that improve GRACI security,
+  functionality, reliability, or ease of use. Clearly separate each recommendation
+  from authorization and do not implement it without the applicable Product Owner
+  decision.
+- At natural work boundaries, judge whether continuing the current Codex task or
+  starting a new one will better preserve clarity, authority, security isolation,
+  and efficient model use. Before creating a new task, present the reason, proposed
+  title, complete handoff prompt, recommended model and reasoning effort, execution
+  environment, and any context intentionally excluded. Create the task only after
+  explicit Product Owner approval.
 - Inspect the final diff, verify documentation links, run `git diff --check`, and run
   tests proportionate to the change. Documentation changes may be test-sensitive.
 

@@ -11,14 +11,15 @@ process, model, configuration, generic RPC, or write endpoint. It cannot make th
 
 ## Current deployment and acceptance status
 
-Telemetry agent **1.0.1 deployment is confirmed**. A live 3090-side observation on
-2026-09-01 returned schema 2, agent version 1.0.1, fresh RTX 4090/CPU/RAM
-observations, and requested/applied/observed below-normal priority.
+Telemetry agent **1.0.1 deployment is confirmed**. The separately authorized
+2026-09-02 controlled procedure passed boot-triggered startup without a manual
+start, exact single-process/listener ownership, sustained resource expectations,
+fresh observations, and automatic 3090 resident-HUD reacquisition. The durable
+evidence is [`ACC-0006`](../docs/acceptance/ACC-0006-4090-telemetry.md).
 
-That observation confirms deployment and current reachability only. The separately
-documented reboot-startup, sustained resource, duplicate-process, gaming-impact, and
-full Product Owner acceptance procedure has **not** been established for 1.0.1.
-Deployment must not be reported as full acceptance.
+The technical result is **PASS**. On 2026-09-02, the Product Owner explicitly
+accepted telemetry 1.0.1 on the bounded `ACC-0006` evidence. That acceptance does
+not grant workload, routing, or expanded remote-execution authority.
 
 ## Fixed production contract
 

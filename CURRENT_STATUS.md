@@ -3,12 +3,12 @@
 > Classification: current implementation, deployment, acceptance, and issue status
 > Authority: descriptive; canonical policy remains under `governance/`
 > Verified against: promoted Phase 8D commit `a0a61b7298d3c85cec054cd11ca827842f2776dd`
-> Last verified: 2026-09-01
+> Last verified: 2026-09-02
 
 ## Product and repository baseline
 
-- Local `main` and `origin/main` are at documentation-reconciliation commit
-  `930c1ff901a814a968b40e65ba030ab7b724b99e`; promoted Phase 8D implementation
+- Local `main` and `origin/main` are at accepted 4090 upgrade and certificate-remoting
+  commit `e412d1c18a2726edda2838362807428b7f7d17ee`; promoted Phase 8D implementation
   commit `a0a61b7298d3c85cec054cd11ca827842f2776dd` is in that history.
 - Canonical identity: **G.R.A.C.I. = General Reasoning And Conversational
   Intelligence**.
@@ -56,9 +56,14 @@ automatically compose GLM review, governed memory, autonomous repair, or optiona
 - Telemetry schema 2 agent version 1.0.1 was live with fresh RTX 4090/CPU/RAM data and
   observed below-normal priority.
 
-Therefore telemetry 1.0.1 **is deployed and deployment is confirmed**. Full
-reboot-startup, resource-impact, duplicate-process, gaming-impact, and Product Owner
-acceptance are **not established**. Deployment and acceptance must remain separate.
+Telemetry 1.0.1 deployment remains confirmed. On 2026-09-02, a separately authorized
+telemetry-validation procedure using certificate remoting also established
+boot-triggered startup without a manual start, one fixed process and listener,
+below-normal priority, qualified memory/CPU/GPU/latency behavior, advancing real
+observations, unchanged MO2/router behavior, and automatic 3090 resident-HUD
+reacquisition. The technical result is **PASS**, and the Product Owner accepted
+telemetry 1.0.1 on 2026-09-02. See
+[`ACC-0006`](docs/acceptance/ACC-0006-4090-telemetry.md).
 
 A restricted-access follow-up incorrectly reported both 3090 tasks as not installed.
 Direct Windows enumeration proved that report false: the status script had suppressed
@@ -66,21 +71,22 @@ Direct Windows enumeration proved that report false: the status script had suppr
 The current task-registration state remains confirmed; task result `0` does not prove
 continued resident liveness or browser/runtime readiness after its launcher exits.
 
-## Open reliability and acceptance items
+## Reliability and acceptance items
 
-- **Cold-start/runtime-readiness defect: REPAIRED / AUTOMATED REPEAT PASS / PRODUCT
-  OWNER DISPOSITION PENDING.** The first controlled run reproduced an unavailable
+- **Cold-start/runtime-readiness defect: CLOSED / REPAIRED / PRODUCT OWNER
+  ACCEPTED.** The first controlled run reproduced an unavailable
   required runtime because Code Integrity blocked llama.cpp b10516. The authorized
   repair deployed official-release b9637 without changing the enforced
   `VerifiedAndReputableDesktop` policy. Repeat run
   `1df4990ca2ed4dbb87f3f4478027fcf0` passed launcher, process, browser, endpoint,
-  model, and heartbeat checks through five minutes. See `GRACI-ISSUE-001` and
-  `ACC-0003`.
+  model, and heartbeat checks through five minutes. The Product Owner accepted Phase
+  8D on 2026-09-01. See `GRACI-ISSUE-001` and `ACC-0003`.
 - **Startup-status diagnostic defect: REPAIRED IN CURRENT IMPLEMENTATION.** Restricted
   task-enumeration access can no longer be collapsed into task absence. The repair
   is test-verified and direct normal-context execution is verified; a restricted-token
   live acceptance check remains optional evidence. See `GRACI-ISSUE-002`.
-- Telemetry 1.0.1 full reboot/resource/Product Owner acceptance is incomplete.
+- Telemetry 1.0.1 controlled reboot, single-instance/resource behavior, and HUD
+  reacquisition passed; the Product Owner accepted the bounded capability.
 - The optional 4090 now runs official llama.cpp b10675. Live Qwen/GLM inference and
   an exercised b10516 rollback/re-promotion cycle passed. A controlled restart also
   passed; the Product Owner accepted the upgrade and verified gaming impact.

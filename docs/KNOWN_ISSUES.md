@@ -110,15 +110,21 @@ Static regression tests cover the classification contract. Direct execution on
 2026-09-01 correctly reported both exact tasks registered and launcher-succeeded;
 the restricted-token error branch has not been physically re-run after repair.
 
-## GRACI-GAP-001 — Telemetry 1.0.1 acceptance incomplete
+## GRACI-GAP-001: Telemetry 1.0.1 acceptance
 
-**Status: DEPLOYED; ACCEPTANCE INCOMPLETE**
+**Status: CLOSED / PRODUCT OWNER ACCEPTED**
 
 Live 3090-side observation on 2026-09-01 confirmed schema 2, agent version 1.0.1,
-fresh observations, RTX 4090 identity, and observed below-normal priority. This
-confirms deployment, not the separately documented reboot-startup, sustained
-resource, duplicate-process, gaming-impact, or full Product Owner acceptance
-procedure.
+fresh observations, RTX 4090 identity, and observed below-normal priority. The
+separately authorized 2026-09-02 procedure then passed controlled boot-triggered
+startup without a manual start, exact single-process/listener ownership,
+below-normal priority, qualified memory/CPU/GPU/latency expectations, advancing
+observations, unchanged MO2/router behavior, and automatic resident-HUD
+reacquisition. See [`ACC-0006`](acceptance/ACC-0006-4090-telemetry.md).
+
+The technical evidence gap is closed. On 2026-09-02, the Product Owner explicitly
+accepted telemetry 1.0.1 on the bounded evidence in `ACC-0006`. The acceptance does
+not grant workload, routing, or expanded remote-execution authority.
 
 ## GRACI-GAP-002 — Narrow physical QA scope remains unrecorded
 

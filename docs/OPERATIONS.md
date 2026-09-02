@@ -216,7 +216,14 @@ Product Owner accepted after its certificate-only restart validation passed.
 
 ## Telemetry deployment versus acceptance
 
-Telemetry agent 1.0.1 deployment is confirmed. Full reboot/startup, sustained
-resource, duplicate-process, gaming-impact, and Product Owner acceptance remain
-unestablished. The reviewed deployment/update/rollback and separate reboot procedure
-remain in [`telemetry_agent/README.md`](../telemetry_agent/README.md).
+Telemetry agent 1.0.1 deployment is confirmed. The controlled 2026-09-02 procedure
+passed boot-triggered startup without a manual start, exact single-process/listener
+ownership, below-normal priority, qualified resource expectations, advancing real
+observations, unchanged MO2/router behavior, and automatic resident-HUD
+reacquisition. The evidence is recorded in
+[`ACC-0006`](acceptance/ACC-0006-4090-telemetry.md). Product Owner acceptance of the
+bounded telemetry capability was recorded on 2026-09-02. That acceptance does not
+expand workload, routing, or remote-execution authority.
+
+The reviewed deployment/update/rollback and repeatable reboot procedure remain in
+[`telemetry_agent/README.md`](../telemetry_agent/README.md).

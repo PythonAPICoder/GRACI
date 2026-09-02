@@ -1,6 +1,6 @@
 # G.R.A.C.I. Governance Change Process
 
-Status: **CURRENT — accepted by the Product Owner**
+Status: **CURRENT: accepted by the Product Owner**
 
 The Product Owner is the final policy authority. A proposed Markdown edit is not
 itself acceptance and cannot grant runtime authority. A governance proposal becomes
