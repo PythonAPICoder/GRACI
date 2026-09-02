@@ -1,4 +1,13 @@
-# GRACI Project State
+# GRACI Project State — LEGACY HISTORICAL JOURNAL
+
+> **LEGACY / NOT CURRENT AUTHORITY.** This append-only reconstruction contains
+> multiple chronological “current” sections, superseded next-phase statements, old
+> test counts, and earlier product choices. Reconstruct current GRACI state through
+> [`docs/INDEX.md`](docs/INDEX.md). Preserve this file for historical links and
+> provenance; do not use it to authorize work.
+>
+> Historical compatibility markers retained: Phase 5 — COMPLETE; Phase 6 — COMPLETE;
+> Phase 6A — COMPLETE; Phase 6B — COMPLETE.
 
 Accepted current G1 governance is canonical in
 [`governance/CURRENT_POLICY.md`](governance/CURRENT_POLICY.md) and
@@ -1081,3 +1090,17 @@ Memory. Phase 4 has not begun.
   complete warning-strict suite passes 373 tests. A real local typed smoke returned
   HTTP 200, governed PASS, and a clean GRACI introduction from Qwen with run ID
   `7250baac-ed79-4877-a079-eb754932ba00`.
+
+# Durable repository-memory foundation acceptance
+
+- A completely fresh Codex session reconstructed GRACI's current product state,
+  architecture, implemented and ordinary-runtime capabilities, limitations, Product
+  Owner acceptance, open issues, and proposed next objective using only the
+  repository documentation.
+- The Product Owner accepted the durable repository-memory/documentation foundation
+  and authorized its promotion to `main`.
+- The temporary `docs/codex-memory-bootstrap/` migration package was authorized for
+  removal after serving its purpose. The untracked
+  `phase8cv/artifacts/thinking-pulse-physical-validation.wav` remains untouched.
+- This acceptance does not begin or authorize Phase 8D. System Health & Trusted
+  Runtime Context remains the leading proposed next objective only.

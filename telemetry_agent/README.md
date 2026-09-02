@@ -1,9 +1,24 @@
 # GRACI 4090 read-only telemetry agent
 
+> Classification: current component contract and operator procedure
+> Verified source commit: `dbc27123e0ab25a22ac1128677d2cd385de7d662`
+> Deployment observation: 2026-09-01
+
 This standalone Windows package exposes cached presentation telemetry from the
 optional 4090 node. It does not expose a shell, command execution, filesystem,
 process, model, configuration, generic RPC, or write endpoint. It cannot make the
 4090 eligible and does not modify the existing MO2/llama policy endpoint.
+
+## Current deployment and acceptance status
+
+Telemetry agent **1.0.1 deployment is confirmed**. A live 3090-side observation on
+2026-09-01 returned schema 2, agent version 1.0.1, fresh RTX 4090/CPU/RAM
+observations, and requested/applied/observed below-normal priority.
+
+That observation confirms deployment and current reachability only. The separately
+documented reboot-startup, sustained resource, duplicate-process, gaming-impact, and
+full Product Owner acceptance procedure has **not** been established for 1.0.1.
+Deployment must not be reported as full acceptance.
 
 ## Fixed production contract
 
@@ -38,11 +53,12 @@ Schema 2 has exact agent keys `version`, `sample_interval_seconds`,
 `priority_requested`, `priority_application_result`, and
 `priority_observed_effective`.
 
-## Initial deployment reference
+## Historical initial deployment and installation reference
 
-Version 1.0.0 of this package has been physically deployed and qualified. This
-source update does not run these scripts or modify the 4090; any new installation
-still requires separate operator approval.
+Version 1.0.0 of this package was the physically deployed and qualified initial
+baseline. Version 1.0.1 was later observed deployed as recorded above. These scripts
+do not grant installation or deployment authority; any new installation still
+requires separate operator approval.
 
 1. Copy the complete `telemetry_agent` directory to a reviewed temporary directory
    on `192.168.0.101` using the operator's approved file-transfer method.

@@ -1,351 +1,127 @@
-# Current GRACI Architecture
-
-Accepted current G1 governance and stable policy IDs are canonical in
-[`governance/CURRENT_POLICY.md`](governance/CURRENT_POLICY.md) and
-[`governance/POLICY_INDEX.md`](governance/POLICY_INDEX.md). This document describes
-implemented architecture; code/configuration/tests remain deterministic enforcement.
-
-## Phase 8C-V bounded optional-node telemetry
-
-`4090 direct NVML + Windows read-only counters -> 3-second cache -> fixed GET /telemetry -> strict 3090 decoder -> presentation-only HardwareTelemetryView`
-
-The optional node package is independent of the GRACI resident and has no third-party
-Python dependency. It opens NVML once, selects an exact RTX 4090 identity, and reads
-GPU utilization, VRAM bytes, and temperature without a subprocess. Native Windows
-kernel counters supply CPU utilization and RAM bytes. CPU temperature is explicitly
-unobserved. One mostly sleeping sampler owns sensor work; request threads return only
-the bounded cached schema-v1 JSON. The process requests below-normal priority and
-uses no affinity or hard-coded CPU IDs.
-
-The production listener is fixed to `192.168.0.101:8767`. Its only routes are GET
-`/health` and GET `/telemetry`; query parameters and all writes fail closed. A fixed
-application client allowlist and packaged private-profile firewall rule admit only
-the 3090 (`192.168.0.100`) across the LAN. There is no shell, generic RPC, arbitrary
-filesystem/process/model/configuration surface, Internet, cloud, secret, or remote
-deployment mechanism. Packaged scheduled-task and firewall scripts require explicit
-future operator execution and were not run as part of implementation.
-
-The resident's strict one-second client accepts exact keys, schema version, node ID,
-RTX 4090 GPU identity, bounded numbers, aware timestamps, and at most 16 KiB. It
-distinguishes timeout, unreachable, malformed, schema mismatch, identity mismatch,
-stale, and fresh observations. These values flow only to the existing visualizer
-observer. Existing 4090 endpoint health, MO2 state, llama policy, and eligibility
-remain sourced and reduced exactly as before; telemetry cannot authorize workload.
-
-## Phase 8C trusted reactive command center
-
-`trusted resident snapshot + SSE connection facts -> deterministic semantic copy + bounded motion -> localhost Browser`
-
-Every existing `SystemState` maps to one presentation label and explanation while
-the authoritative state remains visible. Qwen/GLM active treatment requires trusted
-`AgentView.state == active`. RTX 4090 presentation derives only from resident health,
-eligibility, MO2, availability, and assignment facts and distinguishes available,
-in-use, MO2-blocked, unhealthy, policy-ineligible, and unknown/fail-closed. Browser
-code performs no process inspection.
-
-Phase 8B `latest_turn` remains authoritative. A newer resident task marks the retained
-completed response as previous without changing its text or lifetime. Disconnect
-marks the snapshot stale. Reduced-motion and semantic live-region behavior are
-presentation only. PTT and Restart remain the only POST controls; no execution,
-compute, model, memory, remote, cloud, or policy authority was added.
-
-## Phase 8B resident latest-turn continuity
-
-`completed governed browser turn -> validated TurnResult/AuthoritativeFinalResponse -> fail-open bounded LatestTurnView -> snapshot v2 + latest_turn_updated SSE event -> localhost browser`
-
-`LatestTurnView` contains only bounded run identity, browser-PTT source, governed
-start/end times and PASS/FAIL, bounded failure facts, an optional validated response
-copy, and the independent spoken/cancelled/failed presentation outcome. It receives
-no transcript, prompt, model attempt, raw output, memory content, tool stream,
-credential, or arbitrary run-file field.
-
-The browser operator invokes the publisher only after its existing coordinator call
-returns a submitted governed record. Publication failure is caught and cannot change
-the `TurnResult`; zero-submission paths never invoke it. Refresh, polling, SSE
-reconnect, and `latest_turn_updated` converge on resident memory. Restart clears
-transient projection but retains the latest completed value. Process exit discards it
-and startup reads no run history.
-
-The browser POST allowlist remains exactly PTT begin/chunk/finish/cancel and Restart
-GRACI. Loopback, same-origin, no-CORS, 3090 authority, optional 4090/MO2 policy,
-strict validation, and governed execution boundaries are unchanged.
-
-## Explicit PTT playback barge-in
-
-`completed governed run -> immutable AuthoritativeFinalResponse -> SPEAKING/owned playback subprocess -> explicit Browser or CLI PTT press -> stop owned playback only -> LISTENING/capture -> release -> deferred-STT finalization -> exactly one new governed run`
-
-The production composition gives both PTT adapters only the presentation service's
-playback-interruption callback. It does not cancel synthesis, the completed governed
-run, response construction, memory, or routing. `VoiceLifecycle.enter_listening`
-permits the exceptional `SPEAKING` transition only when that callback is present and
-returns successfully. Its generation check handles natural-finish/press races and
-prevents the interrupted speaking lease from restoring `IDLE` over the new capture.
-All other concurrent voice activity remains rejected.
-
-Browser request-processing counts and deferred transcribers are turn-scoped. This
-allows a new explicit hold during the prior request's blocking presentation while
-preventing stale cleanup from touching the new stream. Pointer/keyboard repeat,
-blur, visibility, page-exit, cancellation, timeout, release, and final-transcript
-rules are otherwise unchanged. CLI key-repeat and exactly-once release behavior are
-also unchanged. No governed execution overlaps because barge-in is admitted only in
-`SPEAKING`, after the previous runtime and authoritative-response construction have
-completed.
-
-## Windows resident host
-
-`explicit operator start/logon task -> GRACI-specific exclusive OS lock -> one accepted OperatorComposition -> initial trusted IDLE projection -> loopback-only VisualizerServer -> idle wait -> validated cooperative stop`
-
-The authoritative 3090 may run `graci.resident_host` as the one supported resident
-composition. It creates exactly one existing governed controller/coordinator instance
-and owns the existing GET/HEAD/SSE observer server for its lifetime. It invokes no
-coordinator method at startup and contains no task loop. Its sole browser control is
-explicit PTT: same-origin loopback begin, bounded PCM-WAV finish, and cancellation
-feed local faster-whisper output into the existing coordinator. Microphone acquisition
-occurs only after a valid browser hold; wake word, VAD, and continuous listening are
-absent. Resident is availability infrastructure, not autonomy.
-
-An OS-held lock under `.runtime/resident-host` is authoritative. A versioned state
-record carries the GRACI owner marker, instance ID, PID, resolved Python executable,
-module marker, repository root, and fixed-loopback visualizer identity. Stale records
-are replaced only after acquiring the lock. Operator stop uses a matching instance-ID
-request and never terminates by broad name or PID alone. While the lock is held, the
-one-shot CLI refuses to create another runtime; after resident stop its accepted
-behavior is unchanged.
-
-The explicit current-user Task Scheduler installer configures only `GRACI Resident
-Host`, at interactive logon, limited privilege, with `IgnoreNew` plus bounded restart
-settings. The lock—not scheduler behavior—is the duplicate/race safety boundary.
-Neither task installation nor removal is automatic. Existing routing, memory,
-governed run boundaries, 3090 sufficiency, and optional 4090 MO2/health gating are
-unchanged.
-
-The authoritative router is a separate current-user logon task named `GRACI 3090
-llama.cpp Router`. Both task actions use hidden, noninteractive PowerShell and their
-child processes use hidden window style with redirected logs. Router ownership is a
-versioned GRACI-specific PID/executable/argument record plus a bounded startup mutex;
-occupied ports and invalid/reused ownership fail closed. The router task starts only
-native `--models-dir --models-max 1 --models-autoload` discovery and never calls the
-model-load API. Existing model leases remain the sole demand-switch authority.
-Resident startup does not wait for or assume router health, and router failure does
-not terminate the observer host.
-
-## QA-006 canonical identity definition
-
-The user-facing identity is **G.R.A.C.I.**, canonically expanded as **General
-Reasoning And Conversational Intelligence**. The ordinary execution system contract
-provides this exact fact for GRACI, G.R.A.C.I., and equivalent acronym questions and
-prohibits alternate invented expansions. The validated `user_response` boundary and
-all QA-001 identity separation remain unchanged.
-
-## QA-003 bounded primary model residency
-
-The authoritative RTX 3090 remains sufficient for the accepted Qwen implementer and
-GLM reviewer/verifier workflow despite its 24 GB VRAM limit. The local llama.cpp
-server runs in native router mode over the approved GGUF directory with
-`--models-max 1 --models-autoload`; `/v1/models` truthfully lists both available
-models and reports router load status, while at most one model is resident.
-
-Before each Phase 3B inference, GRACI takes a bounded thread and cross-process lease,
-validates the requested ID against the fixed Qwen/GLM allowlist, asks the router to
-load it, and waits until `/models` reports that exact model as `loaded`. The lease is
-held through inference, preventing Qwen/GLM eviction races. Timeout, malformed or
-wrong model state, child startup failure, and unavailable GLM all fail closed.
-
-The launcher owns only the exact process recorded in its private runtime PID record.
-It never replaces an occupied port or kills an unrelated llama.cpp process. Manual
-and explicit current-user logon startup share this same lifecycle. Required review
-never falls back to or contacts the optional 4090; its MO2, health, freshness, and
-eligibility policy is unchanged.
-
-## QA-001 identity and response separation
-
-`user task -> bounded GRACI system role -> local Qwen -> strict governed result v2 {status, internal summary, user_response} -> validated PASS user_response -> AuthoritativeFinalResponse -> typed JSON and optional local speech`
-
-The governed-result request uses llama.cpp's OpenAI-compatible strict `json_schema`
-response format. Its generation grammar encodes the exact v2 PASS and FAIL shapes;
-the independent Python validator remains authoritative. A rejected malformed or
-schema-invalid generation permits one corrective generation retry inside the same
-run ID. The retry receives the same authoritative task and has no tool boundary, so
-it cannot repeat a user turn, execute a tool, or replay a committed action. Durable
-run evidence records raw content and validation outcome separately for attempts 1
-and 2. Exhaustion follows the existing governed FAILED path.
-
-Qwen is the local reasoning implementation acting for the user-facing GRACI identity;
-underlying models may still be disclosed when architecture is explicitly requested.
-The validator keeps governed PASS/FAIL independent from presentation and fails closed
-on malformed or inconsistent v2 fields. Only a nonblank `user_response` from a
-validated v2 PASS can cross the final-response boundary; internal summaries and errors
-remain governed diagnostics. Typed and speech input still converge on the same single
-submission and response-construction path.
-
-## Phase 8 visualizer presence and explicit browser PTT
-
-`trusted observer system_state -> frozen presentation mapping -> HTML/CSS/SVG presence`
-
-The mapping is not persisted or published. Unknown state uses warning presentation
-without replacing its displayed label; freshness independently marks stale data.
-All compute, task, routing, memory, review, pipeline, event, and presence panels remain
-observer-only. The sole control exception is resident-host browser PTT:
-
-`explicit pointer/valid Spacebar hold -> transient rolling mono PCM snapshots -> local faster-whisper incremental work -> PTT release -> full-audio finalization -> existing ExplicitTurnCoordinator -> exactly one governed run(task) -> one validated AuthoritativeFinalResponse -> latest-result panel + existing Phase 6D Kokoro/Windows playback`
-
-Begin acquires a guarded turn and publishes authoritative `LISTENING`. While held,
-the browser sends full-audio WAV snapshots once per second and CLI capture offers
-thread-safe complete-buffer snapshots on the same cadence. The transcriber bounds
-preview inference to the newest three seconds. One turn-scoped local worker loads
-the faster-whisper model once and serves both previews and finalization. A latest-only
-background transcriber may replace a queued snapshot, but never concatenates partial
-text; this avoids word duplication or omission at artificial chunk boundaries. Its
-text is private, transient, non-authoritative, and never published, persisted, routed,
-or passed to the coordinator. Finish ends `LISTENING`, closes incremental work, and
-finalizes the complete released recording. An exact matching completed snapshot may
-be reused by audio digest; otherwise the complete recording is transcribed again for
-correctness. Only that one final result can reach `ExplicitTurnCoordinator`.
-
-Cancel, timeout, invalid/insufficient audio, and capture failure discard incremental
-state and restore `IDLE` with zero submission. Cancellation never waits for an
-already-running isolated STT call. Release allows at most one second for an active
-bounded preview; an overrun worker is terminated and final audio uses a fresh local
-turn worker rather than waiting for the STT timeout. faster-whisper 1.2.1 provides no
-token-stream contract in this stack;
-rolling snapshots are therefore the bounded safe strategy. This remains CPU `int8`
-on the 3090 with no cloud or optional-4090 dependency.
-Blank/failed STT also submits zero times. Opaque one-use tokens, one in-flight turn,
-strict same-origin/content-type/WAV validation, the existing 120-second voice limit,
-and a 4,000,000-byte body limit prevent replay and broad control. There is no CORS,
-file-path, command, generic task, routing, memory, model, or remote/mobile endpoint.
-Browser PTT requests the coordinator's existing presentation option because its input
-modality is voice. Text and speech share the same constructed response object;
-synthesis/playback failure remains presentation-only, never reruns the task, and
-`SPEAKING` is published only around actual accepted playback.
-
-## Phase 7 accepted local interaction composition
-
-`explicit operator action -> typed OR explicit push-to-talk -> ExplicitTurnCoordinator -> exactly one governed run(task) -> governed result -> explicit AuthoritativeFinalResponse -> optional local Kokoro CPU speech -> bounded operator result`
-
-Accepted input text is unchanged by source metadata. Accepted turns submit exactly
-once; rejected or failed input submits zero times. Serialization, optional
-presentation, and lifecycle publication remain non-authoritative. `LISTENING` wraps
-only bounded microphone capture, `SPEAKING` only actual playback, and voice returns
-to `IDLE`. There is no retry or automatic second turn.
-
-The local CLI and resident browser's narrow explicit PTT are operator surfaces.
-Phase 1C workspace/target remains an intentionally distinct specialized legacy mode;
-internal/test APIs are not alternate
-ordinary surfaces. Other browser panels remain observer-only. The 3090 remains
-independently sufficient and the optional 4090 policy is unchanged. Future interaction
-enhancements require a separately authorized later phase.
-
-## Phase 7B local operator adapter
-
-The ordinary CLI is now:
-
-`explicit typed task OR explicit bounded --speech -> Phase 7A ExplicitTurnCoordinator -> existing governed run(task) -> bounded allowlisted JSON -> optional explicit --speak presentation`
-
-`graci.operator_cli` owns only production composition and safe serialization.
-`graci.__main__` selects one mode and calls the coordinator once; it contains no
-duplicate orchestration or retry. Speech requires distinct operator actions to begin
-and end capture and cannot produce a second turn. Presentation is opt-in and its
-failure cannot change governed truth. Phase 1C `--workspace`/`--target` remains a
-specialized legacy security boundary and cannot be combined with voice options.
-
-No new runtime, execution authority, routing, memory, persistence, network control,
-background listener, wake word, VAD, REPL, or autonomous loop exists. Voice remains
-local CPU-only. The 3090 is independently sufficient and optional 4090 eligibility,
-exact MO2 gating, health/model freshness, and fallback semantics are unchanged.
-Phase 7A and Phase 7B are complete and accepted by Phase 7C closure.
-
-## Phase 7A explicit single-turn composition
-
-`graci.turn_coordinator.ExplicitTurnCoordinator` is a small orchestration layer over
-accepted interfaces:
-
-`explicit typed input OR explicit Phase 6 push-to-talk transcript -> one shared existing governed run(task) call -> independent governed result -> explicit AuthoritativeFinalResponse construction -> optional accepted Phase 6D presentation -> frozen TurnResult`
-
-`typed` and `speech` are the only structural source values and never modify semantic
-task text. Pre-submission rejection yields zero submissions; accepted input reaches
-the single submission statement exactly once. The coordinator has no retry loop,
-tool, policy, approval, memory, routing, repository, scheduling, persistence, or
-lifecycle authority.
-
-Final-response construction remains explicit and typed. Presentation is caller
-requested, uses the existing local Kokoro/playback path, and cannot change the prior
-governed result. Existing Phase 6 components alone publish bounded `LISTENING` and
-`SPEAKING` observation and restore `IDLE`; observer failure remains isolated. There
-is no autonomous conversation loop, wake word, always listening, VAD, automatic
-follow-up, or background listener. The 3090 remains independently sufficient and
-the optional 4090 remains governed only by the unchanged MO2 policy. Phase 7C later
-closed that bounded composition without authorizing Phase 8; Phase 8A, Phase 8B, and
-the later narrow resident controls were authorized separately.
-
-The authoritative detailed history remains `PROJECT_STATE.md`; phase reconstruction
-documents live under each `phase*/` directory. Phase 6C connects the independent
-local speech-input stack to the existing governed runtime:
-
-`explicit push-to-talk -> Windows PCM capture -> transient WAV -> local faster-whisper -> typed transcription result -> SpeechRuntimeAdapter -> existing governed runtime run(task)`
-
-The adapter accepts only successful, nonblank typed results and passes their exact
-text through the same `run(task)` boundary as typed input. It does not add grants,
-approval, execution, memory, or validation behavior. Capture, lifecycle orchestration,
-STT, and higher-level GRACI behavior remain separate. The runtime has no input-source
-metadata facility, so no semantic text is altered to encode speech provenance.
-The primary 3090 machine is independently sufficient; STT uses CPU and no cloud or
-4090 path. Phase 6D is a separate optional output presentation path:
-
-`explicit AuthoritativeFinalResponse -> deterministic speech-only Markdown/presentation normalization -> speech-only pronunciation copy -> isolated local Kokoro CPU synthesis -> bounded validated SynthesizedAudio -> resident-owned opaque single-claim artifact -> browser Web Audio playback`
-
-The Phase 8C-V browser is the presentation owner only. A purpose-built in-memory
-broker exposes one expiring authorized WAV to one atomic localhost claimant. Actual
-`playing`, completion, cancellation, error, and expiry acknowledgements drive the
-speech lifecycle; stale claim tokens and old artifacts cannot affect a newer turn.
-PTT and Restart invalidate active playback. No browser route accepts text, paths,
-URLs, execution requests, or authority-bearing response data. See
-`phase8cv/README.md` for lifecycle, failure, analyser, sounds, and accessibility.
-
-It has no runtime extraction or execution capability. Synthesis, playback, timeout,
-cancellation, device, worker, and cleanup failures remain presentation results and
-cannot replace the authoritative response or governed result. See `phase6c/README.md`
-and `phase6d/README.md`.
-
-Current GRACI presentation/TTS policy: formatting-only and decorative special
-characters must not be verbalized in spoken responses. Special characters may be
-verbalized only when their identity is materially necessary to communicate the
-requested content accurately. Normalization is deterministic and applies only to
-the independent speech copy; the validated `AuthoritativeFinalResponse` used by the
-browser/display remains byte-for-byte unchanged. Protected code and mathematical
-content retains meaningful symbols. This policy grants no runtime governance
-mutation or self-modification authority.
-
-Phase 6E adds an observer-only publication boundary shared by the two voice paths.
-It reuses canonical `SystemState.IDLE`, `LISTENING`, and `SPEAKING`. A guarded
-generation lease publishes `LISTENING` from immediately before bounded capture start
-through transcription, and `SPEAKING` only around actual playback after synthesis.
-Every bounded exit restores `IDLE`. Observer failures are logged/recorded and cannot
-alter capture, transcription, playback, presentation, or governed runtime results.
-See `phase6e/README.md`.
-
-Phase 6 closes at this bounded composition:
-
-`explicit push-to-talk -> local STT -> existing governed run(task) -> independent governed result -> explicit AuthoritativeFinalResponse -> optional local TTS/playback`
-
-Integrated acceptance composes the existing interfaces with deterministic fakes; no
-production coordinator was added. The transcript has typed-input-equivalent authority,
-the governed result exists independently of presentation, synthesis remains `IDLE`,
-and only bounded capture/recognition and actual playback publish `LISTENING` and
-`SPEAKING`. Phase 6 contains no autonomous voice loop. See `phase6/README.md`.
-# Phase 8A observer-only presence architecture
-
-`trusted runtime/observer system_state -> frozen frontend mapping -> abstract SVG/CSS presence`
-
-The mapping is a presentation boundary, not a second state machine. It produces one
-of resting, receptive, thinking, acting, validating, responding, success, warning,
-or failure and never publishes or persists that value. The actual authoritative
-state label remains visible. Unknown state falls back to warning presentation, and
-connection freshness independently marks stale/disconnected data.
-
-The no-build HTML/CSS/SVG implementation adds no assets, dependencies, endpoint, or
-backend field. The Phase 5 three-resource static allowlist and read-only observer API
-remain unchanged. Phase 6 voice lifecycle is observed without microphone, speech,
-or turn authority. The primary 3090 remains independently sufficient; optional 4090
-eligibility and MO2 blocking remain unchanged. Phase 8 is in progress; only Phase 8A
-is complete.
+# Current GRACI architecture
+
+> Classification: current descriptive architecture
+> Authority: implementation description; canonical policy remains under `governance/`
+> Verified at commit: `dbc27123e0ab25a22ac1128677d2cd385de7d662`
+> Last verified: 2026-09-01
+
+Accepted policy is canonical in
+[`governance/CURRENT_POLICY.md`](governance/CURRENT_POLICY.md). This document
+describes the composition currently present in the repository; it grants no new
+authority.
+
+## Ordinary operator composition
+
+The normal typed CLI and resident/browser path is:
+
+`explicit typed input or PTT release -> ExplicitTurnCoordinator -> Controller -> fixed local 3090 Qwen -> strict result validation -> AuthoritativeFinalResponse -> typed response and optional local speech`
+
+`graci.operator_cli.build_operator_composition` constructs a plain `Controller`
+using the fixed `Config`: local endpoint `http://127.0.0.1:8080/v1`, Qwen model
+`qwen3.8-27b-q4_k_m`, and local 3090 identity. The model reasons on behalf of GRACI;
+it is not the product identity.
+
+Strict result schema v2 separates internal `summary` from `user_response`. Only a
+validated nonblank PASS `user_response` can become the immutable
+`AuthoritativeFinalResponse`. Malformed/raw/fenced/schema-invalid output is rejected.
+One corrective model generation is allowed only after model-content validation
+rejection within the same governed run.
+
+Each accepted task receives a UUID and an atomically written JSON run record under
+`runs/`. Run records are evidence, not reusable authority or product memory.
+
+## Interaction and presentation
+
+Typed input and successful local STT transcripts share the same governed turn
+coordinator. Browser and CLI voice remain explicit PTT; release authorizes the spoken
+submission. There is no wake word, VAD authority, always listening, or autonomous
+follow-up.
+
+The resident composes:
+
+- Windows PCM capture and local faster-whisper `small.en` CPU `int8` STT;
+- local Kokoro CPU synthesis fixed to `af_heart` at speed `1.00`;
+- speech-only normalization and `GRACI -> GRAY-see` pronunciation;
+- one in-memory, expiring, single-claim browser playback artifact;
+- a `VoiceLifecycle` that publishes trusted LISTENING/SPEAKING only at accepted
+  capture/playback boundaries; and
+- a loopback visualizer, latest-turn projection, SSE stream, browser PTT operator,
+  and bounded Restart callback.
+
+The visualizer serves only three packaged static resources and fixed API routes. Its
+POST allowlist is PTT begin/chunk/finish/cancel, Restart, speech claim, and speech
+lifecycle. Speech audio is fetched through an opaque artifact ID plus independent
+claim token. No browser route accepts an arbitrary task, path, URL, command, model
+override, memory request, or authority-bearing response.
+
+The Product Owner-accepted UI baseline at `dbc2712` uses a symmetric 3090/presence/
+4090 HUD, Data Chatter during trusted processing observations, and a continuous
+voice-reactive outer ring during browser-owned playback. See
+[`ACC-0001`](docs/acceptance/ACC-0001-phase8-ui-baseline.md).
+
+## Resident and startup ownership
+
+`graci.resident_host` owns one browser-operator composition, a GRACI-specific
+exclusive lock, and the loopback visualizer. A validated cooperative stop request
+ends it. A one-shot CLI refuses to run while the resident is active.
+
+The 3090 model router and resident use separate limited current-user at-logon tasks:
+`GRACI 3090 llama.cpp Router` and `GRACI Resident Host`. Their scripts and validated
+state live under [`ops/`](ops/). The router is configured for the two approved local
+models and bounded model lifecycle management.
+
+## Specialized capabilities not in every ordinary turn
+
+The repository also implements:
+
+- `AutonomousRepairController`: bounded allowlisted file/tool/test repair loops;
+- `Phase3BController`: Qwen implementation followed by independent GLM evidence
+  review and adjudication;
+- `Phase3DDistributedRouter`: optional 4090 routing/failover with health, freshness,
+  model identity, and exact MO2 gating; and
+- Phase 4 governed persistent memory: canonical local JSON, writes, selection,
+  supersession, conflict handling, and bounded untrusted execution context.
+
+These capabilities are tested and historically accepted within their specialized
+flows. The ordinary CLI/resident composition does not currently instantiate the
+Phase 3B workflow, memory governance, autonomous repair loop, or distributed router.
+Future composition should select capabilities according to task, policy, latency,
+resources, and verification needs rather than call every subsystem unconditionally.
+
+## Compute and telemetry
+
+The 3090 is authoritative and sufficient. Qwen is the primary implementer/general
+reasoning model; GLM is the reviewer/verifier in the specialized reviewed workflow.
+
+The optional 4090 has two separate read-only observations:
+
+- exact `ModOrganizer.exe` state at
+  `http://192.168.0.101:8765/graci/v1/mo2`, which participates in fail-closed
+  workload eligibility; and
+- telemetry agent `/health` and `/telemetry` at
+  `http://192.168.0.101:8767`, which is presentation-only and cannot authorize
+  routing or compute.
+
+Telemetry schema 2 supplies bounded GPU/CPU/RAM facts, explicit unobserved CPU
+temperature, agent version/priority state, and timestamps. The resident's strict
+client treats timeout, staleness, malformed data, schema/identity mismatch, and
+unreachability as unavailable. Local 3090 telemetry is separately collected for the
+HUD.
+
+## Storage and authority boundaries
+
+The repository, run records, and governed memory remain canonical on the 3090.
+Shared storage is optional infrastructure and never authoritative GRACI storage.
+Memory is untrusted context, not permission. The 4090, shared drive, Obsidian, and
+cloud are not canonical-memory dependencies.
+
+No cloud AI runtime path exists. External assistance requires an active scoped grant
+and future governed implementation. Free-form Markdown is human documentation and
+must never be parsed to grant runtime capability.
+
+## Known architectural gap
+
+Phase 8D health reduction and trusted runtime context are not implemented. Current
+observer/telemetry facts do not yet form an authoritative general runtime-readiness
+model for conversation. The related cold-start/runtime-readiness defect remains open;
+see [`docs/KNOWN_ISSUES.md`](docs/KNOWN_ISSUES.md).
