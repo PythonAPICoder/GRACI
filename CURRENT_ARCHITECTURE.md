@@ -66,9 +66,16 @@ exclusive lock, and the loopback visualizer. A validated cooperative stop reques
 ends it. A one-shot CLI refuses to run while the resident is active.
 
 The 3090 model router and resident use separate limited current-user at-logon tasks:
-`GRACI 3090 llama.cpp Router` and `GRACI Resident Host`. Their scripts and validated
-state live under [`ops/`](ops/). The router is configured for the two approved local
-models and bounded model lifecycle management.
+`\GRACI 3090 llama.cpp Router` and `\GRACI Resident Host`. Their scripts and
+validated state live under [`ops/`](ops/). The router is configured for the two
+approved local models and bounded model lifecycle management.
+
+The resident task owns the startup launcher, not the continuing child lifetime. A
+successful task result means the launcher observed a matching resident during its
+bounded startup wait and exited successfully; it does not establish that the resident
+remained alive or that the visualizer/browser path remained ready. The current status
+script also does not distinguish task absence from task-enumeration access denial.
+These are known diagnostic/readiness limitations, not alternate runtime authority.
 
 ## Specialized capabilities not in every ordinary turn
 
@@ -123,5 +130,7 @@ must never be parsed to grant runtime capability.
 
 Phase 8D health reduction and trusted runtime context are not implemented. Current
 observer/telemetry facts do not yet form an authoritative general runtime-readiness
-model for conversation. The related cold-start/runtime-readiness defect remains open;
-see [`docs/KNOWN_ISSUES.md`](docs/KNOWN_ISSUES.md).
+model for conversation. Task registration, launcher success, process liveness, and
+endpoint readiness are not yet reduced into distinct trusted states. The related
+cold-start/runtime-readiness and startup-status diagnostic defects remain open; see
+[`docs/KNOWN_ISSUES.md`](docs/KNOWN_ISSUES.md).

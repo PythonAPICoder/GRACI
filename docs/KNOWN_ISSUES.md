@@ -21,18 +21,41 @@ audit. It remains open until a deliberate cold-start test either reproduces and
 repairs it or establishes, with evidence and Product Owner review, that it is
 resolved.
 
-Current supporting observation: on 2026-09-01 the `GRACI Resident Host` scheduled
-task was installed, enabled, and reported last result `0`, but no resident process
-was active, port `127.0.0.1:8766` refused connections, and a stale resident state
-record remained. This observation is not itself a root-cause determination and does
-not invalidate the earlier Product Owner report.
+Current supporting observation: on 2026-09-01 direct Windows enumeration confirmed
+the exact root task `\GRACI Resident Host` installed, enabled, `Ready`, and reporting
+last result `0`, but no resident process was active, port `127.0.0.1:8766` refused
+connections, and a stale resident state record remained. The task launches a
+short-lived PowerShell startup script; its successful result does not prove that the
+spawned resident remained alive or that the browser/runtime path became and stayed
+ready. This observation is not itself a root-cause determination and does not
+invalidate the earlier Product Owner report.
 
 **Workaround:** the Product Owner-observed workaround is **GRACI Restart**.
 
-**Closure evidence required:** controlled startup/reboot procedure, service and
-resident readiness timeline, browser-path result before manual restart, relevant
-logs/state, repair evidence if reproduced, regression coverage where feasible, and
-explicit Product Owner disposition.
+**Closure evidence required:** controlled startup/reboot procedure; a timeline that
+distinguishes task missing, task access denied/unknown, task registered, launcher
+succeeded, owned process alive, and runtime ready; actual service/process/endpoint
+behavior rather than task registration or exit code alone; sustained resident and
+browser readiness after the launcher exits; browser-path result before manual
+restart; enough lifecycle evidence to determine a later resident exit when
+reasonably possible; repair evidence if reproduced; regression coverage where
+feasible; and explicit Product Owner disposition.
+
+## GRACI-ISSUE-002 — Startup status can misreport access denial as absence
+
+**Status: OPEN**
+
+[`ops/status-graci-login-tasks.ps1`](../ops/status-graci-login-tasks.ps1) calls
+`Get-ScheduledTask` with access errors suppressed and interprets a null result as
+`not installed`. On 2026-09-01 this was reproduced from a restricted caller context:
+both exact task lookups returned `Access denied`, while the script reported both as
+not installed. Direct Windows enumeration then confirmed both tasks present at the
+Task Scheduler root.
+
+This is a diagnostic defect, not evidence of task-registration loss. Until repaired,
+the script's `not installed` result is authoritative only when enumeration access is
+known to have succeeded. Phase 8D planning must distinguish missing from access
+denied/unknown and preserve the evidence behind that classification.
 
 ## GRACI-GAP-001 — Telemetry 1.0.1 acceptance incomplete
 

@@ -24,12 +24,30 @@ separately reviewed benefit. The repository on the 3090 remains authoritative.
 
 The 3090 uses separate current-user, limited, at-logon scheduled tasks:
 
-- `GRACI 3090 llama.cpp Router`
-- `GRACI Resident Host`
+- `\GRACI 3090 llama.cpp Router`
+- `\GRACI Resident Host`
 
 Scripts under [`ops/`](../ops/) install, start, stop, remove, and report these named
 resources using GRACI-specific state and identity validation. Do not substitute broad
 process matching or force-kill unrelated processes.
+
+Direct Windows Task Scheduler enumeration on 2026-09-01 confirmed both exact root
+tasks installed, enabled, and `Ready`, with last task result `0`. Their actions,
+working directory, current-user interactive logon trigger, and limited principal
+matched the repository installers.
+
+For the resident, scheduled-task success proves only that the PowerShell launcher
+started a matching resident and then completed successfully. The launcher exits
+after startup; Task Scheduler does not thereby prove or supervise continued
+resident-process liveness, visualizer endpoint availability, or browser/runtime
+readiness. Registration, launcher result, owned-process liveness, and runtime
+readiness are separate facts.
+
+The current [`status-graci-login-tasks.ps1`](../ops/status-graci-login-tasks.ps1)
+suppresses `Get-ScheduledTask` access errors. In a restricted caller context this can
+return null and incorrectly print `not installed` when the actual state is `access
+denied / unknown`. Until repaired, do not treat that message as proof of absence
+unless task enumeration access was established.
 
 Useful read-only checks are:
 
@@ -44,7 +62,9 @@ Invoke-RestMethod http://192.168.0.101:8767/telemetry
 ## Operational snapshot — 2026-09-01
 
 - Both 3090 scheduled tasks were installed, enabled, `Ready`, and reported last task
-  result `0`.
+  result `0`. A later direct reconciliation confirmed the exact root paths
+  `\GRACI 3090 llama.cpp Router` and `\GRACI Resident Host`; an intervening
+  `not installed` report was a restricted-access false negative.
 - The 3090 router was healthy; Qwen was loaded and GLM available/unloaded.
 - The resident was not active and `127.0.0.1:8766` refused connections despite a
   resident state file. This is recorded with the open cold-start/readiness issue and

@@ -41,8 +41,9 @@ automatically compose GLM review, governed memory, autonomous repair, or optiona
 
 ## Deployment observations — 2026-09-01
 
-- `GRACI 3090 llama.cpp Router` and `GRACI Resident Host` scheduled tasks were
-  installed, enabled, `Ready`, and reported last result `0`.
+- `\GRACI 3090 llama.cpp Router` and `\GRACI Resident Host` scheduled tasks were
+  directly confirmed at the Task Scheduler root, enabled, `Ready`, and reporting
+  last result `0`.
 - The 3090 router endpoint was healthy. Qwen was loaded; GLM was available and
   unloaded at observation time.
 - The resident process was not active; `127.0.0.1:8766` refused connections and a
@@ -58,12 +59,20 @@ Therefore telemetry 1.0.1 **is deployed and deployment is confirmed**. Full
 reboot-startup, resource-impact, duplicate-process, gaming-impact, and Product Owner
 acceptance are **not established**. Deployment and acceptance must remain separate.
 
+A restricted-access follow-up incorrectly reported both 3090 tasks as not installed.
+Direct Windows enumeration proved that report false: the status script had suppressed
+`Get-ScheduledTask` access-denied errors and converted null results to `not installed`.
+The current task-registration state remains confirmed; task result `0` does not prove
+continued resident liveness or browser/runtime readiness after its launcher exits.
+
 ## Open reliability and acceptance items
 
 - **Cold-start/runtime-readiness defect: OPEN.** The Product Owner observed a failed
   browser/runtime path after Windows cold startup that GRACI Restart recovered. It
   remains open until deliberately reproduced/repaired or proven resolved with
   evidence and Product Owner review.
+- **Startup-status diagnostic defect: OPEN.** Restricted task-enumeration access can
+  be misreported as task absence; see `GRACI-ISSUE-002`.
 - Telemetry 1.0.1 full reboot/resource/Product Owner acceptance is incomplete.
 - The accepted UI baseline does not by itself prove every earlier manual multi-tab,
   autoplay, race, reboot, or CLI microphone scenario.

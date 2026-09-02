@@ -21,6 +21,23 @@ optional 4090 reachability, MO2, eligibility, and endpoint/model health; STT/TTS
 readiness; freshness and recovery transitions; and bounded trusted conversational
 system context.
 
+Its proposed startup/readiness contract must distinguish these states rather than
+collapse them:
+
+- missing;
+- access denied / unknown;
+- registered;
+- launcher succeeded;
+- process alive; and
+- runtime ready.
+
+Runtime readiness must come from actual service, owned-process, and endpoint behavior,
+not merely scheduled-task registration or exit code. Cold-start acceptance must
+verify sustained resident/browser readiness after the launcher exits. Diagnostics
+should preserve enough bounded lifecycle evidence to determine why a resident later
+exited whenever reasonably possible. The open cold-start defect remains a Phase 8D
+acceptance input and is not closed by this planning reconciliation.
+
 That description is a planning boundary, not approved scope or architecture. Before
 implementation, the Product Owner must approve the objective, in-scope authority,
 acceptance criteria, and relationship to the open cold-start defect.
