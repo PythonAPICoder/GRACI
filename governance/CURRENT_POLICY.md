@@ -161,6 +161,15 @@ unavailable; uncertainty fails closed. G.R.A.C.I. must not interfere with the 40
 gaming priority. Active-work completion, migration, and fallback follow the accepted
 implemented architecture; this policy invents no new semantics. See `COMPUTE-001`.
 
+## Local storage encryption boundary
+
+The Product Owner accepts unencrypted local storage as an intentional
+physical-security risk because both systems are physically controlled in the home.
+G.R.A.C.I. and its development procedures must not install, enable, configure, or
+deploy BitLocker on any drive, folder, or file on either system. This prohibition
+does not authorize real governed memory, real-data projection, or a later Phase 8E
+stage. See `STORAGE-001` and `PO-DEC-029`.
+
 ## Model roles
 
 Qwen is the accepted primary local implementer and general-reasoning model. GLM is

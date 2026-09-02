@@ -160,3 +160,18 @@ must be completed before expiry. A future change of the 3090 Windows execution
 identity requires explicit key reprovisioning because the private key is scoped to
 the current user. Connectivity remains technical capability, not blanket authority.
 See [`ACC-0005`](acceptance/ACC-0005-4090-certificate-remoting.md).
+
+## GRACI-GAP-005: Phase 8E projection at-rest protection
+
+**Status: CLOSED / PRODUCT OWNER ACCEPTED RISK**
+
+The authorized Stage 2 inspection found that NTFS `E:` has no associated BitLocker
+volume. The Product Owner confirmed that both systems are physically controlled in
+the home and explicitly accepted the unencrypted-storage risk. BitLocker must not
+be installed, enabled, configured, or deployed on any drive, folder, or file on
+either system.
+
+This closes BitLocker as a Phase 8E prerequisite. The BitLocker decision does not
+authorize real governed memory, a real-data projection, Stage 3, or Stage 4. The
+Product Owner separately accepted Stage 2 on 2026-09-02. See
+[`ACC-0008`](acceptance/ACC-0008-phase8e-stage2-windows.md) and `PO-DEC-029`.

@@ -2,7 +2,7 @@
 
 > Classification: current implementation/integration/deployment/acceptance map
 > Authority: descriptive current state; does not grant runtime or development authority
-> Verified against: accepted Phase 8E Stage 1 commit `023a5ff9c78b549ac9d5d80ac3a3f1b92048ca12`
+> Verified through: Phase 8E Stage 2 Product Owner acceptance on 2026-09-02
 > Last verified: 2026-09-02
 
 The columns are deliberately independent. **Implemented** does not mean used by the
@@ -23,7 +23,7 @@ physically accepted.
 | Symmetric local/remote telemetry HUD | Presentation only | Yes: bounded schema, strict client, stale/unavailable handling | Yes in resident snapshots/UI | Agent 1.0.1 controlled startup, single-instance/resource checks, and live HUD reacquisition passed; Product Owner accepted |
 | Current visual identity/presence | Current accepted baseline | Yes | Yes | Product Owner physically accepted at `dbc2712` |
 | Trusted system health and conversational runtime context | Accepted Phase 8D capability | Yes: typed reduction, startup stages, component probes, freshness/recovery, lifecycle ledger, visualizer projection, and bounded context injection | Yes in ordinary controller composition; read-only facts cannot grant authority | Promoted/deployed; repeat automated cold-start validation passed; Product Owner accepted |
-| Read-only Obsidian human review | Required future product objective; human view cannot grant authority | Stage 1 fixture-only projection foundation implemented, deterministically tested, and Product Owner accepted; Windows boundary not yet implemented | No; exporter remains outside ordinary `graci` composition | Stage 2 Windows boundary work with synthetic data is authorized; no Obsidian installation, real-data projection, deployment, or human-interface acceptance |
+| Read-only Obsidian human review | Required future product objective; human view cannot grant authority | Stage 1 fixture exporter and Stage 2 dedicated identity, ACLs, AppLocker path denial, launcher, rollback, and synthetic tests are Product Owner accepted | No; exporter and Windows boundary remain outside ordinary `graci` composition | Synthetic boundary is locally configured and accepted; Obsidian is already installed but unused and unqualified; no configuration, real-data projection, or human-interface acceptance |
 | Internet research and tool qualification | Required future product objective; external access denied without a scoped grant | No internet research, sandbox evaluation, scoring, or production-promotion runtime path | No | Requires governed implementation; research/evaluation and production promotion remain separate Product Owner permission gates |
 | MCP creation and acquisition | Required future product objective; MCP capability cannot grant task authority | No governed MCP creation, download, sandbox qualification, or production-connection path | No | Requires separate implementation and production-connection authorization with least privilege and explicit tool allowlists |
 | PDF and approved-document ingestion | Required future product objective; document content cannot grant authority | No general file-upload, PDF extraction, or document-ingestion path | No | Parser/tool selection, implementation, privacy validation, deployment, and acceptance not yet authorized |

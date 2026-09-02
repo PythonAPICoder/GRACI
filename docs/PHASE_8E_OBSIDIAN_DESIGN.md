@@ -283,6 +283,11 @@ equivalent existing at-rest control should protect sensitive local projections, 
 Phase 8E must first inspect and report the host's actual protection rather than
 assume it.
 
+Stage 2 subsequently confirmed that `E:` is not BitLocker-protected. The Product
+Owner accepted that physical-security risk and prohibited installing, enabling,
+configuring, or deploying BitLocker on either system. That later decision supersedes
+BitLocker as a prerequisite without authorizing real data or a later Phase 8E stage.
+
 ## Update, verification, failure, and recovery
 
 ### Refresh
@@ -425,7 +430,7 @@ exporter, renderer, manifest, fixture corpus, and focused tests. It uses synthet
 memory only and does not install Obsidian, alter ACLs, or read the real memory root.
 The Product Owner acceptance boundary is recorded in `ACC-0007`.
 
-### Stage 2: local projection and Windows hardening, authorized
+### Stage 2: local projection and Windows hardening, accepted
 
 The Product Owner authorized inspection, exact control selection, implementation,
 rollback, and synthetic verification of the dedicated viewer boundary, projection
@@ -435,14 +440,15 @@ recorded before dependent mutation. This Windows security scope still does not
 authorize Obsidian installation, application settings, network or firewall changes,
 or reading real memory.
 
-### Stage 3: Obsidian qualification and installation
+### Stage 3: Obsidian qualification and configuration
 
-After separate tool authorization, obtain an exact official Obsidian version,
-verify provenance and hash, test it against the fixture projection, record its
-licenses and update behavior, and install it only for the isolated viewer. Apply the
-exact executable firewall rule and approved local application settings at this
-stage. No community plugins are included. Production use and future upgrades remain
-separate decisions.
+The Product Owner reports that Obsidian is already installed but has never been
+used. After separate Stage 3 authorization, inspect the exact installed version and
+path, verify provenance and hash, test it against the fixture projection, and record
+its licenses and update behavior. Configure it only for the isolated viewer. Apply
+the exact executable firewall rule and approved local application settings at this
+stage. No community plugins are included. Reinstallation, production use, and
+future upgrades remain separate decisions.
 
 ### Stage 4: bounded real-data generation
 
@@ -508,7 +514,7 @@ within this design.
 
 Stage 2 authority covers local Windows inspection, exact control selection,
 implementation, rollback, and synthetic verification. Separate decisions are still
-required for the exact Obsidian version and provenance, Obsidian installation and
+required for the exact Obsidian version and provenance, Obsidian inspection and
 settings, network or firewall changes, real-data source and memory selection, first
 real-data projection, automatic refresh, controlled human acceptance, and Stage 3
 through Stage 5 work.

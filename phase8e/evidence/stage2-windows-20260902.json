@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-09-02T13:50:06.8508891-05:00",
+  "state": "PRODUCT_OWNER_ACCEPTED",
+  "technical_evidence_state_at_recording": "AUTOMATED_VERIFIED_AND_LIVE_OBSERVED",
+  "repository_baseline": "4369cb9373d9b6211d0d69d30a29408e520272de",
+  "stage1_commit": "023a5ff9c78b549ac9d5d80ac3a3f1b92048ca12",
+  "host": {
+    "computer": "AI-SERVER",
+    "windows": "Windows 11 Pro build 26200",
+    "volume": "E: NTFS",
+    "bitlocker": "not associated with a BitLocker volume",
+    "wdac_policy_id": "0283ac0f-fff1-49ae-ada1-8a933130cad6",
+    "wdac_policy_name": "VerifiedAndReputableDesktop",
+    "wdac_enforced": true,
+    "wdac_changed": false,
+    "applocker_prechange": "empty",
+    "application_identity_prechange": "Running, Manual"
+  },
+  "final_boundary": {
+    "viewer": "AI-SERVER\\GRACI_Review",
+    "viewer_sid": "S-1-5-21-80404339-2367555055-2558411261-1007",
+    "viewer_is_administrator": false,
+    "staging_root": "E:\\GRACI-Review-Staging",
+    "projection_root": "E:\\GRACI-Review-Projection",
+    "launcher_root": "C:\\ProgramData\\GRACI\\Phase8E",
+    "evidence_root": "E:\\GRACI-Review-Evidence",
+    "application_control": "AppLocker Exe, Msi, Script, and Dll enforcement with four compatibility allows and eight viewer-SID path denies",
+    "qualified_application": null,
+    "synthetic_generation": "8e000002-0000-4000-8000-000000002001",
+    "synthetic_entry_count": 25
+  },
+  "validation": {
+    "boundary_configuration": true,
+    "exporter_generation_and_promotion": true,
+    "viewer_projection_read": true,
+    "viewer_source_denied": true,
+    "viewer_worktree_denied": true,
+    "viewer_staging_denied": true,
+    "viewer_create_denied": true,
+    "viewer_edit_denied": true,
+    "viewer_append_denied": true,
+    "viewer_delete_denied": true,
+    "viewer_rename_denied": true,
+    "viewer_acl_change_denied": true,
+    "viewer_ownership_change_denied": true,
+    "projection_executable_denied": true,
+    "projection_script_denied": true,
+    "tamper_detected": true,
+    "failed_refresh_preserved_last_known_good": true,
+    "projection_withheld_resident_http_200": true,
+    "unqualified_application_launch_denied": true,
+    "rollback_removed_managed_state": true,
+    "rollback_restored_empty_applocker": true,
+    "rollback_removed_source_deny_aces": true,
+    "rollback_removed_viewer_profile": true,
+    "rollback_preserved_resident_http_200": true,
+    "reapply_assigned_new_sid": true,
+    "post_reapply_projection_acl_finalized": true
+  },
+  "residual_risks": [
+    "E: is not BitLocker-protected. The Product Owner accepted that physical-security risk and prohibited BitLocker changes; real data remains separately unauthorized.",
+    "Same-volume generation promotion preserves the staging ACL and requires the bounded ACL finalizer before viewer use.",
+    "No restart persistence or Obsidian behavior was tested because neither is authorized in Stage 2."
+  ],
+  "excluded": [
+    "Obsidian inspection or configuration",
+    "real governed memory",
+    "real-data projection",
+    "network or firewall changes",
+    "automatic refresh",
+    "resident or ordinary runtime changes",
+    "Stage 3 or later work"
+  ],
+  "subsequent_product_owner_decision": {
+    "decision_id": "PO-DEC-029",
+    "accepted_unencrypted_local_storage": true,
+    "bitlocker_changes_prohibited_on_both_systems": true,
+    "authorizes_real_data": false,
+    "accepts_stage2": false
+  },
+  "subsequent_stage2_acceptance": {
+    "decision_id": "PO-DEC-030",
+    "accepted_stage2": true,
+    "commit_and_push_to_main_authorized": true,
+    "obsidian_reported_installed_but_unused": true,
+    "authorizes_obsidian_inspection_or_configuration": false,
+    "authorizes_real_data": false,
+    "authorizes_stage3_or_later": false
+  }
+}

@@ -2,7 +2,7 @@
 
 > Classification: current descriptive architecture
 > Authority: implementation description; canonical policy remains under `governance/`
-> Verified against: accepted Phase 8E Stage 1 commit `023a5ff9c78b549ac9d5d80ac3a3f1b92048ca12`
+> Verified through: Phase 8E Stage 2 Product Owner acceptance on 2026-09-02
 > Last verified: 2026-09-02
 
 Accepted policy is canonical in
@@ -115,7 +115,10 @@ The repository also implements:
 - a separate Phase 8E Stage 1 fixture-only projection exporter with a typed source
   catalog, exact local Git-commit and exact-ID synthetic-memory reads, deterministic
   safe Markdown, complete hash manifests, immutable generation promotion, and
-  read-only tamper verification.
+  read-only tamper verification; and
+- a separate Phase 8E Stage 2 local Windows boundary with a dedicated standard
+  viewer, protected roots, SID-scoped source isolation, AppLocker execution denial,
+  exact rollback, and a fail-closed launcher foundation.
 
 The earlier specialized capabilities are tested and historically accepted within
 their recorded flows. Phase 8E Stage 1 has automated fixture evidence and Product
@@ -125,6 +128,14 @@ repair loop, or distributed router. It does not import the Phase 8E exporter, an
 runtime path reads projection outputs. Future composition should select capabilities
 according to task, policy, latency, resources, and verification needs rather than
 call every subsystem unconditionally.
+
+The Product Owner accepted the locally configured Stage 2 boundary with synthetic
+data only. An NTFS same-volume move preserves the staging ACL, so a bounded
+post-promotion finalizer must make the selected generation inherit the projection
+ACL before viewer use. The launcher verifies that state plus every manifest and
+output hash. It cannot launch an application because no application is qualified in
+Stage 2. The Product Owner reports that Obsidian is already installed but unused;
+the existing installation has not been inspected, configured, or qualified.
 
 ## Compute and telemetry
 

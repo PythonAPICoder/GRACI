@@ -41,6 +41,31 @@ plan must name the viewer account, same-volume sibling staging and projection ro
 ACL principals and rights, application-control mechanism, launcher and verification
 commands, rollback procedure, validation cases, and evidence location.
 
-The authorization continues to exclude Obsidian installation and application
-settings, real governed memory, real-data projection, network or firewall changes,
-deployment, automatic refresh, runtime integration, and Stage 3 or later work.
+The authorization continued to exclude inspection or configuration of the existing
+unused Obsidian installation, real governed memory, real-data projection, network
+or firewall changes, deployment, automatic refresh, runtime integration, and Stage
+3 or later work.
+
+## Stage 2 technical state
+
+The exact host plan is recorded in
+[`PHASE_8E_STAGE2_WINDOWS_PLAN.md`](../docs/PHASE_8E_STAGE2_WINDOWS_PLAN.md). The
+dedicated account, protected sibling roots, source isolation, local AppLocker path
+denies, verification, launcher foundation, rollback, and actual viewer-token test
+harness are implemented. A same-volume move preserves the staging ACL, so every
+successful export must be followed by:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\ops\finalize-phase8e-projection.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\ops\verify-phase8e-review-boundary.ps1 -RequireProjection
+```
+
+The finalizer is exact-pointer and containment bounded. A generation remains closed
+to the viewer until finalization succeeds. Technical evidence is recorded in
+[`ACC-0008`](../docs/acceptance/ACC-0008-phase8e-stage2-windows.md). Stage 2 is
+Product Owner accepted, but no application is qualified or launchable.
+
+The Product Owner accepts unencrypted local storage as a physical-security risk
+and prohibits installing, enabling, configuring, or deploying BitLocker on either
+system. This removes BitLocker as a Phase 8E prerequisite but does not authorize
+real-memory access, real-data generation, or any later-stage work.

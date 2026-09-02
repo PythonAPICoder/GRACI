@@ -45,8 +45,10 @@ code, configuration, tests, and time-stamped live evidence and report the confli
   is the Product Owner-accepted design. Its fixture-only Stage 1 implementation is
   documented in the [Phase 8E Stage 1 record](../phase8e/README.md) and accepted in
   [ACC-0007](acceptance/ACC-0007-phase8e-stage1.md). Stage 2 local Windows boundary
-  work is authorized; Obsidian, real data, deployment, and later stages remain
-  separately controlled.
+  work is accepted in [ACC-0008](acceptance/ACC-0008-phase8e-stage2-windows.md)
+  and documented in its [exact plan](PHASE_8E_STAGE2_WINDOWS_PLAN.md). Obsidian
+  qualification and configuration, real data, and later stages remain separately
+  controlled.
 
 ## Governance
 

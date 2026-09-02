@@ -2,7 +2,7 @@
 
 > Classification: mandatory session entry point
 > Authority: workflow guidance; canonical policy remains under `governance/`
-> Verified against: accepted Phase 8E Stage 1 commit `023a5ff9c78b549ac9d5d80ac3a3f1b92048ca12`
+> Verified through: Phase 8E Stage 2 Product Owner acceptance on 2026-09-02
 > Last verified: 2026-09-02
 
 Work from the repository root, `E:\GRACI`. Before changing anything, inspect the
@@ -107,3 +107,14 @@ verification. Stage 2 does not authorize Obsidian installation or configuration,
 real-memory access, real-data generation, network or firewall changes, deployment,
 automatic refresh, resident changes, or Stage 3 and later work. See
 [`ACC-0007`](docs/acceptance/ACC-0007-phase8e-stage1.md).
+
+Stage 2 synthetic Windows boundary verification, rollback, and reapply subsequently
+passed. The Product Owner accepted the lack of BitLocker as an intentional
+physical-security risk and directed that BitLocker must not be installed, enabled,
+configured, or deployed on any drive, folder, or file on either system. This does
+not authorize real data or Stage 3 or Stage 4 work. The Product Owner subsequently
+accepted Stage 2 and authorized its commit and push to `main`. The Product Owner
+reports that Obsidian is already installed but unused; it has not been inspected,
+configured, or qualified for GRACI. Stage 3 and later work remain unauthorized. See
+[`ACC-0008`](docs/acceptance/ACC-0008-phase8e-stage2-windows.md), `PO-DEC-029`, and
+`PO-DEC-030`.

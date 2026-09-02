@@ -2,7 +2,7 @@
 
 > Classification: current implementation, deployment, acceptance, and issue status
 > Authority: descriptive; canonical policy remains under `governance/`
-> Verified against: accepted Phase 8E Stage 1 commit `023a5ff9c78b549ac9d5d80ac3a3f1b92048ca12`
+> Verified through: Phase 8E Stage 2 Product Owner acceptance on 2026-09-02
 > Last verified: 2026-09-02
 
 ## Product and repository baseline
@@ -113,6 +113,19 @@ authorized Stage 2 local Windows viewer-boundary implementation and synthetic
 verification. Obsidian, real memory, real-data generation, deployment, network
 changes, and Stage 3 or later work remain unperformed and unauthorized.
 
+The authorized Stage 2 technical procedure is now implemented and locally applied.
+Actual viewer-token tests passed source and staging denial, projection read-only
+behavior, executable and script denial, tamper detection, failed-refresh
+preservation, resident independence, rollback, and reapply. The final synthetic
+generation is `8e000002-0000-4000-8000-000000002001`. The `E:` volume is not
+BitLocker-protected. The Product Owner accepted that physical-security risk and
+directed that BitLocker remain uninstalled and unconfigured on both systems. Real
+or sensitive projection data remains separately unauthorized. The Product Owner
+accepted Stage 2 and authorized its commit and push to `main` on 2026-09-02.
+Obsidian is already installed but, according to the Product Owner, has never been
+used. Stage 2 did not inspect, open, configure, or qualify it. See
+[`ACC-0008`](docs/acceptance/ACC-0008-phase8e-stage2-windows.md).
+
 The durable repository-memory/documentation foundation passed a fresh-session
 reconstruction test and is **PRODUCT OWNER ACCEPTED**. Its temporary bootstrap
 migration package has been removed.
@@ -155,9 +168,8 @@ level: official b10675 is deployed, both approved models returned `READY`, and t
 old build was restored successfully before final re-promotion. A new boot preserved
 the task, hash, firewall, MO2/telemetry readiness, and both model responses. Product
 Owner acceptance is recorded for both the upgrade and one-way certificate remoting.
-Phase 8E Stage 1 is Product Owner accepted, and Stage 2 local Windows boundary work
-with synthetic data is authorized. Stage 3 and all later objectives remain
-unauthorized.
+Phase 8E Stages 1 and 2 are Product Owner accepted. Stage 3 and all later objectives
+remain unauthorized.
 
 The future product direction is selective governed composition: use routing, review,
 memory, optional compute, recovery, and verification when the task, policy, latency,

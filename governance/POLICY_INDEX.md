@@ -8,6 +8,9 @@ prospectively to a capability that is not implemented. Neither status grants run
 authority. Links to phase records are historical evidence, not mutable current
 policy.
 
+`CURRENT / PROHIBITION` means an accepted Product Owner restriction that must remain
+in force and does not imply a new runtime capability.
+
 | ID | Title | Status | Canonical policy | Implementation | Deterministic test | Historical evidence |
 |---|---|---|---|---|---|---|
 | AUTH-001 | Product Owner authority and active authorization | CURRENT / IMPLEMENTED BEHAVIOR | [Identity and human authority](CURRENT_POLICY.md#identity-and-human-authority) | — | [Governance checks](../tests/test_governance.py) | [QA-001 state](../PROJECT_STATE.md#qa-001-graci-identity-and-conversational-response-contract-repair) |
@@ -22,6 +25,7 @@ policy.
 | TOOL-002 | Governed MCP creation, acquisition, qualification, and production connection | CURRENT / FUTURE CAPABILITY | [Tool discovery, qualification, and promotion](CURRENT_POLICY.md#tool-discovery-qualification-and-promotion) | No MCP creation, acquisition, or production-connection capability | [Governance checks](../tests/test_governance.py) | None recorded |
 | LOCAL-001 | Local-first and 3090-sufficient operation | CURRENT / IMPLEMENTED BEHAVIOR | [Local-first policy](CURRENT_POLICY.md#local-first-policy) | [`registry.py`](../graci/registry.py) | [Phase 3E acceptance](../tests/test_phase3e_acceptance.py) | [Phase 3 closure](../phase3e/README.md) |
 | COMPUTE-001 | Authoritative 3090 and optional gated 4090 | CURRENT / IMPLEMENTED BEHAVIOR | [Compute policy](CURRENT_POLICY.md#compute-policy) | [`availability.py`](../graci/availability.py), [`distributed.py`](../graci/distributed.py) | [Phase 3E acceptance](../tests/test_phase3e_acceptance.py) | [Phase 3C](../phase3c/README.md) |
+| STORAGE-001 | Do not install, enable, configure, or deploy BitLocker on either system | CURRENT / PROHIBITION | [Local storage encryption boundary](CURRENT_POLICY.md#local-storage-encryption-boundary) | No BitLocker deployment path | [Governance checks](../tests/test_governance.py) | [PO-DEC-029](../docs/decisions/DECISION_INDEX.md) |
 | MODEL-001 | Qwen implementer and GLM reviewer/verifier | CURRENT / IMPLEMENTED BEHAVIOR | [Model roles](CURRENT_POLICY.md#model-roles) | [`routing.py`](../graci/routing.py), [`registry.py`](../graci/registry.py) | [Phase 3E acceptance](../tests/test_phase3e_acceptance.py) | [Phase 3 closure](../phase3e/README.md) |
 | MEMORY-001 | Memory is bounded context, not authority | CURRENT / IMPLEMENTED BEHAVIOR | [Memory and privacy](CURRENT_POLICY.md#memory-and-privacy) | [`memory_governance.py`](../graci/memory_governance.py), [`memory_execution.py`](../graci/memory_execution.py) | [Memory governance tests](../tests/test_memory_governance.py) | [Phase 4E](../phase4e/README.md) |
 | MEMORY-002 | Local-first, source-traceable governed RAG | CURRENT / FUTURE CAPABILITY | [Memory and privacy](CURRENT_POLICY.md#memory-and-privacy) | No RAG runtime integration | [Governance checks](../tests/test_governance.py) | None recorded |

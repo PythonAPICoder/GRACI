@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 GOVERNANCE = ROOT / "governance"
 INDEX = GOVERNANCE / "POLICY_INDEX.md"
 POLICY_ID = re.compile(
-    r"^(AUTH|AUTONOMY|EXTERNAL|TOOL|LOCAL|COMPUTE|MODEL|MEMORY|HUMANVIEW|SELFDEV|VOICE|DOCSTYLE|VALIDATION|EVIDENCE)-\d{3}$")
+    r"^(AUTH|AUTONOMY|EXTERNAL|TOOL|LOCAL|COMPUTE|STORAGE|MODEL|MEMORY|HUMANVIEW|SELFDEV|VOICE|DOCSTYLE|VALIDATION|EVIDENCE)-\d{3}$")
 LINK = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
 
 
@@ -68,6 +68,8 @@ class GovernanceTests(unittest.TestCase):
         self.assertIn("convert one recurring task into general autonomous-follow-up authority", current)
         self.assertIn("No general document-upload or PDF-ingestion runtime path", current)
         self.assertIn("does not authorize transmitting the full résumé", current)
+        self.assertIn("must not install, enable, configure, or\ndeploy BitLocker", current)
+        self.assertIn("does not authorize real governed memory, real-data projection", current)
         self.assertIn("must not use the Unicode em dash character", current)
         self.assertIn("not permission to conceal or misrepresent", current)
         self.assertNotIn(".obsidian", "\n".join(self.documents))
