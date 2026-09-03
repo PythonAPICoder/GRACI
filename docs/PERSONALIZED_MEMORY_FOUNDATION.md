@@ -224,4 +224,8 @@ manual vault-refresh promotion, and live acceptance.
 The Product Owner accepted this synthetic foundation under PO-DEC-036 and
 authorized commit and push. That acceptance does not authorize real personal data,
 ordinary runtime integration, deployment, vault refresh, automatic updates, or
-Phase 8F implementation. Any of those actions needs a new exact scope and decision.
+Phase 8F implementation. PO-DEC-037 subsequently superseded only that final Phase
+8F restriction by authorizing a separate synthetic-only Stage 1 trusted secret
+broker through Product Owner review. It did not authorize any integration with this
+memory foundation, real personal data, deployment, automatic updates, or a later
+Phase 8F stage.

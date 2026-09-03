@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 GOVERNANCE = ROOT / "governance"
 INDEX = GOVERNANCE / "POLICY_INDEX.md"
 POLICY_ID = re.compile(
-    r"^(AUTH|AUTONOMY|EXTERNAL|TOOL|LOCAL|COMPUTE|STORAGE|MODEL|MEMORY|HUMANVIEW|SELFDEV|VOICE|DOCSTYLE|VALIDATION|EVIDENCE)-\d{3}$")
+    r"^(AUTH|AUTONOMY|EXTERNAL|TOOL|LOCAL|COMPUTE|STORAGE|CREDENTIAL|MODEL|MEMORY|HUMANVIEW|SELFDEV|VOICE|DOCSTYLE|VALIDATION|EVIDENCE)-\d{3}$")
 LINK = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
 
 
@@ -65,6 +65,10 @@ class GovernanceTests(unittest.TestCase):
         self.assertIn("preferences, working methods, repeatable task procedures", current)
         self.assertIn("Once accepted, G.R.A.C.I. may retrieve and use the\nmemory", current)
         self.assertIn("human-readable view of G.R.A.C.I.'s\napproved long-term knowledge", current)
+        self.assertIn("A capability grant is permission for one bounded operation", current)
+        self.assertIn("must not provide a general\nraw-secret retrieval", current)
+        self.assertIn("Secret values must not enter model prompts or output", current)
+        self.assertIn("automatic retry is forbidden", current)
         self.assertIn("An MCP provides capability, never task authority", current)
         self.assertIn("embeddings, indexes, chunks, and caches", current)
         self.assertIn("Corrective learning does not change model weights, policy,", current)

@@ -2,7 +2,7 @@
 
 > Classification: current descriptive architecture
 > Authority: implementation description; canonical policy remains under `governance/`
-> Verified through: PO-DEC-036 on 2026-09-02
+> Verified through: PO-DEC-038 on 2026-09-02
 > Last verified: 2026-09-02
 
 Accepted policy is canonical in
@@ -123,7 +123,14 @@ The repository also implements:
   read-only tamper verification; and
 - a separate Phase 8E Stage 2 local Windows boundary with a dedicated standard
   viewer, protected roots, SID-scoped source isolation, AppLocker execution denial,
-  exact rollback, and a fail-closed launcher foundation.
+  exact rollback, and a fail-closed launcher foundation; and
+- a separate Phase 8F Stage 1 synthetic secret broker with an ephemeral-key Windows
+  CNG AES-256-GCM store on a fixed local volume, authenticated and scope-bound
+  metadata envelopes, exact one-time or bounded standing grants, persistent
+  pre-dispatch use reservation, a reservation-through-completion store-lock fence,
+  expiry, review, revocation, hash-chained audit, immutable recovery generations,
+  metadata reads that do not expand secret plaintext, secret-only adapter handoff,
+  and one fixed fake notice adapter.
 
 The earlier specialized capabilities are tested and historically accepted within
 their recorded flows. Phase 8E Stage 1 has automated fixture evidence and Product
@@ -131,7 +138,12 @@ Owner acceptance; it is not deployed. The ordinary CLI/resident composition does
 not currently instantiate the Phase 3B workflow, memory governance, autonomous
 repair loop, or distributed router. It does not import the Phase 8E exporter, and no
 runtime path reads projection outputs. It also does not import the personalized
-memory foundation. Future composition should select capabilities
+memory foundation or the Phase 8F broker. The Phase 8F package creates no socket,
+service, scheduled task, Windows identity, stored production key, connector,
+network path, model path, memory path, Obsidian path, or resident/controller hook.
+Its tests establish only synthetic behavior. Product Owner acceptance under
+PO-DEC-038 authorizes repository preservation, not deployment or production use.
+Future composition should select capabilities
 according to task, policy, latency, resources, and verification needs rather than
 call every subsystem unconditionally.
 
@@ -195,6 +207,13 @@ cloud are not canonical-memory dependencies.
 No cloud AI runtime path exists. External assistance requires an active scoped grant
 and future governed implementation. Free-form Markdown is human documentation and
 must never be parsed to grant runtime capability.
+
+The synthetic Phase 8F store authenticates its encrypted vault, state-bound
+manifest, and current pointer with an in-memory test key. This detects local file
+tampering within the test boundary but does not supply production identity, durable
+key custody, ACL isolation, backup, restore, or an external monotonic anchor against
+whole-store rollback. Those remain explicit future security design and
+qualification work.
 
 ## Remaining architectural and acceptance gap
 

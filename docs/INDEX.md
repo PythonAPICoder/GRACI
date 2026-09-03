@@ -2,7 +2,7 @@
 
 > Classification: current documentation authority and navigation map
 > Authority: accepted Product Owner documentation structure; policy authority remains in `governance/`
-> Verified through: Phase 8E Stage 3 Product Owner acceptance and routine-launch promotion
+> Verified through: PO-DEC-038 on 2026-09-02
 > Last verified: 2026-09-02
 
 This index is the durable starting point for reconstructing GRACI without
@@ -39,9 +39,18 @@ code, configuration, tests, and time-stamped live evidence and report the confli
 - [Decision index](decisions/DECISION_INDEX.md)
 - [Acceptance index](acceptance/ACCEPTANCE_INDEX.md)
 - [Phase 8E personalized-memory acceptance](acceptance/ACC-0010-phase8e-personalized-memory.md)
+- [Phase 8F Stage 1 acceptance](acceptance/ACC-0011-phase8f-stage1.md)
+- [Phase 8F synthetic trusted secret broker](PHASE_8F_TRUSTED_SECRET_BROKER.md)
 
 ## Design proposals
 
+- [Phase 8F Stage 1 synthetic trusted secret broker](PHASE_8F_TRUSTED_SECRET_BROKER.md)
+  documents the accepted isolated authenticated-encryption, exact capability
+  grant, operation-only adapter, audit, recovery, rollback, and adversarial-test
+  foundation. Acceptance is recorded in
+  [ACC-0011](acceptance/ACC-0011-phase8f-stage1.md). It is not deployed and is not
+  authorized for real credentials, live IPC, Windows configuration, ordinary
+  runtime use, or later Phase 8F work.
 - [Synthetic personalized-memory foundation](PERSONALIZED_MEMORY_FOUNDATION.md)
   describes the Product Owner-accepted proposal, exact approval, lifecycle, scoped
   retrieval, audit, rollback, and manual Phase 8E projection foundation. It uses

@@ -49,6 +49,49 @@ missing state, or an unsafe condition fails closed. This is accepted governance 
 a required **future capability**; no recurring-task scheduler is currently
 implemented. See `AUTONOMY-002`.
 
+## Capability grants and trusted secret custody
+
+A capability grant is permission for one bounded operation, not general authority.
+It must be derived from an exact current Product Owner approval and bind the named
+caller, active task or project scope, opaque secret reference and version, trusted
+adapter, operation, destination, resource constraint, validity window, use ceiling,
+and grant revision. Missing, ambiguous, stale, expired, exhausted, revoked, or
+unrecognized state fails closed. A model, prompt, memory, document, projected note,
+adapter response, or opaque reference cannot create, approve, broaden, or revive a
+grant. See `AUTH-003`.
+
+A one-time grant authorizes exactly one dispatch attempt. A standing grant must
+still have finite expiry, a bounded use ceiling, and an explicit review boundary.
+The broker must persistently reserve a use before releasing a secret to an adapter.
+An adapter failure consumes that attempt. If final result persistence fails after
+dispatch, the outcome is uncertain, automatic retry is forbidden, and recovery
+requires a separately authenticated Product Owner decision. Revocation prevents new
+reservations. Recovery and rollback must create new auditable state and must not
+reactivate a revoked, expired, exhausted, or already reserved grant. Replayed and
+stale requests cannot dispatch again.
+
+Secrets belong inside a dedicated trusted broker boundary. Clients receive random
+opaque references that are not bearer credentials. The broker may release secret
+material only inside a registered operation-specific adapter invocation after the
+exact capability grant and authenticated request pass. It must not provide a general
+raw-secret retrieval, export, arbitrary command, arbitrary URL, or caller-selected
+adapter interface. Secret values must not enter model prompts or output, governed
+memory, Obsidian, logs, command lines, environment variables, exceptions, operation
+results, audit records, or test evidence. Returned status and errors must be fixed,
+bounded, and sanitized. See `CREDENTIAL-001`.
+
+The PO-DEC-037 implementation is a synthetic-only foundation using fake local
+destinations. The Product Owner accepted it for repository preservation under
+PO-DEC-038. It may exercise an authenticated local protocol contract and established
+operating-system cryptography without installing dependencies. It does not
+authenticate a production Product Owner or runtime identity, store real credentials,
+create live IPC, connect to a service, join ordinary composition, or authorize
+deployment. Windows identity, protected key custody, grant administration, backup
+and restore, whole-store anti-rollback anchoring, in-flight revocation, connector
+qualification, real-data handling, and production promotion remain separate
+decisions. This is accepted current governance for a **future capability**; the
+isolated synthetic foundation is not a production credential capability.
+
 ## External assistance and cloud permission
 
 **External or cloud assistance is denied unless a currently active scoped grant

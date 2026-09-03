@@ -2,7 +2,7 @@
 
 > Classification: current implementation/integration/deployment/acceptance map
 > Authority: descriptive current state; does not grant runtime or development authority
-> Verified through: PO-DEC-036 on 2026-09-02
+> Verified through: PO-DEC-038 on 2026-09-02
 > Last verified: 2026-09-02
 
 The columns are deliberately independent. **Implemented** does not mean used by the
@@ -33,7 +33,8 @@ physically accepted.
 | Human-quality document creation | Current writing policy and required future product objective | Current repository work follows the policy; no general cross-format style-enforcement and artifact-validation pipeline | No ordinary runtime document-creation composition | Phase 12 design, implementation, deployment, and Product Owner acceptance not yet authorized |
 | Unified planning and governed execution | Required future product objective; plans cannot grant authority | Specialized capabilities exist, but no unified ordinary task planner and executor | No | Phase 13 design, implementation, deployment, and acceptance not yet authorized |
 | Permission center and approval inbox | Required future product objective; Product Owner remains final authority | No unified permission, approval, revocation, and history interface | No | Phase 14 design, implementation, deployment, and acceptance not yet authorized |
-| Secure credentials and service connectors | Required future product objective; least privilege and action-specific grants | No general protected credential and everyday-service connector layer | No | Phase 15 design, implementation, connector selection, deployment, and acceptance not yet authorized |
+| Trusted secret broker and capability grants | Phase 8F Stage 1 accepted under PO-DEC-038 for repository preservation; operation capability is not general authority | Isolated synthetic-only broker implements authenticated encryption on a fixed local volume, opaque references, exact one-time and bounded standing grants, expiry, review, revocation, reservation-through-completion locking, replay control, metadata-only reads, audit, recovery, rollback, and one fake adapter | **No**: no import or hook in ordinary `graci` composition | Product Owner accepted the synthetic foundation; no real credentials, production identity, live IPC, Windows configuration, deployment, or later stage is authorized |
+| Secure credentials and service connectors | Required future product objective; least privilege and action-specific grants | No production credential broker or everyday-service connector layer; the separate Phase 8F Stage 1 foundation is synthetic only | No | Phase 15 connector selection, production security design, deployment, and acceptance are not authorized |
 | Browser and desktop action | Required future product objective; consequential actions remain separately permissioned | No ordinary governed browser and desktop action composition | No | Phase 16 design, implementation, deployment, and acceptance not yet authorized |
 | Multimodal understanding and media workflows | Required future product objective; source rights, privacy, and provenance remain explicit | Existing voice and visual presentation do not provide general image, scan, chart, audio, or video task understanding and creation | No | Phase 17 design, tool selection, implementation, deployment, and acceptance not yet authorized |
 | Resilience and measurable improvement | Required future product objective; metrics cannot change authority | Existing evidence and bounded lifecycle records do not provide complete backup, restore, and outcome measurement | No | Phase 18 design, implementation, restore testing, deployment, and acceptance not yet authorized |

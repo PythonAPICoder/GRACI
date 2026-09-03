@@ -2,7 +2,7 @@
 
 > Classification: current issue and unresolved-evidence register
 > Authority: descriptive Product Owner/runtime record; issue closure requires evidence
-> Verified through: PO-DEC-036
+> Verified through: PO-DEC-038
 > Last verified: 2026-09-02
 
 ## GRACI-ISSUE-001 — Cold-start/runtime-readiness failure
@@ -226,3 +226,21 @@ preservation, audited rollback, and deterministic projection. The Product Owner
 accepted the synthetic foundation under PO-DEC-036 and authorized its commit and
 push. The gap remains open because no trusted ordinary-turn adapter, real-data
 boundary, runtime retrieval, maintainer command, or real vault refresh exists.
+
+## GRACI-GAP-008: Phase 8F broker is synthetic and lacks production trust anchors
+
+**Status: OPEN / STAGE 1 PRODUCT OWNER ACCEPTED / PRODUCTION WORK UNAUTHORIZED**
+
+PO-DEC-037 authorized an isolated synthetic-only trusted secret broker foundation,
+and PO-DEC-038 accepts that foundation for repository preservation. The
+implementation can test exact capability grants, encrypted custody, opaque
+references, one fixed adapter operation, persistent reservation, replay control,
+audit, recovery, and rollback without exposing a general raw-secret interface.
+
+It is not a production credential capability. Closure for any real use requires
+separate Product Owner scope for a production caller identity, protected durable key
+custody, Windows account and ACL design, live local IPC authentication, backup and
+restore, an external anti-rollback anchor, in-flight revocation policy, connector
+qualification, real-data handling, deployment, ordinary runtime integration, and
+acceptance. PO-DEC-038 authorizes none of those actions and explicitly prohibits
+beginning later Phase 8F work by implication.

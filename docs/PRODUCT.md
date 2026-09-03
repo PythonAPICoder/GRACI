@@ -2,7 +2,7 @@
 
 > Classification: current product identity and direction
 > Authority: accepted Product Owner decisions, bounded by canonical governance
-> Verified through: PO-DEC-036 on 2026-09-02
+> Verified through: PO-DEC-038 on 2026-09-02
 > Last verified: 2026-09-02
 
 ## Identity
@@ -88,6 +88,15 @@ connectors, safe browser and desktop action, multimodal understanding and media
 workflows, tested backup and recovery, and measurable task outcomes. These
 capabilities must make GRACI easier to use without weakening local-first operation,
 Product Owner control, evidence, or rollback.
+
+PO-DEC-037 authorizes the first isolated foundation for that direction. Phase 8F
+Stage 1 uses only synthetic values and a fake destination to establish that a
+secret can remain behind an authenticated-encryption boundary while an exact,
+time-bounded, revocable capability authorizes one named operation-specific adapter.
+PO-DEC-038 accepts that synthetic repository foundation. It does not make
+credentials or connectors available to GRACI, and it does not authorize production
+identity, real data, live IPC, deployment, ordinary runtime integration, or later
+Phase 8F work.
 
 Interaction is currently explicit: typed input or push-to-talk. PTT release is the
 spoken-turn submission boundary. There is no authorized wake word, VAD authority,

@@ -2,7 +2,7 @@
 
 > Classification: mandatory session entry point
 > Authority: workflow guidance; canonical policy remains under `governance/`
-> Verified through: PO-DEC-036 on 2026-09-02
+> Verified through: PO-DEC-038 on 2026-09-02
 > Last verified: 2026-09-02
 
 Work from the repository root, `E:\GRACI`. Before changing anything, inspect the
@@ -174,3 +174,17 @@ runtime integration, automatic vault refresh, automatic updates, external/cloud
 assistance, BitLocker changes, or Phase 8F implementation. See
 [`ACC-0010`](docs/acceptance/ACC-0010-phase8e-personalized-memory.md) and
 [`PERSONALIZED_MEMORY_FOUNDATION.md`](docs/PERSONALIZED_MEMORY_FOUNDATION.md).
+
+PO-DEC-037 authorized Phase 8F Stage 1 in a separate isolated worktree from base
+commit `a80a2adde10716ee6cfd79dd97c046014f61d15d`. The resulting synthetic-only
+trusted secret broker and exact capability-grant foundation provides a Windows CNG
+authenticated-encryption boundary, authenticated metadata protocol, one-time and
+bounded standing grants, persistent use reservation, expiry, revocation, audit,
+recovery, rollback, and one fake operation-specific adapter. The Product Owner
+accepted Stage 1 under PO-DEC-038 and authorized its commit and push to `main`. It
+remains outside ordinary runtime composition and is not deployed. No real secret,
+personal data, live IPC, Windows configuration, network access, external
+assistance, model integration, memory integration, Obsidian integration, service
+registration, or later Phase 8F work is authorized. See
+[`ACC-0011`](docs/acceptance/ACC-0011-phase8f-stage1.md) and
+[`PHASE_8F_TRUSTED_SECRET_BROKER.md`](docs/PHASE_8F_TRUSTED_SECRET_BROKER.md).

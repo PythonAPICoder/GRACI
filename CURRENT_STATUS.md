@@ -2,7 +2,7 @@
 
 > Classification: current implementation, deployment, acceptance, and issue status
 > Authority: descriptive; canonical policy remains under `governance/`
-> Verified through: PO-DEC-036 on 2026-09-02
+> Verified through: PO-DEC-038 on 2026-09-02
 > Last verified: 2026-09-02
 
 ## Product and repository baseline
@@ -170,6 +170,24 @@ data, and is not deployed or automatically refreshed. See
 [`ACC-0010`](docs/acceptance/ACC-0010-phase8e-personalized-memory.md) and
 [`PERSONALIZED_MEMORY_FOUNDATION.md`](docs/PERSONALIZED_MEMORY_FOUNDATION.md).
 
+PO-DEC-037 then authorized Phase 8F Stage 1 from base commit
+`a80a2adde10716ee6cfd79dd97c046014f61d15d`. The isolated `phase8f` package now
+implements a synthetic-only secret broker, Windows CNG AES-256-GCM boundary,
+authenticated local metadata-envelope contract, exact Product Owner approval
+records, one-time and bounded standing grant lifecycles, pre-dispatch reservation,
+expiry, review, revocation, replay control, hash-chained audit, uncertain-outcome
+closure, immutable rollback generations, and one fake notice adapter. The focused
+warning-strict Phase 8F suite passed all 52 tests, and the final canonical
+warning-strict repository suite passed all 684 tests on 2026-09-02. Independent
+architecture and adversarial re-review found no remaining P0/P1 or material P2
+issue. The Product Owner accepted Stage 1 under PO-DEC-038 and authorized its
+commit and push to `main`. It remains undeployed and disconnected from ordinary
+GRACI composition. It has not used real credentials or personal data and has made
+no Windows, network, service, resident, controller, model, memory, Obsidian, 3090,
+or 4090 change. See
+[`ACC-0011`](docs/acceptance/ACC-0011-phase8f-stage1.md) and
+[`PHASE_8F_TRUSTED_SECRET_BROKER.md`](docs/PHASE_8F_TRUSTED_SECRET_BROKER.md).
+
 The durable repository-memory/documentation foundation passed a fresh-session
 reconstruction test and is **PRODUCT OWNER ACCEPTED**. Its temporary bootstrap
 migration package has been removed.
@@ -221,7 +239,9 @@ old build was restored successfully before final re-promotion. A new boot preser
 the task, hash, firewall, MO2/telemetry readiness, and both model responses. Product
 Owner acceptance is recorded for both the upgrade and one-way certificate remoting.
 Phase 8E Stages 1 through 3 are Product Owner accepted. Stage 4 and all later Phase
-8E work remain unauthorized.
+8E work remain unauthorized. Phase 8F Stage 1 is Product Owner accepted under
+PO-DEC-038 for repository preservation only. It is not deployed or integrated, and
+no later Phase 8F stage is authorized.
 
 The future product direction is selective governed composition: use routing, review,
 memory, optional compute, recovery, and verification when the task, policy, latency,
