@@ -4,7 +4,8 @@
 > Authority: descriptive; live state must be rechecked before an operational action
 > Verified against: promoted Phase 8D commit `a0a61b7298d3c85cec054cd11ca827842f2776dd`
 > Current governance through: PO-DEC-039 on 2026-09-02
-> Last verified: 2026-09-02
+> Operational evidence through: PO-DEC-040 on 2026-09-03
+> Last verified: 2026-09-03
 
 ## Phase 8E host workflow quarantine
 
@@ -16,9 +17,12 @@ fail closed before host access so historical source can remain available as inci
 evidence.
 
 There is no approved Phase 8E viewer deployment procedure. The replacement is
-design-only. Do not inspect, clean, or alter the recovered host under this guidance.
-The future read-only audit requires separate explicit Product Owner approval. See
+design-only. The separately authorized three-gate read-only audit is complete, the
+incident is operationally remediated, and the host is classified as
+`FUNCTIONAL WITH HARMLESS RESIDUE`. Do not rerun the audit, clean the residue, or
+alter the recovered host under this guidance. See
 [`INC-0001`](incidents/INC-0001-phase8e-stage2-applocker.md),
+[`ACC-0013`](acceptance/ACC-0013-phase8e-applocker-operational-closure.md),
 [`HOST-001`](../governance/CURRENT_POLICY.md#host-system-change-approval), and the
 [`replacement design`](PHASE_8E_REPLACEMENT_BOUNDARY_DESIGN.md).
 

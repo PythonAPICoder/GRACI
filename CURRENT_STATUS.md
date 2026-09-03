@@ -2,8 +2,8 @@
 
 > Classification: current implementation, deployment, acceptance, and issue status
 > Authority: descriptive; canonical policy remains under `governance/`
-> Verified through: PO-DEC-039 on 2026-09-02
-> Last verified: 2026-09-02
+> Verified through: PO-DEC-040 on 2026-09-03
+> Last verified: 2026-09-03
 
 ## Product and repository baseline
 
@@ -131,9 +131,15 @@ same date, after packaged applications were blocked, PO-DEC-039 superseded that
 approval and rejected the AppLocker design. See
 [`INC-0001`](docs/incidents/INC-0001-phase8e-stage2-applocker.md) and
 [`ACC-0012`](docs/acceptance/ACC-0012-phase8e-incident-response.md).
-The Product Owner reports that the Windows host is functional. Current policy does
-not infer that Stage 2 residue exists or does not exist. The read-only audit is
-designed but unexecuted and requires separate explicit approval.
+The separately authorized three-gate incident closure completed on 2026-09-03.
+Gate 1, Gate 2, and the post-reboot Gate 3 all passed. Local and effective AppLocker
+policy were empty, `SrpV2` had no values or child collections, no collection was
+enforcing, normal classic and packaged applications launched, and no post-boot
+AppLocker warning, error, deny, Event 8026, or Event 8027 was present. The Product
+Owner classified the host as `FUNCTIONAL WITH HARMLESS RESIDUE` and marked the
+incident operationally remediated. Existing empty-policy, service, driver, and
+cache artifacts are not approved for cleanup. See
+[`ACC-0013`](docs/acceptance/ACC-0013-phase8e-applocker-operational-closure.md).
 At the historical Stage 2 boundary, Obsidian was already installed but had never
 been used. Stage 2 did not inspect, open, configure, or qualify it. See
 [`ACC-0008`](docs/acceptance/ACC-0008-phase8e-stage2-windows.md).
@@ -252,11 +258,13 @@ old build was restored successfully before final re-promotion. A new boot preser
 the task, hash, firewall, MO2/telemetry readiness, and both model responses. Product
 Owner acceptance is recorded for both the upgrade and one-way certificate remoting.
 Phase 8E Stage 1 and the synthetic personalized-memory foundation remain accepted.
-Stage 2 AppLocker architecture is rejected, and Stage 3 qualification is historical
-with routine launch withdrawn. A narrower replacement is design-only. Stage 4 and
-all later Phase 8E work remain unauthorized. Phase 8F Stage 1 is Product Owner accepted under
-PO-DEC-038 for repository preservation only. It is not deployed or integrated, and
-no later Phase 8F stage is authorized.
+The AppLocker incident is operationally remediated and the host is
+`FUNCTIONAL WITH HARMLESS RESIDUE`. Stage 2 remains rejected, superseded, and
+quarantined, and Stage 3 qualification is historical with routine launch withdrawn.
+A narrower replacement is design-only; replacement Phase 8E remains separate future
+work. Phase 8F Stage 1 is Product Owner accepted under PO-DEC-038 for repository
+preservation only. It is not deployed or integrated, and later Phase 8F work
+remains separate and unauthorized.
 
 The future product direction is selective governed composition: use routing, review,
 memory, optional compute, recovery, and verification when the task, policy, latency,

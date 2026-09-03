@@ -2,8 +2,8 @@
 
 > Classification: current descriptive architecture
 > Authority: implementation description; canonical policy remains under `governance/`
-> Verified through: PO-DEC-039 on 2026-09-02
-> Last verified: 2026-09-02
+> Verified through: PO-DEC-040 on 2026-09-03
+> Last verified: 2026-09-03
 
 Accepted policy is canonical in
 [`governance/CURRENT_POLICY.md`](governance/CURRENT_POLICY.md). This document
@@ -154,6 +154,16 @@ baseline, and every dependent repository entry point fails closed before host
 access. Historical implementation and validation evidence remain in `ACC-0008` and
 `INC-0001`. The replacement boundary is approved for design only and is not
 deployed.
+
+The separately authorized three-gate operational closure passed on 2026-09-03.
+Local and effective AppLocker policy were empty, no rule collection was enforcing,
+normal application execution passed after reboot, and the post-boot AppLocker logs
+contained no warning, error, or deny. The host is classified as
+`FUNCTIONAL WITH HARMLESS RESIDUE`; existing empty-policy and cache artifacts are
+not approved for cleanup. This operational closure does not change the rejected and
+quarantined status of Stage 2 or authorize replacement Phase 8E or later Phase 8F
+work. See
+[`ACC-0013`](docs/acceptance/ACC-0013-phase8e-applocker-operational-closure.md).
 
 The first narrow Stage 3 test temporarily exposed the Product Owner's per-user
 executable to the review SID. That candidate did not remain running and was rolled

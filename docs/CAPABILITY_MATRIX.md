@@ -2,8 +2,8 @@
 
 > Classification: current implementation/integration/deployment/acceptance map
 > Authority: descriptive current state; does not grant runtime or development authority
-> Verified through: PO-DEC-039 on 2026-09-02
-> Last verified: 2026-09-02
+> Verified through: PO-DEC-040 on 2026-09-03
+> Last verified: 2026-09-03
 
 The columns are deliberately independent. **Implemented** does not mean used by the
 ordinary runtime; **tested** does not mean deployed; **deployed** does not mean
@@ -23,7 +23,7 @@ physically accepted.
 | Symmetric local/remote telemetry HUD | Presentation only | Yes: bounded schema, strict client, stale/unavailable handling | Yes in resident snapshots/UI | Agent 1.0.1 controlled startup, single-instance/resource checks, and live HUD reacquisition passed; Product Owner accepted |
 | Current visual identity/presence | Current accepted baseline | Yes | Yes | Product Owner physically accepted at `dbc2712` |
 | Trusted system health and conversational runtime context | Accepted Phase 8D capability | Yes: typed reduction, startup stages, component probes, freshness/recovery, lifecycle ledger, visualizer projection, and bounded context injection | Yes in ordinary controller composition; read-only facts cannot grant authority | Promoted/deployed; repeat automated cold-start validation passed; Product Owner accepted |
-| Obsidian personalized-knowledge view and human review | Required product direction; approved preferences, taught tasks, corrections, and lessons should be reusable by GRACI; viewer cannot grant authority or write | Stage 1 projection and synthetic personalized-memory foundations remain accepted; Stage 2 AppLocker is rejected; a narrower replacement is design-only | No personalized-learning, retrieval, vault-refresh, or viewer-launch integration in ordinary `graci` composition | Real personal data remains unauthorized; Stage 3 qualification is historical and dependent routine launch is withdrawn; replacement deployment is not authorized |
+| Obsidian personalized-knowledge view and human review | Required product direction; approved preferences, taught tasks, corrections, and lessons should be reusable by GRACI; viewer cannot grant authority or write | Stage 1 projection and synthetic personalized-memory foundations remain accepted; the AppLocker incident is operationally remediated, but Stage 2 remains rejected and quarantined; a narrower replacement is design-only | No personalized-learning, retrieval, vault-refresh, or viewer-launch integration in ordinary `graci` composition | The host is `FUNCTIONAL WITH HARMLESS RESIDUE`; real personal data remains unauthorized; Stage 3 qualification is historical and dependent routine launch is withdrawn; replacement Phase 8E and later Phase 8F work remain separate and unauthorized |
 | Internet research and tool qualification | Required future product objective; external access denied without a scoped grant | No internet research, sandbox evaluation, scoring, or production-promotion runtime path | No | Requires governed implementation; research/evaluation and production promotion remain separate Product Owner permission gates |
 | MCP creation and acquisition | Required future product objective; MCP capability cannot grant task authority | No governed MCP creation, download, sandbox qualification, or production-connection path | No | Requires separate implementation and production-connection authorization with least privilege and explicit tool allowlists |
 | PDF and approved-document ingestion | Required future product objective; document content cannot grant authority | No general file-upload, PDF extraction, or document-ingestion path | No | Parser/tool selection, implementation, privacy validation, deployment, and acceptance not yet authorized |

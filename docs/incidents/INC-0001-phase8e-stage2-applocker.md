@@ -2,9 +2,10 @@
 
 > Classification: durable high-severity incident record
 > Severity: HIGH
-> State: ROOT CAUSE ACCEPTED; REPOSITORY REMEDIATION AUTHORIZED
+> State: OPERATIONALLY REMEDIATED; STAGE 2 DESIGN REJECTED AND QUARANTINED
 > Incident date: 2026-09-02
-> Accepted authority: PO-DEC-039
+> Operational closure: 2026-09-03
+> Accepted authority: PO-DEC-039 and PO-DEC-040
 
 ## Executive summary
 
@@ -124,9 +125,15 @@ entered Windows Recovery Environment when blocking continued, removed the remain
 `AppCache.dat` offline, and rebooted again. Codex, Snipping Tool, and PowerShell then
 worked again.
 
-This record does not assert whether AppLocker residue currently exists. The host is
-functional, and no further inspection or cleanup is authorized by PO-DEC-039. A
-separate read-only audit requires a later explicit decision.
+The separately authorized three-gate closure completed on 2026-09-03. Gate 1,
+Gate 2, and the post-reboot Gate 3 all passed. The final read-only validation found
+empty local and effective AppLocker policy, an empty `SrpV2` root, no GRACI rules,
+no effective or enforcing collection, normal application execution, and no
+post-boot AppLocker warning, error, deny, Event 8026, or Event 8027. The Product
+Owner classified the host as `FUNCTIONAL WITH HARMLESS RESIDUE` and accepted the
+incident as operationally remediated. Exact hashes, timestamps, cache metadata, and
+the boundary of that conclusion are recorded in
+[`ACC-0013`](../acceptance/ACC-0013-phase8e-applocker-operational-closure.md).
 
 ## Why validation failed
 
@@ -151,10 +158,13 @@ rollback evidence.
 
 ## Current disposition
 
+- The incident is operationally remediated. The host is classified as
+  `FUNCTIONAL WITH HARMLESS RESIDUE`; no cleanup of that residue is authorized.
 - The original AppLocker design and dependent launcher are quarantined in the
   repository under PO-DEC-039.
 - Historical source and evidence remain intact in current files below the fail-closed
   guard, in commit `b57662a`, and in the original evidence records.
-- A non-AppLocker replacement is approved for design only.
-- No replacement deployment, host audit, host cleanup, or Phase 8F work is
-  authorized by this record.
+- A non-AppLocker replacement remains approved for design only. Its implementation
+  and deployment are separate future Phase 8E work.
+- Phase 8F remains separate future work. Neither the closure nor its documentation
+  authorizes a later Phase 8F stage.

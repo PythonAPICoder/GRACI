@@ -2,8 +2,8 @@
 
 > Classification: current issue and unresolved-evidence register
 > Authority: descriptive Product Owner/runtime record; issue closure requires evidence
-> Verified through: PO-DEC-039
-> Last verified: 2026-09-02
+> Verified through: PO-DEC-040
+> Last verified: 2026-09-03
 
 ## GRACI-ISSUE-001 — Cold-start/runtime-readiness failure
 
@@ -112,7 +112,7 @@ the restricted-token error branch has not been physically re-run after repair.
 
 ## GRACI-ISSUE-003: Phase 8E Stage 2 AppLocker architecture caused host outage
 
-**State: ROOT CAUSE ACCEPTED; UNSAFE PATH QUARANTINED; HOST RESIDUE UNASSESSED**
+**State: OPERATIONALLY REMEDIATED; FUNCTIONAL WITH HARMLESS RESIDUE**
 
 Phase 8E Stage 2 enabled machine-wide AppLocker EXE enforcement without a Packaged
 App collection. Windows consequently blocked packaged applications under Event
@@ -124,13 +124,22 @@ not part of the current baseline. The repository entry points are quarantined, a
 a narrower identity, filesystem, inert-content, manifest, immutable-generation,
 constrained-viewer, and validated-launcher architecture is approved for design only.
 
-The functional host must not be called clean or affected without a separately
-approved read-only audit. No audit, cleanup, replacement deployment, or Phase 8F
-work is currently authorized. See
+The separately authorized Gate 1, Gate 2, and post-reboot Gate 3 all passed on
+2026-09-03. The final evidence showed empty local and effective policy, an empty
+`SrpV2` root, no enforcing collection, normal classic and packaged application
+execution, and no post-boot AppLocker warning, error, deny, Event 8026, or Event
+8027. The Product Owner classified the host as `FUNCTIONAL WITH HARMLESS RESIDUE`
+and marked the incident operationally remediated. The empty-policy, service, driver,
+and cache residue is not approved for cleanup.
+
+The unsafe Stage 2 path remains rejected, superseded, and quarantined. Replacement
+Phase 8E implementation and later Phase 8F work remain separate future work and are
+not authorized. See
 [`INC-0001`](incidents/INC-0001-phase8e-stage2-applocker.md),
 [`ACC-0012`](acceptance/ACC-0012-phase8e-incident-response.md), the
+[`operational closure`](acceptance/ACC-0013-phase8e-applocker-operational-closure.md), the
 [`replacement design`](PHASE_8E_REPLACEMENT_BOUNDARY_DESIGN.md), and the
-[`unexecuted audit plan`](PHASE_8E_READ_ONLY_HOST_AUDIT_PLAN.md).
+[`executed audit plan`](PHASE_8E_READ_ONLY_HOST_AUDIT_PLAN.md).
 
 ## GRACI-GAP-001: Telemetry 1.0.1 acceptance
 

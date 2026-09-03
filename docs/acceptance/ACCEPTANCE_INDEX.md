@@ -2,8 +2,8 @@
 
 > Classification: durable acceptance and validation registry
 > Authority: each record is authoritative only for its stated scope
-> Verified through: PO-DEC-039 Phase 8E Stage 2 incident response on 2026-09-02
-> Last verified: 2026-09-02
+> Verified through: PO-DEC-040 Phase 8E AppLocker operational closure on 2026-09-03
+> Last verified: 2026-09-03
 
 Acceptance states must remain distinct:
 
@@ -26,6 +26,7 @@ Acceptance states must remain distinct:
 | [`ACC-0010-phase8e-personalized-memory.md`](ACC-0010-phase8e-personalized-memory.md) | Phase 8E synthetic personalized-memory approval, lifecycle, retrieval, rollback, and projection foundation | **PRODUCT OWNER ACCEPTED** |
 | [`ACC-0011-phase8f-stage1.md`](ACC-0011-phase8f-stage1.md) | Phase 8F Stage 1 synthetic trusted secret broker and capability-grant foundation | **PRODUCT OWNER ACCEPTED** |
 | [`ACC-0012-phase8e-incident-response.md`](ACC-0012-phase8e-incident-response.md) | Phase 8E Stage 2 root-cause acceptance and repository-only remediation authority | **PRODUCT OWNER ACCEPTED** |
+| [`ACC-0013-phase8e-applocker-operational-closure.md`](ACC-0013-phase8e-applocker-operational-closure.md) | Three-gate AppLocker incident closure, final post-reboot evidence, and host classification | **OPERATIONALLY REMEDIATED; FUNCTIONAL WITH HARMLESS RESIDUE** |
 | [`PHASE_INDEX.md`](../history/PHASE_INDEX.md) and phase evidence | Historical phase-specific implementation and acceptance | **HISTORICAL; SCOPE VARIES BY RECORD** |
 
 No acceptance may be widened by implication. Automated tests do not establish

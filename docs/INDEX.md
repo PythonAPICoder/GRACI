@@ -2,8 +2,8 @@
 
 > Classification: current documentation authority and navigation map
 > Authority: accepted Product Owner documentation structure; policy authority remains in `governance/`
-> Verified through: PO-DEC-039 on 2026-09-02
-> Last verified: 2026-09-02
+> Verified through: PO-DEC-040 on 2026-09-03
+> Last verified: 2026-09-03
 
 This index is the durable starting point for reconstructing GRACI without
 conversation history.
@@ -43,15 +43,14 @@ code, configuration, tests, and time-stamped live evidence and report the confli
 - [Phase 8F synthetic trusted secret broker](PHASE_8F_TRUSTED_SECRET_BROKER.md)
 - [Phase 8E AppLocker incident](incidents/INC-0001-phase8e-stage2-applocker.md)
 - [Phase 8E incident response authority](acceptance/ACC-0012-phase8e-incident-response.md)
+- [Phase 8E AppLocker operational closure](acceptance/ACC-0013-phase8e-applocker-operational-closure.md)
+- [Completed Phase 8E read-only host audit](PHASE_8E_READ_ONLY_HOST_AUDIT_PLAN.md)
 
 ## Design proposals
 
 - [Phase 8E replacement viewer-boundary design](PHASE_8E_REPLACEMENT_BOUNDARY_DESIGN.md)
   is approved for design only and replaces AppLocker with narrower identity,
   filesystem, inert-content, manifest, immutable-generation, and launcher controls.
-- [Proposed Phase 8E read-only host audit](PHASE_8E_READ_ONLY_HOST_AUDIT_PLAN.md)
-  is unexecuted and requires separate explicit Product Owner approval.
-
 - [Phase 8F Stage 1 synthetic trusted secret broker](PHASE_8F_TRUSTED_SECRET_BROKER.md)
   documents the accepted isolated authenticated-encryption, exact capability
   grant, operation-only adapter, audit, recovery, rollback, and adversarial-test

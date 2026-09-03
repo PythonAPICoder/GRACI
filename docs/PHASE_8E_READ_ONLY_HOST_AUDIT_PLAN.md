@@ -1,8 +1,15 @@
-# Proposed Phase 8E read-only host audit
+# Phase 8E read-only host audit
 
-> Classification: unexecuted audit design
-> Authority: PO-DEC-039 permits design only
-> State: SEPARATE EXPLICIT PRODUCT OWNER APPROVAL REQUIRED BEFORE EXECUTION
+> Classification: executed audit design and historical procedure
+> Design authority: PO-DEC-039
+> Closure authority: PO-DEC-040
+> State: GATES 1, 2, AND 3 PASSED; OPERATIONALLY CLOSED
+
+The Product Owner separately authorized execution after this plan was written.
+Gate 1, Gate 2, and post-reboot Gate 3 passed. The accepted result is
+`FUNCTIONAL WITH HARMLESS RESIDUE`; exact final evidence is preserved in
+[`ACC-0013`](acceptance/ACC-0013-phase8e-applocker-operational-closure.md). This
+document remains the reviewed procedure and does not authorize rerunning it.
 
 ## Question
 

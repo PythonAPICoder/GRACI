@@ -2,8 +2,8 @@
 
 > Classification: mandatory session entry point
 > Authority: workflow guidance; canonical policy remains under `governance/`
-> Verified through: PO-DEC-039 on 2026-09-02
-> Last verified: 2026-09-02
+> Verified through: PO-DEC-040 on 2026-09-03
+> Last verified: 2026-09-03
 
 Work from the repository root, `E:\GRACI`. Before changing anything, inspect the
 current branch, HEAD, worktree status, and recent history. Existing changes and
@@ -197,8 +197,9 @@ rejected the AppLocker architecture as unsafe and disproportionate, withdrew its
 deployment approval, and authorized repository-only remediation. The historical
 source and evidence remain, but the shared host workflow, worker, and routine
 launcher are quarantined before host access. The narrower replacement is approved
-for design only. No host audit, cleanup, Windows change, replacement deployment, or
-Phase 8F continuation is authorized. See
+for design only. At the PO-DEC-039 boundary, no host audit, cleanup, Windows change,
+replacement deployment, or Phase 8F continuation was authorized. The later
+read-only audit and operational closure are recorded under PO-DEC-040 below. See
 [`INC-0001`](docs/incidents/INC-0001-phase8e-stage2-applocker.md),
 [`ACC-0012`](docs/acceptance/ACC-0012-phase8e-incident-response.md), and
 [`HOST-001`](governance/CURRENT_POLICY.md#host-system-change-approval).
@@ -211,3 +212,14 @@ firewall, boot, user-right, machine-registry, scheduled-task, account/group, liv
 ACL, or comparable host change, present the exact change, necessity, scope,
 components, commands, risk, reboot behavior, complete rollback, validation, and
 isolated-test evidence, then stop for explicit Product Owner approval.
+
+PO-DEC-040 records the operational closure of the AppLocker incident. The
+separately authorized Gate 1, Gate 2, and post-reboot Gate 3 all passed, and the
+Product Owner classified the host as `FUNCTIONAL WITH HARMLESS RESIDUE`. Local and
+effective AppLocker policy were empty, no collection was enforcing, normal classic
+and packaged application execution passed, and no AppLocker warning, error, deny,
+Event 8026, or Event 8027 appeared after the new boot. Existing empty-policy,
+service, driver, and cache artifacts are not authorized for cleanup. Stage 2 remains
+rejected, superseded, and quarantined. Replacement Phase 8E and later Phase 8F work
+remain separate future work and are not authorized. See
+[`ACC-0013`](docs/acceptance/ACC-0013-phase8e-applocker-operational-closure.md).

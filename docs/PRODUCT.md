@@ -2,8 +2,8 @@
 
 > Classification: current product identity and direction
 > Authority: accepted Product Owner decisions, bounded by canonical governance
-> Verified through: PO-DEC-039 on 2026-09-02
-> Last verified: 2026-09-02
+> Verified through: PO-DEC-040 on 2026-09-03
+> Last verified: 2026-09-03
 
 ## Identity
 
@@ -136,3 +136,10 @@ accepted Phase 8D on 2026-09-01.
 The Product Owner separately authorized bounded inspection, upgrade, deployment,
 rollback verification, and acceptance work for the optional 4090 llama.cpp runtime;
 see [`ROADMAP.md`](ROADMAP.md).
+
+The Phase 8E Stage 2 AppLocker incident is operationally remediated after all three
+authorized closure gates passed. The recovered host is classified as
+`FUNCTIONAL WITH HARMLESS RESIDUE`. Stage 2 remains rejected, superseded, and
+quarantined. Its replacement and later Phase 8F work remain separate future
+objectives and are not authorized by the operational closure. See
+[`ACC-0013`](acceptance/ACC-0013-phase8e-applocker-operational-closure.md).

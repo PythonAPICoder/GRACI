@@ -2,8 +2,8 @@
 
 > Classification: current authorization and sequencing view
 > Authority: Product Owner direction; entries do not authorize work unless explicitly marked authorized
-> Verified through: PO-DEC-039 on 2026-09-02
-> Last verified: 2026-09-02
+> Verified through: PO-DEC-040 on 2026-09-03
+> Last verified: 2026-09-03
 
 | Objective | State | Meaning |
 |---|---|---|
@@ -12,7 +12,7 @@
 | Optional 4090 llama.cpp upgrade | **COMPLETE / PRODUCT OWNER ACCEPTED** | Official b10675 is deployed; both models passed after a new boot, b10516 rollback was exercised, gaming impact is verified, and 3090 sufficiency plus MO2 priority remain intact |
 | One-way 3090-to-4090 certificate remoting | **COMPLETE / PRODUCT OWNER ACCEPTED** | Passwordless HTTPS WinRM maps only the 3090 client certificate to `GRACI_Remote`; password access is break-glass only |
 | 4090 telemetry 1.0.1 acceptance closure | **COMPLETE / PRODUCT OWNER ACCEPTED** | Controlled boot startup, one-process/resource behavior, fresh telemetry, and HUD reacquisition passed in `ACC-0006` and the Product Owner accepted the bounded capability |
-| Phase 8E: Obsidian personalized knowledge and human review | **STAGE 2 APPLOCKER DESIGN REJECTED; REPLACEMENT DESIGN ONLY** | Stage 1 and the synthetic personalized-memory foundation remain accepted. Stage 2 caused a serious host-safety incident and is quarantined. Stage 3 qualification is historical, but routine launch is withdrawn because it depended on Stage 2. The narrower replacement is not deployed and real personal data remains unauthorized |
+| Phase 8E: Obsidian personalized knowledge and human review | **APPLOCKER INCIDENT OPERATIONALLY REMEDIATED; STAGE 2 REJECTED; REPLACEMENT DESIGN ONLY** | All three incident-closure gates passed and the host is `FUNCTIONAL WITH HARMLESS RESIDUE`. Stage 1 and the synthetic personalized-memory foundation remain accepted. Stage 2 remains superseded and quarantined. Stage 3 qualification is historical, but routine launch is withdrawn because it depended on Stage 2. The narrower replacement is separate future work, is not deployed, and real personal data remains unauthorized |
 | Phase 8F: Trusted secret broker and capability grants | **STAGE 1 SYNTHETIC FOUNDATION PRODUCT OWNER ACCEPTED** | PO-DEC-038 accepts the isolated synthetic broker with authenticated encryption, exact bounded grants, operation-only use, audit, recovery, rollback, and adversarial tests for repository preservation. No real credentials, Windows configuration, live IPC, deployment, ordinary runtime integration, or later stage is authorized |
 | Phase 9: Permission-gated internet research, tool, and MCP qualification | **REQUIRED PRODUCT OBJECTIVE / IMPLEMENTATION NOT AUTHORIZED** | For a knowledge gap, ask to search the internet and return a sourced answer; for a missing tool or MCP, create or locate candidates, evaluate them in a sandbox, and require separate Product Owner approval before production installation and use |
 | Phase 10: Governed document ingestion, RAG, and corrective learning | **REQUIRED PRODUCT OBJECTIVE / IMPLEMENTATION NOT AUTHORIZED** | Safely ingest approved documents including PDFs, retrieve relevant local knowledge with source traceability, and record confirmed mistakes, corrections, and lessons without allowing memory to grant authority or silently change GRACI |
@@ -24,7 +24,7 @@
 | Phase 16: Safe browser and desktop action | **REQUIRED PRODUCT OBJECTIVE / IMPLEMENTATION NOT AUTHORIZED** | Let GRACI navigate approved websites and applications, prepare forms and actions, show previews, request confirmation for consequential steps, and retain evidence and recovery options |
 | Phase 17: Multimodal understanding and media workflows | **REQUIRED PRODUCT OBJECTIVE / IMPLEMENTATION NOT AUTHORIZED** | Understand and create approved images, scans, charts, audio, and video through governed local capabilities or qualified tools while preserving privacy, provenance, and human-quality output |
 | Phase 18: Resilience, backup, recovery, and measurable improvement | **REQUIRED PRODUCT OBJECTIVE / IMPLEMENTATION NOT AUTHORIZED** | Protect memory, governance, schedules, tools, and configuration with tested recovery, then measure task outcomes and use accepted evidence to improve future recommendations and workflows |
-| Next decision gate | **NO LATER IMPLEMENTATION AUTHORIZED** | Stage 1 may be committed and pushed under PO-DEC-038. The Product Owner must explicitly select and scope any later objective; production identity and key design, real credentials, deployment, ordinary runtime integration, and later Phase 8F work remain unauthorized |
+| Next decision gate | **NO LATER IMPLEMENTATION AUTHORIZED** | PO-DEC-040 authorizes only the AppLocker incident documentation closure, validation, commit, and push. Replacement Phase 8E and later Phase 8F work are separate future objectives that require new explicit Product Owner scope and authority |
 | Ordinary runtime capability selection | **PRODUCT DIRECTION** | Eventually choose routing, review, memory, optional compute, recovery, and verification according to task/policy/latency/resources rather than invoking all subsystems on every turn |
 | Wake word, VAD authority, always listening, or unscheduled autonomous follow-up | **DEFERRED / UNAUTHORIZED** | Scheduled work is limited to Phase 11 standing grants; these broader interaction and autonomy modes require separate Product Owner decisions and governed implementation |
 | External/cloud runtime assistance | **FUTURE GOVERNED CAPABILITY** | Denied by default; no runtime path exists |
