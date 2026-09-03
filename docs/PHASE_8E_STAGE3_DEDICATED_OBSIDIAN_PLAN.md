@@ -1,9 +1,15 @@
 # Phase 8E Stage 3 dedicated Obsidian plan
 
-> Classification: pre-mutation implementation plan
+> Classification: historical implementation evidence
 > Authority: Product Owner authorization, 2026-09-02
 > Baseline: `b57662a1373990a2953540209f3a901770ebc0b7`
-> State: PRODUCT OWNER ACCEPTED; ROUTINE LAUNCH PROMOTED
+> State: APPLICATION QUALIFICATION HISTORICAL; ROUTINE LAUNCH WITHDRAWN
+
+PO-DEC-039 withdraws routine-launch approval because this plan depended on the
+rejected Stage 2 AppLocker boundary. Do not execute this plan. Preserve it only as
+historical evidence. See
+[`INC-0001`](incidents/INC-0001-phase8e-stage2-applocker.md) and
+[`ACC-0012`](acceptance/ACC-0012-phase8e-incident-response.md).
 
 ## Plain-language goal
 

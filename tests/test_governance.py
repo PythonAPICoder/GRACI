@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 GOVERNANCE = ROOT / "governance"
 INDEX = GOVERNANCE / "POLICY_INDEX.md"
 POLICY_ID = re.compile(
-    r"^(AUTH|AUTONOMY|EXTERNAL|TOOL|LOCAL|COMPUTE|STORAGE|CREDENTIAL|MODEL|MEMORY|HUMANVIEW|SELFDEV|VOICE|DOCSTYLE|VALIDATION|EVIDENCE)-\d{3}$")
+    r"^(AUTH|AUTONOMY|EXTERNAL|TOOL|LOCAL|COMPUTE|STORAGE|CREDENTIAL|HOST|MODEL|MEMORY|HUMANVIEW|SELFDEV|VOICE|DOCSTYLE|VALIDATION|EVIDENCE)-\d{3}$")
 LINK = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
 
 
@@ -69,6 +69,12 @@ class GovernanceTests(unittest.TestCase):
         self.assertIn("must not provide a general\nraw-secret retrieval", current)
         self.assertIn("Secret values must not enter model prompts or output", current)
         self.assertIn("automatic retry is forbidden", current)
+        self.assertIn("## Host System Change Approval", current)
+        self.assertIn("must stop before execution", current)
+        self.assertRegex(
+            current,
+            r"machine-wide\s+security enforcement requires extraordinary justification")
+        self.assertIn("A broad Packaged App allow rule is not an acceptable remediation", current)
         self.assertIn("An MCP provides capability, never task authority", current)
         self.assertIn("embeddings, indexes, chunks, and caches", current)
         self.assertIn("Corrective learning does not change model weights, policy,", current)
@@ -105,6 +111,9 @@ class GovernanceTests(unittest.TestCase):
             "requires explicit Product Owner approval through the governance change process",
             "Every promotion or deployment of a self-developed change to G.R.A.C.I. requires",
             "this policy creates no such delegation",
+            "A general instruction such as \"Implement Phase X,\" \"proceed,\"",
+            "After presenting that request, G.R.A.C.I. must stop",
+            "Every approved\nhost-level change must have a tested rollback before deployment",
         )
         for wording in required:
             with self.subTest(wording=wording):

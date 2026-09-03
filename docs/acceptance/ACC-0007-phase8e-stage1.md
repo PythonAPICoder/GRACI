@@ -5,6 +5,10 @@
 > Accepted by: Product Owner
 > Recorded: 2026-09-02
 
+> Current notice: Stage 1 acceptance remains current. Any Stage 2 authority recorded
+> below is historical and superseded by PO-DEC-039 after the AppLocker host-safety
+> incident.
+
 ## Accepted scope
 
 The Product Owner accepts the Phase 8E Stage 1 fixture-only projection foundation.

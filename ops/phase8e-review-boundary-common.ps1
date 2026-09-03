@@ -1,6 +1,11 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
+# HOST-SYSTEM-CHANGE-QUARANTINE: PO-DEC-039
+# The source below is retained only as incident evidence. Dot-sourcing this file
+# must fail before it reads or changes host state.
+throw "PHASE8E_APPLOCKER_BOUNDARY_QUARANTINED: the rejected Stage 2 and dependent Stage 3 host workflow is historical evidence only."
+
 $script:Phase8EViewerName = "GRACI_Review"
 $script:Phase8EStagingRoot = "E:\GRACI-Review-Staging"
 $script:Phase8EProjectionRoot = "E:\GRACI-Review-Projection"

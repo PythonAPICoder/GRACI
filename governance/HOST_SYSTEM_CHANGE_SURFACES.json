@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "authority": "PO-DEC-039",
+  "purpose": "Review inventory only. Registration does not grant execution authority.",
+  "surfaces": {
+    "ops/configure-phase8e-dedicated-obsidian.ps1": {
+      "status": "quarantined",
+      "authority": "PO-DEC-039",
+      "counts": {"firewall": 2, "accounts_groups": 1, "filesystem_acl": 4}
+    },
+    "ops/configure-phase8e-obsidian-test.ps1": {
+      "status": "quarantined",
+      "authority": "PO-DEC-039",
+      "counts": {"firewall": 2, "accounts_groups": 1, "filesystem_acl": 2}
+    },
+    "ops/finalize-phase8e-projection.ps1": {
+      "status": "quarantined",
+      "authority": "PO-DEC-039",
+      "counts": {"filesystem_acl": 1}
+    },
+    "ops/install-3090-llama-router-task.ps1": {
+      "status": "registered_existing",
+      "authority": "ACC-0003",
+      "counts": {"scheduled_tasks": 1}
+    },
+    "ops/install-graci-resident-task.ps1": {
+      "status": "registered_existing",
+      "authority": "ACC-0003",
+      "counts": {"scheduled_tasks": 1}
+    },
+    "ops/install-phase8e-review-boundary.ps1": {
+      "status": "quarantined",
+      "authority": "PO-DEC-039",
+      "counts": {"applocker": 9, "code_integrity": 3, "service_state": 1, "accounts_groups": 1}
+    },
+    "ops/open-phase8e-review.ps1": {
+      "status": "quarantined",
+      "authority": "PO-DEC-039",
+      "counts": {"applocker": 1}
+    },
+    "ops/phase8e-review-boundary-common.ps1": {
+      "status": "quarantined",
+      "authority": "PO-DEC-039",
+      "counts": {"applocker": 1, "filesystem_acl": 3}
+    },
+    "ops/promote-phase8e-obsidian-launcher.ps1": {
+      "status": "quarantined",
+      "authority": "PO-DEC-039",
+      "counts": {"accounts_groups": 1}
+    },
+    "ops/remove-3090-llama-router-task.ps1": {
+      "status": "registered_existing",
+      "authority": "ACC-0003",
+      "counts": {"scheduled_tasks": 1}
+    },
+    "ops/remove-graci-resident-task.ps1": {
+      "status": "registered_existing",
+      "authority": "ACC-0003",
+      "counts": {"scheduled_tasks": 1}
+    },
+    "ops/remove-phase8e-dedicated-obsidian.ps1": {
+      "status": "quarantined",
+      "authority": "PO-DEC-039",
+      "counts": {"firewall": 1}
+    },
+    "ops/remove-phase8e-obsidian-test.ps1": {
+      "status": "quarantined",
+      "authority": "PO-DEC-039",
+      "counts": {"firewall": 1, "filesystem_acl": 1}
+    },
+    "ops/remove-phase8e-review-boundary.ps1": {
+      "status": "quarantined",
+      "authority": "PO-DEC-039",
+      "counts": {"applocker": 4, "service_state": 1, "accounts_groups": 1}
+    },
+    "ops/retest-phase8e-dedicated-obsidian.ps1": {
+      "status": "quarantined",
+      "authority": "PO-DEC-039",
+      "counts": {"accounts_groups": 1}
+    },
+    "ops/test-phase8e-review-boundary.ps1": {
+      "status": "quarantined",
+      "authority": "PO-DEC-039",
+      "counts": {"accounts_groups": 1}
+    },
+    "ops/test-phase8e-viewer-worker.ps1": {
+      "status": "quarantined",
+      "authority": "PO-DEC-039",
+      "counts": {"filesystem_acl": 1}
+    },
+    "ops/verify-phase8e-review-boundary.ps1": {
+      "status": "quarantined",
+      "authority": "PO-DEC-039",
+      "counts": {"applocker": 3}
+    }
+  }
+}

@@ -1,10 +1,18 @@
-# Phase 8E Stage 2 Windows boundary plan
+# Historical Phase 8E Stage 2 Windows boundary plan
 
-> Classification: durable implementation and verification plan
+> Classification: historical incident evidence
 > Authority: PO-DEC-028, PO-DEC-029, PO-DEC-030, ACC-0007, and ACC-0008
 > Baseline: `4369cb9373d9b6211d0d69d30a29408e520272de`
 > Prepared: 2026-09-02
-> State: IMPLEMENTED, VERIFIED, AND PRODUCT OWNER ACCEPTED
+> State: UNSAFE AND REJECTED BY PO-DEC-039; DO NOT EXECUTE
+
+This document preserves the exact design that caused the Phase 8E Stage 2
+host-safety incident. Its claims that SID-scoped AppLocker deny rules and broad
+compatibility allows preserved ordinary host behavior are incorrect. It is not a
+current plan, deployment procedure, or authority source. See
+[`INC-0001`](incidents/INC-0001-phase8e-stage2-applocker.md),
+[`ACC-0012`](acceptance/ACC-0012-phase8e-incident-response.md), and the
+[`replacement design`](PHASE_8E_REPLACEMENT_BOUNDARY_DESIGN.md).
 
 ## Observed host facts
 

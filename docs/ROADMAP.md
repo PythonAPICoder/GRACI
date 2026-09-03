@@ -2,7 +2,7 @@
 
 > Classification: current authorization and sequencing view
 > Authority: Product Owner direction; entries do not authorize work unless explicitly marked authorized
-> Verified through: PO-DEC-038 on 2026-09-02
+> Verified through: PO-DEC-039 on 2026-09-02
 > Last verified: 2026-09-02
 
 | Objective | State | Meaning |
@@ -12,7 +12,7 @@
 | Optional 4090 llama.cpp upgrade | **COMPLETE / PRODUCT OWNER ACCEPTED** | Official b10675 is deployed; both models passed after a new boot, b10516 rollback was exercised, gaming impact is verified, and 3090 sufficiency plus MO2 priority remain intact |
 | One-way 3090-to-4090 certificate remoting | **COMPLETE / PRODUCT OWNER ACCEPTED** | Passwordless HTTPS WinRM maps only the 3090 client certificate to `GRACI_Remote`; password access is break-glass only |
 | 4090 telemetry 1.0.1 acceptance closure | **COMPLETE / PRODUCT OWNER ACCEPTED** | Controlled boot startup, one-process/resource behavior, fresh telemetry, and HUD reacquisition passed in `ACC-0006` and the Product Owner accepted the bounded capability |
-| Phase 8E: Obsidian personalized knowledge and human review | **STAGES 1 THROUGH 3 AND SYNTHETIC PERSONALIZED-MEMORY FOUNDATION ACCEPTED** | The accepted synthetic viewer and separate PO-DEC-035 foundation cover exact approval, lifecycle, retrieval, audit, rollback, and manual projection with synthetic fixtures only. The personalized-memory foundation is not deployed and real personal data remains unauthorized |
+| Phase 8E: Obsidian personalized knowledge and human review | **STAGE 2 APPLOCKER DESIGN REJECTED; REPLACEMENT DESIGN ONLY** | Stage 1 and the synthetic personalized-memory foundation remain accepted. Stage 2 caused a serious host-safety incident and is quarantined. Stage 3 qualification is historical, but routine launch is withdrawn because it depended on Stage 2. The narrower replacement is not deployed and real personal data remains unauthorized |
 | Phase 8F: Trusted secret broker and capability grants | **STAGE 1 SYNTHETIC FOUNDATION PRODUCT OWNER ACCEPTED** | PO-DEC-038 accepts the isolated synthetic broker with authenticated encryption, exact bounded grants, operation-only use, audit, recovery, rollback, and adversarial tests for repository preservation. No real credentials, Windows configuration, live IPC, deployment, ordinary runtime integration, or later stage is authorized |
 | Phase 9: Permission-gated internet research, tool, and MCP qualification | **REQUIRED PRODUCT OBJECTIVE / IMPLEMENTATION NOT AUTHORIZED** | For a knowledge gap, ask to search the internet and return a sourced answer; for a missing tool or MCP, create or locate candidates, evaluate them in a sandbox, and require separate Product Owner approval before production installation and use |
 | Phase 10: Governed document ingestion, RAG, and corrective learning | **REQUIRED PRODUCT OBJECTIVE / IMPLEMENTATION NOT AUTHORIZED** | Safely ingest approved documents including PDFs, retrieve relevant local knowledge with source traceability, and record confirmed mistakes, corrections, and lessons without allowing memory to grant authority or silently change GRACI |
@@ -103,30 +103,38 @@ composition. Later, separately authorized Stage 2 and Stage 3 work configured th
 Windows boundary and a dedicated Obsidian copy using synthetic data only. No real
 memory was read and no real-data projection was generated.
 
-That Stage 2 boundary is now locally configured and technically verified with
-synthetic data. The actual standard viewer token passed read-only, source-isolation,
-application-control, tamper, failure-preservation, independence, rollback, and
-reapply cases. The Product Owner accepted the lack of BitLocker as an intentional
-physical-security risk and prohibited BitLocker changes on either system.
-Same-volume promotion still needs an exact ACL finalizer before viewer use. These
-facts and the acceptance boundary are recorded in
-[`ACC-0008`](acceptance/ACC-0008-phase8e-stage2-windows.md).
+That Stage 2 boundary passed its narrowly scoped synthetic cases, but it enabled
+machine-wide AppLocker without a Packaged App collection and caused a serious
+host-safety incident. PO-DEC-039 rejects that architecture and quarantines its
+repository workflow. Its evidence remains historical in
+[`ACC-0008`](acceptance/ACC-0008-phase8e-stage2-windows.md) and
+[`INC-0001`](incidents/INC-0001-phase8e-stage2-applocker.md). The separate BitLocker
+prohibition remains in force.
 
 The Product Owner accepted Stage 2 and authorized its commit and push to `main` on
-2026-09-02. The first Stage 3 test of the Product Owner's existing per-user Obsidian
+2026-09-02, then superseded that acceptance after the incident. The first Stage 3 test of the Product Owner's existing per-user Obsidian
 failed closed and rolled back. The Product Owner then authorized a separate local
 copy for `GRACI_Review`. That copy passed its synthetic vault, write-denial, network
 block, configuration, and Product Owner read-access tests. The Product Owner accepted
-Stage 3 and authorized routine launch, commit, and push. The launcher was promoted
-and passed under the real review token. Real data, automatic refresh, runtime
-integration, and later stages remain unauthorized.
+Stage 3 and authorized routine launch, commit, and push. Its application
+qualification remains historical, but routine launch is withdrawn because the
+launcher depended on the rejected Stage 2 boundary. Real data, automatic refresh,
+replacement deployment, runtime integration, and later stages remain unauthorized.
 
-PO-DEC-034 clarifies that the accepted Stage 1 through Stage 3 work is a secure
-viewer foundation, not the completed product outcome. PO-DEC-035 authorized the
+PO-DEC-034 clarifies the intended human-view outcome. Stage 1 remains accepted, but
+Stage 2 is rejected and the dependent Stage 3 routine launcher is withdrawn.
+PO-DEC-035 authorized the
 synthetic personalized-memory design and implementation, and PO-DEC-036 accepts
 that bounded foundation for commit and push. Personalized-memory capture with real
 data, ordinary retrieval, taught-task recall in production, deployment, and
 GRACI-maintained vault updates remain separate decisions.
+
+PO-DEC-039 approves a replacement direction for design only: dedicated standard
+viewer identity, filesystem separation, inert exported content, strict content
+validation, exact manifests and hashes, generation immutability, constrained viewer
+configuration, and an explicit validated launcher. It excludes AppLocker and other
+machine-wide application-control dependencies. Deployment requires later explicit
+approval.
 
 ## Phase 8F Stage 1: synthetic trusted secret broker and capability grants
 

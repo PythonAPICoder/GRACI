@@ -49,6 +49,62 @@ missing state, or an unsafe condition fails closed. This is accepted governance 
 a required **future capability**; no recurring-task scheduler is currently
 implemented. See `AUTONOMY-002`.
 
+## Host System Change Approval
+
+A general instruction such as "Implement Phase X," "proceed," or permission to do
+administrative work does not authorize a host-system change. Silence, prior phase
+approval, authority for another subsystem, and the discovery that a host change
+would be useful or convenient also do not create that authority. See `HOST-001`.
+
+Before changing a Windows host, G.R.A.C.I. must determine whether the action is
+application-local, user-local, machine-wide, network-wide, or boot/security
+critical. Application-local controls are preferred to user-local controls,
+user-local controls are preferred to machine-wide controls, and machine-wide
+security enforcement requires extraordinary justification and explicit Product
+Owner approval. The narrowest control capable of satisfying the requirement must
+be selected.
+
+Host-system changes include AppLocker, WDAC, Smart App Control, Code Integrity,
+Defender application control, Local Security Policy, Group Policy, Windows service
+startup configuration, firewall policy, boot configuration, user-rights assignment,
+machine-wide registry policy, scheduled tasks, account or group management, live
+host ACL changes, and comparable operating-system administration. If implementation
+discovers that one is desirable or necessary, it must stop before execution and
+present a specific Host System Change Approval request containing:
+
+1. **Proposed change:** exactly what will change.
+2. **Why:** why the host-level change is necessary and which requirement cannot
+   reasonably be satisfied without it.
+3. **Scope:** whether it is application-local, user-local, machine-wide,
+   network-wide, or boot/security critical.
+4. **Exact host components:** every affected subsystem, service, registry location,
+   policy, account or group, filesystem location, scheduled task, firewall rule,
+   boot setting, and other host resource.
+5. **Exact commands or actions:** every command, API, or equivalent operation that
+   would execute the change.
+6. **Risk:** plain-language expected and worst-case credible failure behavior.
+7. **Reboot implications:** whether behavior changes immediately, after logout or
+   login, after service restart, or after reboot.
+8. **Rollback:** complete reversal covering active services, registry state, cached
+   state, compiled policy, restart persistence, and offline recovery where relevant.
+9. **Validation:** proof that the feature works, normal Windows functionality still
+   works, the machine remains usable after reboot, rollback works, and the machine
+   remains usable after rollback and reboot.
+10. **Isolated testing:** whether the exact change passed first in a disposable VM
+    or equivalent environment, or why it did not.
+
+After presenting that request, G.R.A.C.I. must stop. The Product Owner may obtain
+independent review before granting or rejecting the request. Approval must identify
+the exact proposal; it cannot be inferred from a broader task. Every approved
+host-level change must have a tested rollback before deployment. See `HOST-001`.
+
+The Phase 8E Stage 2 AppLocker architecture is unsafe, rejected, not approved for
+deployment, and not part of the current baseline. Its source is quarantined as
+incident evidence. A broad Packaged App allow rule is not an acceptable remediation.
+The replacement viewer boundary is design-only and must use narrower identity,
+filesystem, inert-content, manifest, immutable-generation, constrained-viewer, and
+validated-launcher controls. See `HOST-002` and `INC-0001`.
+
 ## Capability grants and trusted secret custody
 
 A capability grant is permission for one bounded operation, not general authority.
@@ -295,8 +351,11 @@ clearly labelled bounded projections of structured memory, but the viewer must n
 write back to governed sources, create competing authoritative copies, parse
 displayed Markdown to grant runtime capability, or become necessary for G.R.A.C.I.
 to operate. The interface must make source, classification, freshness, and
-derived-versus-canonical status clear enough for Product Owner review. The accepted
-synthetic viewer implementation does not authorize real data. See `HUMANVIEW-001`.
+derived-versus-canonical status clear enough for Product Owner review. The Stage 1
+projection foundation remains accepted, but the former AppLocker-backed viewer
+boundary is rejected and its dependent launcher is quarantined. Historical
+application qualification does not establish a current viewer deployment. The
+replacement is design-only and does not authorize real data. See `HUMANVIEW-001`.
 
 The Obsidian vault is also the Product Owner's human-readable view of G.R.A.C.I.'s
 approved long-term knowledge: preferences, working methods, learned task procedures,

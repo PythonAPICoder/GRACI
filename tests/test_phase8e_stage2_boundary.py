@@ -38,8 +38,13 @@ class Phase8EStage2BoundaryTests(unittest.TestCase):
             subprocess.run(("powershell.exe", "-NoProfile", "-NonInteractive",
                             "-ExecutionPolicy", "Bypass", "-Command", command), check=True)
 
-    def test_exact_identity_roots_and_application_control_are_bounded(self):
+    def test_rejected_application_control_source_is_quarantined_as_evidence(self):
         common = (OPS / "phase8e-review-boundary-common.ps1").read_text("utf-8")
+        marker = "HOST-SYSTEM-CHANGE-QUARANTINE: PO-DEC-039"
+        self.assertIn(marker, common)
+        self.assertLess(common.index(marker), common.index("$script:Phase8EViewerName"))
+        self.assertLess(common.index("throw", common.index(marker)),
+                        common.index("New-Phase8EAppLockerXml"))
         self.assertIn('"GRACI_Review"', common)
         self.assertIn('"E:\\GRACI-Review-Staging"', common)
         self.assertIn('"E:\\GRACI-Review-Projection"', common)
@@ -52,6 +57,10 @@ class Phase8EStage2BoundaryTests(unittest.TestCase):
 
     def test_launcher_requires_exact_stage3_qualification(self):
         launcher = (OPS / "open-phase8e-review.ps1").read_text("utf-8")
+        marker = "HOST-SYSTEM-CHANGE-QUARANTINE: PO-DEC-039"
+        self.assertIn(marker, launcher)
+        self.assertLess(launcher.index("throw", launcher.index(marker)),
+                        launcher.index("Get-AppLockerPolicy"))
         self.assertIn("Start-Process", launcher)
         self.assertIn('throw "APPLICATION_NOT_QUALIFIED"', launcher)
         self.assertIn('authority -ne "PO-DEC-033"', launcher)

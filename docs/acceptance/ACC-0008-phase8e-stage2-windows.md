@@ -1,8 +1,13 @@
 # ACC-0008: Phase 8E Stage 2 Windows boundary technical record
 
 > Classification: durable automated, live validation, and acceptance record
-> State: PRODUCT OWNER ACCEPTED
+> State: HISTORICAL ACCEPTANCE; CURRENT ARCHITECTURE REJECTED BY PO-DEC-039
 > Recorded: 2026-09-02
+
+> Supersession notice: this record preserves what was tested and accepted at the
+> time. It no longer approves the AppLocker architecture, deployment, rollback, or
+> routine use. See [INC-0001](../incidents/INC-0001-phase8e-stage2-applocker.md) and
+> [ACC-0012](ACC-0012-phase8e-incident-response.md).
 
 ## Verified scope
 
@@ -43,6 +48,10 @@ boundary and authorized its commit and push to `main`. Acceptance includes the
 dedicated viewer identity, protected roots, source isolation, viewer-specific
 application-control rules, exact ACL finalizer requirement, verification, rollback,
 reapply, and recorded synthetic evidence.
+
+PO-DEC-039 later superseded that approval after the boundary caused a packaged-app
+host outage. The original acceptance remains historical evidence only and must not
+be interpreted as current deployment authority.
 
 ## Observed limitation
 

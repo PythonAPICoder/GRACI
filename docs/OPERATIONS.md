@@ -3,7 +3,24 @@
 > Classification: current topology, procedures, and time-stamped operational evidence
 > Authority: descriptive; live state must be rechecked before an operational action
 > Verified against: promoted Phase 8D commit `a0a61b7298d3c85cec054cd11ca827842f2776dd`
-> Last verified: 2026-09-01
+> Current governance through: PO-DEC-039 on 2026-09-02
+> Last verified: 2026-09-02
+
+## Phase 8E host workflow quarantine
+
+PO-DEC-039 rejects the Phase 8E Stage 2 AppLocker architecture after a serious
+host-safety incident. Do not run the Stage 2 boundary installer, remover, verifier,
+test harness, finalizer, or the dependent Stage 3 configuration, promotion,
+rollback, retest, or routine-launch workflows. Their shared entry point and launcher
+fail closed before host access so historical source can remain available as incident
+evidence.
+
+There is no approved Phase 8E viewer deployment procedure. The replacement is
+design-only. Do not inspect, clean, or alter the recovered host under this guidance.
+The future read-only audit requires separate explicit Product Owner approval. See
+[`INC-0001`](incidents/INC-0001-phase8e-stage2-applocker.md),
+[`HOST-001`](../governance/CURRENT_POLICY.md#host-system-change-approval), and the
+[`replacement design`](PHASE_8E_REPLACEMENT_BOUNDARY_DESIGN.md).
 
 ## Stable topology
 

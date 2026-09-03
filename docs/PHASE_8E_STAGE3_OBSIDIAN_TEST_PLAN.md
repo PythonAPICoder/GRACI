@@ -1,9 +1,13 @@
 # Phase 8E Stage 3 Obsidian candidate test plan
 
-> Classification: pre-mutation implementation plan
+> Classification: historical implementation evidence
 > Authority: PO-DEC-031
 > Baseline: `b57662a1373990a2953540209f3a901770ebc0b7`
 > State: TEST FAILED CLOSED; ROLLBACK VERIFIED
+
+> Current notice: this is historical test evidence. PO-DEC-039 rejects the Stage 2
+> AppLocker dependency and quarantines the associated host workflow. Do not execute
+> this plan.
 
 ## Authorized result
 

@@ -2,7 +2,7 @@
 
 > Classification: current documentation authority and navigation map
 > Authority: accepted Product Owner documentation structure; policy authority remains in `governance/`
-> Verified through: PO-DEC-038 on 2026-09-02
+> Verified through: PO-DEC-039 on 2026-09-02
 > Last verified: 2026-09-02
 
 This index is the durable starting point for reconstructing GRACI without
@@ -41,8 +41,16 @@ code, configuration, tests, and time-stamped live evidence and report the confli
 - [Phase 8E personalized-memory acceptance](acceptance/ACC-0010-phase8e-personalized-memory.md)
 - [Phase 8F Stage 1 acceptance](acceptance/ACC-0011-phase8f-stage1.md)
 - [Phase 8F synthetic trusted secret broker](PHASE_8F_TRUSTED_SECRET_BROKER.md)
+- [Phase 8E AppLocker incident](incidents/INC-0001-phase8e-stage2-applocker.md)
+- [Phase 8E incident response authority](acceptance/ACC-0012-phase8e-incident-response.md)
 
 ## Design proposals
+
+- [Phase 8E replacement viewer-boundary design](PHASE_8E_REPLACEMENT_BOUNDARY_DESIGN.md)
+  is approved for design only and replaces AppLocker with narrower identity,
+  filesystem, inert-content, manifest, immutable-generation, and launcher controls.
+- [Proposed Phase 8E read-only host audit](PHASE_8E_READ_ONLY_HOST_AUDIT_PLAN.md)
+  is unexecuted and requires separate explicit Product Owner approval.
 
 - [Phase 8F Stage 1 synthetic trusted secret broker](PHASE_8F_TRUSTED_SECRET_BROKER.md)
   documents the accepted isolated authenticated-encryption, exact capability
@@ -56,16 +64,19 @@ code, configuration, tests, and time-stamped live evidence and report the confli
   retrieval, audit, rollback, and manual Phase 8E projection foundation. It uses
   synthetic fixtures only and is not deployed.
 - [Phase 8E Obsidian knowledge and governance review foundation](PHASE_8E_OBSIDIAN_DESIGN.md)
-  is the Product Owner-accepted security foundation. Its fixture-only Stage 1 implementation is
-  documented in the [Phase 8E Stage 1 record](../phase8e/README.md) and accepted in
-  [ACC-0007](acceptance/ACC-0007-phase8e-stage1.md). Stage 2 local Windows boundary
-  work is accepted in [ACC-0008](acceptance/ACC-0008-phase8e-stage2-windows.md)
-  and documented in its [exact plan](PHASE_8E_STAGE2_WINDOWS_PLAN.md). Obsidian
+  retains the accepted one-way projection and human-view direction. Its fixture-only
+  Stage 1 implementation is documented in the
+  [Phase 8E Stage 1 record](../phase8e/README.md) and accepted in
+  [ACC-0007](acceptance/ACC-0007-phase8e-stage1.md). The former Stage 2 Windows
+  boundary is rejected; [ACC-0008](acceptance/ACC-0008-phase8e-stage2-windows.md)
+  and its [exact plan](PHASE_8E_STAGE2_WINDOWS_PLAN.md) are historical evidence.
+  Obsidian
   qualification began with a [bounded Stage 3 candidate test](PHASE_8E_STAGE3_OBSIDIAN_TEST_PLAN.md);
   the existing per-user candidate failed closed and rollback passed. The
   [dedicated review-profile candidate](PHASE_8E_STAGE3_DEDICATED_OBSIDIAN_PLAN.md)
-  then passed its synthetic test. Stage 3 acceptance and routine-launch promotion
-  are recorded in [ACC-0009](acceptance/ACC-0009-phase8e-stage3-obsidian.md).
+  then passed its synthetic test. Stage 3 application qualification is historical,
+  and its dependent routine launch is withdrawn in
+  [ACC-0012](acceptance/ACC-0012-phase8e-incident-response.md).
   `PO-DEC-034` clarifies the central future purpose: approved personal preferences,
   working methods, taught tasks, corrections, and lessons must be readable in the
   vault and reusable by G.R.A.C.I. Real personal data, learning and retrieval,

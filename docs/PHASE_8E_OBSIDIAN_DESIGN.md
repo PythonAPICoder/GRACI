@@ -4,7 +4,13 @@
 > Authority: advisory design; canonical policy remains under `governance/`
 > Designed against: local `main` commit `08b2ffdc5c4530d652cde5ee4d2c428f6979f9eb`
 > Prepared: 2026-09-02
-> Status: PRODUCT OWNER-ACCEPTED DESIGN; STAGES 1-3 PRODUCT OWNER ACCEPTED; STAGES 4-5 NOT AUTHORIZED
+> Status: ONE-WAY PROJECTION DIRECTION RETAINED; STAGE 2 APPLOCKER DESIGN REJECTED; REPLACEMENT DESIGN ONLY
+
+PO-DEC-039 supersedes the Windows-control and routine-launch portions of this
+document. The generated one-way projection and read-only human-view goals remain;
+the AppLocker architecture does not. See
+[`INC-0001`](incidents/INC-0001-phase8e-stage2-applocker.md) and the
+[`replacement design`](PHASE_8E_REPLACEMENT_BOUNDARY_DESIGN.md).
 
 PO-DEC-035 authorizes a separate follow-on design and synthetic-only implementation
 for the personalized-memory outcome established by PO-DEC-034. It does not authorize
@@ -289,13 +295,12 @@ and limited to approved core behavior. Community plugins remain disabled and abs
 If Obsidian cannot operate while content remains read-only, that is an acceptance
 failure, not a reason to grant source write access.
 
-Windows Firewall should block outbound traffic from the exact reviewed Obsidian
-executable. An application-control rule should deny execution from the projection
-and staging roots. The exact control can be WDAC, AppLocker, or the strongest
-available supported mechanism selected during implementation. BitLocker or an
-equivalent existing at-rest control should protect sensitive local projections, but
-Phase 8E must first inspect and report the host's actual protection rather than
-assume it.
+The current replacement does not require a firewall rule or machine-wide
+application control. Projection and staging must contain only strictly validated
+inert review content, and the viewer receives only the narrow filesystem access
+described in the replacement design. Any future firewall, AppLocker, WDAC, Smart
+App Control, Code Integrity, service, account, or ACL mutation crosses `HOST-001`
+and requires separate exact Product Owner approval before execution.
 
 Stage 2 subsequently confirmed that `E:` is not BitLocker-protected. The Product
 Owner accepted that physical-security risk and prohibited installing, enabling,
@@ -448,15 +453,13 @@ exporter, renderer, manifest, fixture corpus, and focused tests. It uses synthet
 memory only and does not install Obsidian, alter ACLs, or read the real memory root.
 The Product Owner acceptance boundary is recorded in `ACC-0007`.
 
-### Stage 2: local projection and Windows hardening, accepted
+### Stage 2: historical Windows boundary, rejected
 
-The Product Owner authorized inspection, exact control selection, implementation,
-rollback, and synthetic verification of the dedicated viewer boundary, projection
-and staging roots, content ACLs, projection-path application-control rule, and a
-bounded local launcher. Exact supported host facts and the selected plan must be
-recorded before dependent mutation. This Windows security scope still does not
-authorize Obsidian installation, application settings, network or firewall changes,
-or reading real memory.
+The Product Owner historically authorized and accepted this stage. Its implementation
+enabled machine-wide AppLocker without a Packaged App collection and later caused a
+serious host-safety incident. PO-DEC-039 rejects the architecture and its rollback
+claims as a current baseline. The original plan and evidence remain historical. The
+replacement is design-only and does not authorize host inspection or mutation.
 
 ### Stage 3: Obsidian qualification and configuration
 
@@ -537,15 +540,16 @@ within this design.
    run records.
 4. Choose governed-memory scope: recommended metadata-only default, with content
    included only by exact Product Owner-approved memory IDs, or a narrower policy.
-5. Approve the dedicated standard viewer identity, source isolation, read-only
-   projection ACL, no-community-plugin baseline, outbound network block, and local
-   application-control requirement.
+5. Historical decision, superseded by PO-DEC-039: the dedicated standard viewer
+   identity, source isolation, read-only projection ACL, no-community-plugin
+   baseline, outbound network block, and local application-control requirement.
 6. Authorize Stage 1 fixture-only implementation and tests, while explicitly leaving
    Obsidian installation, Windows configuration, real-memory access, real-data
    generation, deployment, commit, push, and Product Owner acceptance unauthorized.
 
-Stage 2 and Stage 3 are now Product Owner accepted. PO-DEC-033 authorized routine
-launch, commit, and push for the exact dedicated Obsidian configuration. PO-DEC-034
+Stage 1 remains accepted. Stage 2 is rejected under PO-DEC-039. Stage 3 application
+qualification remains historical, but its routine launcher is withdrawn because it
+depended on Stage 2. PO-DEC-034
 records the required product outcome: approved personal knowledge must be readable
 in Obsidian and reusable by G.R.A.C.I. Adding or changing a durable memory requires
 explicit current Product Owner approval; later in-scope retrieval and projection of

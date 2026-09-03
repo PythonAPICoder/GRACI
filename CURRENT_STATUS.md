@@ -2,7 +2,7 @@
 
 > Classification: current implementation, deployment, acceptance, and issue status
 > Authority: descriptive; canonical policy remains under `governance/`
-> Verified through: PO-DEC-038 on 2026-09-02
+> Verified through: PO-DEC-039 on 2026-09-02
 > Last verified: 2026-09-02
 
 ## Product and repository baseline
@@ -109,12 +109,16 @@ memory privacy modes, deterministic active-content neutralization, complete sour
 and output hashing, immutable generation promotion, source-race checks, and tamper
 verification. Focused tests pass. Ordinary GRACI runtime does not import the
 exporter. Stage 1 is not deployed and has not used real data. The Product Owner
-authorized and accepted Stage 2 local Windows viewer-boundary implementation and
-synthetic verification. Stage 3 is now accepted, and its dedicated Obsidian copy and
-routine fail-closed launcher are locally deployed. Real memory, real-data generation,
-automatic refresh, runtime integration, and later work remain unauthorized.
+historically authorized and accepted Stage 2 local Windows viewer-boundary
+implementation and synthetic verification. That AppLocker architecture later caused
+a serious host-safety incident and is rejected under PO-DEC-039. The Stage 3
+application qualification remains historical evidence, but routine launch is no
+longer approved because it depended on Stage 2. Real memory, real-data generation,
+automatic refresh, replacement deployment, runtime integration, and later work
+remain unauthorized.
 
-The authorized Stage 2 technical procedure is now implemented and locally applied.
+The following paragraph is historical validation context, not current approval. The
+Stage 2 technical procedure was implemented and locally applied.
 Actual viewer-token tests passed source and staging denial, projection read-only
 behavior, executable and script denial, tamper detection, failed-refresh
 preservation, resident independence, rollback, and reapply. The final synthetic
@@ -122,9 +126,16 @@ generation is `8e000002-0000-4000-8000-000000002001`. The `E:` volume is not
 BitLocker-protected. The Product Owner accepted that physical-security risk and
 directed that BitLocker remain uninstalled and unconfigured on both systems. Real
 or sensitive projection data remains separately unauthorized. The Product Owner
-accepted Stage 2 and authorized its commit and push to `main` on 2026-09-02.
-Obsidian is already installed but, according to the Product Owner, has never been
-used. Stage 2 did not inspect, open, configure, or qualify it. See
+accepted Stage 2 and authorized its commit and push to `main` on 2026-09-02. On the
+same date, after packaged applications were blocked, PO-DEC-039 superseded that
+approval and rejected the AppLocker design. See
+[`INC-0001`](docs/incidents/INC-0001-phase8e-stage2-applocker.md) and
+[`ACC-0012`](docs/acceptance/ACC-0012-phase8e-incident-response.md).
+The Product Owner reports that the Windows host is functional. Current policy does
+not infer that Stage 2 residue exists or does not exist. The read-only audit is
+designed but unexecuted and requires separate explicit approval.
+At the historical Stage 2 boundary, Obsidian was already installed but had never
+been used. Stage 2 did not inspect, open, configure, or qualify it. See
 [`ACC-0008`](docs/acceptance/ACC-0008-phase8e-stage2-windows.md).
 
 The Product Owner then authorized a narrow Stage 3 candidate test using that exact
@@ -147,11 +158,13 @@ blocked its update checks. A JSON encoding warning was corrected, and the comple
 retest passed without a configuration parse error. The Product Owner account read
 all 25 notes and the vault configuration; its existing Obsidian executable and
 settings remained unchanged. Stage 2 verification passed and the resident page
-returned HTTP 200. The Product Owner accepted Stage 3 and authorized routine launch,
-commit, and push. Promotion passed under the actual review token, the exact launcher
-and qualification record are deployed, no non-loopback connection was observed, and
-the resident page remained HTTP 200. Real data and automatic refresh remain
-unauthorized. The Product Owner subsequently directed that G.R.A.C.I. should
+returned HTTP 200. The Product Owner historically accepted Stage 3 and authorized
+routine launch, commit, and push. Promotion passed under the actual review token,
+no non-loopback connection was observed, and the resident page remained HTTP 200.
+PO-DEC-039 later withdrew routine-launch approval because that launcher depended on
+the rejected Stage 2 boundary. The repository entry point is quarantined. Real data,
+automatic refresh, and replacement deployment remain unauthorized. The Product
+Owner subsequently directed that G.R.A.C.I. should
 learn and later reuse approved personal preferences, working methods, taught task
 procedures, corrections, and lessons, with Obsidian serving as their readable view.
 Adding or changing a memory requires explicit current verbal or PTT approval. That
@@ -238,8 +251,10 @@ level: official b10675 is deployed, both approved models returned `READY`, and t
 old build was restored successfully before final re-promotion. A new boot preserved
 the task, hash, firewall, MO2/telemetry readiness, and both model responses. Product
 Owner acceptance is recorded for both the upgrade and one-way certificate remoting.
-Phase 8E Stages 1 through 3 are Product Owner accepted. Stage 4 and all later Phase
-8E work remain unauthorized. Phase 8F Stage 1 is Product Owner accepted under
+Phase 8E Stage 1 and the synthetic personalized-memory foundation remain accepted.
+Stage 2 AppLocker architecture is rejected, and Stage 3 qualification is historical
+with routine launch withdrawn. A narrower replacement is design-only. Stage 4 and
+all later Phase 8E work remain unauthorized. Phase 8F Stage 1 is Product Owner accepted under
 PO-DEC-038 for repository preservation only. It is not deployed or integrated, and
 no later Phase 8F stage is authorized.
 

@@ -2,7 +2,7 @@
 
 > Classification: durable acceptance and validation registry
 > Authority: each record is authoritative only for its stated scope
-> Verified through: Phase 8F Stage 1 synthetic-foundation acceptance on 2026-09-02
+> Verified through: PO-DEC-039 Phase 8E Stage 2 incident response on 2026-09-02
 > Last verified: 2026-09-02
 
 Acceptance states must remain distinct:
@@ -21,10 +21,11 @@ Acceptance states must remain distinct:
 | [`ACC-0005-4090-certificate-remoting.md`](ACC-0005-4090-certificate-remoting.md) | One-way certificate-authenticated WinRM from the 3090 to the 4090 | **PRODUCT OWNER ACCEPTED** |
 | [`ACC-0006-4090-telemetry.md`](ACC-0006-4090-telemetry.md) | Telemetry 1.0.1 controlled startup, resources, single instance, and HUD reacquisition | **PRODUCT OWNER ACCEPTED** |
 | [`ACC-0007-phase8e-stage1.md`](ACC-0007-phase8e-stage1.md) | Phase 8E Stage 1 fixture-only projection foundation and bounded Stage 2 authorization | **PRODUCT OWNER ACCEPTED** |
-| [`ACC-0008-phase8e-stage2-windows.md`](ACC-0008-phase8e-stage2-windows.md) | Phase 8E Stage 2 synthetic Windows viewer boundary, rollback, reapply, and acceptance | **PRODUCT OWNER ACCEPTED** |
-| [`ACC-0009-phase8e-stage3-obsidian.md`](ACC-0009-phase8e-stage3-obsidian.md) | Phase 8E Stage 3 dedicated Obsidian synthetic qualification, routine launch promotion, and acceptance | **PRODUCT OWNER ACCEPTED** |
+| [`ACC-0008-phase8e-stage2-windows.md`](ACC-0008-phase8e-stage2-windows.md) | Historical Phase 8E Stage 2 synthetic Windows viewer-boundary evidence | **CURRENT APPLOCKER ARCHITECTURE REJECTED BY PO-DEC-039** |
+| [`ACC-0009-phase8e-stage3-obsidian.md`](ACC-0009-phase8e-stage3-obsidian.md) | Historical Stage 3 application qualification; dependent routine launcher superseded | **HISTORICAL QUALIFICATION; ROUTINE LAUNCH WITHDRAWN** |
 | [`ACC-0010-phase8e-personalized-memory.md`](ACC-0010-phase8e-personalized-memory.md) | Phase 8E synthetic personalized-memory approval, lifecycle, retrieval, rollback, and projection foundation | **PRODUCT OWNER ACCEPTED** |
 | [`ACC-0011-phase8f-stage1.md`](ACC-0011-phase8f-stage1.md) | Phase 8F Stage 1 synthetic trusted secret broker and capability-grant foundation | **PRODUCT OWNER ACCEPTED** |
+| [`ACC-0012-phase8e-incident-response.md`](ACC-0012-phase8e-incident-response.md) | Phase 8E Stage 2 root-cause acceptance and repository-only remediation authority | **PRODUCT OWNER ACCEPTED** |
 | [`PHASE_INDEX.md`](../history/PHASE_INDEX.md) and phase evidence | Historical phase-specific implementation and acceptance | **HISTORICAL; SCOPE VARIES BY RECORD** |
 
 No acceptance may be widened by implication. Automated tests do not establish

@@ -1,8 +1,14 @@
 # ACC-0009: Phase 8E Stage 3 dedicated Obsidian
 
 > Classification: durable automated, live validation, deployment, and acceptance record
-> State: PRODUCT OWNER ACCEPTED
+> State: HISTORICAL APPLICATION QUALIFICATION; ROUTINE LAUNCH SUPERSEDED
 > Recorded: 2026-09-02
+
+> Supersession notice: application qualification evidence remains historical, but
+> the promoted launcher depended on the rejected Stage 2 AppLocker boundary.
+> PO-DEC-039 withdraws current routine-launch approval. See
+> [INC-0001](../incidents/INC-0001-phase8e-stage2-applocker.md) and
+> [ACC-0012](ACC-0012-phase8e-incident-response.md).
 
 ## Accepted scope
 

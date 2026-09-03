@@ -25,6 +25,33 @@ effective only through explicit Product Owner acceptance.
 6. **Supersede.** Name the replaced policy explicitly. Never rewrite historical
    records to make their past state appear current.
 
+## Host System Change Approval stop gate
+
+The lifecycle stops after proposal and review when a change would administer the
+host. A broad phase instruction, general administrative permission, silence, or
+approval for another subsystem is not approval to execute it.
+
+Before execution, submit one exact approval request containing the proposed change,
+necessity, narrowest viable scope, every affected host component, exact commands or
+actions, credible failure impact, reboot implications, complete rollback, normal
+Windows and feature validation, post-rollback and post-reboot validation, and the
+result of prior testing in a disposable VM or equivalent environment. If isolated
+testing has not occurred, explain why. Then stop for explicit Product Owner review.
+
+Rollback design must account for active service state, registry state, cached and
+compiled policy, restart persistence, and offline recovery where relevant. Reversing
+one registry value is not sufficient evidence. Host-security acceptance must prove
+normal Windows applications remain usable before and after a reboot and again after
+rollback and reboot.
+
+Repository automation inventories command and API surfaces associated with
+AppLocker, WDAC, Smart App Control, Code Integrity, security and Group Policy,
+service configuration, firewall configuration, boot configuration, user rights,
+machine-wide registry policy, scheduled tasks, account and group management, and
+live ACL changes. A new file, category, or occurrence fails validation until it is
+explicitly registered for Product Owner review. The registry is a review aid and
+cannot grant authority by itself.
+
 ## Contradictions and references
 
 The latest explicitly accepted canonical policy resolves contradictory current-state

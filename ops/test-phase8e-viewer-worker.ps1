@@ -5,6 +5,11 @@ param([Parameter(Mandatory)][ValidateSet(
     "acl-denied", "ownership-denied"
 )][string]$Case)
 
+# HOST-SYSTEM-CHANGE-QUARANTINE: PO-DEC-039
+# This worker is reachable only from the rejected Stage 2 host test path. Retain
+# its source for evidence, but fail before reading or changing host state.
+throw "PHASE8E_APPLOCKER_BOUNDARY_QUARANTINED: the Stage 2 viewer worker is historical evidence only."
+
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 $projection = "E:\GRACI-Review-Projection"

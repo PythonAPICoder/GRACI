@@ -2,7 +2,7 @@
 
 > Classification: current issue and unresolved-evidence register
 > Authority: descriptive Product Owner/runtime record; issue closure requires evidence
-> Verified through: PO-DEC-038
+> Verified through: PO-DEC-039
 > Last verified: 2026-09-02
 
 ## GRACI-ISSUE-001 — Cold-start/runtime-readiness failure
@@ -110,6 +110,28 @@ Static regression tests cover the classification contract. Direct execution on
 2026-09-01 correctly reported both exact tasks registered and launcher-succeeded;
 the restricted-token error branch has not been physically re-run after repair.
 
+## GRACI-ISSUE-003: Phase 8E Stage 2 AppLocker architecture caused host outage
+
+**State: ROOT CAUSE ACCEPTED; UNSAFE PATH QUARANTINED; HOST RESIDUE UNASSESSED**
+
+Phase 8E Stage 2 enabled machine-wide AppLocker EXE enforcement without a Packaged
+App collection. Windows consequently blocked packaged applications under Event
+8027, including Codex and Snipping Tool. Recovery required removal of the GRACI
+policy and later offline cache removal followed by reboot.
+
+PO-DEC-039 rejects the AppLocker architecture as unsafe and disproportionate. It is
+not part of the current baseline. The repository entry points are quarantined, and
+a narrower identity, filesystem, inert-content, manifest, immutable-generation,
+constrained-viewer, and validated-launcher architecture is approved for design only.
+
+The functional host must not be called clean or affected without a separately
+approved read-only audit. No audit, cleanup, replacement deployment, or Phase 8F
+work is currently authorized. See
+[`INC-0001`](incidents/INC-0001-phase8e-stage2-applocker.md),
+[`ACC-0012`](acceptance/ACC-0012-phase8e-incident-response.md), the
+[`replacement design`](PHASE_8E_REPLACEMENT_BOUNDARY_DESIGN.md), and the
+[`unexecuted audit plan`](PHASE_8E_READ_ONLY_HOST_AUDIT_PLAN.md).
+
 ## GRACI-GAP-001: Telemetry 1.0.1 acceptance
 
 **Status: CLOSED / PRODUCT OWNER ACCEPTED**
@@ -195,9 +217,11 @@ The Product Owner then authorized a separate copy under the review profile. The
 exact copied 1.13.4 executable started under the real review token, registered the
 synthetic vault, read all 25 notes, left the protected projection unchanged, and
 was contained by its viewer-only outbound block. The Product Owner account retained
-read access. The Product Owner accepted Stage 3, and routine launcher promotion
-passed under the real review token. Real data and automatic refresh remain
-unauthorized. See [`ACC-0009`](acceptance/ACC-0009-phase8e-stage3-obsidian.md).
+read access. The Product Owner historically accepted Stage 3, and routine launcher
+promotion passed under the real review token. PO-DEC-039 later withdrew routine
+launch because it depended on the rejected Stage 2 boundary. Real data, replacement
+deployment, and automatic refresh remain unauthorized. See
+[`ACC-0009`](acceptance/ACC-0009-phase8e-stage3-obsidian.md).
 
 ## GRACI-GAP-007: personalized learning is not connected to Obsidian or ordinary runtime
 

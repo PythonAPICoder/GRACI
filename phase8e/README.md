@@ -1,5 +1,9 @@
 # Phase 8E Stage 1: read-only projection foundation
 
+> Current boundary: PO-DEC-039 rejects the former Stage 2 AppLocker architecture
+> and withdraws dependent routine-launch approval. The AppLocker workflow is
+> quarantined. The replacement is design-only and is not deployed.
+
 This stage implements the Product Owner-approved fixture-only foundation for a
 one-way GRACI knowledge review projection. It adds a typed source catalog,
 commit-pinned local Git reads, exact-ID synthetic memory reads, deterministic safe
@@ -32,7 +36,7 @@ Passing tests establish fixture behavior only. The Product Owner accepted this
 bounded Stage 1 implementation on 2026-09-02; that decision does not establish
 deployment, Windows isolation, Obsidian qualification, or real-data privacy.
 
-## Stage 2 authorization boundary
+## Historical Stage 2 authorization boundary
 
 The Product Owner accepted Stage 1 and authorized all Stage 2 work within the
 accepted design on 2026-09-02. Stage 2 must inspect the available local Windows
@@ -46,24 +50,21 @@ unused Obsidian installation, real governed memory, real-data projection, networ
 or firewall changes, deployment, automatic refresh, runtime integration, and Stage
 3 or later work.
 
-## Stage 2 technical state
+## Rejected Stage 2 technical state
 
-The exact host plan is recorded in
-[`PHASE_8E_STAGE2_WINDOWS_PLAN.md`](../docs/PHASE_8E_STAGE2_WINDOWS_PLAN.md). The
-dedicated account, protected sibling roots, source isolation, local AppLocker path
-denies, verification, launcher foundation, rollback, and actual viewer-token test
-harness are implemented. A same-volume move preserves the staging ACL, so every
-successful export must be followed by:
+The exact historical host plan is recorded in
+[`PHASE_8E_STAGE2_WINDOWS_PLAN.md`](../docs/PHASE_8E_STAGE2_WINDOWS_PLAN.md). It
+enabled machine-wide AppLocker without a Packaged App collection and caused a
+serious host-safety incident. PO-DEC-039 rejects it as unsafe and disproportionate.
+The shared host-workflow entry point, worker, and dependent routine launcher now
+fail closed before host access. Do not run the historical finalizer, installer,
+remover, verifier, test, Stage 3, or launcher commands.
 
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\ops\finalize-phase8e-projection.ps1
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\ops\verify-phase8e-review-boundary.ps1 -RequireProjection
-```
-
-The finalizer is exact-pointer and containment bounded. A generation remains closed
-to the viewer until finalization succeeds. Technical evidence is recorded in
-[`ACC-0008`](../docs/acceptance/ACC-0008-phase8e-stage2-windows.md). Stage 2 is
-Product Owner accepted. Application qualification is separately controlled below.
+Historical technical evidence remains in
+[`ACC-0008`](../docs/acceptance/ACC-0008-phase8e-stage2-windows.md) and
+[`INC-0001`](../docs/incidents/INC-0001-phase8e-stage2-applocker.md). The
+[`replacement design`](../docs/PHASE_8E_REPLACEMENT_BOUNDARY_DESIGN.md) is approved
+for design only and is not deployed.
 
 The Product Owner accepts unencrypted local storage as a physical-security risk
 and prohibits installing, enabling, configuring, or deploying BitLocker on either
@@ -94,10 +95,12 @@ the immutable generation. Its exact viewer-only outbound rule blocked update che
 The Product Owner account retained read access and its existing Obsidian installation
 and settings remained unchanged.
 
-The Product Owner accepted Stage 3 and authorized routine launch, commit, and push.
-The exact fail-closed launcher was promoted and passed under the real review token;
-no non-loopback connection was observed and the Product Owner's Obsidian remained
-unchanged. Real-data generation and automatic refresh remain separately controlled.
+The Product Owner historically accepted Stage 3 and authorized routine launch,
+commit, and push. The application qualification evidence remains valid for its
+recorded test, but PO-DEC-039 withdraws routine launch because the launcher depended
+on the rejected Stage 2 boundary. The repository entry point is quarantined.
+Real-data generation, replacement deployment, and automatic refresh remain
+separately controlled.
 See the
 [dedicated plan](../docs/PHASE_8E_STAGE3_DEDICATED_OBSIDIAN_PLAN.md) and
 [acceptance record](../docs/acceptance/ACC-0009-phase8e-stage3-obsidian.md).

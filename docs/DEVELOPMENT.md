@@ -24,6 +24,14 @@ deployment, merge, commit, push, external assistance, or a later roadmap objecti
 4. State scope, exclusions, risks, acceptance criteria, and any Product Owner choice
    needed before making materially different changes.
 
+If implementation identifies a host-system change, stop before executing it. A
+broad phase instruction or general administrative permission is not sufficient.
+Follow the exact
+[`HOST-001`](../governance/CURRENT_POLICY.md#host-system-change-approval) request
+template, identify every command and host resource, and wait for explicit Product
+Owner approval after independent review. Prefer application-local controls over
+user-local controls and user-local controls over machine-wide enforcement.
+
 ## During implementation
 
 - Preserve existing user changes and unrelated untracked files.

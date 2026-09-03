@@ -1,6 +1,11 @@
 [CmdletBinding()]
 param([switch]$VerifyOnly)
 
+# HOST-SYSTEM-CHANGE-QUARANTINE: PO-DEC-039
+# This launcher depends on the rejected AppLocker boundary. Keep its historical
+# verification logic below, but fail before reading or changing host state.
+throw "PHASE8E_APPLOCKER_BOUNDARY_QUARANTINED: routine launch is not approved until a replacement boundary is separately accepted and deployed."
+
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 $root = "E:\GRACI-Review-Projection"

@@ -2,7 +2,7 @@
 
 > Classification: mandatory session entry point
 > Authority: workflow guidance; canonical policy remains under `governance/`
-> Verified through: PO-DEC-038 on 2026-09-02
+> Verified through: PO-DEC-039 on 2026-09-02
 > Last verified: 2026-09-02
 
 Work from the repository root, `E:\GRACI`. Before changing anything, inspect the
@@ -188,3 +188,26 @@ assistance, model integration, memory integration, Obsidian integration, service
 registration, or later Phase 8F work is authorized. See
 [`ACC-0011`](docs/acceptance/ACC-0011-phase8f-stage1.md) and
 [`PHASE_8F_TRUSTED_SECRET_BROKER.md`](docs/PHASE_8F_TRUSTED_SECRET_BROKER.md).
+
+PO-DEC-039 supersedes the current effect of the Phase 8E Stage 2 and dependent
+Stage 3 routine-launch claims above. Stage 2 enabled machine-wide AppLocker without
+a Packaged App collection and caused a serious host-safety incident that blocked
+normal packaged applications. The Product Owner accepted the root-cause analysis,
+rejected the AppLocker architecture as unsafe and disproportionate, withdrew its
+deployment approval, and authorized repository-only remediation. The historical
+source and evidence remain, but the shared host workflow, worker, and routine
+launcher are quarantined before host access. The narrower replacement is approved
+for design only. No host audit, cleanup, Windows change, replacement deployment, or
+Phase 8F continuation is authorized. See
+[`INC-0001`](docs/incidents/INC-0001-phase8e-stage2-applocker.md),
+[`ACC-0012`](docs/acceptance/ACC-0012-phase8e-incident-response.md), and
+[`HOST-001`](governance/CURRENT_POLICY.md#host-system-change-approval).
+
+Host System Change Approval is now a distinct mandatory stop gate. Broad phase
+authority, general administrative permission, silence, or prior authority for
+another subsystem never authorizes host administration. Before any AppLocker,
+WDAC, Smart App Control, Code Integrity, security-policy, Group Policy, service,
+firewall, boot, user-right, machine-registry, scheduled-task, account/group, live
+ACL, or comparable host change, present the exact change, necessity, scope,
+components, commands, risk, reboot behavior, complete rollback, validation, and
+isolated-test evidence, then stop for explicit Product Owner approval.

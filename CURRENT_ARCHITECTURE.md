@@ -2,7 +2,7 @@
 
 > Classification: current descriptive architecture
 > Authority: implementation description; canonical policy remains under `governance/`
-> Verified through: PO-DEC-038 on 2026-09-02
+> Verified through: PO-DEC-039 on 2026-09-02
 > Last verified: 2026-09-02
 
 Accepted policy is canonical in
@@ -121,9 +121,10 @@ The repository also implements:
   catalog, exact local Git-commit and exact-ID synthetic-memory reads, deterministic
   safe Markdown, complete hash manifests, immutable generation promotion, and
   read-only tamper verification; and
-- a separate Phase 8E Stage 2 local Windows boundary with a dedicated standard
-  viewer, protected roots, SID-scoped source isolation, AppLocker execution denial,
-  exact rollback, and a fail-closed launcher foundation; and
+- a proposed Phase 8E replacement viewer boundary using a dedicated standard
+  identity, filesystem separation, strictly inert exported content, exact manifests
+  and hashes, immutable generations, constrained viewer configuration, and an
+  explicit validated launcher, with design only and no approved deployment; and
 - a separate Phase 8F Stage 1 synthetic secret broker with an ephemeral-key Windows
   CNG AES-256-GCM store on a fixed local volume, authenticated and scope-bound
   metadata envelopes, exact one-time or bounded standing grants, persistent
@@ -147,11 +148,12 @@ Future composition should select capabilities
 according to task, policy, latency, resources, and verification needs rather than
 call every subsystem unconditionally.
 
-The Product Owner accepted the locally configured Stage 2 boundary with synthetic
-data only. An NTFS same-volume move preserves the staging ACL, so a bounded
-post-promotion finalizer must make the selected generation inherit the projection
-ACL before viewer use. The launcher verifies that state plus every manifest and
-output hash. Stage 2 itself did not qualify an application.
+The former Stage 2 AppLocker boundary caused a serious packaged-application outage.
+PO-DEC-039 rejects it as unsafe and disproportionate. It is not part of the current
+baseline, and every dependent repository entry point fails closed before host
+access. Historical implementation and validation evidence remain in `ACC-0008` and
+`INC-0001`. The replacement boundary is approved for design only and is not
+deployed.
 
 The first narrow Stage 3 test temporarily exposed the Product Owner's per-user
 executable to the review SID. That candidate did not remain running and was rolled
@@ -159,9 +161,11 @@ back. A separately authorized exact copy now resides in the review profile. It
 retains the verified hash and signature, runs under the review token, reads the
 synthetic projection, writes only its approved configuration locations, and has an
 outbound firewall block scoped to its exact executable and review SID. The Product
-Owner account retains read access to the vault. The Product Owner accepted Stage 3,
-and the exact fail-closed launcher is promoted for routine synthetic-vault use. Real
-data, automatic refresh, and ordinary runtime integration remain unauthorized.
+Owner account retains read access to the vault. The Product Owner historically
+accepted Stage 3, but the promoted launcher depended on the rejected Stage 2
+boundary. PO-DEC-039 withdraws routine-launch approval while preserving the
+application-qualification evidence. Real data, automatic refresh, replacement
+deployment, and ordinary runtime integration remain unauthorized.
 `PO-DEC-034` clarifies that Obsidian must become the readable view of G.R.A.C.I.'s
 approved personal knowledge. A future governed-memory path captures Product Owner
 preferences, methods, taught task procedures, corrections, and lessons after
