@@ -73,6 +73,117 @@ The suite may create ignored synthetic records under `runs/`. Snapshot relevant
 pre-existing state before testing, identify test-created records precisely, and do
 not delete unrelated Product Owner data.
 
+## Persistent local-first development
+
+This section is development workflow guidance for OpenCode and other coding
+agents. It is subordinate to `governance/CURRENT_POLICY.md` and the existing
+authority hierarchy. These instructions do not supersede
+`governance/CURRENT_POLICY.md`; do not grant external/cloud authority; do not
+grant host-system modification authority; do not override Product Owner approval
+requirements; do not authorize quarantined Phase 8E Stage 2/3 workflows; and do
+not alter existing repository safety requirements.
+
+### Local-first development
+
+GRACI development is local-first. Use local LLMs for development whenever
+reasonably capable of performing the task correctly. Cloud/external assistance
+remains governed by existing GRACI governance policy and may only be used when
+permitted by the currently applicable scoped grant or authority. Do not use cloud
+merely for convenience.
+
+### Local development infrastructure
+
+Current local llama.cpp development endpoints:
+
+- RTX 3090: `http://127.0.0.1:8080/v1`
+- RTX 4090: `http://192.168.0.101:8080/v1`
+
+Current available local development models include:
+
+- `qwen3.8-27b-q4_k_m`
+- `GLM-4.7-Flash-64x2.6B-Q4_K_M`
+
+Treat these model names and endpoints as current development configuration, not
+permanent architectural truth. If repository-approved configuration later
+supersedes them, use the newer accepted configuration.
+
+### Development node preference
+
+For OpenCode and other development work, prefer the RTX 4090 as the primary local
+implementation node when it is available and healthy. Use the RTX 3090 as the
+secondary local node for review, challenge, fallback, or other development tasks.
+Do not force development work onto the 3090 when the 4090 provides materially
+better reliability or throughput.
+
+This development preference is separate from, and does not alter, GRACI runtime
+policy. GRACI runtime still treats the RTX 3090 as the primary always-available
+runtime node and the RTX 4090 as optional capacity subject to `ModOrganizer.exe`
+gating and normal health and policy checks.
+
+### Development use of the RTX 4090
+
+The RTX 4090 may be used freely by OpenCode and other development tools for:
+building GRACI, coding, repository analysis, testing, debugging, reviewing,
+benchmarking, and model evaluation.
+
+The GRACI runtime restriction involving `ModOrganizer.exe` does **not** apply to
+development tools. Do not refuse to use the RTX 4090 for development merely because
+`ModOrganizer.exe` is running.
+
+### GRACI runtime distinction
+
+Do not confuse development infrastructure with GRACI's runtime scheduling policy.
+
+For GRACI's own runtime behavior:
+
+- RTX 3090 remains the primary and always-available compute node.
+- RTX 4090 is optional runtime capacity.
+- GRACI must not schedule runtime work to the 4090 while `ModOrganizer.exe` is
+  running.
+- Normal runtime health and policy checks must also permit use of the 4090.
+
+These runtime rules do not restrict OpenCode or manual development.
+
+### Local escalation before cloud
+
+A failed or imperfect first local attempt is not by itself sufficient reason to
+escalate to cloud. When appropriate, first consider:
+
+1. Diagnosing the failure.
+2. Retrying intelligently.
+3. Using the other available local model.
+4. Using the other local node.
+5. Obtaining an independent local review or challenge.
+
+Do not retry indefinitely. Escalate when local approaches are genuinely
+insufficient and existing governance permits it. When cloud assistance is used,
+record concisely why local approaches were insufficient and what the escalation
+was needed to resolve.
+
+### Model roles
+
+Do not assume one local model is universally best. OpenCode may use different
+local models for different development roles, for example: implementer,
+reviewer/challenger, debugger, repository analyst. Prefer empirical task-based
+model selection. Where useful, an implementation performed by one local model may
+be independently reviewed by another local model.
+
+### Verification
+
+A model's claim that work succeeded is not sufficient evidence. Use objective
+verification appropriate to the task, including tests, runtime behavior, static
+checks, logs, repository diff inspection, and other deterministic evidence. Do not
+weaken verification merely to obtain a passing result.
+
+### Local-model learning
+
+Preserve lightweight evidence when practical about: model used, node used,
+task/role, meaningful failures, review findings, and whether cloud escalation was
+required. Do not create elaborate new telemetry infrastructure for this unless
+explicitly requested. This information is intended to help evaluate local-model
+capabilities and eventually inform GRACI's own governed model-selection and
+routing behavior.
+
 ## Current handoff boundary
 
 The durable repository-memory and development-process foundation is Product Owner
