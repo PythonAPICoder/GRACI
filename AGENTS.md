@@ -3,7 +3,8 @@
 > Classification: mandatory session entry point
 > Authority: workflow guidance; canonical policy remains under `governance/`
 > Verified through: PO-DEC-040 on 2026-09-03
-> Last verified: 2026-09-03
+> Last verified: 2026-09-04
+> Experimental development workflow: GPT architect/reviewer + local implementer evaluation
 
 Work from the repository root, `E:\GRACI`. Before changing anything, inspect the
 current branch, HEAD, worktree status, and recent history. Existing changes and
@@ -166,7 +167,10 @@ Do not assume one local model is universally best. OpenCode may use different
 local models for different development roles, for example: implementer,
 reviewer/challenger, debugger, repository analyst. Prefer empirical task-based
 model selection. Where useful, an implementation performed by one local model may
-be independently reviewed by another local model.
+be independently reviewed by another local model. Within the experimental workflow
+below, GPT is the default architect/designer/reviewer when lawfully available in
+the active session, while local models remain the default implementation and
+repair layer.
 
 ### Verification
 
@@ -183,6 +187,110 @@ required. Do not create elaborate new telemetry infrastructure for this unless
 explicitly requested. This information is intended to help evaluate local-model
 capabilities and eventually inform GRACI's own governed model-selection and
 routing behavior.
+
+### Experimental GPT/local development workflow
+
+This is an evaluation workflow, not a governance grant. It applies only within an
+already authorized objective and only where GPT access is already permitted by the
+active session or a current scoped grant. It does not itself authorize
+cloud/external access, host-system changes, deployment, real personal data use,
+quarantined workflows, or any action reserved to the Product Owner.
+
+Role split:
+
+- GPT is the default architect, designer, and reviewer for GRACI development when
+  lawfully available in the active session.
+- Local LLMs are the default implementers, repository workers, debuggers, test
+  runners, and repair agents.
+- The purpose is to keep high-value reasoning and review on GPT while moving
+  token-heavy implementation work to local hardware.
+- GPT should not normally perform implementation itself.
+
+Standard workflow for a newly authorized development objective:
+
+1. GPT defines the bounded architecture/design/task.
+2. OpenCode gives that bounded task to a local implementation model.
+3. The local model performs repository inspection, coding, testing, debugging, and
+   repair.
+4. OpenCode prepares a compact review package for GPT.
+5. GPT returns one of:
+   - `PASS`
+   - `REVISE`
+   - `ESCALATE_TO_PRODUCT_OWNER`
+6. If GPT returns `REVISE`, send the exact findings back to the local implementation
+   model for correction.
+7. The local model performs repair and verification.
+8. Send a targeted updated review package back to GPT.
+9. Continue until GPT returns `PASS` or Product Owner escalation is required.
+
+Local implementation preference:
+
+- Prefer the RTX 4090 local node for implementation when available and healthy.
+- Use the RTX 3090 as secondary local capacity for review/challenge, fallback,
+  alternate-model attempts, debugging, and other local development work.
+- Current local models include `qwen3.8-27b-q4_k_m` and
+  `GLM-4.7-Flash-64x2.6B-Q4_K_M`.
+- Do not assume one local model is universally best; use empirical performance.
+
+GPT review package:
+
+Prepare a compact, targeted review package rather than sending the entire
+repository unless necessary. Include only what is needed:
+
+- authorized objective;
+- architecture/design being implemented;
+- implementation summary;
+- relevant changed files;
+- `git diff`;
+- focused test results;
+- broad/full regression results where applicable;
+- local-model findings;
+- unresolved questions or risks;
+- relevant governance excerpts only when needed.
+
+GPT role boundaries:
+
+GPT may design, review, identify defects, provide exact corrective guidance,
+recommend acceptance/revision/escalation, and act as the corrective expert when
+local models cannot resolve an issue.
+
+GPT does not gain Product Owner authority. GPT cannot authorize host-system changes,
+governance changes, deployment requiring Product Owner approval, real personal data
+use, new cloud/external authority, destructive Git actions, quarantined workflows,
+or any other action reserved to the Product Owner.
+
+Direct GPT implementation:
+
+Direct GPT implementation is an exception, not the default. It is allowed only when
+local models repeatedly fail to implement a correction, GPT has identified a defect
+that local models cannot reliably repair, the task is sufficiently small and targeted
+that GPT producing the exact patch is more efficient than another local retry, and
+existing governance permits it. In that case, GPT should produce the minimum
+corrective patch or exact implementation instructions, and OpenCode/local models
+should still run the objective verification.
+
+Product Owner involvement:
+
+Do not stop for Product Owner interaction at every normal development step. Product
+Owner involvement is required when current governance explicitly requires it, a new
+objective must be authorized, host-system changes are proposed, deployment or
+real-data use requires approval, governance/authority changes are proposed, GPT
+returns `ESCALATE_TO_PRODUCT_OWNER`, or an ambiguity cannot be resolved from
+repository authority.
+
+Verification remains mandatory:
+
+GPT review is not a substitute for tests. Local implementation must still provide
+objective evidence: focused tests, regression tests, runtime evidence where
+applicable, diff inspection, logs/static checks, and repository state.
+
+Experiment tracking:
+
+Treat this workflow as an evaluation. Preserve lightweight evidence about GPT
+architecture/review usage, local model used, node used, implementation
+success/failure, the number of local repair cycles, whether GPT provided direct
+corrective implementation, and whether Product Owner escalation was required. Do not
+build elaborate telemetry for this unless separately authorized.
 
 ## Current handoff boundary
 
