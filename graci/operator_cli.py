@@ -55,7 +55,8 @@ class OperatorComposition:
 
 def build_operator_composition(repository_root: Path | None = None, *,
                                visualizer: bool = False,
-                               browser_operator: bool = False) -> OperatorComposition:
+                               browser_operator: bool = False,
+                               memory_context_provider: Callable[[], Any] | None = None) -> OperatorComposition:
     """Compose accepted local components without adding another runtime authority."""
     root = repository_root or Path(__file__).resolve().parents[1]
     health_service = RuntimeHealthService(RuntimeHealthCollector(root))
@@ -86,7 +87,8 @@ def build_operator_composition(repository_root: Path | None = None, *,
         interrupt_speaking=presentation.interrupt_playback)
     coordinator = ExplicitTurnCoordinator(
         Controller(observer=runtime_observer,
-                   runtime_context_provider=health_service.prompt_context),
+                   runtime_context_provider=health_service.prompt_context,
+                   memory_context_provider=memory_context_provider),
         push_to_talk=push_to_talk,
         final_response_constructor=GovernedSummaryResponseConstructor(),
         speech_presentation=presentation,

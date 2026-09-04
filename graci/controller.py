@@ -8,6 +8,9 @@ from pathlib import Path
 from typing import Any, Callable
 
 from .config import Config
+from .memory_context import (STATUS_APPLIED, STATUS_CONTEXT_VALIDATION_FAILED,
+                             STATUS_NOT_CONFIGURED, STATUS_PROVIDER_ERROR,
+                             validate_memory_context_resolution)
 from .observation import ObservationKind, observe
 from .provider import LocalLlamaCppProvider, ProviderError
 from .runtime_context import validate_prompt_context
@@ -25,11 +28,13 @@ def _timestamp() -> str:
 class Controller:
     def __init__(self, config: Config | None = None, provider: Any = None,
                  observer: Any = None,
-                 runtime_context_provider: Callable[[], dict[str, Any] | None] | None = None):
+                 runtime_context_provider: Callable[[], dict[str, Any] | None] | None = None,
+                 memory_context_provider: Callable[[], Any] | None = None):
         self.config = config or Config()
         self.provider = provider or LocalLlamaCppProvider(self.config)
         self.observer = observer
         self.runtime_context_provider = runtime_context_provider
+        self.memory_context_provider = memory_context_provider
 
     def run(self, task: str) -> dict[str, Any]:
         if not isinstance(task, str) or not task.strip():
@@ -45,6 +50,27 @@ class Controller:
                 context_status = "available" if candidate is not None else "unavailable"
             except Exception:
                 context_status = "unavailable"
+        memory_resolution = None
+        memory_status = STATUS_NOT_CONFIGURED
+        memory_reason: str | None = None
+        memory_sha256: str | None = None
+        if self.memory_context_provider is not None:
+            try:
+                candidate_memory_resolution = self.memory_context_provider()
+            except Exception:
+                memory_status = STATUS_PROVIDER_ERROR
+                memory_reason = "memory context provider failed"
+            else:
+                try:
+                    memory_resolution = validate_memory_context_resolution(
+                        candidate_memory_resolution)
+                    memory_status = memory_resolution.status
+                    memory_reason = memory_resolution.reason
+                    memory_sha256 = memory_resolution.context_sha256
+                except ValueError:
+                    memory_status = STATUS_CONTEXT_VALIDATION_FAILED
+                    memory_reason = "memory context resolution is invalid"
+                    memory_sha256 = None
         record: dict[str, Any] = {
             "schema_version": RUN_RECORD_SCHEMA_VERSION,
             "run_id": str(uuid.uuid4()),
@@ -64,6 +90,9 @@ class Controller:
             "model_generation_attempts": [],
             "trusted_runtime_context_status": context_status,
             "trusted_runtime_context": trusted_context,
+            "untrusted_memory_context_status": memory_status,
+            "untrusted_memory_context_reason": memory_reason,
+            "untrusted_memory_context_sha256": memory_sha256,
             "errors": [],
         }
         observe(self.observer, ObservationKind.TASK_STARTED, record["run_id"],
@@ -86,6 +115,9 @@ class Controller:
                 record["model_generation_attempts"].append(attempt)
                 request_context = ({"trusted_runtime_context": trusted_context}
                                    if trusted_context is not None else {})
+                if (memory_resolution is not None and memory_status == STATUS_APPLIED and
+                        memory_resolution.context is not None):
+                    request_context["untrusted_memory_context"] = memory_resolution.context
                 response = (self.provider.execute(task, **request_context) if correction is None else
                             self.provider.execute(task, correction=correction, **request_context))
                 observe(self.observer, ObservationKind.MODEL_COMPLETED, record["run_id"],

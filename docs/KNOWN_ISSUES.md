@@ -234,7 +234,7 @@ deployment, and automatic refresh remain unauthorized. See
 
 ## GRACI-GAP-007: personalized learning is not connected to Obsidian or ordinary runtime
 
-**Status: OPEN / SYNTHETIC FOUNDATION ACCEPTED / NOT DEPLOYED**
+**Status: OPEN / SYNTHETIC FOUNDATION ACCEPTED / GAP-007 ADAPTER IMPLEMENTED FOR REVIEW / NOT DEPLOYED**
 
 The accepted synthetic Obsidian viewer does not yet fulfill the Product Owner's
 central goal for the vault. G.R.A.C.I. cannot yet capture an approved preference,
@@ -257,8 +257,17 @@ tests cover no-write-without-approval, exact approval, scope, provenance,
 correction, retirement, conflict, stale state, injection isolation, failed-write
 preservation, audited rollback, and deterministic projection. The Product Owner
 accepted the synthetic foundation under PO-DEC-036 and authorized its commit and
-push. The gap remains open because no trusted ordinary-turn adapter, real-data
-boundary, runtime retrieval, maintainer command, or real vault refresh exists.
+push.
+
+The current Product Owner task then approved a synthetic-only implementation of the
+ordinary-turn retrieval adapter and maintainer refresh helper. The implementation
+adds a bounded `UNTRUSTED_CONTEXT_DATA` memory-context contract, an optional
+controller/provider pass-through, a synthetic personalized-memory context
+provider, and a synthetic exact-generation vault refresh helper. It still does not
+create a trusted conversational approval path, real-data boundary, user-facing
+maintainer command, deployed projection, automatic refresh, or real Obsidian
+refresh. The gap therefore remains open while that implementation awaits Product
+Owner review.
 
 ## GRACI-GAP-008: Phase 8F broker is synthetic and lacks production trust anchors
 

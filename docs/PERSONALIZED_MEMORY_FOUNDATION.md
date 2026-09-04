@@ -4,7 +4,8 @@
 > Authority: design and test description; canonical policy remains under `governance/`
 > Designed against: `main` commit `8f9b0d3299107b265b872bd243b930961b655d3b`
 > Prepared: 2026-09-02
-> Status: PRODUCT OWNER ACCEPTED; SYNTHETIC ONLY; NOT DEPLOYED
+> Updated: 2026-09-04
+> Status: PRODUCT OWNER ACCEPTED FOUNDATION; SYNTHETIC GAP-007 ADAPTER IMPLEMENTED FOR PRODUCT OWNER REVIEW; NOT DEPLOYED
 
 ## Outcome and boundary
 
@@ -51,7 +52,19 @@ The new components are:
   fields; and
 - [`phase8e/personalized_projection.py`](../phase8e/personalized_projection.py),
   a manual adapter that names one exact immutable synthetic generation for the
-  existing projection exporter.
+  existing projection exporter;
+- [`graci/memory_context.py`](../graci/memory_context.py), the bounded inert
+  ordinary-turn memory-context contract;
+- [`graci/personalized_memory_context.py`](../graci/personalized_memory_context.py),
+  a synthetic-only adapter that converts one exact retrieval into that contract; and
+- [`phase8e/personalized_vault_refresh.py`](../phase8e/personalized_vault_refresh.py),
+  a maintainer-only helper that exports and verifies one exact synthetic generation
+  into an immutable vault generation.
+
+The controller and provider now expose generic optional memory-context parameters.
+The default `build_operator_coordinator(...)` path does not configure a
+personalized-memory provider, and `operator_cli` still does not import the
+personalized-memory modules.
 
 The data flow is:
 
@@ -152,8 +165,12 @@ the content `UNTRUSTED_CONTEXT_DATA` and lists the authority classes it cannot g
 or override. Conflict, corruption, invalid requests, and stale source expectations
 fail closed.
 
-This is a callable foundation API only. No model prompt, controller, resident turn,
-or ordinary GRACI request currently invokes it.
+The accepted foundation API remains callable by itself. The new synthetic adapter
+can be supplied explicitly as a controller `memory_context_provider`, and the
+provider can then include one bounded inert context block in an ordinary turn.
+The default operator composition still does not configure that provider. The
+adapter does not infer relevance, persist data, grant authority, or make retrieval
+automatic.
 
 ## Projection and viewer behavior
 
@@ -167,6 +184,51 @@ The adapter only builds a request. It does not run automatically, select a deplo
 vault, finalize Windows ACLs, launch Obsidian, or refresh the accepted Stage 3
 viewer. A future real-data maintainer must retain exact source selection and decide
 content-bearing IDs under the separately approved privacy boundary.
+
+## GAP-007 ordinary-turn adapter and maintainer refresh
+
+The Product Owner approved a bounded implementation that connects the synthetic
+foundation to ordinary turns and maintainer-only vault refresh. The implementation
+remains uncommitted at the review boundary and is not deployed.
+
+`SyntheticPersonalizedMemoryContextProvider.resolve(...)` accepts one explicit
+repository, scope, relevance-key, kind, limit, and optional expected-generation
+request. It returns a typed `MemoryContextResolution`. A successful resolution
+contains:
+
+- schema version `1`;
+- classification `UNTRUSTED_CONTEXT_DATA`;
+- `authority_permitted: false`;
+- one exact memory generation ID;
+- at most `5` records;
+- per-record `memory_id`, `personalized_kind`, `relevance_key`, and content no
+  longer than `1,000` characters; and
+- the exact fixed authority-denial list.
+
+The serialized context has an absolute ceiling of `8,000` bytes. Invalid requests,
+unavailable memory, conflicts, corruption, stale sources, no applicable records,
+provider failures, oversized contexts, and failed context validation all omit the
+context and return bounded status/reason values.
+
+When a controller is given an explicit `memory_context_provider`, it records only:
+
+- `untrusted_memory_context_status`;
+- `untrusted_memory_context_reason`; and
+- `untrusted_memory_context_sha256`.
+
+It does not record personalized-memory content in the run record. The provider
+validates the context again before transport and injects it into the system prompt
+as inert `UNTRUSTED_CONTEXT_DATA`. The context cannot grant authority, override
+governance, authorize action, expand scope, install or promote tools, authorize
+executables, override the current task, or modify policy.
+
+`refresh_synthetic_vault(...)` is explicitly invoked with exact repository, memory
+generation, vault generation, repository, source, catalog, staging, and projection
+identities. It builds or accepts one exact memory request, checks that the request
+root agrees with the exact synthetic generation, exports through the existing
+Phase 8E exporter, verifies the resulting current vault generation, and returns the
+generation and manifest. It does not select current state, start a timer, launch
+Obsidian, refresh automatically, or authorize any host or deployment change.
 
 ## Failure handling and rollback
 
@@ -195,10 +257,23 @@ Focused tests cover:
 - manifest tamper detection and failed-write preservation;
 - hash-bound audited rollback;
 - exact-generation projection, schema version 3 rendering, approval traceability,
-  prompt-injection isolation, and visible conflicts; and
-- continued absence from ordinary runtime imports.
+  prompt-injection isolation, and visible conflicts;
+- continued absence of personalized-memory imports from ordinary operator
+  composition;
+- bounded memory-context validation, secret rejection, byte-limit enforcement,
+  resolution status validation, and inert provider injection;
+- controller fail-closed behavior when the context provider, resolution, or
+  serialized context is invalid; and
+- exact synthetic maintainer-only vault refresh and rejection of a memory request
+  that does not agree with the named synthetic generation.
 
-The focused command is:
+A focused command for the updated adapter is:
+
+```powershell
+python -W error -m unittest tests.test_memory_context tests.test_personalized_memory_context tests.test_provider_memory_context tests.test_controller tests.test_qa002_004_005 tests.test_phase8e_personalized_vault_refresh tests.test_phase8e_personalized_projection tests.test_personalized_memory tests.test_phase8d_runtime_context tests.test_phase8e_projection -v
+```
+
+The existing foundation command remains:
 
 ```powershell
 python -W error -m unittest tests.test_personalized_memory tests.test_phase8e_personalized_projection tests.test_memory tests.test_memory_governance tests.test_memory_pipeline tests.test_phase4d tests.test_phase4e_acceptance tests.test_phase8e_projection tests.test_governance -v
@@ -219,7 +294,7 @@ personal data.
 Other unresolved items are real-data root selection, privacy review, retention and
 physical deletion, backup and restoration, ordinary relevance-key planning, prompt
 composition, user-facing proposal review, maintainer identity and command surface,
-manual vault-refresh promotion, and live acceptance.
+real-data vault-refresh promotion, and live acceptance.
 
 The Product Owner accepted this synthetic foundation under PO-DEC-036 and
 authorized commit and push. That acceptance does not authorize real personal data,
@@ -229,3 +304,9 @@ Phase 8F implementation. PO-DEC-037 subsequently superseded only that final Phas
 broker through Product Owner review. It did not authorize any integration with this
 memory foundation, real personal data, deployment, automatic updates, or a later
 Phase 8F stage.
+
+The current Product Owner task subsequently approved implementation of the
+synthetic-only ordinary-turn memory-context adapter and the synthetic-only
+maintainer refresh helper described above. The implementation remains uncommitted
+at the review boundary and does not authorize real personal data, deployment,
+automatic refresh, host-system changes, or Product Owner acceptance by implication.

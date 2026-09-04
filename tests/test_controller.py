@@ -6,6 +6,8 @@ from pathlib import Path
 
 from graci.config import Config
 from graci.controller import Controller
+from graci.memory_context import (AUTHORITY_DENIALS, MemoryContextResolution,
+                                  memory_context_sha256, validate_memory_context)
 from graci.provider import LocalLlamaCppProvider, ProviderResponse
 
 
@@ -15,10 +17,35 @@ class FakeProvider:
         self.responses = [ProviderResponse(status, item, "qwen3.8-27b-q4_k_m")
                           for item in contents]
         self.calls = []
+        self.memory_contexts = []
 
-    def execute(self, task: str, *, correction: str | None = None) -> ProviderResponse:
+    def execute(self, task: str, *, correction: str | None = None,
+                trusted_runtime_context: dict | None = None,
+                untrusted_memory_context: dict | None = None) -> ProviderResponse:
         self.calls.append((task, correction))
+        self.memory_contexts.append(untrusted_memory_context)
         return self.responses[min(len(self.calls) - 1, len(self.responses) - 1)]
+
+
+MEMORY_ID = "01020304-0506-4000-8000-010203040506"
+GENERATION_ID = "09080706-0504-4000-8000-090807060504"
+
+
+def valid_memory_context() -> dict:
+    return validate_memory_context({
+        "schema_version": 1,
+        "classification": "UNTRUSTED_CONTEXT_DATA",
+        "authority_permitted": False,
+        "memory_generation_id": GENERATION_ID,
+        "record_count": 1,
+        "records": [{
+            "memory_id": MEMORY_ID,
+            "personalized_kind": "preference",
+            "relevance_key": "user.synthetic.controller",
+            "content": "Synthetic controller context.",
+        }],
+        "authority_denied": list(AUTHORITY_DENIALS),
+    })
 
 
 class ControllerTests(unittest.TestCase):
@@ -200,6 +227,76 @@ class ControllerTests(unittest.TestCase):
             Config(endpoint="http://user:secret@127.0.0.1:8080/v1")
         with self.assertRaises(ValueError):
             Config(node="4090-optional")
+
+    def test_applied_memory_context_is_passed_without_persisting_content(self):
+        context = valid_memory_context()
+        provider = FakeProvider('{"schema_version":2,"status":"PASS","summary":"done",'
+                                '"user_response":"Hello."}')
+        record = Controller(
+            self.config, provider,
+            memory_context_provider=lambda: MemoryContextResolution(
+                context, "applied", None, memory_context_sha256(context)),
+        ).run("Hello, Gracie.")
+        self.assertEqual(record["status"], "PASS")
+        self.assertEqual(record["untrusted_memory_context_status"], "applied")
+        self.assertIsNone(record["untrusted_memory_context_reason"])
+        self.assertEqual(record["untrusted_memory_context_sha256"],
+                         memory_context_sha256(context))
+        self.assertEqual(provider.memory_contexts, [context])
+        persisted = self.persisted(record)
+        self.assertNotIn("untrusted_memory_context", persisted)
+        self.assertNotIn("Synthetic controller context.", json.dumps(persisted))
+
+    def test_failed_memory_context_is_not_passed_and_records_bounded_reason(self):
+        provider = FakeProvider('{"schema_version":2,"status":"PASS","summary":"done",'
+                                '"user_response":"Hello."}')
+        record = Controller(
+            self.config, provider,
+            memory_context_provider=lambda: MemoryContextResolution(
+                None, "memory_conflict", "synthetic memory candidates conflict"),
+        ).run("Hello, Gracie.")
+        self.assertEqual(record["status"], "PASS")
+        self.assertEqual(record["untrusted_memory_context_status"], "memory_conflict")
+        self.assertEqual(record["untrusted_memory_context_reason"],
+                         "synthetic memory candidates conflict")
+        self.assertIsNone(record["untrusted_memory_context_sha256"])
+        self.assertEqual(provider.memory_contexts, [None])
+
+    def test_memory_provider_exception_fails_closed(self):
+        provider = FakeProvider('{"schema_version":2,"status":"PASS","summary":"done",'
+                                '"user_response":"Hello."}')
+        def broken():
+            raise RuntimeError("synthetic memory unavailable")
+        record = Controller(self.config, provider,
+                            memory_context_provider=broken).run("Hello, Gracie.")
+        self.assertEqual(record["status"], "PASS")
+        self.assertEqual(record["untrusted_memory_context_status"], "provider_error")
+        self.assertEqual(record["untrusted_memory_context_reason"],
+                         "memory context provider failed")
+        self.assertEqual(provider.memory_contexts, [None])
+
+    def test_invalid_memory_resolution_fails_closed(self):
+        provider = FakeProvider('{"schema_version":2,"status":"PASS","summary":"done",'
+                                '"user_response":"Hello."}')
+        record = Controller(
+            self.config, provider,
+            memory_context_provider=lambda: MemoryContextResolution(None, "applied"),
+        ).run("Hello, Gracie.")
+        self.assertEqual(record["status"], "PASS")
+        self.assertEqual(record["untrusted_memory_context_status"],
+                         "context_validation_failed")
+        self.assertEqual(record["untrusted_memory_context_reason"],
+                         "memory context resolution is invalid")
+        self.assertEqual(provider.memory_contexts, [None])
+
+    def test_controller_without_memory_provider_records_not_configured(self):
+        provider = FakeProvider('{"schema_version":2,"status":"PASS","summary":"done",'
+                                '"user_response":"Hello."}')
+        record = Controller(self.config, provider).run("Hello, Gracie.")
+        self.assertEqual(record["untrusted_memory_context_status"], "not_configured")
+        self.assertIsNone(record["untrusted_memory_context_reason"])
+        self.assertIsNone(record["untrusted_memory_context_sha256"])
+        self.assertEqual(provider.memory_contexts, [None])
 
 
 if __name__ == "__main__":
